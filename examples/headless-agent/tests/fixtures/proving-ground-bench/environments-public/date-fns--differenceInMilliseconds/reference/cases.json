@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/differenceInMilliseconds/test.ts › differenceInMilliseconds › returns the number of milliseconds between the given dates",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { differenceInMilliseconds } from \"./src/differenceInMilliseconds/index.js\";\n{\n{\n{\nconst result = differenceInMilliseconds(new Date(2014, 6 /* Jul */, 2, 12, 30, 20, 700), new Date(2014, 6 /* Jul */, 2, 12, 30, 20, 600));\n        expect(result).toBe(100);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/differenceInMilliseconds/test.ts › differenceInMilliseconds › returns a negative number if the time value of the first date is smaller",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { differenceInMilliseconds } from \"./src/differenceInMilliseconds/index.js\";\n{\n{\n{\nconst result = differenceInMilliseconds(new Date(2014, 6 /* Jul */, 2, 12, 30, 20, 600), new Date(2014, 6 /* Jul */, 2, 12, 30, 20, 700));\n        expect(result).toBe(-100);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/differenceInMilliseconds/test.ts › differenceInMilliseconds › accepts timestamps",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { differenceInMilliseconds } from \"./src/differenceInMilliseconds/index.js\";\n{\n{\n{\nconst result = differenceInMilliseconds(new Date(2014, 8 /* Sep */, 5, 18, 30, 45, 500).getTime(), new Date(2014, 8 /* Sep */, 5, 18, 30, 45, 500).getTime());\n        expect(result).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/differenceInMilliseconds/test.ts › differenceInMilliseconds › does not return -0 when the given dates are the same",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { differenceInMilliseconds } from \"./src/differenceInMilliseconds/index.js\";\n{\n{\n{\nfunction isNegativeZero(x) {\n            return x === 0 && 1 / x < 0;\n        }\n        const result = differenceInMilliseconds(new Date(2014, 8 /* Sep */, 5, 0, 0), new Date(2014, 8 /* Sep */, 5, 0, 0));\n        const resultIsNegative = isNegativeZero(result);\n        expect(resultIsNegative).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "pkgs/core/src/differenceInMilliseconds/test.ts › differenceInMilliseconds › returns NaN if the first date is `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { differenceInMilliseconds } from \"./src/differenceInMilliseconds/index.js\";\n{\n{\n{\nconst result = differenceInMilliseconds(new Date(NaN), new Date(2017, 0 /* Jan */, 1));\n        expect(isNaN(result)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "pkgs/core/src/differenceInMilliseconds/test.ts › differenceInMilliseconds › returns NaN if the second date is `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { differenceInMilliseconds } from \"./src/differenceInMilliseconds/index.js\";\n{\n{\n{\nconst result = differenceInMilliseconds(new Date(2017, 0 /* Jan */, 1), new Date(NaN));\n        expect(isNaN(result)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "pkgs/core/src/differenceInMilliseconds/test.ts › differenceInMilliseconds › returns NaN if the both dates are `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { differenceInMilliseconds } from \"./src/differenceInMilliseconds/index.js\";\n{\n{\n{\nconst result = differenceInMilliseconds(new Date(NaN), new Date(NaN));\n        expect(isNaN(result)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

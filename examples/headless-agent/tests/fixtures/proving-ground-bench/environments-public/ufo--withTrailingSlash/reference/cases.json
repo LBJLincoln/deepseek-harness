@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-005",
+    "title": "test/trailing-slash.test.ts › withTrailingSlash, queryParams: false › falsy value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { withTrailingSlash, withoutTrailingSlash } from \"./src/utils.js\";\n{\n{\nconst tests = {\n        \"\": \"/\",\n        bar: \"bar/\",\n        \"bar#abc\": \"bar#abc/\",\n        \"bar/\": \"bar/\",\n        \"foo?123\": \"foo?123/\",\n        \"foo/?123\": \"foo/?123/\",\n        \"foo/?123#abc\": \"foo/?123#abc/\",\n    };\n{\nexpect(withTrailingSlash()).toBe(\"/\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/trailing-slash.test.ts › withTrailingSlash, queryParams: true › falsy value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { withTrailingSlash, withoutTrailingSlash } from \"./src/utils.js\";\n{\n{\nconst tests = {\n        \"\": \"/\",\n        bar: \"bar/\",\n        \"bar/\": \"bar/\",\n        \"foo?123\": \"foo/?123\",\n        \"foo/?123\": \"foo/?123\",\n        \"foo?123#abc\": \"foo/?123#abc\",\n        \"/#abc\": \"/#abc\",\n        \"#abc\": \"#abc\",\n        \"#\": \"#\",\n    };\n{\nexpect(withTrailingSlash()).toBe(\"/\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

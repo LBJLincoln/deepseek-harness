@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-003",
+    "title": "test/factorial.test.js › factorial › can calculate 0! = 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_factorial } from \"./src/factorial.js\";\nconst ss = Object.freeze({ factorial: __ns1_factorial });\n{\n{\n{\nassert.equal(ss.factorial(0), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/factorial.test.js › factorial › can calculate 1! = 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_factorial } from \"./src/factorial.js\";\nconst ss = Object.freeze({ factorial: __ns1_factorial });\n{\n{\n{\nassert.equal(ss.factorial(1), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/factorial.test.js › factorial › can calculate 100! = 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_factorial } from \"./src/factorial.js\";\nconst ss = Object.freeze({ factorial: __ns1_factorial });\n{\n{\n{\nassert.equal(ss.factorial(100), 9.33262154439441e157);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/factorial.test.js › factorial › returns Infinity for numbers too large to represent safely",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_factorial } from \"./src/factorial.js\";\nconst ss = Object.freeze({ factorial: __ns1_factorial });\n{\n{\n{\nassert.equal(ss.factorial(171), Infinity);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,146 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/iqr.test.js › interquartile range (iqr) › can get proper iqr of an even-length list",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_iqr } from \"./src/interquartile_range.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ iqr: __ns1_iqr, quantile: __ns1_quantile });\n{\n{\n{\nconst even = Object.freeze([3, 6, 7, 8, 8, 10, 13, 15, 16, 20]);\n        assert.equal(ss.quantile(even, 0.75) - ss.quantile(even, 0.25), ss.iqr(even));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/iqr.test.js › interquartile range (iqr) › can get proper iqr of an odd-length list",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_iqr } from \"./src/interquartile_range.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ iqr: __ns1_iqr, quantile: __ns1_quantile });\n{\n{\n{\nconst odd = Object.freeze([3, 6, 7, 8, 8, 9, 10, 13, 15, 16, 20]);\n        assert.equal(ss.quantile(odd, 0.75) - ss.quantile(odd, 0.25), ss.iqr(odd));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/quantile.test.js › quantile › can get proper quantiles of an even-length list",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nconst even = Object.freeze([3, 6, 7, 8, 8, 10, 13, 15, 16, 20]);\n        assert.equal(ss.quantile(even, 0.25), 7.25);\n        assert.equal(ss.quantile(even, 0.5), 9);\n        assert.equal(ss.quantile(even, 0.75), 14.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/quantile.test.js › quantile › can get proper quantiles of an odd-length list",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nconst odd = Object.freeze([3, 6, 7, 8, 8, 9, 10, 13, 15, 16, 20]);\n        assert.equal(ss.quantile(odd, 0.25), 7.5);\n        assert.equal(ss.quantile(odd, 0.5), 9);\n        assert.equal(ss.quantile(odd, 0.75), 14);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/quantile.test.js › quantile › the median quantile is equal to the median",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nconst rand = Object.freeze([1, 4, 5, 8]);\n        assert.equal(ss.quantile(rand, 0.5), ss.median(rand));\n        const rand2 = Object.freeze([10, 50, 2, 4, 4, 5, 8]);\n        assert.equal(ss.quantile(rand2, 0.5), ss.median(rand2));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "test/quantile.test.js › quantile › test odd-value case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nassert.equal(ss.quantile([0, 1, 2, 3, 4], 0.2), 0.8);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "test/quantile.test.js › quantile › max quantile is equal to the max",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nassert.equal(ss.quantile([1, 2, 3], 1), ss.max([1, 2, 3]));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "test/quantile.test.js › quantile › min quantile is equal to the min",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nassert.equal(ss.quantile([1, 2, 3], 0), ss.min([1, 2, 3]));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "test/quantile.test.js › quantile › if quantile arg is an array, response is an array of quantiles",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nconst odd = Object.freeze([3, 6, 7, 8, 8, 9, 10, 13, 15, 16, 20]);\n        assert.deepEqual(ss.quantile(odd, [0, 0.25, 0.5, 0.75, 1]), [3, 7.5, 9, 14, 20]);\n        assert.deepEqual(ss.quantile(odd, [0.75, 0.5]), [14, 9]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "test/quantile.test.js › quantile › can get an array of quantiles on a small number of elements",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nconst input = Object.freeze([500, 468, 454, 469]);\n        assert.deepEqual(ss.quantile(input, [0.25, 0.5, 0.75]), [464.5, 468.5, 476.75]);\n        assert.deepEqual(ss.quantile(input, [0.05, 0.25, 0.5, 0.75, 0.95]), [456.1, 464.5, 468.5, 476.75, 495.34999999999997]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "test/quantile.test.js › quantile › array of quantiles is independent of which quantiles are requested (#704)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\n// Each quantile must equal the result of computing it on its own,\n        // regardless of the other quantiles requested alongside it.\n        const data = Object.freeze([\n            4534264.499853279, 0, 0, 4441655.968117084, 7982031.499157332,\n            11183760.330270268, 8374531.7466523405, 7537166.851276029,\n            6408451.109897822, 4858231.646338846, 6409803.519554875,\n            4296216.572964368, 5367514.3078208575, 6364913.420875475,\n            8621150.51996475, 9236261.500350267, 7850954.174512796,\n            6026897.449805159, 3569031.9331034794, 5336662.162307054,\n            6953168.388225255, 6789669.207787706, 6225885.17604323,\n            5217135.654872652, 6199349.484675659, 5858452.126622974\n        ]);\n        const ps = [0.0, 0.05, 0.95, 1.0];\n        assert.deepEqual(ss.quantile(data, ps), ps.map((p) => ss.quantile(data, p)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "test/quantile.test.js › quantile › array of quantiles matches a full sort for tricky inputs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\n// Regression for multiQuantileSelect: a narrow quickselect could\n        // disturb an already-finalized order statistic. Compare against a\n        // brute-force fully-sorted computation across duplicate-heavy data.\n        const quantileSorted = (sorted, p) => {\n            const idx = (sorted.length - 1) * p;\n            if (p === 1)\n                return sorted[sorted.length - 1];\n            if (p === 0)\n                return sorted[0];\n            const lower = Math.floor(idx);\n            const upper = Math.ceil(idx);\n            return (sorted[lower] + (idx - lower) * (sorted[upper] - sorted[lower]));\n        };\n        const cases = [\n            {\n                x: [\n                    31, 16, 67, 56, 16, 12, 79, 13, 3, 37, 41, 68, 3, 52, 88,\n                    55, 44, 7\n                ],\n                ps: [0.75, 0, 0.1, 0.95, 0.2]\n            },\n            {\n                x: [\n                    9784654, 9784654, 1295491, 3093978, 5430034, 0, 9057878,\n                    4402670, 9734910, 4110841, 8156564, 2673582, 3841950\n                ],\n                ps: [0, 0.33, 0.5, 0.95, 1]\n            }\n        ];\n        for (const { x, ps } of cases) {\n            const sorted = x.slice().sort((a, b) => a - b);\n            assert.deepEqual(ss.quantile(x, ps), ps.map((p) => quantileSorted(sorted, p)));\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

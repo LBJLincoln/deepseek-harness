@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-round",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/math/round.ts",
+    "tests": [
+      "src/math/round.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/math/round.js",
+    "function": "round"
+  },
+  "title": "Implement round from es-toolkit",
+  "prompt": "`src/math/round.js` is the JavaScript build of `src/math/round.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `round`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Rounds a number to a specified precision.\n *\n * This function takes a number and an optional precision value, and returns the number rounded\n * to the specified number of decimal places.\n *\n * @param value - The number to round.\n * @param [precision=0] - The number of decimal places to round to. Defaults to 0.\n * @returns The rounded number.\n * @throws {Error} Throws an error if `Precision` is not integer.\n *\n * @example\n * const result1 = round(1.2345); // result1 will be 1\n * const result2 = round(1.2345, 2); // result2 will be 1.23\n * const result3 = round(1.2345, 3); // result3 will be 1.235\n * const result4 = round(1.2345, 3.1); // This will throw an error\n */\nexport function round(value: number, precision = 0): number\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

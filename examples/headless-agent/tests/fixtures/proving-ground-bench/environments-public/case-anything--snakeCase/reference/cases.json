@@ -1,0 +1,314 @@
+[
+  {
+    "id": "case-004",
+    "title": "test/comprehensive.test.ts › snakeCase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase('ponytaVaporeonPOLIWRATH_ButterfreeA')).toEqual('ponyta_vaporeon_poliwrath_butterfree_a');\n    expect(snakeCase('PonytaVaporeonPOLIWRATH_ButterfreeA')).toEqual('ponyta_vaporeon_poliwrath_butterfree_a');\n    expect(snakeCase('ponyta-vaporeon-POLIWRATH-ButterfreeA')).toEqual('ponyta_vaporeon_poliwrath_butterfree_a');\n    expect(snakeCase('Ponyta~vaporeon~POLIWRATH/ButterfreeA')).toEqual('ponyta_vaporeon_poliwrath_butterfree_a');\n    expect(snakeCase('ponyta_vaporeon_POLIWRATH_ButterfreeA')).toEqual('ponyta_vaporeon_poliwrath_butterfree_a');\n    expect(snakeCase('ponyta_Vaporeon_POLIWRATH_ButterfreeA')).toEqual('ponyta_vaporeon_poliwrath_butterfree_a');\n    expect(snakeCase('ponyta.Vaporeon.POLIWRATH.ButterfreeA')).toEqual('ponyta_vaporeon_poliwrath_butterfree_a');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "test/comprehensive.test.ts › snakeCase    QTableA",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase('QTableA')).toEqual('q_table_a');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-037",
+    "title": "test/comprehensive.test.ts › snakeCase    I'm a M.I.B. 101 OK?",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase(`I'm a M.I.B. 101 OK?`)).toEqual(`im_a_mib_101_ok`);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-051",
+    "title": "test/comprehensive.test.ts › snakeCase    listen I'm O.K.!",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase(`listen I'm O.K.!`)).toEqual(`listen_im_ok`);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-065",
+    "title": "test/comprehensive.test.ts › snakeCase    Double  Rainbow",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase('Double  Rainbow')).toEqual(`double_rainbow`);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-079",
+    "title": "test/comprehensive.test.ts › snakeCase    specialChars NFC (spaces)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(n(snakeCase(specialCharsNFCSpaces))).toEqual(n(`agard_i_garcons_cafe_chateau_voila_noel_ete_laieul_agard_aoøß_aoøy`));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-093",
+    "title": "test/comprehensive.test.ts › snakeCase    specialChars NFD (spaces)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(n(snakeCase(specialCharsNFDSpaces))).toEqual(n(`agard_i_garcons_cafe_chateau_voila_noel_ete_laieul_agard_aoøß_aoøy`));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-107",
+    "title": "test/comprehensive.test.ts › snakeCase    specialChars NFC",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(n(snakeCase(specialCharsNFC))).toEqual(n(`agard_i_garcons_cafe_chateau_voila_noel_ete_laieul_agard_aoøß_aoøy`));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-121",
+    "title": "test/comprehensive.test.ts › snakeCase    specialChars NFD",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(n(snakeCase(specialCharsNFD))).toEqual(n(`agard_i_garcons_cafe_chateau_voila_noel_ete_laieul_agard_aoøß_aoøy`));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-135",
+    "title": "test/comprehensive.test.ts › snakeCase    specialChars NFC (short)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(n(snakeCase(`ÇaféÅgård`.normalize('NFC')))).toEqual(n(`cafe_agard`));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-149",
+    "title": "test/comprehensive.test.ts › snakeCase    specialChars NFD (short)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(n(snakeCase(`ÇaféÅgård`.normalize('NFD')))).toEqual(n(`cafe_agard`));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-166",
+    "title": "test/comprehensive.test.ts › snakeCase    remove special characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase(`$mesqueeb.BluesJazz@github.com`, { keepSpecialCharacters: false })).toEqual(`mesqueeb_blues_jazz_github_com`);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-167",
+    "title": "test/comprehensive.test.ts › snakeCase    keep   special characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase(`$mesqueeb.BluesJazz@github.com`, { keepSpecialCharacters: true })).toEqual(`$mesqueeb.blues_jazz@github.com`);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-186",
+    "title": "test/comprehensive.test.ts › snakeCase    remove special characters (spaces)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase(`$mesqueeb .BluesJazz @github _POWER`, { keepSpecialCharacters: false })).toEqual(`mesqueeb_bluesjazz_github_power`);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-187",
+    "title": "test/comprehensive.test.ts › snakeCase    keep   special characters (spaces)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase(`$mesqueeb .BluesJazz @github _POWER`, { keepSpecialCharacters: true })).toEqual(`$mesqueeb_.bluesjazz_@github__power`);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-206",
+    "title": "test/comprehensive.test.ts › snakeCase    remove special various characters (spaces)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase(`$mesqueeb Blues.Jazz git@hub POWER`, { keepSpecialCharacters: false })).toEqual(`mesqueeb_bluesjazz_github_power`);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-207",
+    "title": "test/comprehensive.test.ts › snakeCase    keep   special various characters (spaces)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase(`$mesqueeb Blues.Jazz git@hub POWER`, { keepSpecialCharacters: true })).toEqual(`$mesqueeb_blues.jazz_git@hub_power`);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-223",
+    "title": "test/comprehensive.test.ts › snakeCase(query) - dont strip",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase(`$orderBy=name&skip=3&sort=true&name=James-P&email=sullivan@monsters.inc`, { keepSpecialCharacters: true })) // prettier-ignore\n    .toEqual('$order_by=name&skip=3&sort=true&name=james-p&email=sullivan@monsters.inc');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-233",
+    "title": "test/comprehensive.test.ts › snakeCase(query) - strip",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\nconst n = (str) => str.normalize();\nconst specialCharsNFCSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFC');\nconst specialCharsNFDSpaces = `Ågård î garçons Çafé château voilà ñoël été l'aïeul Ågård ÀÖØß àöøÿ`.normalize('NFD');\nconst specialCharsNFC = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFC');\nconst specialCharsNFD = `Ågård_î_garçons_Çafé_château_voilà_ñoël_été_laïeul_Ågård_ÀÖØß_àöøÿ`.normalize('NFD');\n{\nexpect(snakeCase(`$orderBy=name&skip=3&sort=true&name=James-P&email=sullivan@monsters.inc`, { keepSpecialCharacters: false })) // prettier-ignore\n    .toEqual('order_by_name_skip_3_sort_true_name_james_p_email_sullivan_monsters_inc');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-243",
+    "title": "test/short.test.ts › snakeCase    (short)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\n{\nexpect(snakeCase('$catDog')).toEqual('cat_dog');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-257",
+    "title": "test/short.test.ts › snakeCase    (spaces)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\n{\nexpect(snakeCase('Cats? & Dogs!')).toEqual('cats_dogs');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-271",
+    "title": "test/short.test.ts › snakeCase    (spaces 2)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\n{\nexpect(snakeCase(`I'm O.K.!`)).toEqual('im_ok');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-285",
+    "title": "test/short.test.ts › snakeCase    (keep)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\n{\nexpect(snakeCase('$cat-Dog!', { keep: ['$'] })).toEqual('$cat_dog');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-299",
+    "title": "test/short.test.ts › snakeCase    (spaces keep)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\n{\nexpect(snakeCase('Cats? & Dogs!', { keep: ['&', '!'] })).toEqual('cats_&_dogs!');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-313",
+    "title": "test/short.test.ts › snakeCase    (spaces keep 2)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\n{\nexpect(snakeCase(`I'm O.K.!`, { keep: ['.'] })).toEqual('im_o.k.');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-327",
+    "title": "test/short.test.ts › snakeCase    (keepSpecialCharacters)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { adaCase, camelCase, capitalCase, cobolCase, constantCase, dotNotation, kebabCase, lowerCase, pascalCase, pathCase, snakeCase, spaceCase, trainCase, upperCase } from \"./src/core.js\";\n{\n{\nexpect(snakeCase('日本catベルギーdogうちゅう', { keepSpecialCharacters: true })).toEqual('日本catベルギーdogうちゅう');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,482 @@
+[
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/setPath.test.ts › data first › should combo well with stringToPath",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(setPath(TEST_OBJECT, stringToPath(\"a.b.c\"), 2)).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, b: { c: 2 } },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/stringToPath.test.ts › empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\nexpect(stringToPath(\"\")).toStrictEqual([]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/stringToPath.test.ts › single property",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\nexpect(stringToPath(\"foo\")).toStrictEqual([\"foo\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/stringToPath.test.ts › single array index",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\nexpect(stringToPath(\"0\")).toStrictEqual([0]);\n    expect(stringToPath(\"123\")).toStrictEqual([123]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/stringToPath.test.ts › dot notation › short chain",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo.bar\")).toStrictEqual([\"foo\", \"bar\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/stringToPath.test.ts › dot notation › long chain",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z\")).toStrictEqual([\n            \"a\",\n            \"b\",\n            \"c\",\n            \"d\",\n            \"e\",\n            \"f\",\n            \"g\",\n            \"h\",\n            \"i\",\n            \"j\",\n            \"k\",\n            \"l\",\n            \"m\",\n            \"n\",\n            \"o\",\n            \"p\",\n            \"q\",\n            \"r\",\n            \"s\",\n            \"t\",\n            \"u\",\n            \"v\",\n            \"w\",\n            \"x\",\n            \"y\",\n            \"z\",\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/stringToPath.test.ts › dot notation › array index before",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"123.foo\")).toStrictEqual([123, \"foo\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/stringToPath.test.ts › dot notation › array index after",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo.123\")).toStrictEqual([\"foo\", 123]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › array index",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo[123]\")).toStrictEqual([\"foo\", 123]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › array index with dot notation after access",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo[123].bar\")).toStrictEqual([\"foo\", 123, \"bar\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › array index with dot notation before access",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo.bar[123]\")).toStrictEqual([\"foo\", \"bar\", 123]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › sequential array index accesses",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo[123][456]\")).toStrictEqual([\"foo\", 123, 456]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › complex mix of array index and chained properties",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo[123].bar.baz[456][789].qux\")).toStrictEqual([\n            \"foo\",\n            123,\n            \"bar\",\n            \"baz\",\n            456,\n            789,\n            \"qux\",\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › unquoted object property access",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo[bar]\")).toStrictEqual([\"foo\", \"bar\"]);\n        expect(stringToPath(\"foo[bar].baz\")).toStrictEqual([\"foo\", \"bar\", \"baz\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › single quoted object property access",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo['bar']\")).toStrictEqual([\"foo\", \"bar\"]);\n        expect(stringToPath(\"foo['bar'].baz\")).toStrictEqual([\"foo\", \"bar\", \"baz\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › double quoted object property access",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath('foo[\"bar\"]')).toStrictEqual([\"foo\", \"bar\"]);\n        expect(stringToPath('foo[\"bar\"].baz')).toStrictEqual([\"foo\", \"bar\", \"baz\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › recursive chained properties",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo[bar.baz]\")).toStrictEqual([\"foo\", \"bar\", \"baz\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › 2d array access",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"123[456]\")).toStrictEqual([123, 456]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › square bracket for a number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"[123]\")).toStrictEqual([123]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "packages/remeda/src/stringToPath.test.ts › square bracket notation › properties with numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo[abc123]\")).toStrictEqual([\"foo\", \"abc123\"]);\n        expect(stringToPath(\"foo[123abc]\")).toStrictEqual([\"foo\", \"123abc\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "packages/remeda/src/stringToPath.test.ts › edge-cases › hyphens",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo['bar-baz']\")).toStrictEqual([\"foo\", \"bar-baz\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "packages/remeda/src/stringToPath.test.ts › edge-cases › underscores",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo['bar_baz']\")).toStrictEqual([\"foo\", \"bar_baz\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-031",
+    "title": "packages/remeda/src/stringToPath.test.ts › edge-cases › spaces",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo['bar baz']\")).toStrictEqual([\"foo\", \"bar baz\"]);\n        expect(stringToPath(\"foo[' bar']\")).toStrictEqual([\"foo\", \" bar\"]);\n        expect(stringToPath(\"foo['bar ']\")).toStrictEqual([\"foo\", \"bar \"]);\n        expect(stringToPath(\"foo[' bar ']\")).toStrictEqual([\"foo\", \" bar \"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-032",
+    "title": "packages/remeda/src/stringToPath.test.ts › edge-cases › dots",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo['bar.baz']\")).toStrictEqual([\"foo\", \"bar.baz\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-033",
+    "title": "packages/remeda/src/stringToPath.test.ts › edge-cases › square brackets",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo['bar[baz]']\")).toStrictEqual([\"foo\", \"bar[baz]\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-034",
+    "title": "packages/remeda/src/stringToPath.test.ts › edge-cases › numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo['123']\")).toStrictEqual([\"foo\", \"123\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-035",
+    "title": "packages/remeda/src/stringToPath.test.ts › edge-cases › non-matching quotes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo['bar\\\"]\")).toStrictEqual([\"foo\", \"'bar\\\"\"]);\n        expect(stringToPath(\"foo[\\\"bar']\")).toStrictEqual([\"foo\", \"\\\"bar'\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-036",
+    "title": "packages/remeda/src/stringToPath.test.ts › edge-cases › missing quote",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo['bar]\")).toStrictEqual([\"foo\", \"'bar\"]);\n        expect(stringToPath('foo[\"bar]')).toStrictEqual([\"foo\", '\"bar']);\n        expect(stringToPath(\"foo[bar']\")).toStrictEqual([\"foo\", \"bar'\"]);\n        expect(stringToPath('foo[bar\"]')).toStrictEqual([\"foo\", 'bar\"']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-037",
+    "title": "packages/remeda/src/stringToPath.test.ts › edge-cases › empty quoted access",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo[''].bar\")).toStrictEqual([\"foo\", \"\", \"bar\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-038",
+    "title": "packages/remeda/src/stringToPath.test.ts › edge-cases › array index with leading zeros",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"012\")).toStrictEqual([\"012\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-039",
+    "title": "packages/remeda/src/stringToPath.test.ts › known type limitations › two sequential dots",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo..bar\")).toStrictEqual([\"foo\", \"bar\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-040",
+    "title": "packages/remeda/src/stringToPath.test.ts › known type limitations › empty unquoted access",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"foo[].bar\")).toStrictEqual([\"foo\", \"bar\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-041",
+    "title": "packages/remeda/src/stringToPath.test.ts › known type limitations › using backslash to escape a quote",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"a['b\\\\'c']\")).toStrictEqual([\"a\", \"b\\\\'c\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-042",
+    "title": "packages/remeda/src/stringToPath.test.ts › known type limitations › using backslash to escape a double-quote",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath('a[\"b\\\\\"c\"]')).toStrictEqual([\"a\", 'b\\\\\"c']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-043",
+    "title": "packages/remeda/src/stringToPath.test.ts › known type limitations › using a backslash to escape a backslash",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\nexpect(stringToPath(\"a['b\\\\\\\\c']\")).toStrictEqual([\"a\", \"b\\\\\\\\c\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-044",
+    "title": "packages/remeda/src/stringToPath.test.ts › known type limitations › whitespace handling › between the brackets and the quotes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\n{\nexpect(stringToPath(\"foo[ 'bar']\")).toStrictEqual([\"foo\", \" 'bar'\"]);\n            expect(stringToPath(\"foo['bar' ]\")).toStrictEqual([\"foo\", \"'bar' \"]);\n            expect(stringToPath(\"foo[ 'bar' ]\")).toStrictEqual([\"foo\", \" 'bar' \"]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-045",
+    "title": "packages/remeda/src/stringToPath.test.ts › known type limitations › whitespace handling › between the brackets and the property",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\n{\nexpect(stringToPath(\"foo[ bar]\")).toStrictEqual([\"foo\", \" bar\"]);\n            expect(stringToPath(\"foo[bar ]\")).toStrictEqual([\"foo\", \"bar \"]);\n            expect(stringToPath(\"foo[ bar ]\")).toStrictEqual([\"foo\", \" bar \"]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-046",
+    "title": "packages/remeda/src/stringToPath.test.ts › known type limitations › whitespace handling › between the brackets and an array index",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\n{\nexpect(stringToPath(\"foo[ 123]\")).toStrictEqual([\"foo\", \" 123\"]);\n            expect(stringToPath(\"foo[123 ]\")).toStrictEqual([\"foo\", \"123 \"]);\n            expect(stringToPath(\"foo[ 123 ]\")).toStrictEqual([\"foo\", \" 123 \"]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-047",
+    "title": "packages/remeda/src/stringToPath.test.ts › known type limitations › whitespace handling › around dots",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\n{\nexpect(stringToPath(\"foo .bar\")).toStrictEqual([\"foo \", \"bar\"]);\n            expect(stringToPath(\"foo. bar\")).toStrictEqual([\"foo\", \" bar\"]);\n            expect(stringToPath(\"foo . bar\")).toStrictEqual([\"foo \", \" bar\"]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-048",
+    "title": "packages/remeda/src/stringToPath.test.ts › known type limitations › whitespace handling › around prop names",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\n{\n{\n{\nexpect(stringToPath(\"foo \")).toStrictEqual([\"foo \"]);\n            expect(stringToPath(\" foo\")).toStrictEqual([\" foo\"]);\n            expect(stringToPath(\" foo \")).toStrictEqual([\" foo \"]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

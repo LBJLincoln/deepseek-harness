@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/objOf.test.ts › data first › wrap value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { objOf } from \"./src/objOf.js\";\n{\n{\n{\nconst actual = objOf(10, \"a\");\n        expect(actual.a).toBe(10);\n        expect(actual).toStrictEqual({ a: 10 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/objOf.test.ts › data last › wrap value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { objOf } from \"./src/objOf.js\";\n{\n{\n{\nconst actual = objOf(\"a\")(10);\n        expect(actual.a).toBe(10);\n        expect(actual).toStrictEqual({ a: 10 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,458 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should use the customizer function for string comparison",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst customizer = (a, b) => {\n            if (typeof a === 'string' && typeof b === 'string') {\n                return a.toLowerCase() === b.toLowerCase();\n            }\n        };\n        expect(isEqualWith('Hello', 'hello', customizer)).toBe(true);\n        expect(isEqualWith('Hello', 'world', customizer)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should use the customizer function for number comparison",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst customizer = (a, b) => {\n            if (typeof a === 'number' && typeof b === 'number') {\n                return Math.abs(a - b) < 0.01;\n            }\n        };\n        expect(isEqualWith(1.001, 1.002, customizer)).toBe(true);\n        expect(isEqualWith(1.001, 1.02, customizer)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should use the customizer function for object comparison",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst customizer = (a, b, key) => {\n            if (key === 'date' && a instanceof Date && b instanceof Date) {\n                return a.getFullYear() === b.getFullYear();\n            }\n        };\n        const obj1 = { name: 'John', date: new Date('2023-02-01') };\n        const obj2 = { name: 'John', date: new Date('2023-06-15') };\n        const obj3 = { name: 'John', date: new Date('2024-02-01') };\n        expect(isEqualWith(obj1, obj2, customizer)).toBe(true);\n        expect(isEqualWith(obj1, obj3, customizer)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should use the customizer function with parent objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst customizer = (a, b, key, aParent, bParent) => {\n            if (key === 'value' && aParent && bParent && aParent.type === 'special' && bParent.type === 'special') {\n                return String(a) === String(b);\n            }\n        };\n        const obj1 = { type: 'special', value: 42 };\n        const obj2 = { type: 'special', value: '42' };\n        const obj3 = { type: 'normal', value: 42 };\n        const obj4 = { type: 'normal', value: '42' };\n        expect(isEqualWith(obj1, obj2, customizer)).toBe(true);\n        expect(isEqualWith(obj1, obj3, customizer)).toBe(false);\n        expect(isEqualWith(obj3, obj4, customizer)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare primitives when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst pairs = [\n            [1, 1, true],\n            [1, Object(1), true],\n            [1, '1', false],\n            [1, 2, false],\n            [-0, -0, true],\n            [0, 0, true],\n            [0, Object(0), true],\n            [Object(0), Object(0), true],\n            [-0, 0, true],\n            [0, '0', false],\n            [0, null, false],\n            [NaN, NaN, true],\n            [NaN, Object(NaN), true],\n            [Object(NaN), Object(NaN), true],\n            [NaN, 'a', false],\n            [NaN, Infinity, false],\n            ['a', 'a', true],\n            ['a', Object('a'), true],\n            [Object('a'), Object('a'), true],\n            ['a', 'b', false],\n            ['a', ['a'], false],\n            [true, true, true],\n            [true, Object(true), true],\n            [Object(true), Object(true), true],\n            [true, 1, false],\n            [true, 'a', false],\n            [false, false, true],\n            [false, Object(false), true],\n            [Object(false), Object(false), true],\n            [false, 0, false],\n            [false, '', false],\n            [symbol1, symbol1, true],\n            [symbol1, Object(symbol1), true],\n            [Object(symbol1), Object(symbol1), true],\n            [symbol1, symbol2, false],\n            [null, null, true],\n            [null, undefined, false],\n            [null, {}, false],\n            [null, '', false],\n            [undefined, undefined, true],\n            [undefined, null, false],\n            [undefined, '', false],\n        ];\n        const expected = pairs.map(pair => pair[2]);\n        const actual = pairs.map(pair => isEqualWith(pair[0], pair[1], noop));\n        expect(actual).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare arrays when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nlet array1 = [true, null, 1, 'a', undefined];\n        let array2 = [true, null, 1, 'a', undefined];\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        array1 = [[1, 2, 3], new Date(2012, 4, 23), /x/, { e: 1 }];\n        array2 = [[1, 2, 3], new Date(2012, 4, 23), /x/, { e: 1 }];\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        array1 = [1];\n        array1[2] = 3;\n        array2 = [1];\n        array2[1] = undefined;\n        array2[2] = 3;\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        array1 = [Object(1), false, Object('a'), /x/, new Date(2012, 4, 23), ['a', 'b', [Object('c')]], { a: 1 }];\n        array2 = [1, Object(false), 'a', /x/, new Date(2012, 4, 23), ['a', Object('b'), ['c']], { a: 1 }];\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        array1 = [1, 2, 3];\n        array2 = [3, 2, 1];\n        expect(isEqualWith(array1, array2, noop)).toBe(false);\n        array1 = [1, 2];\n        array2 = [1, 2, 3];\n        expect(isEqualWith(array1, array2, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should treat arrays with identical values but different non-index properties as equal when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nlet array1 = [1, 2, 3];\n        let array2 = [1, 2, 3];\n        array1.every =\n            array1.filter =\n                array1.forEach =\n                    array1.indexOf =\n                        array1.lastIndexOf =\n                            array1.map =\n                                array1.some =\n                                    array1.reduce =\n                                        array1.reduceRight =\n                                            null;\n        array2.concat =\n            array2.join =\n                array2.pop =\n                    array2.reverse =\n                        array2.shift =\n                            array2.slice =\n                                array2.sort =\n                                    array2.splice =\n                                        array2.unshift =\n                                            null;\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        array1 = [1, 2, 3];\n        array1.a = 1;\n        array2 = [1, 2, 3];\n        array2.b = 1;\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        array1 = /c/.exec('abcde');\n        array2 = ['c'];\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare sparse arrays when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst array = Array(1);\n        expect(isEqualWith(array, Array(1), noop)).toBe(true);\n        expect(isEqualWith(array, [undefined], noop)).toBe(true);\n        expect(isEqualWith(array, Array(2), noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare plain objects when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nlet object1 = { a: true, b: null, c: 1, d: 'a', e: undefined };\n        let object2 = { a: true, b: null, c: 1, d: 'a', e: undefined };\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n        object1 = { a: [1, 2, 3], b: new Date(2012, 4, 23), c: /x/, d: { e: 1 } };\n        object2 = { a: [1, 2, 3], b: new Date(2012, 4, 23), c: /x/, d: { e: 1 } };\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n        object1 = { a: 1, b: 2, c: 3 };\n        object2 = { a: 3, b: 2, c: 1 };\n        expect(isEqualWith(object1, object2, noop)).toBe(false);\n        object1 = { a: 1, b: 2, c: 3 };\n        object2 = { d: 1, e: 2, f: 3 };\n        expect(isEqualWith(object1, object2, noop)).toBe(false);\n        object1 = { a: 1, b: 2 };\n        object2 = { a: 1, b: 2, c: 3 };\n        expect(isEqualWith(object1, object2, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare objects regardless of key order when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst object1 = { a: 1, b: 2, c: 3 };\n        const object2 = { c: 3, a: 1, b: 2 };\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare nested objects when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst object1 = {\n            a: [1, 2, 3],\n            b: true,\n            c: Object(1),\n            d: 'a',\n            e: {\n                f: ['a', Object('b'), 'c'],\n                g: Object(false),\n                h: new Date(2012, 4, 23),\n                i: noop,\n                j: 'a',\n            },\n        };\n        const object2 = {\n            a: [1, Object(2), 3],\n            b: Object(true),\n            c: 1,\n            d: Object('a'),\n            e: {\n                f: ['a', 'b', 'c'],\n                g: false,\n                h: new Date(2012, 4, 23),\n                i: noop,\n                j: 'a',\n            },\n        };\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare object instances when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nfunction Foo() {\n            // eslint-disable-next-line\n            // @ts-ignore\n            this.a = 1;\n        }\n        Foo.prototype.a = 1;\n        function Bar() {\n            // eslint-disable-next-line\n            // @ts-ignore\n            this.a = 1;\n        }\n        Bar.prototype.a = 2;\n        // eslint-disable-next-line\n        // @ts-ignore\n        expect(isEqualWith(new Foo(), new Foo(), noop)).toBe(true);\n        // eslint-disable-next-line\n        // @ts-ignore\n        expect(isEqualWith(new Foo(), new Bar(), noop)).toBe(false);\n        // eslint-disable-next-line\n        // @ts-ignore\n        expect(isEqualWith({ a: 1 }, new Foo(), noop)).toBe(false);\n        // eslint-disable-next-line\n        // @ts-ignore\n        expect(isEqualWith({ a: 2 }, new Bar(), noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare objects with constructor properties when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nexpect(isEqualWith({ constructor: 1 }, { constructor: 1 }, noop)).toBe(true);\n        expect(isEqualWith({ constructor: 1 }, { constructor: '1' }, noop)).toBe(false);\n        expect(isEqualWith({ constructor: [1] }, { constructor: [1] }, noop)).toBe(true);\n        expect(isEqualWith({ constructor: [1] }, { constructor: ['1'] }, noop)).toBe(false);\n        expect(isEqualWith({ constructor: Object }, {}, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare arrays with circular references when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nlet array1 = [];\n        let array2 = [];\n        array1.push(array1);\n        array2.push(array2);\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        array1.push('b');\n        array2.push('b');\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        array1.push('c');\n        array2.push('d');\n        expect(isEqualWith(array1, array2, noop)).toBe(false);\n        array1 = ['a', 'b', 'c'];\n        array1[1] = array1;\n        array2 = ['a', ['a', 'b', 'c'], 'c'];\n        expect(isEqualWith(array1, array2, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should have transitive equivalence for circular references of arrays when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst array1 = [];\n        const array2 = [array1];\n        const array3 = [array2];\n        array1[0] = array1;\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        expect(isEqualWith(array2, array3, noop)).toBe(true);\n        expect(isEqualWith(array1, array3, noop)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare objects with circular references when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nlet object1 = {};\n        let object2 = {};\n        object1.a = object1;\n        object2.a = object2;\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n        object1.b = 0;\n        object2.b = Object(0);\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n        object1.c = Object(1);\n        object2.c = Object(2);\n        expect(isEqualWith(object1, object2, noop)).toBe(false);\n        object1 = { a: 1, b: 2, c: 3 };\n        object1.b = object1;\n        object2 = { a: 1, b: { a: 1, b: 2, c: 3 }, c: 3 };\n        expect(isEqualWith(object1, object2, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should have transitive equivalence for circular references of objects when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst object1 = {};\n        const object2 = { a: object1 };\n        const object3 = { a: object2 };\n        object1.a = object1;\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n        expect(isEqualWith(object2, object3, noop)).toBe(true);\n        expect(isEqualWith(object1, object3, noop)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare objects with multiple circular references when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst array1 = [{}];\n        const array2 = [{}];\n        (array1[0].a = array1).push(array1);\n        (array2[0].a = array2).push(array2);\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        array1[0].b = 0;\n        array2[0].b = Object(0);\n        expect(isEqualWith(array1, array2, noop)).toBe(true);\n        array1[0].c = Object(1);\n        array2[0].c = Object(2);\n        expect(isEqualWith(array1, array2, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare objects with complex circular references when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst object1 = {\n            foo: { b: { c: { d: {} } } },\n            bar: { a: 2 },\n        };\n        const object2 = {\n            foo: { b: { c: { d: {} } } },\n            bar: { a: 2 },\n        };\n        object1.foo.b.c.d = object1;\n        object1.bar.b = object1.foo.b;\n        object2.foo.b.c.d = object2;\n        object2.bar.b = object2.foo.b;\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare objects with shared property values when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst object1 = {\n            a: [1, 2],\n        };\n        const object2 = {\n            a: [1, 2],\n            b: [1, 2],\n        };\n        object1.b = object1.a;\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should treat objects created by `Object.create(null)` like plain objects when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nfunction Foo() {\n            // eslint-disable-next-line\n            // @ts-ignore\n            this.a = 1;\n        }\n        Foo.prototype.constructor = null;\n        const object1 = Object.create(null);\n        object1.a = 1;\n        const object2 = { a: 1 };\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n        // eslint-disable-next-line\n        // @ts-ignore\n        expect(isEqualWith(new Foo(), object2, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should avoid common type coercions when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nexpect(isEqualWith(true, Object(false), noop)).toBe(false);\n        expect(isEqualWith(Object(false), Object(0), noop)).toBe(false);\n        expect(isEqualWith(false, Object(''), noop)).toBe(false);\n        expect(isEqualWith(Object(36), Object('36'), noop)).toBe(false);\n        expect(isEqualWith(0, '', noop)).toBe(false);\n        expect(isEqualWith(1, true, noop)).toBe(false);\n        expect(isEqualWith(1337756400000, new Date(2012, 4, 23), noop)).toBe(false);\n        expect(isEqualWith('36', 36, noop)).toBe(false);\n        expect(isEqualWith(36, '36', noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare `arguments` objects when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst args1 = (function () {\n            // eslint-disable-next-line\n            return arguments;\n        })();\n        const args2 = (function () {\n            // eslint-disable-next-line\n            return arguments;\n        })();\n        // eslint-disable-next-line\n        const args3 = (function (..._) {\n            // eslint-disable-next-line\n            return arguments;\n        })(1, 2);\n        expect(isEqualWith(args1, args2, noop)).toBe(true);\n        expect(isEqualWith(args1, args3, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should treat `arguments` objects like `Object` objects when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst object = { 0: 1, 1: 2, 2: 3 };\n        function Foo() { }\n        Foo.prototype = object;\n        expect(isEqualWith(args, object, noop)).toBe(true);\n        expect(isEqualWith(object, args, noop)).toBe(true);\n        // eslint-disable-next-line\n        // @ts-ignore\n        expect(isEqualWith(args, new Foo(), noop)).toBe(false);\n        // eslint-disable-next-line\n        // @ts-ignore\n        expect(isEqualWith(new Foo(), args, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare array buffers when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst buffer = new Int8Array([-1]).buffer;\n        expect(isEqualWith(buffer, new Uint8Array([255]).buffer, noop)).toBe(true);\n        expect(isEqualWith(buffer, new ArrayBuffer(1), noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare array views when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst pairs = arrayViews.map((type, viewIndex) => {\n            const otherType = arrayViews[(viewIndex + 1) % arrayViews.length];\n            const CtorA =\n            // eslint-disable-next-line\n            // @ts-ignore\n            globalThis[type] ||\n                // eslint-disable-next-line\n                // @ts-ignore\n                function (n) {\n                    // eslint-disable-next-line\n                    // @ts-ignore\n                    this.n = n;\n                };\n            const CtorB =\n            // eslint-disable-next-line\n            // @ts-ignore\n            globalThis[otherType] ||\n                // eslint-disable-next-line\n                // @ts-ignore\n                function (n) {\n                    // eslint-disable-next-line\n                    // @ts-ignore\n                    this.n = n;\n                };\n            // eslint-disable-next-line\n            // @ts-ignore\n            const bufferA = globalThis[type] ? new ArrayBuffer(8) : 8;\n            // eslint-disable-next-line\n            // @ts-ignore\n            const bufferB = globalThis[otherType] ? new ArrayBuffer(8) : 8;\n            // eslint-disable-next-line\n            // @ts-ignore\n            const bufferC = globalThis[otherType] ? new ArrayBuffer(16) : 16;\n            return [new CtorA(bufferA), new CtorA(bufferA), new CtorB(bufferB), new CtorB(bufferC)];\n        });\n        const expected = pairs.map(() => [true, false, false]);\n        const actual = pairs.map((pair) => [\n            isEqualWith(pair[0], pair[1], noop),\n            isEqualWith(pair[0], pair[2], noop),\n            isEqualWith(pair[2], pair[3], noop),\n        ]);\n        expect(actual).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare buffers when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst buffer = Buffer.from([1]);\n        expect(isEqualWith(buffer, Buffer.from([1]), noop)).toBe(true);\n        expect(isEqualWith(buffer, Buffer.from([2]), noop)).toBe(false);\n        expect(isEqualWith(buffer, new Uint8Array([1]), noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare date objects when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst date = new Date(2012, 4, 23);\n        expect(isEqualWith(date, new Date(2012, 4, 23), noop)).toBe(true);\n        expect(isEqualWith(new Date('a'), new Date('b'), noop)).toBe(true);\n        expect(isEqualWith(date, new Date(2013, 3, 25), noop)).toBe(false);\n        expect(isEqualWith(date, { getTime: () => Number(date) }, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare error objects when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst pairs = ['Error', 'EvalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError'].map((type, index, errorTypes) => {\n            const otherType = errorTypes[++index % errorTypes.length];\n            // eslint-disable-next-line\n            // @ts-ignore\n            const CtorA = globalThis[type];\n            // eslint-disable-next-line\n            // @ts-ignore\n            const CtorB = globalThis[otherType];\n            return [new CtorA('a'), new CtorA('a'), new CtorB('a'), new CtorB('b')];\n        });\n        const expected = pairs.map(() => [true, false, false]);\n        const actual = pairs.map(pair => [\n            isEqualWith(pair[0], pair[1], noop),\n            isEqualWith(pair[0], pair[2], noop),\n            isEqualWith(pair[2], pair[3], noop),\n        ]);\n        expect(actual).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare functions when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nfunction a() {\n            return 1 + 2;\n        }\n        function b() {\n            return 1 + 2;\n        }\n        expect(isEqualWith(a, a, noop)).toBe(true);\n        expect(isEqualWith(a, b, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-031",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare maps when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\n[[new Map(), new Map()]].forEach(maps => {\n            const map1 = maps[0];\n            const map2 = maps[1];\n            map1.set('a', 1);\n            map2.set('b', 2);\n            expect(isEqualWith(map1, map2, noop)).toBe(false);\n            map1.set('b', 2);\n            map2.set('a', 1);\n            expect(isEqualWith(map1, map2, noop)).toBe(true);\n            map1.delete('a');\n            map1.set('a', 1);\n            expect(isEqualWith(map1, map2, noop)).toBe(true);\n            map2.delete('a');\n            expect(isEqualWith(map1, map2, noop)).toBe(false);\n            map1.clear();\n            map2.clear();\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-032",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare maps with circular references when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst map1 = new Map();\n        const map2 = new Map();\n        map1.set('a', map1);\n        map2.set('a', map2);\n        expect(isEqualWith(map1, map2, noop)).toBe(true);\n        map1.set('b', 1);\n        map2.set('b', 2);\n        expect(isEqualWith(map1, map2, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-033",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare promises by reference when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\n[[Promise.resolve(1), Promise.resolve(1)]].forEach(promises => {\n            const promise1 = promises[0];\n            const promise2 = promises[1];\n            expect(isEqualWith(promise1, promise2, noop)).toBe(false);\n            expect(isEqualWith(promise1, promise1, noop)).toBe(true);\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-034",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare regexes when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nexpect(isEqualWith(/x/gim, /x/gim, noop)).toBe(true);\n        expect(isEqualWith(/x/gim, /x/gim, noop)).toBe(true);\n        expect(isEqualWith(/x/gi, /x/g, noop)).toBe(false);\n        expect(isEqualWith(/x/, /y/, noop)).toBe(false);\n        expect(isEqualWith(/x/g, {\n            global: true,\n            ignoreCase: false,\n            multiline: false,\n            source: 'x',\n        }, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-035",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare sets when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\n[[new Set(), new Set()]].forEach(sets => {\n            const set1 = sets[0];\n            const set2 = sets[1];\n            set1.add(1);\n            set2.add(2);\n            expect(isEqualWith(set1, set2, noop)).toBe(false);\n            set1.add(2);\n            set2.add(1);\n            expect(isEqualWith(set1, set2, noop)).toBe(true);\n            set1.delete(1);\n            set1.add(1);\n            expect(isEqualWith(set1, set2, noop)).toBe(true);\n            set2.delete(1);\n            expect(isEqualWith(set1, set2, noop)).toBe(false);\n            set1.clear();\n            set2.clear();\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-036",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare sets with circular references when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst set1 = new Set();\n        const set2 = new Set();\n        set1.add(set1);\n        set2.add(set2);\n        expect(isEqualWith(set1, set2, noop)).toBe(true);\n        set1.add(1);\n        set2.add(2);\n        expect(isEqualWith(set1, set2, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-037",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should compare symbol properties when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nconst symbol1 = Symbol('a');\n        const symbol2 = Symbol('b');\n        const object1 = { a: 1 };\n        const object2 = { a: 1 };\n        object1[symbol1] = { a: { b: 2 } };\n        object2[symbol1] = { a: { b: 2 } };\n        Object.defineProperty(object2, symbol2, {\n            configurable: true,\n            enumerable: false,\n            writable: true,\n            value: 2,\n        });\n        expect(isEqualWith(object1, object2, noop)).toBe(true);\n        object2[symbol1] = { a: 1 };\n        expect(isEqualWith(object1, object2, noop)).toBe(false);\n        delete object2[symbol1];\n        object2[Symbol('a')] = { a: { b: 2 } };\n        expect(isEqualWith(object1, object2, noop)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-038",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should return `false` for objects with custom `toString` methods when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nlet primitive;\n        const object = {\n            toString: function () {\n                return primitive;\n            },\n        };\n        const values = [true, null, 1, 'a', undefined];\n        const expected = values.map(stubFalse);\n        const actual = values.map(value => {\n            primitive = value;\n            return isEqualWith(object, value, noop);\n        });\n        expect(actual).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

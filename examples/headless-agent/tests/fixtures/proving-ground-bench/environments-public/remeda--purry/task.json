@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-purry",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/purry.ts",
+    "tests": [
+      "packages/remeda/src/purry.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/purry.js",
+    "function": "purry"
+  },
+  "title": "Implement purry from remeda",
+  "prompt": "`src/purry.js` is the JavaScript build of `packages/remeda/src/purry.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `purry`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Creates a function with `dataFirst` and `dataLast` signatures.\n *\n * `purry` is a dynamic function and it's not type safe. It should be wrapped by\n * a function that have proper typings. Refer to the example below for correct\n * usage.\n *\n * !IMPORTANT: functions that simply call `purry` and return the result (like\n * almost all functions in this library) should return `unknown` themselves if\n * an explicit return type is required. This is because we currently don't\n * provide a generic return type that is built from the input function, and\n * crafting one manually isn't worthwhile as we rely on function declaration\n * overloading to combine the types for dataFirst and dataLast invocations!\n *\n * @param fn - The function to purry.\n * @param args - The arguments.\n * @param lazy - A lazy version of the function to purry.\n * @signature purry(fn, args);\n * @example\n *    function _findIndex(array, fn) {\n *      for (let i = 0; i < array.length; i++) {\n *        if (fn(array[i])) {\n *          return i;\n *        }\n *      }\n *      return -1;\n *    }\n *\n *    // data-first\n *    function findIndex<T>(array: T[], fn: (item: T) => boolean): number;\n *\n *    // data-last\n *    function findIndex<T>(fn: (item: T) => boolean): (array: T[]) => number;\n *\n *    function findIndex(...args: unknown[]) {\n *      return purry(_findIndex, args);\n *    }\n * @category Function\n */\nexport function purry(\n  fn: StrictFunction,\n  args: readonly unknown[],\n  lazy?: (...args: any) => LazyEvaluator,\n): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/internal/lazyDataLastImpl.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/isValid/test.ts › isValid › returns true if the given date is valid",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isValid } from \"./src/isValid/index.js\";\n{\n{\n{\nconst result = isValid(new Date());\n        expect(result).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/isValid/test.ts › isValid › returns false if the given date is invalid",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isValid } from \"./src/isValid/index.js\";\n{\n{\n{\nconst result = isValid(new Date(\"\"));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/isValid/test.ts › isValid › accepts a timestamp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isValid } from \"./src/isValid/index.js\";\n{\n{\n{\nexpect(isValid(new Date(2014, 1 /* Feb */, 11).getTime())).toBe(true);\n        expect(isValid(NaN)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/isValid/test.ts › isValid › treats null as an invalid date",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isValid } from \"./src/isValid/index.js\";\n{\n{\n{\nconst result = isValid(null);\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

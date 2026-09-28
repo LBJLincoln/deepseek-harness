@@ -1,0 +1,206 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/chi_squared_goodness_of_fit.test.js › chiSquaredGoodnessOfFit › can reject the null hypothesis with level of confidence specified at 0.05",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_chiSquaredGoodnessOfFit } from \"./src/chi_squared_goodness_of_fit.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nconst ss = Object.freeze({ binomialDistribution: __ns1_binomialDistribution, chiSquaredGoodnessOfFit: __ns1_chiSquaredGoodnessOfFit, poissonDistribution: __ns1_poissonDistribution });\n{\nconst data1019 = Object.freeze([\n    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,\n    2, 2, 2, 2, 2, 2, 3, 3, 3, 3\n]);\n{\nfunction sample(pairs) {\n        const data = [];\n        for (const [value, count] of pairs) {\n            for (let i = 0; i < count; i++) {\n                data.push(value);\n            }\n        }\n        return data;\n    }\n{\nassert.equal(false, ss.chiSquaredGoodnessOfFit(data1019, ss.poissonDistribution, 0.05));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/chi_squared_goodness_of_fit.test.js › chiSquaredGoodnessOfFit › can accept the null hypothesis with level of confidence specified at 0.10",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_chiSquaredGoodnessOfFit } from \"./src/chi_squared_goodness_of_fit.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nconst ss = Object.freeze({ binomialDistribution: __ns1_binomialDistribution, chiSquaredGoodnessOfFit: __ns1_chiSquaredGoodnessOfFit, poissonDistribution: __ns1_poissonDistribution });\n{\nconst data1019 = Object.freeze([\n    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,\n    2, 2, 2, 2, 2, 2, 3, 3, 3, 3\n]);\n{\nfunction sample(pairs) {\n        const data = [];\n        for (const [value, count] of pairs) {\n            for (let i = 0; i < count; i++) {\n                data.push(value);\n            }\n        }\n        return data;\n    }\n{\nassert.equal(true, ss.chiSquaredGoodnessOfFit(data1019, ss.poissonDistribution, 0.1));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/chi_squared_goodness_of_fit.test.js › chiSquaredGoodnessOfFit › can tolerate gaps in distribution",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_chiSquaredGoodnessOfFit } from \"./src/chi_squared_goodness_of_fit.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nconst ss = Object.freeze({ binomialDistribution: __ns1_binomialDistribution, chiSquaredGoodnessOfFit: __ns1_chiSquaredGoodnessOfFit, poissonDistribution: __ns1_poissonDistribution });\n{\nconst data1019 = Object.freeze([\n    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,\n    2, 2, 2, 2, 2, 2, 3, 3, 3, 3\n]);\n{\nfunction sample(pairs) {\n        const data = [];\n        for (const [value, count] of pairs) {\n            for (let i = 0; i < count; i++) {\n                data.push(value);\n            }\n        }\n        return data;\n    }\n{\nassert.equal(true, ss.chiSquaredGoodnessOfFit([0, 2, 3, 7, 7, 7, 7, 7, 7, 9, 10], ss.poissonDistribution, 0.1));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/chi_squared_goodness_of_fit.test.js › chiSquaredGoodnessOfFit › counts observations that fall outside the hypothesized distribution",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_chiSquaredGoodnessOfFit } from \"./src/chi_squared_goodness_of_fit.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nconst ss = Object.freeze({ binomialDistribution: __ns1_binomialDistribution, chiSquaredGoodnessOfFit: __ns1_chiSquaredGoodnessOfFit, poissonDistribution: __ns1_poissonDistribution });\n{\nconst data1019 = Object.freeze([\n    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,\n    2, 2, 2, 2, 2, 2, 3, 3, 3, 3\n]);\n{\nfunction sample(pairs) {\n        const data = [];\n        for (const [value, count] of pairs) {\n            for (let i = 0; i < count; i++) {\n                data.push(value);\n            }\n        }\n        return data;\n    }\n{\nconst observations = sample([\n            [0, 25],\n            [1, 10],\n            [2, 10],\n            [3, 10],\n            [4, 5]\n        ]);\n        // p = 1.45e-4 without the outlier and 2.98e-6 with it, so a sample that\n        // is already a poor fit cannot become a good one by gaining an outlier.\n        assert.equal(ss.chiSquaredGoodnessOfFit(observations, ss.poissonDistribution, 0.05), true);\n        assert.equal(ss.chiSquaredGoodnessOfFit(observations.concat([30]), ss.poissonDistribution, 0.05), true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/chi_squared_goodness_of_fit.test.js › chiSquaredGoodnessOfFit › keeps every observation when collapsing classes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_chiSquaredGoodnessOfFit } from \"./src/chi_squared_goodness_of_fit.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nconst ss = Object.freeze({ binomialDistribution: __ns1_binomialDistribution, chiSquaredGoodnessOfFit: __ns1_chiSquaredGoodnessOfFit, poissonDistribution: __ns1_poissonDistribution });\n{\nconst data1019 = Object.freeze([\n    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,\n    2, 2, 2, 2, 2, 2, 3, 3, 3, 3\n]);\n{\nfunction sample(pairs) {\n        const data = [];\n        for (const [value, count] of pairs) {\n            for (let i = 0; i < count; i++) {\n                data.push(value);\n            }\n        }\n        return data;\n    }\n{\n// 60 observations, chi-squared 9.2635 on 6 degrees of freedom, p = 0.159.\n        const observations = sample([\n            [2, 3],\n            [3, 14],\n            [4, 14],\n            [5, 12],\n            [6, 10],\n            [7, 4],\n            [8, 2],\n            [9, 1]\n        ]);\n        assert.equal(ss.chiSquaredGoodnessOfFit(observations, ss.poissonDistribution, 0.1), false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/chi_squared_goodness_of_fit.test.js › chiSquaredGoodnessOfFit › throws when the data leaves no degrees of freedom",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_chiSquaredGoodnessOfFit } from \"./src/chi_squared_goodness_of_fit.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nconst ss = Object.freeze({ binomialDistribution: __ns1_binomialDistribution, chiSquaredGoodnessOfFit: __ns1_chiSquaredGoodnessOfFit, poissonDistribution: __ns1_poissonDistribution });\n{\nconst data1019 = Object.freeze([\n    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,\n    2, 2, 2, 2, 2, 2, 3, 3, 3, 3\n]);\n{\nfunction sample(pairs) {\n        const data = [];\n        for (const [value, count] of pairs) {\n            for (let i = 0; i < count; i++) {\n                data.push(value);\n            }\n        }\n        return data;\n    }\n{\nassert.throws(function () {\n            ss.chiSquaredGoodnessOfFit([7, 7, 7, 7, 7, 7, 7, 7, 7, 7], ss.poissonDistribution, 0.05);\n        }, /degrees of freedom/);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "test/chi_squared_goodness_of_fit.test.js › chiSquaredGoodnessOfFit › throws for degrees of freedom the table does not cover",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_chiSquaredGoodnessOfFit } from \"./src/chi_squared_goodness_of_fit.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nconst ss = Object.freeze({ binomialDistribution: __ns1_binomialDistribution, chiSquaredGoodnessOfFit: __ns1_chiSquaredGoodnessOfFit, poissonDistribution: __ns1_poissonDistribution });\n{\nconst data1019 = Object.freeze([\n    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,\n    2, 2, 2, 2, 2, 2, 3, 3, 3, 3\n]);\n{\nfunction sample(pairs) {\n        const data = [];\n        for (const [value, count] of pairs) {\n            for (let i = 0; i < count; i++) {\n                data.push(value);\n            }\n        }\n        return data;\n    }\n{\nconst observations = [];\n        for (let value = 0; value <= 120; value++) {\n            for (let i = 0; i < 40; i++) {\n                observations.push(value);\n            }\n        }\n        assert.throws(function () {\n            ss.chiSquaredGoodnessOfFit(observations, ss.poissonDistribution, 0.05);\n        }, /no critical values tabulated/);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "test/chi_squared_goodness_of_fit.test.js › chiSquaredGoodnessOfFit › throws for a significance level the table does not cover",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_chiSquaredGoodnessOfFit } from \"./src/chi_squared_goodness_of_fit.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nconst ss = Object.freeze({ binomialDistribution: __ns1_binomialDistribution, chiSquaredGoodnessOfFit: __ns1_chiSquaredGoodnessOfFit, poissonDistribution: __ns1_poissonDistribution });\n{\nconst data1019 = Object.freeze([\n    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n    0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,\n    2, 2, 2, 2, 2, 2, 3, 3, 3, 3\n]);\n{\nfunction sample(pairs) {\n        const data = [];\n        for (const [value, count] of pairs) {\n            for (let i = 0; i < count; i++) {\n                data.push(value);\n            }\n        }\n        return data;\n    }\n{\nassert.throws(function () {\n            ss.chiSquaredGoodnessOfFit(data1019, ss.poissonDistribution, 0.075);\n        }, /significance/);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › can return generate probability and cumulative probability distributions for lambda = 3.0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nassert.equal(\"object\", typeof ss.poissonDistribution(3.0));\n        assert.equal(rnd(ss.poissonDistribution(3.0)[3]), 0.224, ss.epsilon);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › can generate probability and cumulative probability distributions for lambda = 4.0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nassert.equal(\"object\", typeof ss.poissonDistribution(4.0));\n        assert.equal(rnd(ss.poissonDistribution(4.0)[2]), 0.1465, ss.epsilon);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › can generate probability and cumulative probability distributions for lambda = 5.5",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nassert.equal(\"object\", typeof ss.poissonDistribution(5.5));\n        assert.equal(rnd(ss.poissonDistribution(5.5)[7]), 0.1234, ss.epsilon);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › can generate probability and cumulative probability distributions for lambda = 9.5",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nassert.equal(\"object\", typeof ss.poissonDistribution(9.5));\n        assert.equal(rnd(ss.poissonDistribution(9.5)[17]), 0.0088, ss.epsilon);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › can return undefined when lambda <= 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nassert.equal(undefined, ss.poissonDistribution(0));\n        assert.equal(undefined, ss.poissonDistribution(-10));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › describes the whole distribution for a large lambda",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nfor (const lambda of [1, 50, 110, 111, 150, 200, 745, 746, 1000]) {\n            const cells = ss.poissonDistribution(lambda);\n            assert.ok(cells.every(Number.isFinite), \"lambda \" + lambda + \" has a cell that is not a number\");\n            assert.ok(ss.sum(cells) >= 1 - ss.epsilon, \"lambda \" + lambda + \" stops short of the distribution\");\n            assert.ok(cells.length > lambda, \"lambda \" + lambda + \" stops before its own mean\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › peaks at the mean for a large lambda",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nconst cells = ss.poissonDistribution(200);\n        const peak = cells.indexOf(ss.max(cells));\n        assert.ok(peak === 199 || peak === 200, \"peaks at \" + peak);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › matches reference cells for a large lambda",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nconst references = [\n            [111, 111, 0.03783750840195968],\n            [150, 150, 0.032555409456836548],\n            [200, 134, 1.5122660970724418e-7],\n            [200, 199, 0.028197727685920822],\n            [746, 746, 0.014604683118189346],\n            [1000, 900, 7.5169543521259519e-5],\n            [1000, 1000, 0.012614611348721499]\n        ];\n        for (const reference of references) {\n            const cells = ss.poissonDistribution(reference[0]);\n            assert.ok(ss.approxEqual(cells[reference[1]], reference[2], 1e-9), \"lambda \" +\n                reference[0] +\n                \" at \" +\n                reference[1] +\n                \": \" +\n                cells[reference[1]] +\n                \" != \" +\n                reference[2]);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › can return undefined when the distribution cannot be tabulated",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nassert.equal(undefined, ss.poissonDistribution(Number.NaN));\n        assert.equal(undefined, ss.poissonDistribution(Number.POSITIVE_INFINITY));\n        assert.equal(undefined, ss.poissonDistribution(1e9));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

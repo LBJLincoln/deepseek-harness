@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-windowed",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/windowed.ts",
+    "tests": [
+      "src/array/windowed.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/windowed.js",
+    "function": "windowed"
+  },
+  "title": "Implement windowed from es-toolkit",
+  "prompt": "`src/array/windowed.js` is the JavaScript build of `src/array/windowed.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `windowed`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Creates an array of sub-arrays (windows) from the input array, each of the specified size.\n * The windows can overlap depending on the step size provided.\n *\n * By default, only full windows are included in the result, and any leftover elements that can't form a full window are ignored.\n *\n * If the `partialWindows` option is set to true in the options object, the function will also include partial windows at the end of the result.\n * Partial windows are smaller sub-arrays created when there aren't enough elements left in the input array to form a full window.\n *\n * @template T\n * @param arr - The input array to create windows from.\n * @param size - The size of each window. Must be a positive integer.\n * @param [step=1] - The step size between the start of each window. Must be a positive integer.\n * @param [options={}] - Options object to configure the behavior of the function.\n * @param [options.partialWindows=false] - Whether to include partial windows at the end of the array.\n * @returns An array of windows (sub-arrays) created from the input array.\n * @throws {Error} If the size or step is not a positive integer.\n *\n * @example\n * windowed([1, 2, 3, 4], 2);\n * // => [[1, 2], [2, 3], [3, 4]]\n *\n * @example\n * windowed([1, 2, 3, 4, 5, 6], 3, 2);\n * // => [[1, 2, 3], [3, 4, 5]]\n *\n * @example\n * windowed([1, 2, 3, 4, 5, 6], 3, 2, { partialWindows: true });\n * // => [[1, 2, 3], [3, 4, 5], [5, 6]]\n */\nexport function windowed<T>(\n  arr: readonly T[],\n  size: number,\n  step = 1,\n  { partialWindows = false }: WindowedOptions = {}\n): T[][]\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/pipe.test.ts › lazy › lazy early exit with hasMany",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { flat } from \"./src/flat.js\";\nimport { identity } from \"./src/identity.js\";\nimport { purryFromLazy } from \"./src/internal/purryFromLazy.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { take } from \"./src/take.js\";\n{\nconst firstTwice = () =>\n// @ts-expect-error [ts2322] -- Our purry functions don't infer the correct return type, we explicit casting to force it.\npurryFromLazy(() => firstTwiceEvaluator, []);\nconst firstTwiceEvaluator = (value) => ({\n    done: true,\n    hasNext: true,\n    hasMany: true,\n    next: [value, value],\n});\n{\n{\nconst result = pipe([\n            [1, 2],\n            [3, 4],\n            [5, 6],\n        ], take(1), flat());\n        expect(result).toStrictEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

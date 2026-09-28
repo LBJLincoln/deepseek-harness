@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/fromEntries.test.ts › dataFirst",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fromEntries } from \"./src/fromEntries.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(fromEntries([\n        [\"a\", 1],\n        [\"b\", 2],\n        [\"c\", 3],\n    ])).toStrictEqual({ a: 1, b: 2, c: 3 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/fromEntries.test.ts › dataLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fromEntries } from \"./src/fromEntries.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pipe([\n        [\"a\", 1],\n        [\"b\", 2],\n        [\"c\", 3],\n    ], fromEntries())).toStrictEqual({ a: 1, b: 2, c: 3 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/fromEntries.test.ts › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fromEntries } from \"./src/fromEntries.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(fromEntries([])).toStrictEqual({});\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/fromEntries.test.ts › single entry",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fromEntries } from \"./src/fromEntries.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(fromEntries([[\"a\", 1]])).toStrictEqual({ a: 1 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/fromEntries.test.ts › boolean values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fromEntries } from \"./src/fromEntries.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(fromEntries([\n        [\"hello\", true],\n        [\"world\", false],\n    ])).toStrictEqual({ hello: true, world: false });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/fromEntries.test.ts › string values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fromEntries } from \"./src/fromEntries.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(fromEntries([[\"a\", \"d\"]])).toStrictEqual({ a: \"d\" });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/fromEntries.test.ts › number keys and values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fromEntries } from \"./src/fromEntries.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(fromEntries([[1, 123]])).toStrictEqual({ 1: 123 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

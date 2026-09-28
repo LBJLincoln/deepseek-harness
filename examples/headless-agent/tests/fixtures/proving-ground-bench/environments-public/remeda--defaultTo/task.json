@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-defaultTo",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/defaultTo.ts",
+    "tests": [
+      "packages/remeda/src/defaultTo.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/defaultTo.js",
+    "function": "defaultTo"
+  },
+  "title": "Implement defaultTo from remeda",
+  "prompt": "`src/defaultTo.js` is the JavaScript build of `packages/remeda/src/defaultTo.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `defaultTo`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * A stricter wrapper around the [Nullish coalescing operator `??`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator)\n * that ensures that the fallback matches the type of the data. Only works\n * when data can be `null` or `undefined`.\n *\n * Notice that `Number.NaN` is not nullish and would not result in returning the\n * fallback!\n *\n * @param data - A nullish value.\n * @param fallback - A value of the same type as `data` that would be returned\n * when `data` is nullish.\n * @signature\n *   defaultTo(data, fallback);\n * @example\n *   defaultTo(\"hello\" as string | undefined, \"world\"); //=> \"hello\"\n *   defaultTo(undefined as string | undefined, \"world\"); //=> \"world\"\n * @dataFirst\n * @category Other\n */\nexport function defaultTo(...args: readonly unknown[]): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/internal/lazyDataLastImpl.js`, `src/purry.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/invariant.spec.ts › invariant › should not throw an error when the condition is true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invariant } from \"./src/util/invariant.js\";\n{\n{\n{\nexpect(() => invariant(true, 'This should not throw')).not.toThrow();\n        const value1 = 'some value';\n        expect(() => invariant(value1 !== null && value1 !== undefined, 'Value should not be null or undefined')).not.toThrow();\n        const value2 = null;\n        expect(() => invariant(value2 !== null && value2 !== undefined, 'Value should not be null or undefined')).toThrow('Value should not be null or undefined');\n        const number = 5;\n        expect(() => invariant(number > 0, 'Number must be positive')).not.toThrow();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/invariant.spec.ts › invariant › should throw an error when the condition is false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invariant } from \"./src/util/invariant.js\";\n{\n{\n{\nexpect(() => invariant(false, 'This should throw')).toThrow('This should throw');\n        const value1 = undefined;\n        expect(() => invariant(value1 !== null && value1 !== undefined, 'Value should not be null or undefined')).toThrow('Value should not be null or undefined');\n        const number = -1;\n        expect(() => invariant(number > 0, 'Number must be positive')).toThrow('Number must be positive');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/util/invariant.spec.ts › invariant › should assert non-null value and treat it as string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invariant } from \"./src/util/invariant.js\";\n{\n{\n{\nconst value = 'es-toolkit';\n        invariant(value !== null, 'Value should not be null');\n        // Narrow the type.\n        expect(value.length).toBe(10);\n        expectTypeOf(value).toEqualTypeOf();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/util/invariant.spec.ts › invariant › should throw an error when the condition is false and the message is an error",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invariant } from \"./src/util/invariant.js\";\n{\n{\n{\nexpect(() => invariant(false, new Error('This should throw'))).toThrow('This should throw');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/util/invariant.spec.ts › invariant › should throw a custom error when the condition is false and the message is an error",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invariant } from \"./src/util/invariant.js\";\n{\n{\n{\nclass CustomError extends Error {\n            constructor(message) {\n                super(message);\n            }\n        }\n        expect(() => invariant(false, new CustomError('This should throw'))).toThrow(CustomError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

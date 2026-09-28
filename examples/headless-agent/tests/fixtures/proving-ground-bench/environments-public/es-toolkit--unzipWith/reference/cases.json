@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/unzipWith.spec.ts › unzipWith › should unzip arrays correctly with an iteratee",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unzipWith } from \"./src/array/unzipWith.js\";\nimport { zip } from \"./src/array/zip.js\";\n{\n{\n{\nconst zipped = zip([10, 20, 30], [40, 50, 60], [70, 80, 90]);\n        const result = unzipWith(zipped, (item, item2, item3) => item + item2 + item3);\n        expect(result).toEqual([60, 150, 240]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/unzipWith.spec.ts › unzipWith › should handle arrays of different lengths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unzipWith } from \"./src/array/unzipWith.js\";\nimport { zip } from \"./src/array/zip.js\";\n{\n{\n{\nconst zipped = zip([1, 20, 300, 4000], [100, 200, 300]);\n        const result = unzipWith(zipped, (item, item2, item3, item4) => item + item2 + item3 + item4);\n        expect(result).toEqual([4321, NaN]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/unzipWith.spec.ts › unzipWith › should return an empty array when given an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unzipWith } from \"./src/array/unzipWith.js\";\nimport { zip } from \"./src/array/zip.js\";\n{\n{\n{\nconst result = unzipWith([], (...items) => items.reduce((sum, value) => sum + value, 0));\n        expect(result).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

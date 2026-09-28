@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/minutesToSeconds/test.ts › minutesToSeconds › converts minutes to seconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minutesToSeconds } from \"./src/minutesToSeconds/index.js\";\n{\n{\n{\nexpect(minutesToSeconds(1)).toBe(60);\n        expect(minutesToSeconds(2)).toBe(120);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/minutesToSeconds/test.ts › minutesToSeconds › uses floor rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minutesToSeconds } from \"./src/minutesToSeconds/index.js\";\n{\n{\n{\nexpect(minutesToSeconds(0.123456)).toBe(7);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/minutesToSeconds/test.ts › minutesToSeconds › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minutesToSeconds } from \"./src/minutesToSeconds/index.js\";\n{\n{\n{\nexpect(minutesToSeconds(1.5)).toBe(90);\n        expect(minutesToSeconds(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/minutesToSeconds/test.ts › minutesToSeconds › properly works with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minutesToSeconds } from \"./src/minutesToSeconds/index.js\";\n{\n{\n{\nexpect(minutesToSeconds(1.23)).toBe(73);\n        expect(minutesToSeconds(-1.23)).toBe(-73);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

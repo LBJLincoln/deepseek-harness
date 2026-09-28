@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/secondsToMinutes/test.ts › secondsToMinutes › converts seconds to minutes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { secondsToMinutes } from \"./src/secondsToMinutes/index.js\";\n{\n{\n{\nexpect(secondsToMinutes(60)).toBe(1);\n        expect(secondsToMinutes(120)).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/secondsToMinutes/test.ts › secondsToMinutes › uses floor rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { secondsToMinutes } from \"./src/secondsToMinutes/index.js\";\n{\n{\n{\nexpect(secondsToMinutes(61)).toBe(1);\n        expect(secondsToMinutes(59)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/secondsToMinutes/test.ts › secondsToMinutes › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { secondsToMinutes } from \"./src/secondsToMinutes/index.js\";\n{\n{\n{\nexpect(secondsToMinutes(60.5)).toBe(1);\n        expect(secondsToMinutes(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/secondsToMinutes/test.ts › secondsToMinutes › properly works with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { secondsToMinutes } from \"./src/secondsToMinutes/index.js\";\n{\n{\n{\nexpect(secondsToMinutes(123456)).toBe(2057);\n        expect(secondsToMinutes(-123456)).toBe(-2057);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

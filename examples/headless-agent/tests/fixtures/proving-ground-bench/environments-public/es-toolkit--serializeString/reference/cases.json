@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/serialize/serializeString.spec.ts › serializeString › should wrap the string in single quotes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeString } from \"./src/util/serialize/serializeString.js\";\n{\n{\n{\nexpect(serializeString('abc')).toBe(\"'abc'\");\n        expect(serializeString('')).toBe(\"''\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/serialize/serializeString.spec.ts › serializeString › should keep unicode characters as-is",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeString } from \"./src/util/serialize/serializeString.js\";\n{\n{\n{\nexpect(serializeString('hello world 😎')).toBe(\"'hello world 😎'\");\n        expect(serializeString('한글')).toBe(\"'한글'\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/util/serialize/serializeString.spec.ts › serializeString › should not escape quotes in the string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeString } from \"./src/util/serialize/serializeString.js\";\n{\n{\n{\nexpect(serializeString(\"a'b\")).toBe(\"'a'b'\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

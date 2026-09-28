@@ -1,0 +1,722 @@
+[
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/addProp.test.ts › data last › simple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { addProp } from \"./src/addProp.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst actual = pipe({ a: 1 }, addProp(\"b\", 2));\n        expect(actual).toStrictEqual({ a: 1, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/capitalize.test.ts › data-last › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { capitalize } from \"./src/capitalize.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe(\"heLlO WoRlD\", capitalize())).toBe(\"HeLlO WoRlD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-032",
+    "title": "packages/remeda/src/constant.test.ts › can completely change the type of the pipe",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sliceString } from \"./src/sliceString.js\";\nimport { times } from \"./src/times.js\";\n{\n{\nexpect(pipe([1, 2, 3], constant(\"hello world\"), sliceString(0, 4))).toBe(\"hell\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-044",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › mixed data types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n        expect(pipe([1, \"a\", 1, mySymbol, \"A\", mySymbol], countBy(when(isString, toLowerCase())))).toStrictEqual({ 1: 2, a: 2, [mySymbol]: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-051",
+    "title": "packages/remeda/src/difference.test.ts › returns a shallow clone when nothing is removed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { difference } from \"./src/difference.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\nconst data = [1, 2, 3];\n    const result = difference(data, [4, 5, 6]);\n    expect(result).toStrictEqual(data);\n    expect(result).not.toBe(data);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-056",
+    "title": "packages/remeda/src/difference.test.ts › preserves the original order in source array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { difference } from \"./src/difference.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\nexpect(difference([3, 1, 2, 2, 4], [2])).toStrictEqual([3, 1, 2, 4]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-060",
+    "title": "packages/remeda/src/difference.test.ts › compares objects by reference",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { difference } from \"./src/difference.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\nexpect(difference([{ a: 2 }, { b: 3 }], [{ a: 2 }])).toStrictEqual([\n        { a: 2 },\n        { b: 3 },\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-069",
+    "title": "packages/remeda/src/drop.test.ts › data last › works when dropping more than the length of the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { drop } from \"./src/drop.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4, 5], drop(10))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-080",
+    "title": "packages/remeda/src/dropFirstBy.test.ts › runtime (dataLast) › clones the data when needed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropFirstBy } from \"./src/dropFirstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        const result = pipe(data, dropFirstBy(0, (x) => x));\n        expect(result).not.toBe(data);\n        expect(result).toStrictEqual(data);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-089",
+    "title": "packages/remeda/src/dropLastWhile.test.ts › data last › should return an empty array when an empty array is passed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropLastWhile } from \"./src/dropLastWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([], dropLastWhile((n) => n > 0))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-099",
+    "title": "packages/remeda/src/dropWhile.test.ts › data last › should return an empty array when an empty array is passed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], dropWhile((n) => n > 0))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-107",
+    "title": "packages/remeda/src/endsWith.test.ts › data-last, no match",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/endsWith.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pipe(\"hello world\", endsWith(\"hello\"))).toBe(false);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-120",
+    "title": "packages/remeda/src/evolve.test.ts › data last › ignores undefined transformations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(pipe({ n: 0 }, evolve({}))).toStrictEqual({ n: 0 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-131",
+    "title": "packages/remeda/src/findIndex.test.ts › data last › not found",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findIndex } from \"./src/findIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([2, 3, 4], findIndex((x) => x === 20))).toBe(-1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-142",
+    "title": "packages/remeda/src/findLastIndex.test.ts › data last › not found",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLastIndex } from \"./src/findLastIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], findLastIndex((x) => x === 5))).toBe(-1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-158",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › finds the max with 'desc' order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([2, 1, 4, 3, 5], firstBy([identity(), \"desc\"]))).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-162",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › can compare numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([2, 1, 3], firstBy(identity()))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-181",
+    "title": "packages/remeda/src/fromKeys.test.ts › dataLast › works on regular arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\"a\"], fromKeys((item) => `${item}_`))).toStrictEqual({ a: \"a_\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-185",
+    "title": "packages/remeda/src/fromKeys.test.ts › dataLast › works with symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst symbol = Symbol(\"a\");\n        expect(pipe([symbol], fromKeys(() => 1))).toStrictEqual({ [symbol]: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-197",
+    "title": "packages/remeda/src/groupByProp.test.ts › data last › must be grouped correctly by number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupByProp } from \"./src/groupByProp.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst SYMBOL = Symbol(\"sym\");\n{\n{\nexpect(pipe([\n            { 1: \"cat\", 2: 123 },\n            { 1: \"dog\", 2: 456 },\n            { 1: \"dog\", 2: 789 },\n            { 1: \"cat\", 2: 101 },\n        ], groupByProp(1))).toStrictEqual({\n            cat: [\n                { 1: \"cat\", 2: 123 },\n                { 1: \"cat\", 2: 101 },\n            ],\n            dog: [\n                { 1: \"dog\", 2: 456 },\n                { 1: \"dog\", 2: 789 },\n            ],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-216",
+    "title": "packages/remeda/src/hasProp.test.ts › data-last › returns false for inherited prototype properties",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hasProp } from \"./src/hasProp.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe({}, hasProp(\"toString\"))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-227",
+    "title": "packages/remeda/src/identity.test.ts › can be put in a pipe",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\nexpect(pipe([1, 2, 3], identity(), map(add(1)))).toStrictEqual([2, 3, 4]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-234",
+    "title": "packages/remeda/src/intersection.test.ts › works trivially on a single item",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(intersection([1], [1])).toStrictEqual([1]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-238",
+    "title": "packages/remeda/src/intersection.test.ts › maintains order for multiple copies",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(intersection([3, 2, 2, 2, 2, 2, 1], [1, 2, 3])).toStrictEqual([\n        3, 2, 1,\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-250",
+    "title": "packages/remeda/src/invert.test.ts › data last › numeric values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\"a\", \"b\", \"c\"], invert())).toStrictEqual({\n            a: \"0\",\n            b: \"1\",\n            c: \"2\",\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-332",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataLast › when not contained",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe(4, isIncludedIn([1, 2, 3]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-345",
+    "title": "packages/remeda/src/last.test.ts › data last › should return last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { last } from \"./src/last.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], last())).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-354",
+    "title": "packages/remeda/src/map.test.ts › data-last › passes the index to the mapper as its second argument",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([0, 0, 0], map((_, index) => index))).toStrictEqual([0, 1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-372",
+    "title": "packages/remeda/src/mapValues.test.ts › dataLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapValues } from \"./src/mapValues.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pipe({ a: 1, b: 2 }, mapValues((value, key) => `${value}${key}`))).toStrictEqual({ a: \"1a\", b: \"2b\" });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-380",
+    "title": "packages/remeda/src/mapWithFeedback.test.ts › data last › should track index and progressively include elements from the original array in the items array during each iteration, forming a growing window",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { mapWithFeedback } from \"./src/mapWithFeedback.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nconst lazyItems = [];\n        const indices = [];\n        pipe([1, 2, 3, 4, 5], mapWithFeedback((acc, x, index, items) => {\n            indices.push(index);\n            lazyItems.push([...items]);\n            return acc + x;\n        }, 100));\n        expect(indices).toStrictEqual([0, 1, 2, 3, 4]);\n        expect(lazyItems).toStrictEqual([\n            [1],\n            [1, 2],\n            [1, 2, 3],\n            [1, 2, 3, 4],\n            [1, 2, 3, 4, 5],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-389",
+    "title": "packages/remeda/src/meanBy.test.ts › data last › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { meanBy } from \"./src/meanBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\n{\nexpect(pipe([{ a: 1 }, { a: 2 }, { a: 4 }, { a: 5 }, { a: 3 }], meanBy(({ a }, idx) => a + idx))).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-396",
+    "title": "packages/remeda/src/median.test.ts › dataLast › should return undefined for an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { median } from \"./src/median.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([], median())).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-407",
+    "title": "packages/remeda/src/omit.test.ts › dataLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nconst result = pipe({ a: 1, b: 2, c: 3, d: 4 }, omit([\"a\", \"d\"]));\n    expect(result).toStrictEqual({ b: 2, c: 3 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-419",
+    "title": "packages/remeda/src/only.test.ts › data last › length 2 array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2], only())).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-437",
+    "title": "packages/remeda/src/pathOr.test.ts › data last › 2 level",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pathOr } from \"./src/pathOr.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst obj = {\n    a: {\n        b: {\n            c: 1,\n        },\n    },\n    y: 10,\n};\n{\n{\nexpect(pipe(obj, pathOr([\"a\", \"z\"], 1))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-447",
+    "title": "packages/remeda/src/pipe.test.ts › should pass through data with 0 functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { flat } from \"./src/flat.js\";\nimport { identity } from \"./src/identity.js\";\nimport { purryFromLazy } from \"./src/internal/purryFromLazy.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { take } from \"./src/take.js\";\n{\nconst firstTwice = () =>\n// @ts-expect-error [ts2322] -- Our purry functions don't infer the correct return type, we explicit casting to force it.\npurryFromLazy(() => firstTwiceEvaluator, []);\nconst firstTwiceEvaluator = (value) => ({\n    done: true,\n    hasNext: true,\n    hasMany: true,\n    next: [value, value],\n});\n{\nconst data = { a: \"hello\", b: 123 };\n    expect(pipe(data)).toBe(data);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-455",
+    "title": "packages/remeda/src/product.test.ts › dataLast › should return 1 for an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { product } from \"./src/product.js\";\n{\n{\n{\nexpect(pipe([], product())).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-486",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › string items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([\"a\", \"b\"], pullObject((item) => `item_${item}`, (item) => item.toUpperCase()))).toStrictEqual({ item_a: \"A\", item_b: \"B\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-490",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › last value wins",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([\n            { id: \"a\", val: \"hello\" },\n            { id: \"a\", val: \"world\" },\n        ], pullObject(prop(\"id\"), prop(\"val\")))).toStrictEqual({ a: \"world\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-524",
+    "title": "packages/remeda/src/set.test.ts › data last › simple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { set } from \"./src/set.js\";\n{\n{\n{\nexpect(pipe({ a: 1 }, set(\"a\", 2))).toStrictEqual({ a: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-533",
+    "title": "packages/remeda/src/setPath.test.ts › data last › should support partial paths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(pipe(TEST_OBJECT, setPath([\"a\", \"b\"], { c: 2 }))).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, b: { c: 2 } },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-545",
+    "title": "packages/remeda/src/sortBy.test.ts › data last › sort correctly using pipe and \"desc\"",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { sortBy } from \"./src/sortBy.js\";\n{\nconst DATA = [\n    { id: 1, color: \"red\", weight: 2, active: true, date: new Date(2021, 1, 1) },\n    {\n        id: 2,\n        color: \"blue\",\n        weight: 3,\n        active: false,\n        date: new Date(2021, 1, 2),\n    },\n    {\n        id: 3,\n        color: \"green\",\n        weight: 1,\n        active: false,\n        date: new Date(2021, 1, 3),\n    },\n    {\n        id: 4,\n        color: \"purple\",\n        weight: 1,\n        active: true,\n        date: new Date(2021, 1, 4),\n    },\n];\n{\n{\nexpect(pipe([{ a: 1 }, { a: 3 }, { a: 7 }, { a: 2 }], sortBy([prop(\"a\"), \"desc\"]))).toStrictEqual([{ a: 7 }, { a: 3 }, { a: 2 }, { a: 1 }]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-588",
+    "title": "packages/remeda/src/splice.test.ts › replacement defaults to an empty array › data-last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4, 5], splice(1, 2))).toStrictEqual(pipe([1, 2, 3, 4, 5], splice(1, 2, [])));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-609",
+    "title": "packages/remeda/src/split.test.ts › dataLast › regex with limit",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\n{\nexpect(pipe(\"a,b,c\", split(/,/u, 2))).toStrictEqual([\"a\", \"b\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-621",
+    "title": "packages/remeda/src/sum.test.ts › dataLast › should return 0 for an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sum } from \"./src/sum.js\";\n{\n{\n{\nexpect(pipe([], sum())).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-630",
+    "title": "packages/remeda/src/sumBy.test.ts › data last › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { sumBy } from \"./src/sumBy.js\";\n{\n{\n{\nconst actual = pipe([{ a: 1 }, { a: 2 }, { a: 4 }, { a: 5 }, { a: 3 }], sumBy(({ a }, idx) => a + idx));\n        expect(actual).toBe(25);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-642",
+    "title": "packages/remeda/src/take.test.ts › data last › works when taking more than the length of the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4, 5], take(10))).toStrictEqual([1, 2, 3, 4, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-652",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataLast) › handles overflowing numbers gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(pipe(data, takeFirstBy(100, (x) => x))).toHaveLength(data.length);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-662",
+    "title": "packages/remeda/src/takeLastWhile.test.ts › data last › should return rest of the items when first item fails the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeLastWhile } from \"./src/takeLastWhile.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], takeLastWhile((n) => n !== 1))).toStrictEqual([2, 3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-668",
+    "title": "packages/remeda/src/tap.test.ts › data last › should return input value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(pipe(DATA, tap((data) => data.length))).toBe(DATA);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-676",
+    "title": "packages/remeda/src/times.test.ts › data_last › creates an array of the correct length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(pipe(123, times(constant(1)))).toHaveLength(123);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-681",
+    "title": "packages/remeda/src/toCamelCase.test.ts › data-last › with options (preserveConsecutiveUppercase: false)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(pipe(\"fooBAR\", toCamelCase({ preserveConsecutiveUppercase: false }))).toBe(\"fooBar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-707",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-last › on snake case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(pipe(\"hello_world\", toKebabCase())).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-716",
+    "title": "packages/remeda/src/toLowerCase.test.ts › data-last › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(pipe(\"HeLlO WoRlD\", toLowerCase())).toBe(\"hello world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-734",
+    "title": "packages/remeda/src/toSnakeCase.test.ts › data-last › on snake case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toSnakeCase } from \"./src/toSnakeCase.js\";\n{\n{\n{\nexpect(pipe(\"hello_world\", toSnakeCase())).toBe(\"hello_world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-765",
+    "title": "packages/remeda/src/toTitleCase.test.ts › preserveConsecutiveUppercase option › data-last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(pipe(\"XMLHttpRequest\", toTitleCase( /* default options */))).toBe(\"XML Http Request\");\n        expect(pipe(\"XMLHttpRequest\", toTitleCase({ preserveConsecutiveUppercase: true }))).toBe(\"XML Http Request\");\n        expect(pipe(\"XMLHttpRequest\", toTitleCase({ preserveConsecutiveUppercase: false }))).toBe(\"Xml Http Request\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-795",
+    "title": "packages/remeda/src/truncate.test.ts › data-last › accepts an options object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe(\"Hello, world!\", truncate(10, { omission: \"Bye!\", separator: \",\" }))).toBe(\"HelloBye!\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-810",
+    "title": "packages/remeda/src/uncapitalize.test.ts › data-last › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(pipe(\"HeLlO WoRlD\", uncapitalize())).toBe(\"heLlO WoRlD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-836",
+    "title": "packages/remeda/src/zip.test.ts › dataLast › should zip",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { first } from \"./src/first.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zip } from \"./src/zip.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], zip([\"a\", \"b\", \"c\"]))).toStrictEqual([\n            [1, \"a\"],\n            [2, \"b\"],\n            [3, \"c\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-840",
+    "title": "packages/remeda/src/zip.test.ts › dataLast › should return empty when first is empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { first } from \"./src/first.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zip } from \"./src/zip.js\";\n{\n{\n{\nexpect(pipe([], zip([\"a\", \"b\"]))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

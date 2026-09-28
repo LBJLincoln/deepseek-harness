@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-uniqBy",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/uniqBy.ts",
+    "tests": [
+      "src/array/uniqBy.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/uniqBy.js",
+    "function": "uniqBy"
+  },
+  "title": "Implement uniqBy from es-toolkit",
+  "prompt": "`src/array/uniqBy.js` is the JavaScript build of `src/array/uniqBy.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `uniqBy`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Returns a new array containing only the unique elements from the original array,\n * based on the values returned by the mapper function.\n *\n * When duplicates are found, the first occurrence is kept and the rest are discarded.\n *\n * @template T - The type of elements in the array.\n * @template U - The type of mapped elements.\n * @param arr - The array to process.\n * @param mapper - The function used to convert the array elements.\n * @returns A new array containing only the unique elements from the original array, based on the values returned by the mapper function.\n *\n * @example\n * ```ts\n * uniqBy([1.2, 1.5, 2.1, 3.2, 5.7, 5.3, 7.19], Math.floor);\n * // [1.2, 2.1, 3.2, 5.7, 7.19]\n * ```\n *\n * @example\n * const array = [\n *   { category: 'fruit', name: 'apple' },\n *   { category: 'fruit', name: 'banana' },\n *   { category: 'vegetable', name: 'carrot' },\n * ];\n * uniqBy(array, item => item.category).length\n * // 2\n * ```\n */\nexport function uniqBy<T, U>(arr: readonly T[], mapper: (item: T, index: number, array: readonly T[]) => U): T[]\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

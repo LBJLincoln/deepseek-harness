@@ -1,0 +1,146 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/toMerged.spec.ts › toMerged › should merge properties from source object into target object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { a: 1, b: 2 };\n        const source = { b: 3, c: 4 };\n        const result = toMerged(target, source);\n        expect(result).toEqual({ a: 1, b: 3, c: 4 });\n        expect(target).toEqual({ a: 1, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/toMerged.spec.ts › toMerged › should deeply merge nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { a: { x: 1, y: 2 }, b: 2 };\n        const source = { a: { y: 3, z: 4 }, c: 5 };\n        const result = toMerged(target, source);\n        expect(result).toEqual({ a: { x: 1, y: 3, z: 4 }, b: 2, c: 5 });\n        expect(target).toEqual({ a: { x: 1, y: 2 }, b: 2 });\n        const names = {\n            characters: [{ name: 'barney' }, { name: 'fred' }],\n        };\n        const ages = {\n            characters: [{ age: 36 }, { age: 40 }],\n        };\n        const heights = {\n            characters: [{ height: '5\\'4\"' }, { height: '5\\'5\"' }],\n        };\n        const expected = {\n            characters: [\n                { name: 'barney', age: 36, height: '5\\'4\"' },\n                { name: 'fred', age: 40, height: '5\\'5\"' },\n            ],\n        };\n        expect(toMerged(toMerged(names, ages), heights)).toEqual(expected);\n        expect(names).toEqual({\n            characters: [{ name: 'barney' }, { name: 'fred' }],\n        });\n        const target2 = { a: [1, 2], b: { x: 1 } };\n        const source2 = { a: [3], b: { y: 2 } };\n        expect(toMerged(target2, source2)).toEqual({ a: [3, 2], b: { x: 1, y: 2 } });\n        expect(target2).toEqual({ a: [1, 2], b: { x: 1 } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/toMerged.spec.ts › toMerged › should not mutate the target through nested values that the source does not touch",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { nested: { flag: true } };\n        const result = toMerged(target, {});\n        expect(result.nested).not.toBe(target.nested);\n        result.nested.flag = false;\n        expect(target.nested.flag).toBe(true);\n        expect(target).toEqual({ nested: { flag: true } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/toMerged.spec.ts › toMerged › should deeply clone untouched nested subtrees even when a sibling key is merged",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { nested: { flag: true, untouched: { deep: 1 } } };\n        const result = toMerged(target, { nested: { flag: false } });\n        expect(result).toEqual({ nested: { flag: false, untouched: { deep: 1 } } });\n        expect(result.nested.untouched).not.toBe(target.nested.untouched);\n        result.nested.untouched.deep = 999;\n        expect(target.nested.untouched.deep).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/toMerged.spec.ts › toMerged › should deeply clone untouched array elements from the target",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { list: [{ a: 1 }, { b: 2 }] };\n        const result = toMerged(target, {});\n        expect(result.list).not.toBe(target.list);\n        expect(result.list[0]).not.toBe(target.list[0]);\n        result.list[0].a = 999;\n        expect(target.list[0].a).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object/toMerged.spec.ts › toMerged › should merge arrays deeply",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { a: [1, 2] };\n        const source = { a: [3, 4] };\n        const result = toMerged(target, source);\n        expect(result).toEqual({ a: [3, 4] });\n        expect(target).toEqual({ a: [1, 2] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/object/toMerged.spec.ts › toMerged › should handle merging with null values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { a: null };\n        const source = { a: [1, 2, 3] };\n        const result = toMerged(target, source);\n        expect(result).toEqual({ a: [1, 2, 3] });\n        expect(target).toEqual({ a: null });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/object/toMerged.spec.ts › toMerged › should not overwrite existing values with undefined from source",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { a: 1, b: 2 };\n        const source = { b: undefined, c: 3 };\n        const result = toMerged(target, source);\n        expect(result).toEqual({ a: 1, b: 2, c: 3 });\n        expect(target).toEqual({ a: 1, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/object/toMerged.spec.ts › toMerged › should handle merging of deeply nested objects with arrays and objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { a: { b: { c: [1] } } };\n        const source = { a: { b: { c: [2], d: 3 }, e: [4] } };\n        const result = toMerged(target, source);\n        expect(result).toEqual({ a: { b: { c: [2], d: 3 }, e: [4] } });\n        expect(target).toEqual({ a: { b: { c: [1] } } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/object/toMerged.spec.ts › toMerged › should replace non-plain-object target value with plain object from source",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { a: 'string', b: 123, c: true };\n        const source = { a: { x: 1 }, b: { y: 2 }, c: { z: 3 } };\n        const result = toMerged(target, source);\n        expect(result).toEqual({ a: { x: 1 }, b: { y: 2 }, c: { z: 3 } });\n        expect(target).toEqual({ a: 'string', b: 123, c: true });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/object/toMerged.spec.ts › toMerged › should handle nested case where non-plain-object is replaced with plain object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst target = { a: { b: null, c: undefined, d: 'text' } };\n        const source = { a: { b: { x: 1 }, c: { y: 2 }, d: { z: 3 } } };\n        const result = toMerged(target, source);\n        expect(result).toEqual({ a: { b: { x: 1 }, c: { y: 2 }, d: { z: 3 } } });\n        expect(target).toEqual({ a: { b: null, c: undefined, d: 'text' } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/object/toMerged.spec.ts › toMerged › should behave like recursive Object.assign, applying the same logic to nested properties",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toMerged } from \"./src/object/toMerged.js\";\n{\n{\n{\nconst arrayTarget = ['1'];\n        const objectTarget = { a: 2 };\n        const topLevelArray = toMerged(arrayTarget, { a: 2 });\n        const topLevelObject = toMerged(objectTarget, ['1']);\n        const nestedArray = toMerged({ x: ['1'] }, { x: { a: 2 } });\n        const nestedObject = toMerged({ x: { a: 2 } }, { x: ['1'] });\n        expect(Array.isArray(topLevelArray)).toBe(true);\n        expect(topLevelArray[0]).toBe('1');\n        expect(topLevelArray.a).toBe(2);\n        expect(arrayTarget).toEqual(['1']);\n        expect(typeof topLevelObject).toBe('object');\n        expect(topLevelObject).toEqual({ a: 2, 0: '1' });\n        expect(objectTarget).toEqual({ a: 2 });\n        expect(typeof nestedObject.x).toBe('object');\n        expect(nestedObject.x).toEqual({ a: 2, 0: '1' });\n        expect(nestedObject.x[0]).toBe('1');\n        expect(Array.isArray(nestedArray.x)).toBe(true);\n        expect(nestedArray.x[0]).toBe('1');\n        expect(nestedArray.x.a).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-004",
+    "title": "src/array.test.ts › filterInPlace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filterInPlace, flattenArrayable, partition, range, toArray } from \"./src/array.js\";\n{\n{\nconst data = range(10);\n    const result = filterInPlace(data, i => i % 2);\n    expect(data).toEqual([1, 3, 5, 7, 9]);\n    expect(data).toBe(result);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

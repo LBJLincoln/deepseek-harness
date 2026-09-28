@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isNil.spec.ts › isNil › returns true if the value is null or undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNil } from \"./src/predicate/isNil.js\";\n{\n{\n{\nexpect(isNil(null)).toBe(true);\n        expect(isNil(undefined)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isNil.spec.ts › isNil › returns false if the value is not null nor undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNil } from \"./src/predicate/isNil.js\";\n{\n{\n{\nexpect(isNil('')).toBe(false);\n        expect(isNil(123)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isNil.spec.ts › isNil › can be used with TypeScript as a type predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNil } from \"./src/predicate/isNil.js\";\n{\n{\n{\nconst arr = [1, 2, null, 4, undefined];\n        const result = arr.filter(isNil);\n        // Here the type of result should be `null | undefined`.\n        expect(result).toStrictEqual([null, undefined]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "id": "code:simple-statistics--implement-cumulativeStdNormalProbability",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/cumulative_std_normal_probability.js",
+    "tests": [
+      "test/cumulative.test.js",
+      "test/normal_distribution.test.js",
+      "test/standard_normal_table.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/cumulative_std_normal_probability.js",
+    "function": "cumulativeStdNormalProbability"
+  },
+  "title": "Implement cumulativeStdNormalProbability from simple-statistics",
+  "prompt": "`src/cumulative_std_normal_probability.js` is the JavaScript build of `src/cumulative_std_normal_probability.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `cumulativeStdNormalProbability`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * **[Cumulative Standard Normal Probability](http://en.wikipedia.org/wiki/Standard_normal_table)**\n *\n * Since probability tables cannot be\n * printed for every normal distribution, as there are an infinite variety\n * of normal distributions, it is common practice to convert a normal to a\n * standard normal and then use the standard normal table to find probabilities.\n *\n * You can use `.5 + .5 * errorFunction(x / Math.sqrt(2))` to calculate the probability\n * instead of looking it up in a table.\n *\n * @param {number} z\n * @returns {number} cumulative standard normal probability\n */\nfunction cumulativeStdNormalProbability(z)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/cumulative_std_logistic_probability.js`, `src/epsilon.js`, `src/error_function.js`, `src/inverse_error_function.js`, `src/normal_distribution.js`, `src/probit.js`, `src/standard_normal_table.js`, `src/z_score.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

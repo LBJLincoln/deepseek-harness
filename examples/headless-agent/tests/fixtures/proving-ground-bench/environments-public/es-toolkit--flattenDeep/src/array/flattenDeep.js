@@ -1,0 +1,15 @@
+import { flatten } from "./flatten.js";
+/**
+ * Flattens all depths of a nested array.
+ *
+ * @template T - The type of elements within the array.
+ * @param arr - The array to flatten.
+ * @returns A new array that has been flattened.
+ *
+ * @example
+ * const arr = flattenDeep([1, [2, [3]], [4, [5, 6]]]);
+ * // Returns: [1, 2, 3, 4, 5, 6]
+ */
+export function flattenDeep(arr) {
+    throw new Error('not implemented');
+}

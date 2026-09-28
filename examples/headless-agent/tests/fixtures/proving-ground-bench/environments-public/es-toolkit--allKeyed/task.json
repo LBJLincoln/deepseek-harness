@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-allKeyed",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/promise/allKeyed.ts",
+    "tests": [
+      "src/promise/allKeyed.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/promise/allKeyed.js",
+    "function": "allKeyed"
+  },
+  "title": "Implement allKeyed from es-toolkit",
+  "prompt": "`src/promise/allKeyed.js` is the JavaScript build of `src/promise/allKeyed.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `allKeyed`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Resolves an object of promises concurrently, returning an object with the same keys and resolved values.\n *\n * Similar to `Promise.all`, but accepts an object of promises instead of an array,\n * preserving the keys in the result. This makes it easy to destructure the resolved values\n * by name instead of relying on positional indices.\n *\n * Based on the [TC39 `Promise.allKeyed` proposal](https://github.com/tc39/proposal-await-dictionary).\n *\n * @template T - A record type where each value is a promise or a value.\n * @param tasks - An object whose values are promises (or plain values) to resolve concurrently.\n * @returns>} A promise that resolves to an object with the same keys and resolved values.\n *\n * @example\n * const { user, posts } = await allKeyed({\n *   user: fetchUser(),\n *   posts: fetchPosts(),\n * });\n *\n * @example\n * // Plain values are also supported\n * const result = await allKeyed({\n *   a: Promise.resolve(1),\n *   b: 2,\n * });\n * // { a: 1, b: 2 }\n */\nexport async function allKeyed<T extends Record<string, unknown>>(\n  tasks: T\n): Promise<{ [K in keyof T]: Awaited<T[K]> }>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

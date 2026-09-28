@@ -1,0 +1,51 @@
+{
+  "id": "code:simple-statistics--implement-tTest",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/t_test.js",
+    "tests": [
+      "test/t_test.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/t_test.js",
+    "function": "tTest"
+  },
+  "title": "Implement tTest from simple-statistics",
+  "prompt": "`src/t_test.js` is the JavaScript build of `src/t_test.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `tTest`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * This is to compute [a one-sample t-test](https://en.wikipedia.org/wiki/Student%27s_t-test#One-sample_t-test), comparing the mean\n * of a sample to a known value, x.\n *\n * in this case, we're trying to determine whether the\n * population mean is equal to the value that we know, which is `x`\n * here. Usually the results here are used to look up a\n * [p-value](http://en.wikipedia.org/wiki/P-value), which, for\n * a certain level of significance, will let you determine that the\n * null hypothesis can or cannot be rejected.\n *\n * @param {Array<number>} x sample of one or more numbers\n * @param {number} expectedValue expected value of the population mean\n * @returns {number} value\n * @example\n * tTest([1, 2, 3, 4, 5, 6], 3.385).toFixed(2); // => '0.16'\n */\nfunction tTest(x, expectedValue)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/mean.js`, `src/standard_deviation.js`, `src/sum.js`, `src/sum_nth_power_deviations.js`, `src/variance.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/utils/truncate.test.ts › truncate › truncate small sentence does nothing",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/utils/truncate.js\";\n{\n{\n{\nconst expected = 'Hello';\n        const result = truncate('Hello', 9);\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/utils/truncate.test.ts › truncate › truncate big sentence truncate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/utils/truncate.js\";\n{\n{\n{\nconst expected = 'Hello ...';\n        const result = truncate('Hello world', 9);\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/utils/truncate.test.ts › truncate › truncate with negative integer does truncate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/utils/truncate.js\";\n{\n{\n{\nconst expected = '...';\n        const result = truncate('Hello world', -1);\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/utils/truncate.test.ts › truncate › truncate big sentence with specified omission",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/utils/truncate.js\";\n{\n{\n{\nconst expected = 'Hello[...]';\n        const result = truncate('Hello world', 10, '[...]');\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/utils/truncate.test.ts › truncate › truncate small sentence with specified omission",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/utils/truncate.js\";\n{\n{\n{\nconst expected = 'Hello';\n        const result = truncate('Hello', 10, '[...]');\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-002",
+    "title": "test/error_function.test.js › errorFunction › inverse",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_errorFunction } from \"./src/error_function.js\";\nimport { default as __ns1_inverseErrorFunction } from \"./src/inverse_error_function.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, errorFunction: __ns1_errorFunction, inverseErrorFunction: __ns1_inverseErrorFunction });\n{\n{\n{\nfor (let i = -1; i <= 1; i += 0.01) {\n            assert.equal(Math.abs(ss.errorFunction(ss.inverseErrorFunction(i)) - i) <\n                4 * ss.epsilon, true);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

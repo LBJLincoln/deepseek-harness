@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/sample_correlation.test.js › sample correlation › can get the sample correlation of identical arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleCorrelation } from \"./src/sample_correlation.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleCorrelation: __ns1_sampleCorrelation, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nconst data = Object.freeze([1, 2, 3, 4, 5, 6]);\n        assert.equal(rnd(ss.sampleCorrelation(data, data)), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/sample_correlation.test.js › sample correlation › can get the sample correlation of different arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleCorrelation } from \"./src/sample_correlation.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleCorrelation: __ns1_sampleCorrelation, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nconst a = Object.freeze([1, 2, 3, 4, 5, 6]);\n        const b = Object.freeze([2, 2, 3, 4, 5, 60]);\n        assert.equal(rnd(ss.sampleCorrelation(a, b)), 0.691);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/sample_correlation.test.js › sample rank correlation › absolute rank correlation for monotonic function equals one",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleCorrelation } from \"./src/sample_correlation.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleCorrelation: __ns1_sampleCorrelation, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nconst x = Object.freeze([1, 2, 3, 4, 5, 6]);\n        let y;\n        for (const sign of [-1, 1]) {\n            y = x.map((a) => sign * a * a);\n            if (rnd(ss.sampleRankCorrelation(x, y)) !== sign * 1) {\n                assert.fail(\"absolute rank correlation not equal to one\");\n            }\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/sample_correlation.test.js › sample rank correlation › rank correlation agrees with R calculation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleCorrelation } from \"./src/sample_correlation.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleCorrelation: __ns1_sampleCorrelation, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nconst x = Object.freeze([\n            -0.008718749, -0.06111878, 0.067698537, -1.075537181, 0.041328545,\n            0.56687373, 0.193619496, -2.057133298, -1.058808987, -0.173177955\n        ]);\n        const y = Object.freeze([\n            -3.02455481, -1.30596109, 0.03873244, -1.27909938, -0.24630809,\n            -0.18103793, -0.48281339, -2.78997293, -1.30551335, -1.63361636\n        ]);\n        const rankCorr = 0.6484848; // calculated using cor(x, y, method = \"spearman\") in R\n        if (Math.abs(ss.sampleRankCorrelation(x, y) - rankCorr) > ss.epsilon) {\n            console.log(ss.sampleRankCorrelation(x, y));\n            assert.fail(\"rank correlation is incorrect for sample data\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

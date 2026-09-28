@@ -1,0 +1,51 @@
+{
+  "id": "code:simple-statistics--implement-normalDistribution",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/normal_distribution.js",
+    "tests": [
+      "test/normal_distribution.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/normal_distribution.js",
+    "function": "normalDistribution"
+  },
+  "title": "Implement normalDistribution from simple-statistics",
+  "prompt": "`src/normal_distribution.js` is the JavaScript build of `src/normal_distribution.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `normalDistribution`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * **[Normal distribution](https://en.wikipedia.org/wiki/Normal_distribution)**\n *\n * Returns either the probability density or the cumulative probability of a\n * normal distribution with the given mean and standard deviation, evaluated\n * at x. It is the equivalent of the NORM.DIST function found in spreadsheet\n * software.\n *\n * The cumulative form is computed with `errorFunction`, so it is more precise\n * than converting x to a z-score and looking it up in the four-decimal\n * `standardNormalTable` used by `cumulativeStdNormalProbability`.\n *\n * @param {number} x the value for which you want the distribution\n * @param {number} mean the mean of the distribution\n * @param {number} standardDeviation the standard deviation of the distribution\n * @param {boolean} [cumulative=false] if true, return the cumulative\n * distribution function; if false, return the probability density function\n * @returns {number} the probability density at x, or the probability of a\n * value at most x\n * @throws {Error} if standardDeviation is not greater than zero\n * @example\n * normalDistribution(42, 40, 1.5, true).toFixed(4); // => '0.9088'\n * normalDistribution(42, 40, 1.5, false).toFixed(4); // => '0.1093'\n */\nfunction normalDistribution(x, mean, standardDeviation, cumulative = false)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/cumulative_std_normal_probability.js`, `src/error_function.js`, `src/standard_normal_table.js`, `src/z_score.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

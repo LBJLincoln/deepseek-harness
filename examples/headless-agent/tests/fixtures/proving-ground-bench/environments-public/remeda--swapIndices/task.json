@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-swapIndices",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/swapIndices.ts",
+    "tests": [
+      "packages/remeda/src/swapIndices.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/swapIndices.js",
+    "function": "swapIndices"
+  },
+  "title": "Implement swapIndices from remeda",
+  "prompt": "`src/swapIndices.js` is the JavaScript build of `packages/remeda/src/swapIndices.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `swapIndices`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Swaps the positions of two elements in an array or string at the provided indices.\n *\n * Negative indices are supported and would be treated as an offset from the end of the array. The resulting type thought would be less strict than when using positive indices.\n *\n * If either index is out of bounds the result would be a shallow copy of the input, as-is.\n *\n * Related operations:\n * - `splice` - for more general positional edits (remove a slice, insert at an index).\n *\n * @param data - The item to be manipulated. This can be an array, or a string.\n * @param index1 - The first index.\n * @param index2 - The second index.\n * @returns Returns the manipulated array or string.\n * @signature\n *   swapIndices(data, index1, index2)\n * @example\n *   swapIndices(['a', 'b', 'c'], 0, 1) // => ['b', 'a', 'c']\n *   swapIndices(['a', 'b', 'c'], 1, -1) // => ['a', 'c', 'b']\n *   swapIndices('abc', 0, 1) // => 'bac'\n * @dataFirst\n * @category Array\n */\nexport function swapIndices(...args: readonly unknown[]): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/internal/lazyDataLastImpl.js`, `src/purry.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

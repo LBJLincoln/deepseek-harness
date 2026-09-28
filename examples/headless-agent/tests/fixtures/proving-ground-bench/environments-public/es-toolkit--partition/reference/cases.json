@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/partition.spec.ts › partition › creates two arrays: the first array includes items for which isInTruthy returns true, and the second array includes items for which isInTruthy returns false.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partition } from \"./src/array/partition.js\";\n{\n{\n{\nexpect(partition([true, true, false], x => x)).toEqual([[true, true], [false]]);\n        expect(partition([\n            { id: 1, enabled: true },\n            { id: 2, enabled: false },\n            { id: 3, enabled: false },\n            { id: 4, enabled: true },\n        ], x => x.enabled)).toEqual([\n            [\n                { id: 1, enabled: true },\n                { id: 4, enabled: true },\n            ],\n            [\n                { id: 2, enabled: false },\n                { id: 3, enabled: false },\n            ],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/partition.spec.ts › partition › should correctly infer the type of a narrow array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partition } from \"./src/array/partition.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n        const [evens, odds] = partition(arr, num => num % 2 === 0);\n        expect(evens).toEqual([2, 4]);\n        expect(odds).toEqual([1, 3, 5]);\n        expectTypeOf(evens).toEqualTypeOf();\n        expectTypeOf(odds).toEqualTypeOf();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/partition.spec.ts › partition › should correctly infer type of a narrow array with a type guard",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partition } from \"./src/array/partition.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n        const isOdd = (num) => num % 2 === 1;\n        const [odds, evens] = partition(arr, isOdd);\n        expect(evens).toEqual([2, 4]);\n        expect(odds).toEqual([1, 3, 5]);\n        expectTypeOf(evens).toEqualTypeOf();\n        expectTypeOf(odds).toEqualTypeOf();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/partition.spec.ts › partition › should pass index to the predicate function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partition } from \"./src/array/partition.js\";\n{\n{\n{\nconst arr = [10, 20, 30, 40, 50];\n        const indices = [];\n        const [result] = partition(arr, (value, index) => {\n            indices.push(index);\n            return index % 2 === 0;\n        });\n        expect(indices).toEqual([0, 1, 2, 3, 4]);\n        expect(result).toEqual([10, 30, 50]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/partition.spec.ts › partition › should pass the array to the predicate function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partition } from \"./src/array/partition.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n        const arrays = [];\n        const [evens] = partition(arr, (value, index, array) => {\n            arrays.push(array);\n            return value % 2 === 0;\n        });\n        expect(evens).toEqual([2, 4]);\n        expect(arrays).toHaveLength(5);\n        arrays.forEach(array => {\n            expect(array).toBe(arr);\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/partition.spec.ts › partition › should accept a predicate that returns any truthy or falsy value, like Array.prototype.filter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partition } from \"./src/array/partition.js\";\n{\n{\n{\nconst values = [{ name: 'a', good: true }, { name: 'b', good: false }, { name: 'c' }];\n        const [good, bad] = partition(values, i => i.good);\n        expect(good).toEqual([{ name: 'a', good: true }]);\n        expect(bad).toEqual([{ name: 'b', good: false }, { name: 'c' }]);\n        expectTypeOf(good).toEqualTypeOf();\n        expectTypeOf(bad).toEqualTypeOf();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,242 @@
+[
+  {
+    "id": "case-003",
+    "title": "src/array/filterAsync.spec.ts › filterAsync › uses full concurrency when not specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filterAsync } from \"./src/array/filterAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\n        let running = 0;\n        let maxRunning = 0;\n        const fn = async (item) => {\n            running++;\n            if (running > maxRunning) {\n                maxRunning = running;\n            }\n            await delay(20);\n            running--;\n            return item % 2 === 0;\n        };\n        await filterAsync(arr, fn);\n        expect(maxRunning).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/flatMapAsync.spec.ts › flatMapAsync › uses full concurrency when not specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatMapAsync } from \"./src/array/flatMapAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\n        let running = 0;\n        let maxRunning = 0;\n        const fn = async (item) => {\n            running++;\n            if (running > maxRunning) {\n                maxRunning = running;\n            }\n            await delay(20);\n            running--;\n            return [item];\n        };\n        await flatMapAsync(arr, fn);\n        expect(maxRunning).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/forEachAsync.spec.ts › forEachAsync › uses full concurrency when not specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { forEachAsync } from \"./src/array/forEachAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\n        let running = 0;\n        let maxRunning = 0;\n        const fn = async () => {\n            running++;\n            if (running > maxRunning) {\n                maxRunning = running;\n            }\n            await delay(20);\n            running--;\n        };\n        await forEachAsync(arr, fn);\n        expect(maxRunning).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/array/mapAsync.spec.ts › mapAsync › uses full concurrency when not specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapAsync } from \"./src/array/mapAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\n        let running = 0;\n        let maxRunning = 0;\n        const fn = async (item) => {\n            running++;\n            if (running > maxRunning) {\n                maxRunning = running;\n            }\n            await delay(20);\n            running--;\n            return item;\n        };\n        await mapAsync(arr, fn);\n        expect(maxRunning).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › can reduce to different type",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3];\n        const reducer = async (acc, n) => {\n            await delay(10);\n            return acc + n.toString();\n        };\n        const result = await reduceAsync(arr, reducer, '');\n        expect(result).toBe('123');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › processes elements sequentially",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n        const order = [];\n        const reducer = async (acc, n) => {\n            order.push(n);\n            await delay(10);\n            return acc + n;\n        };\n        await reduceAsync(arr, reducer, 0);\n        expect(order).toEqual([1, 2, 3, 4, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › maintains correct accumulator across iterations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = ['a', 'b', 'c'];\n        const reducer = async (acc, item) => {\n            await delay(10);\n            return [...acc, item.toUpperCase()];\n        };\n        const result = await reduceAsync(arr, reducer, []);\n        expect(result).toEqual(['A', 'B', 'C']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › without initial value › concatenates strings without initial value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\n{\nconst arr = ['Hello', ' ', 'World'];\n            const reducer = async (acc, str) => {\n                await delay(10);\n                return acc + str;\n            };\n            const result = await reduceAsync(arr, reducer);\n            expect(result).toBe('Hello World');\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › without initial value › processes elements sequentially without initial value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n            const order = [];\n            const reducer = async (acc, n) => {\n                order.push(n);\n                await delay(10);\n                return acc + n;\n            };\n            await reduceAsync(arr, reducer);\n            expect(order).toEqual([2, 3, 4, 5]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › without initial value › works with complex objects without initial value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\n{\nconst arr = [{ value: 1 }, { value: 2 }, { value: 3 }];\n            const reducer = async (acc, item) => {\n                await delay(10);\n                return { value: acc.value + item.value };\n            };\n            const result = await reduceAsync(arr, reducer);\n            expect(result).toEqual({ value: 6 });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › can build complex objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [\n            { key: 'a', value: 1 },\n            { key: 'b', value: 2 },\n            { key: 'c', value: 3 },\n        ];\n        const reducer = async (acc, item) => {\n            await delay(10);\n            acc[item.key] = item.value * 2;\n            return acc;\n        };\n        const result = await reduceAsync(arr, reducer, {});\n        expect(result).toEqual({ a: 2, b: 4, c: 6 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "src/function/throttle.spec.ts › throttle › should preserve this context when called as a method",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { throttle } from \"./src/function/throttle.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst throttleMs = 50;\n        let capturedMsg;\n        const obj = {\n            msg: 'hello world',\n            logWithThrottle: throttle(function () {\n                capturedMsg = this?.msg;\n            }, throttleMs),\n        };\n        obj.logWithThrottle();\n        expect(capturedMsg).toBe('hello world');\n        capturedMsg = undefined;\n        obj.logWithThrottle();\n        obj.logWithThrottle();\n        await delay(throttleMs + 1);\n        expect(capturedMsg).toBe('hello world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "src/object/mapKeysAsync.spec.ts › mapKeysAsync › should use full concurrency when not specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapKeysAsync } from \"./src/object/mapKeysAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst obj = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10 };\n        let running = 0;\n        let maxRunning = 0;\n        const fn = async (value, key) => {\n            running++;\n            if (running > maxRunning) {\n                maxRunning = running;\n            }\n            await delay(20);\n            running--;\n            return key + value;\n        };\n        await mapKeysAsync(obj, fn);\n        expect(maxRunning).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "src/object/mapValuesAsync.spec.ts › mapValuesAsync › should use full concurrency when not specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapValuesAsync } from \"./src/object/mapValuesAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst obj = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10 };\n        let running = 0;\n        let maxRunning = 0;\n        const fn = async (value) => {\n            running++;\n            if (running > maxRunning) {\n                maxRunning = running;\n            }\n            await delay(20);\n            running--;\n            return value * 2;\n        };\n        await mapValuesAsync(obj, fn);\n        expect(maxRunning).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "src/promise/timeout.spec.ts › timeout › never settles when aborted before the delay elapses (disarmed, not rejected)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { delay } from \"./src/promise/delay.js\";\nimport { timeout } from \"./src/promise/timeout.js\";\n{\n{\n{\nconst controller = new AbortController();\n        const promise = timeout(50, { signal: controller.signal });\n        let settled = false;\n        promise.then(() => (settled = true), () => (settled = true));\n        controller.abort();\n        await delay(100); // wait past the original deadline\n        expect(settled).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "src/promise/timeout.spec.ts › timeout › never settles when the signal is already aborted",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { delay } from \"./src/promise/delay.js\";\nimport { timeout } from \"./src/promise/timeout.js\";\n{\n{\n{\nconst controller = new AbortController();\n        controller.abort();\n        const promise = timeout(50, { signal: controller.signal });\n        let settled = false;\n        promise.then(() => (settled = true), () => (settled = true));\n        await delay(100);\n        expect(settled).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "src/promise/withTimeout.spec.ts › withTimeout › returns the result value if a response is received before the specified wait time",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { delay } from \"./src/promise/delay.js\";\nimport { withTimeout } from \"./src/promise/withTimeout.js\";\n{\n{\n{\nconst result = await withTimeout(async () => {\n            await delay(50);\n            return 'foo';\n        }, 100);\n        expect(result).toEqual('foo');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "src/promise/withTimeout.spec.ts › withTimeout › lifts the time limit when the signal is aborted, resolving with the run result",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { delay } from \"./src/promise/delay.js\";\nimport { withTimeout } from \"./src/promise/withTimeout.js\";\n{\n{\n{\nconst controller = new AbortController();\n        setTimeout(() => controller.abort(), 25); // disarm before the 50ms deadline\n        const result = await withTimeout(async () => {\n            await delay(100); // outlives the 50ms timeout\n            return 'foo';\n        }, 50, { signal: controller.signal });\n        expect(result).toEqual('foo');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-038",
+    "title": "src/util/attemptAsync.spec.ts › attemptAsync › should return the error of the async function that rejects after a delay",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attemptAsync } from \"./src/util/attemptAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst [error, result] = await attemptAsync(async () => {\n            await delay(100);\n            throw new Error('delayed error');\n        });\n        expect(error).toBeInstanceOf(Error);\n        expect(error instanceof Error && error.message).toBe('delayed error');\n        expect(result).toBeNull();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-042",
+    "title": "src/util/deferAsync.spec.ts › deferAsync › should await the callback when disposed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deferAsync } from \"./src/util/deferAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst order = [];\n        const disposable = deferAsync(async () => {\n            await delay(10);\n            order.push('cleanup');\n        });\n        await disposable[Symbol.asyncDispose]();\n        expect(order).toEqual(['cleanup']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

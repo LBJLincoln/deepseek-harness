@@ -1,0 +1,218 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › flattens primitive values correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result1 = flattenObject({\n            a: {\n                b: 'yay',\n            },\n        });\n        expect(result1).toEqual({\n            'a.b': 'yay',\n        });\n        const date = new Date();\n        const result2 = flattenObject({\n            a: {\n                b: {\n                    string: 'hello world',\n                    number: 1234.5678,\n                    boolean: true,\n                    null: null,\n                    undefined: undefined,\n                    date: date,\n                },\n            },\n        });\n        expect(result2).toEqual({\n            'a.b.string': 'hello world',\n            'a.b.number': 1234.5678,\n            'a.b.boolean': true,\n            'a.b.null': null,\n            'a.b.undefined': undefined,\n            'a.b.date': date,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › flattens multiple keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst date = new Date();\n        const result = flattenObject({\n            a: {\n                b: {\n                    c: 1,\n                },\n                d: {\n                    e: {\n                        f: {\n                            g: date,\n                        },\n                    },\n                },\n            },\n            h: {\n                i: 'hi',\n            },\n        });\n        expect(result).toEqual({\n            'a.b.c': 1,\n            'a.d.e.f.g': date,\n            'h.i': 'hi',\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › handles empty objects correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result = flattenObject({\n            a: {\n                b: {},\n            },\n        });\n        expect(result).toEqual({\n            'a.b': {},\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › handles empty arrays correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result = flattenObject({\n            a: {\n                b: [],\n            },\n        });\n        expect(result).toEqual({\n            'a.b': [],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › handles `Buffer`s correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result = flattenObject({\n            a: {\n                b: Buffer.from('test'),\n            },\n        });\n        expect(result).toEqual({\n            'a.b': Buffer.from('test'),\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › handles `TypedArray`s correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result = flattenObject({\n            a: {\n                b: new Uint8Array([1, 2, 3, 4]),\n            },\n        });\n        expect(result).toEqual({\n            'a.b': new Uint8Array([1, 2, 3, 4]),\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › handles numeric keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result = flattenObject({\n            '01': {\n                '02': {\n                    '03': 1,\n                },\n            },\n        });\n        expect(result).toEqual({\n            '01.02.03': 1,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › handles mixed keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result = flattenObject({\n            a1: {\n                b2: {\n                    c3: 1,\n                },\n            },\n        });\n        expect(result).toEqual({\n            'a1.b2.c3': 1,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › handles arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result = flattenObject({\n            a: [1, 2, 3],\n        });\n        expect(result).toEqual({\n            'a.0': 1,\n            'a.1': 2,\n            'a.2': 3,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › handles object arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result = flattenObject({\n            a: [1, { b: 2 }, 3, [{ c: 4 }]],\n        });\n        expect(result).toEqual({\n            'a.0': 1,\n            'a.1.b': 2,\n            'a.2': 3,\n            'a.3.0.c': 4,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › preserves arrays when preserveArrays is true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result = flattenObject({\n            a: [1, 2, 3],\n        }, { preserveArrays: true });\n        expect(result).toEqual({\n            a: [1, 2, 3],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › preserves nested arrays and their contents when preserveArrays is true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\nconst result = flattenObject({\n            a: {\n                b: [1, { c: 2 }],\n            },\n        }, { preserveArrays: true });\n        expect(result).toEqual({\n            'a.b': [1, { c: 2 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › custom delimiters › handles forward slash delimiter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\n{\nconst result = flattenObject({\n                a: {\n                    b: {\n                        c: 1,\n                    },\n                    d: [2, 3],\n                },\n            }, { delimiter: '/' });\n            expect(result).toEqual({\n                'a/b/c': 1,\n                'a/d/0': 2,\n                'a/d/1': 3,\n            });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › custom delimiters › handles dash delimiter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\n{\nconst result = flattenObject({\n                users: {\n                    profile: {\n                        firstName: 'John',\n                        lastName: 'Doe',\n                        settings: {\n                            theme: 'dark',\n                        },\n                    },\n                },\n            }, { delimiter: '-' });\n            expect(result).toEqual({\n                'users-profile-firstName': 'John',\n                'users-profile-lastName': 'Doe',\n                'users-profile-settings-theme': 'dark',\n            });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › custom delimiters › handles underscore delimiter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\n{\nconst result = flattenObject({\n                database: {\n                    tables: {\n                        users: ['admin', 'guest'],\n                        permissions: {\n                            read: true,\n                            write: false,\n                        },\n                    },\n                },\n            }, { delimiter: '_' });\n            expect(result).toEqual({\n                database_tables_users_0: 'admin',\n                database_tables_users_1: 'guest',\n                database_tables_permissions_read: true,\n                database_tables_permissions_write: false,\n            });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › custom delimiters › handles multi-character delimiter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\n{\nconst result = flattenObject({\n                app: {\n                    config: {\n                        api: {\n                            url: 'https://api.example.com',\n                            key: '12345',\n                        },\n                    },\n                },\n            }, { delimiter: '->' });\n            expect(result).toEqual({\n                'app->config->api->url': 'https://api.example.com',\n                'app->config->api->key': '12345',\n            });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › custom delimiters › handles empty string delimiter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\n{\nconst result = flattenObject({\n                x: {\n                    y: {\n                        z: 42,\n                    },\n                },\n            }, { delimiter: '' });\n            expect(result).toEqual({\n                xyz: 42,\n            });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "src/object/flattenObject.spec.ts › flattenObject › custom delimiters › handles special characters delimiter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenObject } from \"./src/object/flattenObject.js\";\n{\n{\n{\n{\nconst result = flattenObject({\n                level1: {\n                    level2: {\n                        data: 'test',\n                        array: [1, 2],\n                    },\n                },\n            }, { delimiter: '@#$' });\n            expect(result).toEqual({\n                'level1@#$level2@#$data': 'test',\n                'level1@#$level2@#$array@#$0': 1,\n                'level1@#$level2@#$array@#$1': 2,\n            });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

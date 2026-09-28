@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-dropRightWhile",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/dropRightWhile.ts",
+    "tests": [
+      "src/array/dropRightWhile.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/dropRightWhile.js",
+    "function": "dropRightWhile"
+  },
+  "title": "Implement dropRightWhile from es-toolkit",
+  "prompt": "`src/array/dropRightWhile.js` is the JavaScript build of `src/array/dropRightWhile.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `dropRightWhile`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Removes elements from the end of an array until the predicate returns false.\n *\n * This function iterates over an array from the end and drops elements until the provided\n * predicate function returns false. It then returns a new array with the remaining elements.\n *\n * @template T - The type of elements in the array.\n * @param arr - The array from which to drop elements.\n * @param canContinueDropping - A predicate function that determines\n * whether to continue dropping elements. The function is called with each element from the end,\n * and dropping continues as long as it returns true.\n * @returns A new array with the elements remaining after the predicate returns false.\n *\n * @example\n * const array = [1, 2, 3, 4, 5];\n * const result = dropRightWhile(array, x => x > 3);\n * // result will be [1, 2, 3] since elements greater than 3 are dropped from the end.\n */\nexport function dropRightWhile<T>(\n  arr: readonly T[],\n  canContinueDropping: (item: T, index: number, arr: readonly T[]) => boolean\n): T[]\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/cumulative.test.js › cumulativeStdNormalProbability › wikipedia test example works",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdLogisticProbability } from \"./src/cumulative_std_logistic_probability.js\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_errorFunction } from \"./src/error_function.js\";\nimport { default as __ns1_probit } from \"./src/probit.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nconst ss = Object.freeze({ cumulativeStdLogisticProbability: __ns1_cumulativeStdLogisticProbability, cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, epsilon: __ns1_epsilon, errorFunction: __ns1_errorFunction, probit: __ns1_probit, standardNormalTable: __ns1_standardNormalTable });\n{\n{\n{\nassert.equal(ss.cumulativeStdNormalProbability(0.4), 0.6554);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/cumulative.test.js › cumulativeStdNormalProbability › nondecreasing",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdLogisticProbability } from \"./src/cumulative_std_logistic_probability.js\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_errorFunction } from \"./src/error_function.js\";\nimport { default as __ns1_probit } from \"./src/probit.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nconst ss = Object.freeze({ cumulativeStdLogisticProbability: __ns1_cumulativeStdLogisticProbability, cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, epsilon: __ns1_epsilon, errorFunction: __ns1_errorFunction, probit: __ns1_probit, standardNormalTable: __ns1_standardNormalTable });\n{\n{\n{\nfor (let i = 0; i < ss.standardNormalTable.length; i++) {\n            if (!ss.cumulativeStdNormalProbability(i / 100) >=\n                ss.cumulativeStdNormalProbability((i - 1) / 100)) {\n                assert.fail(\"non-decreasing failure on \" + i);\n            }\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/cumulative.test.js › cumulativeStdNormalProbability › matches errorFunction",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdLogisticProbability } from \"./src/cumulative_std_logistic_probability.js\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_errorFunction } from \"./src/error_function.js\";\nimport { default as __ns1_probit } from \"./src/probit.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nconst ss = Object.freeze({ cumulativeStdLogisticProbability: __ns1_cumulativeStdLogisticProbability, cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, epsilon: __ns1_epsilon, errorFunction: __ns1_errorFunction, probit: __ns1_probit, standardNormalTable: __ns1_standardNormalTable });\n{\n{\n{\nfor (let i = 0; i < ss.standardNormalTable.length; i++) {\n            if (!(Math.abs(ss.cumulativeStdNormalProbability(i / 100) -\n                (0.5 +\n                    0.5 * ss.errorFunction(i / 100 / Math.sqrt(2)))) < ss.epsilon)) {\n                assert.fail(\"error-fn failure on \" + i);\n            }\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/cumulative.test.js › cumulativeStdNormalProbability › symmetry",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdLogisticProbability } from \"./src/cumulative_std_logistic_probability.js\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_errorFunction } from \"./src/error_function.js\";\nimport { default as __ns1_probit } from \"./src/probit.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nconst ss = Object.freeze({ cumulativeStdLogisticProbability: __ns1_cumulativeStdLogisticProbability, cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, epsilon: __ns1_epsilon, errorFunction: __ns1_errorFunction, probit: __ns1_probit, standardNormalTable: __ns1_standardNormalTable });\n{\n{\n{\nassert.equal(Math.abs(ss.cumulativeStdNormalProbability(-1) -\n            (1 - ss.cumulativeStdNormalProbability(1))) < ss.epsilon, true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/cumulative.test.js › cumulativeStdNormalProbability › inverse",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdLogisticProbability } from \"./src/cumulative_std_logistic_probability.js\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_errorFunction } from \"./src/error_function.js\";\nimport { default as __ns1_probit } from \"./src/probit.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nconst ss = Object.freeze({ cumulativeStdLogisticProbability: __ns1_cumulativeStdLogisticProbability, cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, epsilon: __ns1_epsilon, errorFunction: __ns1_errorFunction, probit: __ns1_probit, standardNormalTable: __ns1_standardNormalTable });\n{\n{\n{\nfor (let i = 0; i <= 1 + ss.epsilon; i += 0.01) {\n            assert.equal(Math.abs(ss.cumulativeStdNormalProbability(ss.probit(i)) - i) <\n                21 * ss.epsilon, true);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "test/normal_distribution.test.js › natural distribution and z-score › P(Z <= 0.4) is 0.6554",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// Taken from the examples of use in http://en.wikipedia.org/wiki/Standard_normal_table\n        assert.equal(ss.cumulativeStdNormalProbability(0.4), 0.6554);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "test/normal_distribution.test.js › natural distribution and z-score › P(Z <= -1.20) is 0.1151",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// Taken from the examples of use in http://en.wikipedia.org/wiki/Standard_normal_table\n        assert.equal(ss.cumulativeStdNormalProbability(-1.2), 0.1151);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "test/normal_distribution.test.js › natural distribution and z-score › P(X <= 82) when X ~ N (80, 25) is 0.6554",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// Taken from the examples of use in http://en.wikipedia.org/wiki/Standard_normal_table\n        // A professor's exam scores are approximately distributed normally with mean 80 and standard deviation 5.\n        // What is the probability that a student scores an 82 or less?\n        assert.equal(ss.cumulativeStdNormalProbability(ss.zScore(82, 80, 5)), 0.6554);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "test/normal_distribution.test.js › natural distribution and z-score › P(X >= 90) when X ~ N (80, 25) is 0.0228",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// Taken from the examples of use in http://en.wikipedia.org/wiki/Standard_normal_table\n        // A professor's exam scores are approximately distributed normally with mean 80 and standard deviation 5.\n        // What is the probability that a student scores a 90 or more?\n        assert.equal(+(1 - ss.cumulativeStdNormalProbability(ss.zScore(90, 80, 5))).toPrecision(5), 0.0228);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "test/normal_distribution.test.js › natural distribution and z-score › P(X <= 74) when X ~ N (80, 25) is 0.1151",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// Taken from the examples of use in http://en.wikipedia.org/wiki/Standard_normal_table\n        // A professor's exam scores are approximately distributed normally with mean 80 and standard deviation 5.\n        // What is the probability that a student scores a 74 or less?\n        assert.equal(ss.cumulativeStdNormalProbability(ss.zScore(74, 80, 5)), 0.1151);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "test/normal_distribution.test.js › natural distribution and z-score › P(78 <= X <= 88) when X ~ N (80, 25) is 0.6006",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// Taken from the examples of use in http://en.wikipedia.org/wiki/Standard_normal_table\n        // A professor's exam scores are approximately distributed normally with mean 80 and standard deviation 5.\n        // What is the probability that a student scores between 78 and 88?\n        const prob88 = ss.cumulativeStdNormalProbability(ss.zScore(88, 80, 5));\n        const prob78 = ss.cumulativeStdNormalProbability(ss.zScore(78, 80, 5));\n        assert.equal(+(prob88 - prob78).toPrecision(5), 0.6006);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "test/normal_distribution.test.js › normalDistribution › agrees with the standard normal table",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// The table has four decimal places, so its round-trip error is\n        // bounded by 5e-5; allow 1e-3 for the sweep.\n        for (let z = -4; z <= 4; z += 0.25) {\n            assert.ok(Math.abs(ss.normalDistribution(z, 0, 1, true) -\n                ss.cumulativeStdNormalProbability(z)) < 1e-3);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "test/standard_normal_table.test.js › standardNormalTable › matches published values where the series converges slowest",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, standardNormalTable: __ns1_standardNormalTable });\n{\n{\n{\n// Four-decimal values from a published standard normal table. The\n        // series behind the table converges more slowly as z grows, so the\n        // top of its domain is where truncation shows up first.\n        const published = [\n            [2.94, 0.9984],\n            [2.96, 0.9985],\n            [2.98, 0.9986],\n            [3, 0.9987],\n            [3.05, 0.9989],\n            [3.08, 0.999]\n        ];\n        for (const [z, phi] of published) {\n            assert.equal(ss.cumulativeStdNormalProbability(z), phi);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "test/standard_normal_table.test.js › standardNormalTable › negative z stays the complement of positive z",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, standardNormalTable: __ns1_standardNormalTable });\n{\n{\n{\nassert.equal(ss.cumulativeStdNormalProbability(-3), 0.0013);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

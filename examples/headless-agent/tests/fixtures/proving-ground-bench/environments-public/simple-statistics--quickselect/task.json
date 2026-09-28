@@ -1,0 +1,51 @@
+{
+  "id": "code:simple-statistics--implement-quickselect",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/quickselect.js",
+    "tests": [
+      "test/quickselect.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/quickselect.js",
+    "function": "quickselect"
+  },
+  "title": "Implement quickselect from simple-statistics",
+  "prompt": "`src/quickselect.js` is the JavaScript build of `src/quickselect.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `quickselect`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Rearrange items in `arr` so that all items in `[left, k]` range are the smallest.\n * The `k`-th element will have the `(k - left + 1)`-th smallest value in `[left, right]`.\n *\n * Implements Floyd-Rivest selection algorithm https://en.wikipedia.org/wiki/Floyd-Rivest_algorithm\n *\n * @param {Array<number>} arr input array\n * @param {number} k pivot index\n * @param {number} [left] left index\n * @param {number} [right] right index\n * @returns {void} mutates input array\n * @example\n * var arr = [65, 28, 59, 33, 21, 56, 22, 95, 50, 12, 90, 53, 28, 77, 39];\n * quickselect(arr, 8);\n * // = [39, 28, 28, 33, 21, 12, 22, 50, 53, 56, 59, 65, 90, 77, 95]\n */\nfunction quickselect(arr, k, left, right)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

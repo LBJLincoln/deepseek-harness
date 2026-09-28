@@ -1,0 +1,54 @@
+{
+  "id": "code:simple-statistics--implement-max",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/max.js",
+    "tests": [
+      "test/binomial_distribution.test.js",
+      "test/minmax.test.js",
+      "test/poisson_distribution.test.js",
+      "test/quantile.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/max.js",
+    "function": "max"
+  },
+  "title": "Implement max from simple-statistics",
+  "prompt": "`src/max.js` is the JavaScript build of `src/max.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `max`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * This computes the maximum number in an array.\n *\n * This runs in `O(n)`, linear time, with respect to the length of the array.\n *\n * @param {Array<number>} x sample of one or more data points\n * @returns {number} maximum value\n * @throws {Error} if the length of x is less than one\n * @example\n * max([1, 2, 3, 4]);\n * // => 4\n */\nfunction max(x)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/approx_equal.js`, `src/binomial_distribution.js`, `src/epsilon.js`, `src/extent.js`, `src/extent_sorted.js`, `src/gammaln.js`, `src/max_distribution_cells.js`, `src/max_sorted.js`, `src/median.js`, `src/min.js`, `src/min_sorted.js`, `src/poisson_distribution.js`, `src/quantile.js`, `src/quantile_sorted.js`, `src/quickselect.js`, `src/relative_error.js`, `src/sum.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

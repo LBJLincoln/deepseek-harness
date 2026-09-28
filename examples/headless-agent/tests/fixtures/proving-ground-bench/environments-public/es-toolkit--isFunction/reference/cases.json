@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isFunction.spec.ts › isFunction › should return `true` for functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isFunction } from \"./src/predicate/isFunction.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { falsey } from \"./src/compat/_internal/falsey.js\";\n{\n{\n{\nconst slice = Array.prototype.slice;\n        expect(isFunction(slice)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isFunction.spec.ts › isFunction › should return `true` for async functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isFunction } from \"./src/predicate/isFunction.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { falsey } from \"./src/compat/_internal/falsey.js\";\n{\n{\n{\nconst asyncFunc = async function () { };\n        expect(isFunction(asyncFunc)).toBe(typeof asyncFunc === 'function');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isFunction.spec.ts › isFunction › should return `true` for generator functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isFunction } from \"./src/predicate/isFunction.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { falsey } from \"./src/compat/_internal/falsey.js\";\n{\n{\n{\nconst genFunc = function* () { };\n        expect(isFunction(genFunc)).toBe(typeof genFunc === 'function');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/predicate/isFunction.spec.ts › isFunction › should return `true` for the `Proxy` constructor",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isFunction } from \"./src/predicate/isFunction.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { falsey } from \"./src/compat/_internal/falsey.js\";\n{\n{\n{\nif (Proxy) {\n            expect(isFunction(Proxy)).toBe(true);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/predicate/isFunction.spec.ts › isFunction › should return `true` for array view constructors",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isFunction } from \"./src/predicate/isFunction.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { falsey } from \"./src/compat/_internal/falsey.js\";\n{\n{\n{\nconst arrayViews = [\n            Int8Array,\n            Uint8Array,\n            Uint8ClampedArray,\n            Int16Array,\n            Uint16Array,\n            Int32Array,\n            Uint32Array,\n            Float32Array,\n            Float64Array,\n            DataView,\n        ];\n        const funcTag = '[object Function]';\n        const expected = arrayViews.map(type => Object.prototype.toString.call(type) === funcTag);\n        const actual = arrayViews.map(isFunction);\n        expect(actual).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/predicate/isFunction.spec.ts › isFunction › should return `false` for non-functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isFunction } from \"./src/predicate/isFunction.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { falsey } from \"./src/compat/_internal/falsey.js\";\n{\n{\n{\nconst expected = falsey.map(() => false);\n        const actual = falsey.map(isFunction);\n        expect(actual).toEqual(expected);\n        expect(isFunction(args)).toBe(false);\n        expect(isFunction([1, 2, 3])).toBe(false);\n        expect(isFunction(true)).toBe(false);\n        expect(isFunction(new Date())).toBe(false);\n        expect(isFunction(new Error())).toBe(false);\n        expect(isFunction({ a: 1 })).toBe(false);\n        expect(isFunction(1)).toBe(false);\n        expect(isFunction(/x/)).toBe(false);\n        expect(isFunction('a')).toBe(false);\n        expect(isFunction(Symbol('a'))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/sort.test.ts › data_first › sort",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sort } from \"./src/sort.js\";\n{\n{\n{\nexpect(sort([4, 2, 7, 5], (a, b) => a - b)).toStrictEqual([2, 4, 5, 7]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/sort.test.ts › data_last › sort",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sort } from \"./src/sort.js\";\n{\n{\n{\nexpect(pipe([4, 2, 7, 5], sort((a, b) => a - b))).toStrictEqual([2, 4, 5, 7]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

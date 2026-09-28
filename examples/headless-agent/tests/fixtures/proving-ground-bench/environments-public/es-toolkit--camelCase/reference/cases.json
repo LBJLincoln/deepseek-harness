@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/camelCase.spec.ts › camelCase › should change camel case to camel case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { camelCase } from \"./src/string/camelCase.js\";\n{\n{\n{\nexpect(camelCase('camelCase')).toEqual('camelCase');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/camelCase.spec.ts › camelCase › should change space to camel case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { camelCase } from \"./src/string/camelCase.js\";\n{\n{\n{\nexpect(camelCase('some whitespace')).toEqual('someWhitespace');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/camelCase.spec.ts › camelCase › should change hyphen to camel case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { camelCase } from \"./src/string/camelCase.js\";\n{\n{\n{\nexpect(camelCase('hyphen-text')).toEqual('hyphenText');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/camelCase.spec.ts › camelCase › should change Acronyms to small letter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { camelCase } from \"./src/string/camelCase.js\";\n{\n{\n{\nexpect(camelCase('HTTPRequest')).toEqual('httpRequest');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/camelCase.spec.ts › camelCase › should handle leading and trailing whitespace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { camelCase } from \"./src/string/camelCase.js\";\n{\n{\n{\nexpect(camelCase('    leading and trailing whitespace    ')).toEqual('leadingAndTrailingWhitespace');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/camelCase.spec.ts › camelCase › should handle special characters correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { camelCase } from \"./src/string/camelCase.js\";\n{\n{\n{\nexpect(camelCase('special@characters!')).toEqual('specialCharacters');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/camelCase.spec.ts › camelCase › should work with an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { camelCase } from \"./src/string/camelCase.js\";\n{\n{\n{\nexpect(camelCase('')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/camelCase.spec.ts › camelCase › should work with screaming camel case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { camelCase } from \"./src/string/camelCase.js\";\n{\n{\n{\nexpect(camelCase('FOO_BAR')).toEqual('fooBar');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/string/camelCase.spec.ts › camelCase › should support emojis",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { camelCase } from \"./src/string/camelCase.js\";\n{\n{\n{\nexpect(camelCase('Keep unicode 😅')).toEqual('keepUnicode😅');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

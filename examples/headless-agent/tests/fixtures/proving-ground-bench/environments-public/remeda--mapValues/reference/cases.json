@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/mapValues.test.ts › dataFirst",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapValues } from \"./src/mapValues.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(mapValues({ a: 1, b: 2 }, (value, key) => `${value}${key}`)).toStrictEqual({ a: \"1a\", b: \"2b\" });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/mapValues.test.ts › dataLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapValues } from \"./src/mapValues.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pipe({ a: 1, b: 2 }, mapValues((value, key) => `${value}${key}`))).toStrictEqual({ a: \"1a\", b: \"2b\" });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/mapValues.test.ts › symbols are filtered out",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapValues } from \"./src/mapValues.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(mapValues({ [Symbol(\"mySymbol\")]: 1 }, constant(\"hello\"))).toStrictEqual({});\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/mapValues.test.ts › symbols are not passed to the mapper",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapValues } from \"./src/mapValues.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nmapValues({ [Symbol(\"mySymbol\")]: 1, a: \"hello\" }, (value, key) => {\n        expect(value).toBe(\"hello\");\n        expect(key).toBe(\"a\");\n        return \"world\";\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/mapValues.test.ts › number keys are converted to string in the mapper",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapValues } from \"./src/mapValues.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nmapValues({ 123: 456 }, (value, key) => {\n        expect(value).toBe(456);\n        expect(key).toBe(\"123\");\n        return \"world\";\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/promise/allKeyed.spec.ts › allKeyed › should resolve an object of promises concurrently",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { allKeyed } from \"./src/promise/allKeyed.js\";\n{\n{\n{\nconst result = await allKeyed({\n            a: Promise.resolve(1),\n            b: Promise.resolve('hello'),\n            c: Promise.resolve(true),\n        });\n        expect(result).toEqual({ a: 1, b: 'hello', c: true });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/promise/allKeyed.spec.ts › allKeyed › should handle plain (non-promise) values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { allKeyed } from \"./src/promise/allKeyed.js\";\n{\n{\n{\nconst result = await allKeyed({\n            a: 1,\n            b: 'hello',\n        });\n        expect(result).toEqual({ a: 1, b: 'hello' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/promise/allKeyed.spec.ts › allKeyed › should handle a mix of promises and plain values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { allKeyed } from \"./src/promise/allKeyed.js\";\n{\n{\n{\nconst result = await allKeyed({\n            a: Promise.resolve(1),\n            b: 'plain',\n        });\n        expect(result).toEqual({ a: 1, b: 'plain' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/promise/allKeyed.spec.ts › allKeyed › should return an empty object for empty input",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { allKeyed } from \"./src/promise/allKeyed.js\";\n{\n{\n{\nconst result = await allKeyed({});\n        expect(result).toEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/promise/allKeyed.spec.ts › allKeyed › should resolve promises concurrently, not sequentially",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { allKeyed } from \"./src/promise/allKeyed.js\";\n{\n{\n{\nconst start = Date.now();\n        await allKeyed({\n            a: new Promise(resolve => setTimeout(() => resolve('a'), 50)),\n            b: new Promise(resolve => setTimeout(() => resolve('b'), 50)),\n        });\n        const elapsed = Date.now() - start;\n        // If run sequentially, would take ~100ms. Concurrently should be ~50ms.\n        expect(elapsed).toBeLessThan(90);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/promise/allKeyed.spec.ts › allKeyed › should preserve key-value associations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { allKeyed } from \"./src/promise/allKeyed.js\";\n{\n{\n{\nconst result = await allKeyed({\n            first: Promise.resolve(1),\n            second: Promise.resolve(2),\n            third: Promise.resolve(3),\n        });\n        expect(result.first).toBe(1);\n        expect(result.second).toBe(2);\n        expect(result.third).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/compareDesc/test.ts › compareDesc › returns 0 if the given dates are equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareDesc } from \"./src/compareDesc/index.js\";\n{\n{\n{\nconst result = compareDesc(new Date(1989, 6 /* Jul */, 10), new Date(1989, 6 /* Jul */, 10));\n        expect(result).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/compareDesc/test.ts › compareDesc › returns 1 if the first date is before the second one",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareDesc } from \"./src/compareDesc/index.js\";\n{\n{\n{\nconst result = compareDesc(new Date(1987, 1 /* Feb */, 11), new Date(1989, 6 /* Jul */, 10));\n        expect(result).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/compareDesc/test.ts › compareDesc › returns -1 if the first date is after the second one",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareDesc } from \"./src/compareDesc/index.js\";\n{\n{\n{\nconst result = compareDesc(new Date(1989, 6 /* Jul */, 10), new Date(1987, 1 /* Feb */, 11));\n        expect(result).toBe(-1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/compareDesc/test.ts › compareDesc › sorts the dates array in the reverse chronological order when function is passed as the argument to Array.prototype.sort()",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareDesc } from \"./src/compareDesc/index.js\";\n{\n{\n{\nconst unsortedArray = [\n            new Date(1995, 6 /* Jul */, 2),\n            new Date(1987, 1 /* Feb */, 11),\n            new Date(1989, 6 /* Jul */, 10),\n        ];\n        const sortedArray = [\n            new Date(1995, 6 /* Jul */, 2),\n            new Date(1989, 6 /* Jul */, 10),\n            new Date(1987, 1 /* Feb */, 11),\n        ];\n        unsortedArray.sort(compareDesc);\n        const result = unsortedArray;\n        expect(result).toEqual(sortedArray);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "pkgs/core/src/compareDesc/test.ts › compareDesc › accepts timestamps",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareDesc } from \"./src/compareDesc/index.js\";\n{\n{\n{\nconst result = compareDesc(new Date(1987, 1 /* Feb */, 11).getTime(), new Date(1989, 6 /* Jul */, 10).getTime());\n        expect(result).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "pkgs/core/src/compareDesc/test.ts › compareDesc › returns NaN if the first date is `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareDesc } from \"./src/compareDesc/index.js\";\n{\n{\n{\nconst result = compareDesc(new Date(NaN), new Date(1989, 6 /* Jul */, 10));\n        expect(isNaN(result)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "pkgs/core/src/compareDesc/test.ts › compareDesc › returns NaN if the second date is `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareDesc } from \"./src/compareDesc/index.js\";\n{\n{\n{\nconst result = compareDesc(new Date(1989, 6 /* Jul */, 10), new Date(NaN));\n        expect(isNaN(result)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "pkgs/core/src/compareDesc/test.ts › compareDesc › returns NaN if the both dates are `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareDesc } from \"./src/compareDesc/index.js\";\n{\n{\n{\nconst result = compareDesc(new Date(1989, 6 /* Jul */, 10), new Date(NaN));\n        expect(isNaN(result)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

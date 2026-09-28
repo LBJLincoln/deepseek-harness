@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/chunkBy.spec.ts › chunkBy › returns an empty array for an empty input",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunkBy } from \"./src/array/chunkBy.js\";\n{\n{\n{\nexpect(chunkBy([], value => value)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/chunkBy.spec.ts › chunkBy › groups consecutive elements that share the same key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunkBy } from \"./src/array/chunkBy.js\";\n{\n{\n{\nexpect(chunkBy([1, 1, 2, 3, 3, 3], value => value)).toEqual([[1, 1], [2], [3, 3, 3]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/chunkBy.spec.ts › chunkBy › starts a new chunk whenever the key changes, even if the key reappears later",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunkBy } from \"./src/array/chunkBy.js\";\n{\n{\n{\nexpect(chunkBy([1, 1, 2, 1, 1], value => value)).toEqual([[1, 1], [2], [1, 1]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/chunkBy.spec.ts › chunkBy › derives the key from the iteratee",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunkBy } from \"./src/array/chunkBy.js\";\n{\n{\n{\nexpect(chunkBy(['a', 'b', 'cd', 'ef', 'g'], word => word.length)).toEqual([['a', 'b'], ['cd', 'ef'], ['g']]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/chunkBy.spec.ts › chunkBy › puts every element in its own chunk when all keys differ",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunkBy } from \"./src/array/chunkBy.js\";\n{\n{\n{\nexpect(chunkBy([1, 2, 3], value => value)).toEqual([[1], [2], [3]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/chunkBy.spec.ts › chunkBy › keeps everything in a single chunk when all keys match",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunkBy } from \"./src/array/chunkBy.js\";\n{\n{\n{\nexpect(chunkBy([1, 2, 3], () => 'same')).toEqual([[1, 2, 3]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/chunkBy.spec.ts › chunkBy › groups by a boolean key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunkBy } from \"./src/array/chunkBy.js\";\n{\n{\n{\nexpect(chunkBy([1, 3, 2, 4, 5], value => value % 2 === 0)).toEqual([[1, 3], [2, 4], [5]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/array/chunkBy.spec.ts › chunkBy › does not mutate the input array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunkBy } from \"./src/array/chunkBy.js\";\n{\n{\n{\nconst input = [1, 1, 2];\n        chunkBy(input, value => value);\n        expect(input).toEqual([1, 1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

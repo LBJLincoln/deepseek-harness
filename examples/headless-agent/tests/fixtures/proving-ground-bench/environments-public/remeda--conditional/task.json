@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-conditional",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/conditional.ts",
+    "tests": [
+      "packages/remeda/src/conditional.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/conditional.js",
+    "function": "conditional"
+  },
+  "title": "Implement conditional from remeda",
+  "prompt": "`src/conditional.js` is the JavaScript build of `packages/remeda/src/conditional.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `conditional`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Executes a transformer function based on the first matching predicate,\n * functioning like a series of `if...else if...` statements. It sequentially\n * evaluates each case and, upon finding a truthy predicate, runs the\n * corresponding transformer, and returns, ignoring any further cases, even if\n * they would match.\n *\n * *NOTE*: Some type-predicates may fail to narrow the param type of their\n * transformer; in such cases wrap your type-predicate in an anonymous arrow\n * function: e.g., instead of\n * `conditional(..., [myTypePredicate, myTransformer], ...)`, use\n * `conditional(..., [($) => myTypePredicate($), myTransformer], ...)`.\n *\n * To add a a default, catch-all, case you can provide a single callback\n * function (instead of a 2-tuple) as the last case. This is equivalent to\n * adding a case with a trivial always-true predicate as it's condition (see\n * example).\n *\n * For simpler cases you should also consider using `when` instead.\n *\n * Due to TypeScript's inability to infer the result of negating a type-\n * predicate we can't refine the types used in subsequent cases based on\n * previous conditions. Using a `switch (true)` statement or ternary operators\n * is recommended for more precise type control when such type narrowing is\n * needed.\n *\n * !IMPORTANT! - Unlike similar implementations in Lodash and Ramda, the Remeda\n * implementation **doesn't** implicitly return `undefined` as a fallback when\n * when none of the cases match; and instead **throws** an exception in those\n * cases! You have to explicitly provide a default case, and can use\n * `constant(undefined)` as your last case to replicate that behavior.\n *\n * @param cases - A list of (up to 10) cases. Each case can be either:\n * - A 2-tuple consisting of a predicate (or type-predicate) and a transformer\n *   function that processes the data if the predicate matches.\n * - A single callback function that acts as a default fallback case.\n * @returns The output of the matched transformer. If no cases match, an\n * exception is thrown. The return type is a union of the return types of all\n * provided transformers.\n * @signature\n *   conditional(...cases)(data);\n * @example\n *   const nameOrId = 3 as string | number | boolean;\n *\n *   pipe(\n *     nameOrId,\n *     conditional(\n *       [isString, (name) => `Hello ${name}`],\n *       [isNumber, (id) => `Hello ID: ${id}`],\n *     ),\n *   ); //=> 'Hello ID: 3' (typed as `string`), can throw!.\n *\n *   pipe(\n *     nameOrId,\n *     conditional(\n *       [isString, (name) => `Hello ${name}`],\n *       [isNumber, (id) => `Hello ID: ${id}`],\n *       constant(undefined),\n *     ),\n *   ); //=> 'Hello ID: 3' (typed as `string | undefined`), won't throw.\n *\n *   pipe(\n *     nameOrId,\n *     conditional(\n *       [isString, (name) => `Hello ${name}`],\n *       [isNumber, (id) => `Hello ID: ${id}`],\n *       (something) => `Hello something (${JSON.stringify(something)})`,\n *     ),\n *   ); //=> 'Hello ID: 3' (typed as `string`), won't throw.\n * @dataLast\n * @category Function\n */\nexport function conditional(...args: readonly unknown[]): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/constant.js`, `src/internal/lazyDataLastImpl.js`, `src/internal/purryOn.js`, `src/internal/utilityEvaluators.js`, `src/isDeepEqual.js`, `src/pipe.js`, `src/purry.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

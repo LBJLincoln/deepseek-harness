@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/add_to_mean.test.js › addToMean › can get add a single value to a mean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_addToMean } from \"./src/add_to_mean.js\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nconst ss = Object.freeze({ addToMean: __ns1_addToMean, mean: __ns1_mean });\n{\n{\n{\nconst values = Object.freeze([13, 14, 15, 8, 20]);\n        assert.equal(ss.addToMean(ss.mean(values), values.length, 53), 20.5);\n        assert.equal(ss.addToMean(ss.mean(values), values.length, 53), ss.mean(values.concat(53)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/combine_means.test.js › combineMeans › can combine the means of two lists",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_combineMeans } from \"./src/combine_means.js\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nconst ss = Object.freeze({ combineMeans: __ns1_combineMeans, mean: __ns1_mean });\n{\n{\n{\nconst values1 = Object.freeze([8, 3, 4]);\n        const values2 = Object.freeze([2, 6, 4]);\n        assert.equal(ss.combineMeans(ss.mean(values1), values1.length, ss.mean(values2), values2.length), 4.5);\n        assert.equal(ss.combineMeans(ss.mean(values1), values1.length, ss.mean(values2), values2.length), ss.mean(values1.concat(values2)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/combine_variances.test.js › combineVariances › can combine the variances of two lists",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_combineVariances } from \"./src/combine_variances.js\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nimport { default as __ns1_variance } from \"./src/variance.js\";\nconst ss = Object.freeze({ combineVariances: __ns1_combineVariances, mean: __ns1_mean, variance: __ns1_variance });\n{\n{\n{\nconst values1 = Object.freeze([8, 3, 4]);\n        const values2 = Object.freeze([2, 6, 4]);\n        assert.equal(+ss\n            .combineVariances(ss.variance(values1), ss.mean(values1), values1.length, ss.variance(values2), ss.mean(values2), values2.length)\n            .toPrecision(3), 3.92);\n        assert.equal(ss.combineVariances(ss.variance(values1), ss.mean(values1), values1.length, ss.variance(values2), ss.mean(values2), values2.length), ss.variance(values1.concat(values2)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/mean.test.js › mean › can get the mean of two numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nconst ss = Object.freeze({ mean: __ns1_mean });\n{\n{\n{\nassert.equal(ss.mean([1, 2]), 1.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/mean.test.js › mean › can get the mean of one number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nconst ss = Object.freeze({ mean: __ns1_mean });\n{\n{\n{\nassert.equal(ss.mean([1]), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "test/subtract_from_mean.test.js › subtractFromMean › can remove a single value from a mean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nimport { default as __ns1_subtractFromMean } from \"./src/subtract_from_mean.js\";\nconst ss = Object.freeze({ mean: __ns1_mean, subtractFromMean: __ns1_subtractFromMean });\n{\n{\n{\nconst values = Object.freeze([13, 14, 15, 8, 20, 54]);\n        assert.equal(ss.subtractFromMean(ss.mean(values), values.length, 54), 14);\n        assert.equal(ss.subtractFromMean(ss.mean(values), values.length, 54), ss.mean(values.slice(0, -1)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "test/weighted_mean.test.js › weightedMean › equal weights match mean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nimport { default as __ns1_weightedMean } from \"./src/weighted_mean.js\";\nconst ss = Object.freeze({ mean: __ns1_mean, weightedMean: __ns1_weightedMean });\n{\n{\n{\nassert.equal(ss.weightedMean([1, 2, 3, 4], [1, 1, 1, 1]), ss.mean([1, 2, 3, 4]));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "test/weighted_mean.test.js › weightedMean › equal weights match mean even with catastrophic cancellation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nimport { default as __ns1_weightedMean } from \"./src/weighted_mean.js\";\nconst ss = Object.freeze({ mean: __ns1_mean, weightedMean: __ns1_weightedMean });\n{\n{\n{\nconst x = [1e16, 1, -1e16];\n        assert.equal(ss.weightedMean(x, [1, 1, 1]), ss.mean(x));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

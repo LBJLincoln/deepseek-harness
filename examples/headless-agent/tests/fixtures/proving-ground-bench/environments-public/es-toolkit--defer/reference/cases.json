@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/defer.spec.ts › defer › should propagate errors thrown by the callback",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defer } from \"./src/util/defer.js\";\n{\n{\n{\nconst disposable = defer(() => {\n            throw new Error('boom');\n        });\n        expect(() => disposable[Symbol.dispose]()).toThrowError('boom');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

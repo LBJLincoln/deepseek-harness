@@ -1,0 +1,51 @@
+{
+  "id": "code:simple-statistics--implement-jenks",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/jenks.js",
+    "tests": [
+      "test/jenks.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/jenks.js",
+    "function": "jenks"
+  },
+  "title": "Implement jenks from simple-statistics",
+  "prompt": "`src/jenks.js` is the JavaScript build of `src/jenks.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `jenks`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * The **[jenks natural breaks optimization](http://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization)**\n * is an algorithm commonly used in cartography and visualization to decide\n * upon groupings of data values that minimize variance within themselves\n * and maximize variation between themselves.\n *\n * For instance, cartographers often use jenks in order to choose which\n * values are assigned to which colors in a [choropleth](https://en.wikipedia.org/wiki/Choropleth_map)\n * map.\n *\n * @param {Array<number>} data input data, as an array of number values\n * @param {number} nClasses number of desired classes\n * @returns {Array<number> | null} array of class break positions, or null\n * when nClasses is greater than the number of data points\n * @example\n * // split data into 3 break points\n * jenks([1, 2, 4, 5, 7, 9, 10, 20], 3) // = [1, 7, 20, 20]\n */\nfunction jenks(data, nClasses)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/jenks_breaks.js`, `src/jenks_matrices.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

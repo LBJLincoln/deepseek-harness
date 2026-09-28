@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/remove.spec.ts › remove › should remove elements based on the predicate function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { remove } from \"./src/array/remove.js\";\n{\n{\n{\nconst numbers = [1, 2, 3, 4, 5];\n        const removed = remove(numbers, value => value % 2 === 0);\n        expect(numbers).toEqual([1, 3, 5]);\n        expect(removed).toEqual([2, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/remove.spec.ts › remove › should handle sparse arrays correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { remove } from \"./src/array/remove.js\";\n{\n{\n{\n// eslint-disable-next-line no-sparse-arrays\n        const sparseArray = [1, , 3, , 5];\n        const removed = remove(sparseArray, value => value === undefined);\n        expect(sparseArray).toEqual([1, 3, 5]);\n        expect(removed).toEqual([undefined, undefined]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/remove.spec.ts › remove › should return all elements if all elements are removed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { remove } from \"./src/array/remove.js\";\n{\n{\n{\nconst numbers = [1, 2, 3, 4, 5];\n        const removed = remove(numbers, () => true);\n        expect(numbers).toEqual([]);\n        expect(removed).toEqual([1, 2, 3, 4, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/remove.spec.ts › remove › should not remove any elements if the predicate always returns false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { remove } from \"./src/array/remove.js\";\n{\n{\n{\nconst numbers = [1, 2, 3, 4, 5];\n        const removed = remove(numbers, () => false);\n        expect(numbers).toEqual([1, 2, 3, 4, 5]);\n        expect(removed).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/remove.spec.ts › remove › should work with an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { remove } from \"./src/array/remove.js\";\n{\n{\n{\nconst emptyArray = [];\n        const removed = remove(emptyArray, () => true);\n        expect(emptyArray).toEqual([]);\n        expect(removed).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

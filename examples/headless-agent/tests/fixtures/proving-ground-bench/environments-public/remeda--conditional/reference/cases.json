@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataFirst) › accepts and runs a default/fallback case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(conditional(\"Jokic\", [constant(false), constant(\"hello\")], constant(undefined))).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataFirst) › falls back to our default",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(conditional(\"Jokic\", [constant(false), constant(\"world\")], constant(\"hello\"))).toBe(\"hello\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataFirst) › works with a single case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(conditional(\"Jokic\", [isDeepEqual(\"Jokic\"), () => \"center\"])).toBe(\"center\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataFirst) › works with two cases",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(conditional(\"Jokic\", [isDeepEqual(\"Murray\"), () => \"point guard\"], [isDeepEqual(\"Jokic\"), () => \"center\"])).toBe(\"center\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataFirst) › picks the first matching case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(conditional(\"Jokic\", [isDeepEqual(\"Jokic\"), () => \"center\"], [isDeepEqual(\"Jokic\"), () => \"mvp\"])).toBe(\"center\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataFirst) › throws when no matching case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(() => conditional(\"Jokic\", [() => false, () => \"world\"])).toThrowErrorMatchingInlineSnapshot(\"[Error: conditional: data failed for all cases]\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataLast) › should return value of first pair",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst value = pipe(\"Jokic\", conditional([isDeepEqual(\"Murray\"), () => \"point guard\"], [isDeepEqual(\"Jokic\"), () => \"center\"], [isDeepEqual(\"Jokic\"), () => \"mvp\"]));\n        expect(value).toBe(\"center\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

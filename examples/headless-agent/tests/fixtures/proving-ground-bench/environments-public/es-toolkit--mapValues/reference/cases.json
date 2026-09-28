@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/mapValues.spec.ts › mapValues › should iterate over and map the object using its own values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapValues } from \"./src/object/mapValues.js\";\n{\n{\n{\nexpect(mapValues({ a: 1, b: 2, c: 3 }, value => ++value)).toEqual({ a: 2, b: 3, c: 4 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/mapValues.spec.ts › mapValues › should pass the key corresponding to the current value into the iteratee",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapValues } from \"./src/object/mapValues.js\";\n{\n{\n{\nexpect(mapValues({ a: 1, b: 2, c: 3 }, (_, key) => key)).toEqual({ a: 'a', b: 'b', c: 'c' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/mapValues.spec.ts › mapValues › should pass the cloned object into the iteratee",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapValues } from \"./src/object/mapValues.js\";\n{\n{\n{\nexpect(mapValues({ a: 1, b: 2, c: 3 }, (value, key, object) => {\n            object[key] = value * 11;\n            return value * 11;\n        })).toEqual({ a: 11, b: 22, c: 33 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

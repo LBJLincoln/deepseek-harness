@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/mapKeys.test.ts › dataFirst",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapKeys } from \"./src/mapKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(mapKeys({ a: 1, b: 2 }, (key, value) => `${key}${value}`)).toStrictEqual({ a1: 1, b2: 2 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/mapKeys.test.ts › dataLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapKeys } from \"./src/mapKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pipe({ a: 1, b: 2 }, mapKeys((key, value) => `${key}${value}`))).toStrictEqual({ a1: 1, b2: 2 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/mapKeys.test.ts › symbols are filtered out",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapKeys } from \"./src/mapKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(mapKeys({ [Symbol(\"mySymbol\")]: 1 }, constant(3))).toStrictEqual({});\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/mapKeys.test.ts › symbols are not passed to the mapper",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapKeys } from \"./src/mapKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nmapKeys({ [Symbol(\"mySymbol\")]: 1, a: \"hello\" }, (key, value) => {\n        expect(key).toBe(\"a\");\n        expect(value).toBe(\"hello\");\n        return key;\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/mapKeys.test.ts › symbols returned from the mapper are not ignored",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapKeys } from \"./src/mapKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n    expect(mapKeys({ a: 1 }, constant(mySymbol))).toStrictEqual({\n        [mySymbol]: 1,\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/mapKeys.test.ts › number keys are converted to strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapKeys } from \"./src/mapKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nmapKeys({ 123: 456 }, (key, value) => {\n        expect(key).toBe(\"123\");\n        expect(value).toBe(456);\n        return key;\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/mapKeys.test.ts › numbers returned from the mapper are used as-is",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { mapKeys } from \"./src/mapKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(mapKeys({ a: \"b\" }, constant(123))).toStrictEqual({ 123: \"b\" });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

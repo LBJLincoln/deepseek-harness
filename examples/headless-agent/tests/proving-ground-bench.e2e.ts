@@ -285,3 +285,35 @@ describe('proving-ground bench repository family', () => {
     expect(summary.cases[repositoryId]).toEqual([7])
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 })
+
+describe('proving-ground bench public family', () => {
+  it('registers a public child beside the curated tasks, in domain public, with its licence terms and its hidden cases', async () => {
+    const publicConfigPath = join(benchDir, 'overlays', 'registry-only-with-public.cordis.yml')
+    const { stdout, stderr } = await runLoaderSmoke({
+      label: 'proving-ground-bench-public',
+      tempDirPrefix: 'proving-ground-bench-public-',
+      binScript,
+      libBinScript: binScript,
+      configPath: publicConfigPath,
+      binArgs: [publicConfigPath],
+      tsconfigPath,
+    })
+    expect(stderr).toBe('')
+    const summary = JSON.parse(stdout.trim().split('\n').at(-1) ?? '{}') as {
+      total: number
+      domains: Record<string, number>
+      cases: Record<string, number[]>
+      ids: string[]
+    }
+    const tasks = await taskFiles()
+    // ms's parse is documented, exported, and reached by every block of the
+    // source's four test files that calls it, so its child is expected to
+    // admit and register with those blocks as its cases.
+    const publicId = 'code:ms--implement-parse'
+    const publicCells = summary.domains.public ?? 0
+    expect(summary.ids).toContain(publicId)
+    expect(summary.total).toBe(tasks.length + publicCells)
+    expect(publicCells).toBeGreaterThanOrEqual(100)
+    expect(summary.cases[publicId]?.[0]).toBeGreaterThanOrEqual(12)
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+})

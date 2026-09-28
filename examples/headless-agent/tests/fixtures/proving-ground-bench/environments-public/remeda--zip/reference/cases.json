@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/zip.test.ts › dataFirst › should zip",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { first } from \"./src/first.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zip } from \"./src/zip.js\";\n{\n{\n{\nexpect(zip([1, 2, 3], [\"a\", \"b\", \"c\"])).toStrictEqual([\n            [1, \"a\"],\n            [2, \"b\"],\n            [3, \"c\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/zip.test.ts › dataFirst › should truncate to shorter second",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { first } from \"./src/first.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zip } from \"./src/zip.js\";\n{\n{\n{\nexpect(zip([1, 2, 3], [\"a\", \"b\"])).toStrictEqual([\n            [1, \"a\"],\n            [2, \"b\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/zip.test.ts › dataFirst › should truncate to shorter first",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { first } from \"./src/first.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zip } from \"./src/zip.js\";\n{\n{\n{\nexpect(zip([1, 2], [\"a\", \"b\", \"c\"])).toStrictEqual([\n            [1, \"a\"],\n            [2, \"b\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/zip.test.ts › dataLast › should zip",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { first } from \"./src/first.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zip } from \"./src/zip.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], zip([\"a\", \"b\", \"c\"]))).toStrictEqual([\n            [1, \"a\"],\n            [2, \"b\"],\n            [3, \"c\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/zip.test.ts › dataLast › should truncate to shorter second",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { first } from \"./src/first.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zip } from \"./src/zip.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], zip([\"a\", \"b\"]))).toStrictEqual([\n            [1, \"a\"],\n            [2, \"b\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/zip.test.ts › dataLast › should truncate to shorter first",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { first } from \"./src/first.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zip } from \"./src/zip.js\";\n{\n{\n{\nexpect(pipe([1, 2], zip([\"a\", \"b\", \"c\"]))).toStrictEqual([\n            [1, \"a\"],\n            [2, \"b\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/zip.test.ts › dataLast › should return empty when second is empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { first } from \"./src/first.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zip } from \"./src/zip.js\";\n{\n{\n{\nexpect(pipe([1, 2], zip([]))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/zip.test.ts › dataLast › should return empty when first is empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { first } from \"./src/first.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zip } from \"./src/zip.js\";\n{\n{\n{\nexpect(pipe([], zip([\"a\", \"b\"]))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

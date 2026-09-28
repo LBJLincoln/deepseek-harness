@@ -1,0 +1,266 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/split.test.ts › empty string, empty separator",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"\", \"\")).toStrictEqual([]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/split.test.ts › empty string, non-empty separator",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"\", \",\")).toStrictEqual([\"\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/split.test.ts › trivial split",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a\", \",\")).toStrictEqual([\"a\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/split.test.ts › string contains separator",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\",\", \",\")).toStrictEqual([\"\", \"\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/split.test.ts › useful split",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,b,c\", \",\")).toStrictEqual([\"a\", \"b\", \"c\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/split.test.ts › regex split",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,b,c\", /,/u)).toStrictEqual([\"a\", \"b\", \"c\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/split.test.ts › multiple types of separators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,b;c\", /[;,]/u)).toStrictEqual([\"a\", \"b\", \"c\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/split.test.ts › regex with limit",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,b,c\", /,/u, 2)).toStrictEqual([\"a\", \"b\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/split.test.ts › limited split",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,b,c\", \",\", 2)).toStrictEqual([\"a\", \"b\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/split.test.ts › limit is higher than splits",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,b,c\", \",\", 5)).toStrictEqual([\"a\", \"b\", \"c\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/split.test.ts › multiple consecutive separators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,,b\", \",\")).toStrictEqual([\"a\", \"\", \"b\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/split.test.ts › separator at the start and end",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\",a,b,\", \",\")).toStrictEqual([\"\", \"a\", \"b\", \"\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/split.test.ts › empty-string separator",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"abcdef\", \"\")).toStrictEqual([\"a\", \"b\", \"c\", \"d\", \"e\", \"f\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/split.test.ts › undefined limit",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,b,c\", \",\", undefined)).toStrictEqual([\"a\", \"b\", \"c\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/split.test.ts › negative limit",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,b,c\", \",\", -1)).toStrictEqual([\"a\", \"b\", \"c\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/split.test.ts › fractional limits",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,b,c\", \",\", 1.5)).toStrictEqual([\"a\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/split.test.ts › 0 limit",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\nexpect(split(\"a,b,c\", \",\", 0)).toStrictEqual([]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/split.test.ts › dataLast › useful split",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\n{\nexpect(pipe(\"a,b,c\", split(\",\"))).toStrictEqual([\"a\", \"b\", \"c\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/split.test.ts › dataLast › regex split",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\n{\nexpect(pipe(\"a,b,c\", split(/,/u))).toStrictEqual([\"a\", \"b\", \"c\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/split.test.ts › dataLast › limited split",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\n{\nexpect(pipe(\"a,b,c\", split(\",\", 2))).toStrictEqual([\"a\", \"b\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/split.test.ts › dataLast › regex with limit",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\n{\nexpect(pipe(\"a,b,c\", split(/,/u, 2))).toStrictEqual([\"a\", \"b\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/split.test.ts › dataLast › undefined limit",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { split } from \"./src/split.js\";\n{\n{\n{\nexpect(pipe(\"a,b,c\", split(\",\", undefined))).toStrictEqual([\"a\", \"b\", \"c\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

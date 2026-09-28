@@ -1,0 +1,122 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/only.test.ts › dataFirst › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(only([])).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/only.test.ts › dataFirst › length 1 array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(only([1])).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/only.test.ts › dataFirst › length 2 array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(only([1, 2])).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/only.test.ts › data last › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([], only())).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/only.test.ts › data last › length 1 array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1], only())).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/only.test.ts › data last › length 2 array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2], only())).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/only.test.ts › simple tuple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(only([1, \"a\"])).toBeUndefined();\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/only.test.ts › tuple with last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(only([\"a\", 1])).toBeUndefined();\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/only.test.ts › tuple with two last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(only([\"a\", 1, 2])).toBeUndefined();\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/only.test.ts › tuple with first and last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { only } from \"./src/only.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(only([1, \"a\", 2])).toBeUndefined();\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

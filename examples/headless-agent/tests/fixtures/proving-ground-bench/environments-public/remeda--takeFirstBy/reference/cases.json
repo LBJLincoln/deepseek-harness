@@ -1,0 +1,146 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › works",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(takeFirstBy(data, 2, identity())).toStrictEqual([2, 1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › handles empty arrays gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [];\n        expect(takeFirstBy(data, 1, identity())).toHaveLength(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › handles negative numbers gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(takeFirstBy(data, -3, identity())).toHaveLength(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › handles overflowing numbers gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(takeFirstBy(data, 100, identity())).toHaveLength(data.length);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › clones the array when needed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        const result = takeFirstBy(data, 100, identity());\n        expect(result).not.toBe(data);\n        expect(result).toStrictEqual(data);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › works with complex compare rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [\n            \"a\",\n            \"aaa\",\n            \"bbbbb\",\n            \"aa\",\n            \"bb\",\n            \"bbb\",\n            \"bbbb\",\n            \"aaaa\",\n            \"b\",\n            \"aaaaa\",\n        ];\n        expect(takeFirstBy(data, 3, (x) => x.length, identity())).toStrictEqual([\n            \"aa\",\n            \"b\",\n            \"a\",\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataLast) › works",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(pipe(data, takeFirstBy(2, (x) => x))).toStrictEqual([2, 1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataLast) › handles empty arrays gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [];\n        expect(pipe(data, takeFirstBy(1, (x) => x))).toHaveLength(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataLast) › handles negative numbers gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(pipe(data, takeFirstBy(-3, (x) => x))).toHaveLength(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataLast) › handles overflowing numbers gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(pipe(data, takeFirstBy(100, (x) => x))).toHaveLength(data.length);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataLast) › clones the array when needed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        const result = pipe(data, takeFirstBy(100, (x) => x));\n        expect(result).not.toBe(data);\n        expect(result).toStrictEqual(data);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataLast) › works with complex compare rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [\n            \"a\",\n            \"aaa\",\n            \"bbbbb\",\n            \"aa\",\n            \"bb\",\n            \"bbb\",\n            \"bbbb\",\n            \"aaaa\",\n            \"b\",\n            \"aaaaa\",\n        ];\n        expect(pipe(data, takeFirstBy(3, (x) => x.length, (x) => x))).toStrictEqual([\"aa\", \"b\", \"a\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

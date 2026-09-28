@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › mixed data types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n        expect(countBy([1, \"a\", 1, mySymbol, \"A\", mySymbol], when(isString, toLowerCase()))).toStrictEqual({ 1: 2, a: 2, [mySymbol]: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › mixed data types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n        expect(pipe([1, \"a\", 1, mySymbol, \"A\", mySymbol], countBy(when(isString, toLowerCase())))).toStrictEqual({ 1: 2, a: 2, [mySymbol]: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › without else › passes extra args to the functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(\"20\", isString, (x, radix) => Number.parseInt(x, radix),\n            // Extra args:\n            16 /* radix */)).toBe(32);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

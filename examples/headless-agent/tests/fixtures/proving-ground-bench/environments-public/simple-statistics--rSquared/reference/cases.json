@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/r_squared.test.js › r-squared › says that the r squared of a two-point line is perfect",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_linearRegression } from \"./src/linear_regression.js\";\nimport { default as __ns1_linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as __ns1_rSquared } from \"./src/r_squared.js\";\nconst ss = Object.freeze({ linearRegression: __ns1_linearRegression, linearRegressionLine: __ns1_linearRegressionLine, rSquared: __ns1_rSquared });\n{\n{\n{\nconst d = Object.freeze([\n            [0, 0],\n            [1, 1]\n        ]);\n        const l = ss.linearRegressionLine(ss.linearRegression(d));\n        assert.equal(ss.rSquared(d, l), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/r_squared.test.js › r-squared › says that the r squared of a three-point line is not perfect",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_linearRegression } from \"./src/linear_regression.js\";\nimport { default as __ns1_linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as __ns1_rSquared } from \"./src/r_squared.js\";\nconst ss = Object.freeze({ linearRegression: __ns1_linearRegression, linearRegressionLine: __ns1_linearRegressionLine, rSquared: __ns1_rSquared });\n{\n{\n{\nconst d = Object.freeze([\n            [0, 0],\n            [0.5, 0.2],\n            [1, 1]\n        ]);\n        const l = ss.linearRegressionLine(ss.linearRegression(d));\n        assert.notEqual(ss.rSquared(d, l), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/r_squared.test.js › r-squared › r-squared of single sample is 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_linearRegression } from \"./src/linear_regression.js\";\nimport { default as __ns1_linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as __ns1_rSquared } from \"./src/r_squared.js\";\nconst ss = Object.freeze({ linearRegression: __ns1_linearRegression, linearRegressionLine: __ns1_linearRegressionLine, rSquared: __ns1_rSquared });\n{\n{\n{\nconst d = Object.freeze([[0, 0]]);\n        const l = ss.linearRegressionLine(ss.linearRegression(d));\n        assert.equal(ss.rSquared(d, l), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

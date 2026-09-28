@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/filterAsync.spec.ts › filterAsync › returns empty array if all elements fail predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filterAsync } from \"./src/array/filterAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 3, 5];\n        const predicate = async (n) => n % 2 === 0;\n        const result = await filterAsync(arr, predicate);\n        expect(result).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/filterAsync.spec.ts › filterAsync › returns all elements if all pass predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filterAsync } from \"./src/array/filterAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [2, 4, 6];\n        const predicate = async (n) => n % 2 === 0;\n        const result = await filterAsync(arr, predicate);\n        expect(result).toEqual([2, 4, 6]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/filterAsync.spec.ts › filterAsync › uses full concurrency when not specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filterAsync } from \"./src/array/filterAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\n        let running = 0;\n        let maxRunning = 0;\n        const fn = async (item) => {\n            running++;\n            if (running > maxRunning) {\n                maxRunning = running;\n            }\n            await delay(20);\n            running--;\n            return item % 2 === 0;\n        };\n        await filterAsync(arr, fn);\n        expect(maxRunning).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

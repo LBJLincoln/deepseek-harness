@@ -1,0 +1,64 @@
+{
+  "id": "code:remeda--implement-constant",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/constant.ts",
+    "tests": [
+      "packages/remeda/src/conditional.test.ts",
+      "packages/remeda/src/constant.test.ts",
+      "packages/remeda/src/countBy.test.ts",
+      "packages/remeda/src/debounce.test.ts",
+      "packages/remeda/src/evolve.test.ts",
+      "packages/remeda/src/map.test.ts",
+      "packages/remeda/src/mapKeys.test.ts",
+      "packages/remeda/src/mapValues.test.ts",
+      "packages/remeda/src/omitBy.test.ts",
+      "packages/remeda/src/pickBy.test.ts",
+      "packages/remeda/src/pullObject.test.ts",
+      "packages/remeda/src/times.test.ts",
+      "packages/remeda/src/when.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/constant.js",
+    "function": "constant"
+  },
+  "title": "Implement constant from remeda",
+  "prompt": "`src/constant.js` is the JavaScript build of `packages/remeda/src/constant.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `constant`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * A function that takes any arguments and returns the provided `value` on every\n * invocation. This is useful to provide trivial implementations for APIs or in\n * combination with a ternary or other conditional execution to allow to short-\n * circuit more complex implementations for a specific case.\n *\n * Notice that this is a dataLast impl where the function needs to be invoked\n * to get the \"do nothing\" function.\n *\n * See also:\n * `doNothing` - A function that doesn't return anything.\n * `identity` - A function that returns the first argument it receives.\n *\n * @param value - The constant value that would be returned on every invocation.\n * The value is not copied/cloned on every invocation so care should be taken\n * with mutable objects (like arrays, objects, Maps, etc...).\n * @signature\n *   constant(value);\n * @example\n *   map([1, 2, 3], constant('a')); // => ['a', 'a', 'a']\n *   map(\n *     [1, 2, 3],\n *     isDemoMode ? add(1) : constant(0),\n *   ); // => [2, 3, 4] or [0, 0, 0]\n * @dataLast\n * @category Function\n */\nexport function constant<const T>(\n  value: T,\n): // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- There is no other way to make typescript infer the function arguments \"backwards\" in data-last invocations without the Args type parameter. @see: https://github.com/typescript-eslint/typescript-eslint/issues/9887\n<Args extends readonly unknown[]>(...args: Args) => T\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/add.js`, `src/conditional.js`, `src/countBy.js`, `src/debounce.js`, `src/evolve.js`, `src/filter.js`, `src/hasAtLeast.js`, `src/identity.js`, `src/internal/lazyDataLastImpl.js`, `src/internal/purryOn.js`, `src/internal/utilityEvaluators.js`, `src/isDeepEqual.js`, `src/isDefined.js`, `src/isNot.js`, `src/isNullish.js`, `src/isStrictEqual.js`, `src/isString.js`, `src/length.js`, `src/map.js`, `src/mapKeys.js`, `src/mapValues.js`, `src/multiply.js`, `src/omit.js`, `src/omitBy.js`, `src/pickBy.js`, `src/pipe.js`, `src/prop.js`, `src/pullObject.js`, `src/purry.js`, `src/reduce.js`, `src/set.js`, `src/sliceString.js`, `src/take.js`, `src/times.js`, `src/toLowerCase.js`, `src/when.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

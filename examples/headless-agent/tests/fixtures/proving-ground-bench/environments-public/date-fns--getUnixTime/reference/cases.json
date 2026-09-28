@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/getUnixTime/test.ts › getUnixTime › returns the timestamp of the given date",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { getUnixTime } from \"./src/getUnixTime/index.js\";\n{\n{\n{\nconst timestamp = 1483228800000;\n        const result = getUnixTime(new Date(timestamp));\n        expect(result).toBe(1483228800);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/getUnixTime/test.ts › getUnixTime › accepts a timestamp (and returns it unchanged)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { getUnixTime } from \"./src/getUnixTime/index.js\";\n{\n{\n{\nconst timestamp = 804643200000;\n        const result = getUnixTime(timestamp);\n        expect(result).toBe(804643200);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/getUnixTime/test.ts › getUnixTime › returns NaN if the given date is invalid",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { getUnixTime } from \"./src/getUnixTime/index.js\";\n{\n{\n{\nconst result = getUnixTime(new Date(NaN));\n        expect(isNaN(result)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/getUnixTime/test.ts › getUnixTime › seconds timestamp handles negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { getUnixTime } from \"./src/getUnixTime/index.js\";\n{\n{\n{\nexpect(getUnixTime(new Date(1001))).toBe(1);\n        expect(getUnixTime(new Date(-1001))).toBe(-1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

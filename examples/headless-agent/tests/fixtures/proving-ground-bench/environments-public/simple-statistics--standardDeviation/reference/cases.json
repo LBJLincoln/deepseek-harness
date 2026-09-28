@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/standard_deviation.test.js › standardDeviation › can get the standard deviation of an example on wikipedia",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_standardDeviation } from \"./src/standard_deviation.js\";\nconst ss = Object.freeze({ standardDeviation: __ns1_standardDeviation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nassert.equal(rnd(ss.standardDeviation([2, 4, 4, 4, 5, 5, 7, 9])), 2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/standard_deviation.test.js › standardDeviation › can get the standard deviation of 1-3",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_standardDeviation } from \"./src/standard_deviation.js\";\nconst ss = Object.freeze({ standardDeviation: __ns1_standardDeviation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nassert.equal(rnd(ss.standardDeviation([1, 2, 3])), 0.816);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/standard_deviation.test.js › standardDeviation › can get the standard deviation of 1-10",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_standardDeviation } from \"./src/standard_deviation.js\";\nconst ss = Object.freeze({ standardDeviation: __ns1_standardDeviation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nassert.equal(rnd(ss.standardDeviation([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])), 3.162);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/standard_deviation.test.js › standardDeviation › the standard deviation of one number is zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_standardDeviation } from \"./src/standard_deviation.js\";\nconst ss = Object.freeze({ standardDeviation: __ns1_standardDeviation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nassert.equal(rnd(ss.standardDeviation([1])), 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/weighted_standard_deviation.test.js › weightedStandardDeviation › equal weights match standard deviation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_standardDeviation } from \"./src/standard_deviation.js\";\nimport { default as __ns1_weightedStandardDeviation } from \"./src/weighted_standard_deviation.js\";\nconst ss = Object.freeze({ standardDeviation: __ns1_standardDeviation, weightedStandardDeviation: __ns1_weightedStandardDeviation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nconst input = [2, 4, 4, 4, 5, 5, 7, 9];\n        const weights = [1, 1, 1, 1, 1, 1, 1, 1];\n        assert.equal(ss.weightedStandardDeviation(input, weights), ss.standardDeviation(input));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/deepFreeze.spec.ts › deepFreeze › should freeze nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepFreeze } from \"./src/object/deepFreeze.js\";\n{\n{\n{\nconst obj = deepFreeze({ user: { name: 'Alex', age: 20 } });\n        expect(Object.isFrozen(obj)).toBe(true);\n        expect(Object.isFrozen(obj.user)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/deepFreeze.spec.ts › deepFreeze › should freeze nested arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepFreeze } from \"./src/object/deepFreeze.js\";\n{\n{\n{\nconst obj = deepFreeze({ items: [1, 2, { nested: true }] });\n        expect(Object.isFrozen(obj)).toBe(true);\n        expect(Object.isFrozen(obj.items)).toBe(true);\n        expect(Object.isFrozen(obj.items[2])).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/deepFreeze.spec.ts › deepFreeze › should return the same object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepFreeze } from \"./src/object/deepFreeze.js\";\n{\n{\n{\nconst obj = { a: 1 };\n        expect(deepFreeze(obj)).toBe(obj);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/deepFreeze.spec.ts › deepFreeze › should handle primitives",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepFreeze } from \"./src/object/deepFreeze.js\";\n{\n{\n{\nexpect(deepFreeze(42)).toBe(42);\n        expect(deepFreeze('hello')).toBe('hello');\n        expect(deepFreeze(null)).toBe(null);\n        expect(deepFreeze(undefined)).toBe(undefined);\n        expect(deepFreeze(true)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/deepFreeze.spec.ts › deepFreeze › should handle deeply nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepFreeze } from \"./src/object/deepFreeze.js\";\n{\n{\n{\nconst obj = deepFreeze({ a: { b: { c: { d: 1 } } } });\n        expect(Object.isFrozen(obj.a)).toBe(true);\n        expect(Object.isFrozen(obj.a.b)).toBe(true);\n        expect(Object.isFrozen(obj.a.b.c)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object/deepFreeze.spec.ts › deepFreeze › should handle circular references",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepFreeze } from \"./src/object/deepFreeze.js\";\n{\n{\n{\nconst obj = { a: 1 };\n        obj.self = obj;\n        const frozen = deepFreeze(obj);\n        expect(Object.isFrozen(frozen)).toBe(true);\n        expect(frozen.self).toBe(frozen);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/object/deepFreeze.spec.ts › deepFreeze › should handle an empty object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepFreeze } from \"./src/object/deepFreeze.js\";\n{\n{\n{\nconst obj = deepFreeze({});\n        expect(Object.isFrozen(obj)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/object/deepFreeze.spec.ts › deepFreeze › should freeze arrays directly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepFreeze } from \"./src/object/deepFreeze.js\";\n{\n{\n{\nconst arr = deepFreeze([1, [2, 3], { a: 4 }]);\n        expect(Object.isFrozen(arr)).toBe(true);\n        expect(Object.isFrozen(arr[1])).toBe(true);\n        expect(Object.isFrozen(arr[2])).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/object/deepFreeze.spec.ts › deepFreeze › should freeze Date and RegExp objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepFreeze } from \"./src/object/deepFreeze.js\";\n{\n{\n{\nconst obj = deepFreeze({ date: new Date(), regex: /test/ });\n        expect(Object.isFrozen(obj.date)).toBe(true);\n        expect(Object.isFrozen(obj.regex)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/object/deepFreeze.spec.ts › deepFreeze › should prevent modifications in strict mode",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepFreeze } from \"./src/object/deepFreeze.js\";\n{\n{\n{\n'use strict';\n        const obj = deepFreeze({ user: { name: 'Alex', age: 20 } });\n        expect(() => {\n            obj.user = {};\n        }).toThrow();\n        expect(() => {\n            obj.user.age = 22;\n        }).toThrow();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

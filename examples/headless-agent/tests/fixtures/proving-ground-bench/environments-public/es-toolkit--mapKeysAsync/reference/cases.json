@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/mapKeysAsync.spec.ts › mapKeysAsync › should iterate over and map the object using its own string keys asynchronously",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapKeysAsync } from \"./src/object/mapKeysAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst result = await mapKeysAsync({ a: 1, b: 2, c: 3 }, async (_, key) => `${key}a`);\n        expect(result).toEqual({ aa: 1, ba: 2, ca: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/mapKeysAsync.spec.ts › mapKeysAsync › should iterate over and map the object using its own number keys asynchronously",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapKeysAsync } from \"./src/object/mapKeysAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst result = await mapKeysAsync({ 1: 'a', 2: 'b', 3: 'c' }, async (_, key) => key * 2);\n        expect(result).toEqual({ 2: 'a', 4: 'b', 6: 'c' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/mapKeysAsync.spec.ts › mapKeysAsync › should pass the value corresponding to the current key into the iteratee",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapKeysAsync } from \"./src/object/mapKeysAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst result = await mapKeysAsync({ a: 1, b: 2, c: 3 }, async (value) => value);\n        expect(result).toEqual({ 1: 1, 2: 2, 3: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/mapKeysAsync.spec.ts › mapKeysAsync › should use full concurrency when not specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapKeysAsync } from \"./src/object/mapKeysAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst obj = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10 };\n        let running = 0;\n        let maxRunning = 0;\n        const fn = async (value, key) => {\n            running++;\n            if (running > maxRunning) {\n                maxRunning = running;\n            }\n            await delay(20);\n            running--;\n            return key + value;\n        };\n        await mapKeysAsync(obj, fn);\n        expect(maxRunning).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

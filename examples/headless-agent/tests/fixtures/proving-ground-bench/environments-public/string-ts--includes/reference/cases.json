@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/native/includes.test.ts › includes › without offset › should return true when text contains search",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { includes } from \"./src/native/includes.js\";\n{\n{\nconst text = 'abcde';\n{\n{\nconst result = includes(text, 'bcd');\n            expect(result).toEqual(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/native/includes.test.ts › includes › without offset › should return false when text does not end with search",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { includes } from \"./src/native/includes.js\";\n{\n{\nconst text = 'abcde';\n{\n{\nconst result = includes(text, 'hello');\n            expect(result).toEqual(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/native/includes.test.ts › includes › with offset › should return true when offset text does contain search",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { includes } from \"./src/native/includes.js\";\n{\n{\nconst text = 'abcde';\n{\n{\nconst result = includes(text, 'c', 1);\n            expect(result).toEqual(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/native/includes.test.ts › includes › with offset › should return true when offset text does contain search (multi-char)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { includes } from \"./src/native/includes.js\";\n{\n{\nconst text = 'abcde';\n{\n{\nconst result = includes(text, 'bcd', 1);\n            expect(result).toEqual(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/native/includes.test.ts › includes › with offset › should return false when offset string does not contain search",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { includes } from \"./src/native/includes.js\";\n{\n{\nconst text = 'abcde';\n{\n{\nconst result = includes(text, 'abc', 3);\n            expect(result).toEqual(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/native/includes.test.ts › includes › with bad offset › should ignore offset when the offset is negative",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { includes } from \"./src/native/includes.js\";\n{\n{\nconst text = 'abcde';\n{\n{\nconst result = includes(text, 'a', -100);\n            expect(result).toEqual(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/native/includes.test.ts › includes › with bad offset › should return false when text contains search but offset is greater than text length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { includes } from \"./src/native/includes.js\";\n{\n{\nconst text = 'abcde';\n{\n{\nconst result = includes(text, 'c', 10);\n            expect(result).toEqual(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

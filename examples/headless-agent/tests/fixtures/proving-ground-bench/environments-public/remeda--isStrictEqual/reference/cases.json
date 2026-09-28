@@ -1,0 +1,326 @@
+[
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/countBy.test.ts › skip items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\nexpect(countBy([1, 2, 3, 4, 5], when(isStrictEqual(3), constant(undefined)))).toStrictEqual({ 1: 1, 2: 1, 4: 1, 5: 1 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › primitives › undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nexpect(isStrictEqual(undefined, undefined)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › primitives › null",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nexpect(isStrictEqual(null, null)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › primitives › string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nexpect(isStrictEqual(\"a\", \"a\")).toBe(true);\n        expect(isStrictEqual(\"a\", \"b\")).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › primitives › number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nexpect(isStrictEqual(1, 1)).toBe(true);\n        expect(isStrictEqual(1, 2)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › primitives › boolean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nexpect(isStrictEqual(true, true)).toBe(true);\n        expect(isStrictEqual(true, false)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › primitives › bigint",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nexpect(isStrictEqual(1n, 1n)).toBe(true);\n        expect(isStrictEqual(1n, 2n)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › objects › arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nconst data = [1, 2, 3];\n        expect(isStrictEqual(data, [1, 2, 3])).toBe(false);\n        expect(isStrictEqual(data, data)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › objects › objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nconst data = { a: 1, b: 2 };\n        expect(isStrictEqual(data, { a: 1, b: 2 })).toBe(false);\n        expect(isStrictEqual(data, data)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › objects › uint arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nconst data = new Uint8Array([1, 2, 3]);\n        expect(isStrictEqual(data, new Uint8Array([1, 2, 3]))).toBe(false);\n        expect(isStrictEqual(data, data)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › objects › maps",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nconst data = new Map([[\"a\", 1]]);\n        expect(isStrictEqual(data, new Map([[\"a\", 1]]))).toBe(false);\n        expect(isStrictEqual(data, data)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › objects › sets",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nconst data = new Set([1, 2, 3]);\n        expect(isStrictEqual(data, new Set([1, 2, 3]))).toBe(false);\n        expect(isStrictEqual(data, data)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › built-ins › regex",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nconst data = /a/u;\n        expect(isStrictEqual(data, /a/u)).toBe(false);\n        expect(isStrictEqual(data, data)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › built-ins › dates",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nconst data = new Date();\n        expect(isStrictEqual(data, new Date())).toBe(false);\n        expect(isStrictEqual(data, data)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › built-ins › promises",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nconst data = Promise.resolve(1);\n        expect(isStrictEqual(data, Promise.resolve(1))).toBe(false);\n        expect(isStrictEqual(data, data)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › special cases › literal NaN",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nexpect(isStrictEqual(NaN, NaN)).toBe(true);\n        // eslint-disable-next-line unicorn/prefer-global-number-constants -- Intentional\n        expect(isStrictEqual(Number.NaN, Number.NaN)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-031",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › special cases › -0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nexpect(isStrictEqual(-0, 0)).toBe(true);\n        expect(isStrictEqual(-0, -0)).toBe(true);\n        expect(isStrictEqual(0, 0)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-032",
+    "title": "packages/remeda/src/isStrictEqual.test.ts › special cases › fails on loose equality",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\n{\n{\n{\nexpect(isStrictEqual(\"\", 0)).toBe(false);\n        expect(isStrictEqual(\"\", false)).toBe(false);\n        expect(isStrictEqual(0, false)).toBe(false);\n        expect(isStrictEqual(\"\", null)).toBe(false);\n        expect(isStrictEqual(\"\", undefined)).toBe(false);\n        expect(isStrictEqual(0, null)).toBe(false);\n        expect(isStrictEqual(0, undefined)).toBe(false);\n        expect(isStrictEqual(false, null)).toBe(false);\n        expect(isStrictEqual(false, undefined)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-033",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › without else › returns the happy path when true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(\"hello\", isStrictEqual(\"hello\"), constant(\"was true\"))).toBe(\"was true\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-034",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › without else › returns the identity when false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(\"hello\", isStrictEqual(\"olleh\"), constant(\"was true\"))).toBe(\"hello\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-036",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › with else › returns the happy path when true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(\"hello\", isStrictEqual(\"hello\"), constant(\"was true\"))).toBe(\"was true\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-037",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › with else › returns the else path when false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(\"hello\", isStrictEqual(\"olleh\"), {\n                onTrue: constant(\"was true\"),\n                onFalse: constant(\"was false\"),\n            })).toBe(\"was false\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-039",
+    "title": "packages/remeda/src/when.test.ts › dataLast › without else › returns the happy path when true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(pipe(\"hello\", when(isStrictEqual(\"hello\"), constant(\"was true\")))).toBe(\"was true\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-040",
+    "title": "packages/remeda/src/when.test.ts › dataLast › without else › returns the identity when false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(pipe(\"hello\", when(isStrictEqual(\"olleh\"), constant(\"was true\")))).toBe(\"hello\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-042",
+    "title": "packages/remeda/src/when.test.ts › dataLast › with else › returns the happy path when true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(pipe(\"hello\", when(isStrictEqual(\"hello\"), constant(\"was true\")))).toBe(\"was true\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-043",
+    "title": "packages/remeda/src/when.test.ts › dataLast › with else › returns the else path when false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(pipe(\"hello\", when(isStrictEqual(\"olleh\"), {\n                onTrue: constant(\"was true\"),\n                onFalse: constant(\"was false\"),\n            }))).toBe(\"was false\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-045",
+    "title": "packages/remeda/src/when.test.ts › can return other types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\nexpect(when(\"hello\", isStrictEqual(\"hello\"), constant(42), constant({ a: \"hello\" }))).toBe(42);\n    expect(when(\"hello\", isStrictEqual(\"olleh\"), {\n        onTrue: constant(42),\n        onFalse: constant({ a: \"hello\" }),\n    })).toStrictEqual({ a: \"hello\" });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

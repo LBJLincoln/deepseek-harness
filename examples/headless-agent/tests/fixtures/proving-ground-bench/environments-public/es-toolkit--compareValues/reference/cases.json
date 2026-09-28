@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/serialize/compareValues.spec.ts › compareValues › should compare numbers numerically",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareValues } from \"./src/util/serialize/compareValues.js\";\n{\n{\n{\nexpect(compareValues(1, 2, new Map())).toBeLessThan(0);\n        expect(compareValues(10, 9, new Map())).toBeGreaterThan(0);\n        expect(compareValues(1, 1, new Map())).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/serialize/compareValues.spec.ts › compareValues › should compare strings by code unit",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareValues } from \"./src/util/serialize/compareValues.js\";\n{\n{\n{\nexpect(compareValues('a', 'b', new Map())).toBeLessThan(0);\n        expect(compareValues('b', 'a', new Map())).toBeGreaterThan(0);\n        expect(compareValues('a', 'a', new Map())).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/util/serialize/compareValues.spec.ts › compareValues › should not depend on the locale",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareValues } from \"./src/util/serialize/compareValues.js\";\n{\n{\n{\n// In Slovak, the digraph `ch` is a single letter sorted after `h`.\n        expect(compareValues('chz', 'hz', new Map())).toBeLessThan(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/util/serialize/compareValues.spec.ts › compareValues › should compare mixed types by their serialized form",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareValues } from \"./src/util/serialize/compareValues.js\";\n{\n{\n{\n// \"'a'\" vs \"{'b':1}\"\n        expect(compareValues('a', { b: 1 }, new Map())).toBeLessThan(0);\n        // \"3\" vs \"'a'\" — the quote sorts before digits, so strings come first\n        expect(compareValues(3, 'a', new Map())).toBeGreaterThan(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/util/serialize/compareValues.spec.ts › compareValues › should sort in a stable order usable by Array.prototype.sort",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { compareValues } from \"./src/util/serialize/compareValues.js\";\n{\n{\n{\n// `Array.prototype.sort` always places undefined elements last,\n        // without consulting the comparator.\n        const values = [3, 'a', { b: 1 }, null, undefined];\n        const sorted = [...values].sort((a, b) => compareValues(a, b, new Map()));\n        expect(sorted).toEqual(['a', 3, null, { b: 1 }, undefined]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

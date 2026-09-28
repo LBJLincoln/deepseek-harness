@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-tail",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/tail.ts",
+    "tests": [
+      "src/array/tail.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/tail.js",
+    "function": "tail"
+  },
+  "title": "Implement tail from es-toolkit",
+  "prompt": "`src/array/tail.js` is the JavaScript build of `src/array/tail.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `tail`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Returns a new array with all elements except for the first.\n *\n * This function takes an array and returns a new array containing all the elements\n * except for the first one. If the input array is empty or has only one element,\n * an empty array is returned.\n *\n * @template T - The type of elements in the array.\n * @param arr - The array to get the tail of.\n * @returns A new array containing all elements of the input array except for the first one.\n *\n * @example\n * const arr1 = [1, 2, 3];\n * const result = tail(arr1);\n * // result will be [2, 3]\n *\n * const arr2 = [1];\n * const result2 = tail(arr2);\n * // result2 will be []\n *\n * const arr3 = [];\n * const result3 = tail(arr3);\n * // result3 will be []\n */\nexport function tail<T>(arr: readonly T[]): T[]\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

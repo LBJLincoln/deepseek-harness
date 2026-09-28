@@ -1,0 +1,17 @@
+/**
+ * A binary search implementation that finds the index at which `predicate`
+ * stops returning `true` and starts returning `false` (consistently) when run
+ * on the items of the array. It **assumes** that mapping the array via the
+ * predicate results in the shape `[...true[], ...false[]]`. *For any other case
+ * the result is unpredictable*.
+ *
+ * This is the base implementation of the `sortedIndex` functions which define
+ * the predicate for the user, for common use-cases.
+ *
+ * It is similar to `findIndex`, but runs at O(logN), whereas the latter is
+ * general purpose function which runs on any array and predicate, but runs at
+ * O(N) time.
+ */
+export function binarySearchCutoffIndex(array, predicate) {
+    throw new Error('not implemented');
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/deferAsync.spec.ts › deferAsync › should await the callback when disposed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deferAsync } from \"./src/util/deferAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst order = [];\n        const disposable = deferAsync(async () => {\n            await delay(10);\n            order.push('cleanup');\n        });\n        await disposable[Symbol.asyncDispose]();\n        expect(order).toEqual(['cleanup']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/deferAsync.spec.ts › deferAsync › should return a promise from dispose",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deferAsync } from \"./src/util/deferAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst disposable = deferAsync(() => { });\n        expect(disposable[Symbol.asyncDispose]()).toBeInstanceOf(Promise);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

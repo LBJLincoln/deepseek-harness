@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/map.test.ts › data_first › map",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(map([1, 2, 3], multiply(2))).toStrictEqual([2, 4, 6]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/map.test.ts › data-last › passes the value to the mapper as its first argument",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], map(multiply(2)))).toStrictEqual([2, 4, 6]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/multiply.test.ts › data-first",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { multiply } from \"./src/multiply.js\";\n{\n{\nexpect(multiply(3, 4)).toBe(12);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/multiply.test.ts › data-last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { multiply } from \"./src/multiply.js\";\n{\n{\nexpect(multiply(4)(3)).toBe(12);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/tap.test.ts › data last › should work in the middle of pipe sequence",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(pipe([-1, 2], filter((n) => n > 0), tap((data) => {\n            expect(data).toStrictEqual([2]);\n        }), map(multiply(2)))).toStrictEqual([4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/tap.test.ts › data last › should infer types after tapping function reference with parameter type any",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(pipe([-1, 2], filter((n) => n > 0), tap(foo), map(multiply(2)))).toStrictEqual([4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/times.test.ts › data_first › returns fn results as arr",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(times(5, identity())).toStrictEqual([0, 1, 2, 3, 4]);\n        expect(times(5, multiply(2))).toStrictEqual([0, 2, 4, 6, 8]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/times.test.ts › data_last › returns fn results as arr",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(pipe(5, times(identity()))).toStrictEqual([0, 1, 2, 3, 4]);\n        expect(pipe(5, times(multiply(2)))).toStrictEqual([0, 2, 4, 6, 8]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

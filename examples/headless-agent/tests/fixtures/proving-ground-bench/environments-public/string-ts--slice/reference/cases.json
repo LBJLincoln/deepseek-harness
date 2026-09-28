@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/native/slice.test.ts › slice › should slice a string from a startIndex position",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { slice } from \"./src/native/slice.js\";\n{\n{\nconst str = 'The quick brown fox jumps over the lazy dog.';\n{\nconst result = slice(str, 31);\n        expect(result).toEqual('the lazy dog.');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/native/slice.test.ts › slice › should slice a string from a startIndex to an endIndex position",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { slice } from \"./src/native/slice.js\";\n{\n{\nconst str = 'The quick brown fox jumps over the lazy dog.';\n{\nconst result = slice(str, 4, 19);\n        expect(result).toEqual('quick brown fox');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/native/slice.test.ts › slice › should slice a string from the end with a negative startIndex",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { slice } from \"./src/native/slice.js\";\n{\n{\nconst str = 'The quick brown fox jumps over the lazy dog.';\n{\nconst result = slice(str, -4);\n        expect(result).toEqual('dog.');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/native/slice.test.ts › slice › should allow a negative endIndex",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { slice } from \"./src/native/slice.js\";\n{\n{\nconst str = 'The quick brown fox jumps over the lazy dog.';\n{\nconst result = slice(str, 0, -5);\n        expect(result).toEqual('The quick brown fox jumps over the lazy');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/native/slice.test.ts › slice › should slice a string from the end with a negative startIndex to a negative endIndex",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { slice } from \"./src/native/slice.js\";\n{\n{\nconst str = 'The quick brown fox jumps over the lazy dog.';\n{\nconst result = slice(str, -9, -5);\n        expect(result).toEqual('lazy');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/native/slice.test.ts › slice › should return an empty string if endIndex is lower than startIndex",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { slice } from \"./src/native/slice.js\";\n{\n{\nconst str = 'The quick brown fox jumps over the lazy dog.';\n{\nconst result = slice(str, -9, -10);\n        expect(result).toEqual('');\n        const result2 = slice(str, 9, 1);\n        expect(result2).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

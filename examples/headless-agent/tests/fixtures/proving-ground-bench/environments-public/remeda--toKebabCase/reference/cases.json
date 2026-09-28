@@ -1,0 +1,182 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-first › on lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(toKebabCase(\"hello world\")).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-first › on upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(toKebabCase(\"HELLO WORLD\")).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-first › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(toKebabCase(\"HeLlO WoRlD\")).toBe(\"he-ll-o-wo-rl-d\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-first › on snake case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(toKebabCase(\"hello_world\")).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-first › on camel case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(toKebabCase(\"helloWorld\")).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-first › on kebab case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(toKebabCase(\"hello-world\")).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-first › on prefixed string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(toKebabCase(\"__HELLO_WORLD__\")).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-first › on string with multiple delimiters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(toKebabCase(\"foo---bar\")).toBe(\"foo-bar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-last › on lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(pipe(\"hello world\", toKebabCase())).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-last › on upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(pipe(\"HELLO WORLD\", toKebabCase())).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-last › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(pipe(\"HeLlO WoRlD\", toKebabCase())).toBe(\"he-ll-o-wo-rl-d\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-last › on snake case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(pipe(\"hello_world\", toKebabCase())).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-last › on camel case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(pipe(\"helloWorld\", toKebabCase())).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/toKebabCase.test.ts › data-last › on kebab case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(pipe(\"hello-world\", toKebabCase())).toBe(\"hello-world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/toKebabCase.test.ts › type-fest cases › trivial case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toKebabCase } from \"./src/toKebabCase.js\";\n{\n{\n{\nexpect(toKebabCase(\"foobar\")).toBe(\"foobar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

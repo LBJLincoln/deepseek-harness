@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/memoize.spec.ts › memoize › should use `this` context for resolver function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { memoize } from \"./src/function/memoize.js\";\n{\n{\n{\nconst fn = function (a) {\n            // @ts-expect-error: this is not defined\n            return (a + this.b + this.c);\n        };\n        const memoized = memoize(fn);\n        const object = { memoized: memoized, b: 2, c: 3 };\n        expect(object.memoized(1)).toBe(6); // {1: 6}\n        object.b = 3;\n        object.c = 5;\n        expect(object.memoized(1)).toBe(6); // {1: 6}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/function/memoize.spec.ts › memoize › should check cache for built-in properties",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { memoize } from \"./src/function/memoize.js\";\n{\n{\n{\nconst props = [\n            'constructor',\n            'hasOwnProperty',\n            'isPrototypeOf',\n            'propertyIsEnumerable',\n            'toLocaleString',\n            'toString',\n            'valueOf',\n        ];\n        const fn = (value) => value;\n        const memoized = memoize(fn);\n        const actual = props.map(value => memoized(value));\n        expect(actual).toEqual(props);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/function/memoize.spec.ts › memoize › should allow custom cache implementation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { memoize } from \"./src/function/memoize.js\";\n{\n{\n{\nclass CustomCache {\n            __data__ = new Map();\n            get(key) {\n                return this.__data__.get(key);\n            }\n            set(key, value) {\n                this.__data__.set(key, value);\n            }\n            has(key) {\n                return this.__data__.has(key);\n            }\n            delete(key) {\n                return this.__data__.delete(key);\n            }\n            clear() {\n                this.__data__.clear();\n            }\n            get size() {\n                return this.__data__.size;\n            }\n        }\n        const fn = (object) => object.id;\n        const memoized = memoize(fn, { cache: new CustomCache() });\n        const cache = memoized.cache;\n        const key1 = { id: 'a' };\n        const key2 = { id: 'b' };\n        expect(memoized(key1)).toBe('a');\n        expect(cache.has(key1)).toBe(true);\n        expect(memoized(key2)).toBe('b');\n        expect(cache.has(key2)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/function/memoize.spec.ts › memoize › should work with an immutable cache implementation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { memoize } from \"./src/function/memoize.js\";\n{\n{\n{\nclass ImmutableCache {\n            __data__ = new Map();\n            clear() {\n                return new ImmutableCache();\n            }\n            get(key) {\n                return this.__data__.get(key);\n            }\n            has(key) {\n                return this.__data__.has(key);\n            }\n            set(key, value) {\n                this.__data__.set(key, value);\n                return this;\n            }\n            delete(key) {\n                return this.__data__.delete(key);\n            }\n            get size() {\n                return this.__data__.size;\n            }\n        }\n        const fn = (object) => object.id;\n        const cache = new ImmutableCache();\n        const memoized = memoize(fn, { cache });\n        const key1 = { id: 'a' };\n        const key2 = { id: 'b' };\n        memoized(key1);\n        memoized(key2);\n        expect(cache.has(key1)).toBe(true);\n        expect(cache.has(key2)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

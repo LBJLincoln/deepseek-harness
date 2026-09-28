@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/xorWith.spec.ts › xorWith › computes the symmetric difference between two arrays using a custom equality function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { xorWith } from \"./src/array/xorWith.js\";\n{\n{\n{\nconst areNumbersEqual = (a, b) => a === b;\n        const areObjectsEqual = (a, b) => a.id === b.id;\n        expect(xorWith([1, 2, 3, 4], [3, 4, 5, 6], areNumbersEqual)).toEqual([1, 2, 5, 6]);\n        expect(xorWith([{ id: 1 }, { id: 2 }], [{ id: 2 }, { id: 3 }], areObjectsEqual)).toEqual([{ id: 1 }, { id: 3 }]);\n        expect(xorWith([1, 2, 3], [4, 5, 6], areNumbersEqual)).toEqual([1, 2, 3, 4, 5, 6]);\n        expect(xorWith([1, 2, 3], [1, 2, 3], areNumbersEqual)).toEqual([]);\n        expect(xorWith([], [1, 2, 3], areNumbersEqual)).toEqual([1, 2, 3]);\n        expect(xorWith([1, 2, 3], [], areNumbersEqual)).toEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

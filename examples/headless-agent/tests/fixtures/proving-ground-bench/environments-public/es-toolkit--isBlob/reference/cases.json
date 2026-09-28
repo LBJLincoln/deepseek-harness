@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isBlob.spec.ts › isBlob › returns true if the value is a Blob",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBlob } from \"./src/predicate/isBlob.js\";\n{\n{\n{\nexpect(isBlob(new Blob())).toBe(true);\n        const blobWithOptions = new Blob(['content'], { type: 'text/plain' });\n        expect(isBlob(blobWithOptions)).toBe(true);\n        const originalFile = globalThis.File;\n        //@ts-expect-error - globalThis.File is browser only.\n        globalThis.File = class File extends Blob {\n            name;\n            constructor(chunks, filename, options) {\n                super(chunks, options);\n                this.name = filename;\n            }\n        };\n        const file = new File(['content'], 'example.txt', { type: 'text/plain' });\n        expect(isBlob(file)).toBe(true);\n        globalThis.File = originalFile;\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isBlob.spec.ts › isBlob › returns false if the value is not a Blob",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBlob } from \"./src/predicate/isBlob.js\";\n{\n{\n{\nexpect(isBlob(0)).toBe(false);\n        expect(isBlob('abc')).toBe(false);\n        expect(isBlob(123)).toBe(false);\n        expect(isBlob({ a: 1 })).toBe(false);\n        expect(isBlob([1, 2, 3])).toBe(false);\n        expect(isBlob(null)).toBe(false);\n        expect(isBlob(undefined)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isBlob.spec.ts › isBlob › can be used with TypeScript as a type predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBlob } from \"./src/predicate/isBlob.js\";\n{\n{\n{\nconst items = [new Blob(), 1, new Blob(), 2];\n        const result = items.filter(isBlob);\n        expect(result).toHaveLength(2);\n        expect(result[0]).toBeInstanceOf(Blob);\n        expect(result[1]).toBeInstanceOf(Blob);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/predicate/isBlob.spec.ts › isBlob › returns false if Blob is not supported in the environment",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBlob } from \"./src/predicate/isBlob.js\";\n{\n{\n{\nconst blob = new Blob();\n        const originalBlob = globalThis.Blob;\n        // @ts-expect-error - we need to simulate the absence of Blob\n        globalThis.Blob = undefined;\n        expect(isBlob(blob)).toBe(false);\n        globalThis.Blob = originalBlob;\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/percentile.spec.ts › percentile › returns the smallest value at the 0th percentile",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { percentile } from \"./src/math/percentile.js\";\n{\n{\n{\nexpect(percentile([5, 1, 4, 2, 3], 0)).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/percentile.spec.ts › percentile › returns the largest value at the 100th percentile",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { percentile } from \"./src/math/percentile.js\";\n{\n{\n{\nexpect(percentile([5, 1, 4, 2, 3], 100)).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math/percentile.spec.ts › percentile › returns the middle value at the 50th percentile of an odd-length array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { percentile } from \"./src/math/percentile.js\";\n{\n{\n{\nexpect(percentile([1, 2, 3, 4, 5], 50)).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/math/percentile.spec.ts › percentile › returns the correct value at the 25th, 50th, and 75th percentiles",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { percentile } from \"./src/math/percentile.js\";\n{\n{\n{\nconst list = Array.from({ length: 100 }, (_, i) => i + 1);\n        expect(percentile(list, 25)).toBe(25);\n        expect(percentile(list, 50)).toBe(50);\n        expect(percentile(list, 75)).toBe(75);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/math/percentile.spec.ts › percentile › sorts unsorted input before computing the percentile",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { percentile } from \"./src/math/percentile.js\";\n{\n{\n{\nconst list = [50, 10, 30, 20, 40];\n        expect(percentile(list, 50)).toBe(30);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/math/percentile.spec.ts › percentile › handles negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { percentile } from \"./src/math/percentile.js\";\n{\n{\n{\nexpect(percentile([-1, -2, -3, -4, -5], 50)).toBe(-3);\n        expect(percentile([7, 6, -1, -2, -3, -4, -5], 50)).toBe(-2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/math/percentile.spec.ts › percentile › treats NaN values as the smallest values when sorting",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { percentile } from \"./src/math/percentile.js\";\n{\n{\n{\nexpect(percentile([NaN, NaN, 1, 100], 75)).toBe(1);\n        expect(percentile([1, 100, NaN, NaN], 75)).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/math/percentile.spec.ts › percentile › does not mutate the input array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { percentile } from \"./src/math/percentile.js\";\n{\n{\n{\nconst list = [5, 1, 4, 2, 3];\n        percentile(list, 50);\n        expect(list).toEqual([5, 1, 4, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/math/percentile.spec.ts › percentile › returns NaN for an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { percentile } from \"./src/math/percentile.js\";\n{\n{\n{\nexpect(percentile([], 50)).toBeNaN();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

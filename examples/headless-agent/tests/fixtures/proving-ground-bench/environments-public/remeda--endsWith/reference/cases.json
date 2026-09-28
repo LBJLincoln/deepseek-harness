@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/endsWith.test.ts › empty data",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/endsWith.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(endsWith(\"\", \"\")).toBe(true);\n    expect(endsWith(\"\", \"hellO\")).toBe(false);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/endsWith.test.ts › ends with",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/endsWith.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(endsWith(\"hello world\", \"world\")).toBe(true);\n    expect(endsWith(\"hello world\", \" world\")).toBe(true);\n    expect(endsWith(\"hello world\", \"hello world\")).toBe(true);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/endsWith.test.ts › doesn't end with",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/endsWith.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(endsWith(\"hello world\", \"hello\")).toBe(false);\n    expect(endsWith(\"hello world\", \"hello \")).toBe(false);\n    expect(endsWith(\"hello world\", \"hello world \")).toBe(false);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/endsWith.test.ts › matches case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/endsWith.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(endsWith(\"hello world\", \"world\")).toBe(true);\n    expect(endsWith(\"hello world\", \"World\")).toBe(false);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/endsWith.test.ts › data-last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/endsWith.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pipe(\"hello world\", endsWith(\"world\"))).toBe(true);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/endsWith.test.ts › data-last, no match",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/endsWith.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pipe(\"hello world\", endsWith(\"hello\"))).toBe(false);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

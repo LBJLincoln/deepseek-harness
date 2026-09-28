@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/flatMapDeep.spec.ts › flatMapDeep › should map and deeply flatten an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatMapDeep } from \"./src/array/flatMapDeep.js\";\n{\n{\n{\nconst result1 = flatMapDeep([1, 2, 3], n => [[n, n]]);\n        expect(result1).toEqual([1, 1, 2, 2, 3, 3]);\n        const result2 = flatMapDeep([1, 2, 3], n => [[[n]], [[n]]]);\n        expect(result2).toEqual([1, 1, 2, 2, 3, 3]);\n        const result3 = flatMapDeep([1, 2, 3], n => [n, [n, [n, [n]]]]);\n        expect(result3).toEqual([1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/flatMapDeep.spec.ts › flatMapDeep › should return an empty array when provided with an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatMapDeep } from \"./src/array/flatMapDeep.js\";\n{\n{\n{\nconst result = flatMapDeep([], n => [[n]]);\n        expect(result).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/flatMapDeep.spec.ts › flatMapDeep › should provide index parameter to iteratee function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatMapDeep } from \"./src/array/flatMapDeep.js\";\n{\n{\n{\nconst arr = [1, 2, 3];\n        const result = flatMapDeep(arr, (item, index) => [[item + index]]);\n        expect(result).toEqual([1, 3, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/flatMapDeep.spec.ts › flatMapDeep › should provide array parameter to iteratee function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatMapDeep } from \"./src/array/flatMapDeep.js\";\n{\n{\n{\nconst arr = [1, 2, 3];\n        const result = flatMapDeep(arr, (item, _index, array) => [[item * array.length]]);\n        expect(result).toEqual([3, 6, 9]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

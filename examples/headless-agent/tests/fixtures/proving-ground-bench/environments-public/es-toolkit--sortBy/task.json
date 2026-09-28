@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-sortBy",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/sortBy.ts",
+    "tests": [
+      "src/array/sortBy.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/sortBy.js",
+    "function": "sortBy"
+  },
+  "title": "Implement sortBy from es-toolkit",
+  "prompt": "`src/array/sortBy.js` is the JavaScript build of `src/array/sortBy.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `sortBy`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Sorts an array of objects based on the given `criteria`.\n *\n * - If you provide keys, it sorts the objects by the values of those keys.\n * - If you provide functions, it sorts based on the values returned by those functions.\n *\n * The function returns the array of objects sorted in ascending order.\n * If two objects have the same value for the current criterion, it uses the next criterion to determine their order.\n *\n * @template T - The type of the objects in the array.\n * @param arr - The array of objects to be sorted.\n * @param criteria - The criteria for sorting. This can be an array of object keys or functions that return values used for sorting.\n * @returns The sorted array.\n *\n * @example\n * const users = [\n *  { user: 'foo', age: 24 },\n *  { user: 'bar', age: 7 },\n *  { user: 'foo', age: 8 },\n *  { user: 'bar', age: 29 },\n * ];\n *\n * sortBy(users, ['user', 'age']);\n * sortBy(users, [obj => obj.user, 'age']);\n * // results will be:\n * // [\n * //   { user : 'bar', age: 7 },\n * //   { user : 'bar', age: 29 },\n * //   { user : 'foo', age: 8 },\n * //   { user : 'foo', age: 24 },\n * // ]\n */\nexport function sortBy<T extends object>(\n  arr: readonly T[],\n  criteria: ReadonlyArray<((item: T) => unknown) | keyof T>\n): T[]\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/_internal/compareValues.js`, `src/array/orderBy.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

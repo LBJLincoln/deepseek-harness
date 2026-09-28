@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isNull.spec.ts › isNull › returns true if the value is null",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNull } from \"./src/predicate/isNull.js\";\n{\n{\n{\nexpect(isNull(null)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isNull.spec.ts › isNull › returns false if the value is not null",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNull } from \"./src/predicate/isNull.js\";\n{\n{\n{\nexpect(isNull(undefined)).toBe(false);\n        expect(isNull('')).toBe(false);\n        expect(isNull(123)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isNull.spec.ts › isNull › can be used with TypeScript as a type predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNull } from \"./src/predicate/isNull.js\";\n{\n{\n{\nconst arr = [1, 2, null, 4, undefined];\n        const result = arr.filter(isNull);\n        // Here the type of result should be `null[]`.\n        expect(result).toStrictEqual([null]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

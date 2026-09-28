@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/native/split.test.ts › split › should split a string by a delimiter into an array of substrings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { split } from \"./src/native/split.js\";\n{\n{\n{\nconst data = 'some nice string';\n        const result = split(data, ' ');\n        expect(result).toEqual(['some', 'nice', 'string']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/native/split.test.ts › split › should no add extra characters when splitting by empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { split } from \"./src/native/split.js\";\n{\n{\n{\nconst data = 'hello';\n        const result = split(data, '');\n        expect(result).toEqual(['h', 'e', 'l', 'l', 'o']);\n        const result2 = split('', '');\n        expect(result2).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

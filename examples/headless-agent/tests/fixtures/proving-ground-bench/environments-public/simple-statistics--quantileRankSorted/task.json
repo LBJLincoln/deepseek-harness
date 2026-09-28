@@ -1,0 +1,51 @@
+{
+  "id": "code:simple-statistics--implement-quantileRankSorted",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/quantile_rank_sorted.js",
+    "tests": [
+      "test/quantile_rank_sorted.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/quantile_rank_sorted.js",
+    "function": "quantileRankSorted"
+  },
+  "title": "Implement quantileRankSorted from simple-statistics",
+  "prompt": "`src/quantile_rank_sorted.js` is the JavaScript build of `src/quantile_rank_sorted.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `quantileRankSorted`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * This function returns the quantile in which one would find the given value in\n * the given array. With a sorted array, leveraging binary search, we can find\n * this information in logarithmic time.\n *\n * @param {Array<number>} x input\n * @param {number} value the value for which to find the quantile rank\n * @returns {number} the quantile rank\n * @example\n * quantileRankSorted([1, 2, 3, 4], 3); // => 0.75\n * quantileRankSorted([1, 2, 3, 3, 4], 3); // => 0.7\n * quantileRankSorted([1, 2, 3, 4], 6); // => 1\n * quantileRankSorted([1, 2, 3, 3, 5], 4); // => 0.8\n */\nfunction quantileRankSorted(x, value)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

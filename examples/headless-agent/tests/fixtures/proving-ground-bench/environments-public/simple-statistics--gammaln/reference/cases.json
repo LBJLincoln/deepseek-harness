@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/gammaln.test.js › gammaln › gammaln for positive real float should be correct",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_gamma } from \"./src/gamma.js\";\nimport { default as __ns1_gammaln } from \"./src/gammaln.js\";\nconst ss = Object.freeze({ gamma: __ns1_gamma, gammaln: __ns1_gammaln });\n{\n{\n{\nassert.equal(ss.gammaln(11.54), 16.388002631263966);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/gammaln.test.js › gammaln › exp(gammaln(n)) for n should equal gamma(n)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_gamma } from \"./src/gamma.js\";\nimport { default as __ns1_gammaln } from \"./src/gammaln.js\";\nconst ss = Object.freeze({ gamma: __ns1_gamma, gammaln: __ns1_gammaln });\n{\n{\n{\nassert.equal(Math.round(Math.exp(ss.gammaln(8.2))), Math.round(ss.gamma(8.2)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/gammaln.test.js › gammaln › gammaln for negative n should be Infinity",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_gamma } from \"./src/gamma.js\";\nimport { default as __ns1_gammaln } from \"./src/gammaln.js\";\nconst ss = Object.freeze({ gamma: __ns1_gamma, gammaln: __ns1_gammaln });\n{\n{\n{\nassert.equal(ss.gammaln(-42.5), Number.POSITIVE_INFINITY);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/gammaln.test.js › gammaln › gammaln for n === 0 should return NaN",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_gamma } from \"./src/gamma.js\";\nimport { default as __ns1_gammaln } from \"./src/gammaln.js\";\nconst ss = Object.freeze({ gamma: __ns1_gamma, gammaln: __ns1_gammaln });\n{\n{\n{\nassert.equal(ss.gammaln(0), Number.POSITIVE_INFINITY);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

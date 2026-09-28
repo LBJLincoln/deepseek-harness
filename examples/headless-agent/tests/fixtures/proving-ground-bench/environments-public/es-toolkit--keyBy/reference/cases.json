@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/keyBy.spec.ts › keyBy › should map each element of an array by string key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keyBy } from \"./src/array/keyBy.js\";\n{\n{\n{\nconst people = [\n            { name: 'mike', age: 20 },\n            { name: 'jake', age: 30 },\n        ];\n        const result = keyBy(people, person => person.name);\n        expect(result).toEqual({ mike: { name: 'mike', age: 20 }, jake: { name: 'jake', age: 30 } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/keyBy.spec.ts › keyBy › should map each element of an array by number key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keyBy } from \"./src/array/keyBy.js\";\n{\n{\n{\nconst people = [\n            { name: 'mike', age: 20 },\n            { name: 'jake', age: 30 },\n        ];\n        const result = keyBy(people, person => person.age);\n        expect(result).toEqual({ 20: { name: 'mike', age: 20 }, 30: { name: 'jake', age: 30 } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/keyBy.spec.ts › keyBy › should map each element of an array by symbol key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keyBy } from \"./src/array/keyBy.js\";\n{\n{\n{\nconst id1 = Symbol('id');\n        const id2 = Symbol('id');\n        const people = [\n            { id: id1, name: 'mike', age: 20 },\n            { id: id2, name: 'jake', age: 30 },\n        ];\n        const result = keyBy(people, person => person.id);\n        expect(result).toEqual({\n            [id1]: { id: id1, name: 'mike', age: 20 },\n            [id2]: { id: id2, name: 'jake', age: 30 },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/keyBy.spec.ts › keyBy › should overwrite the value when encountering the same key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keyBy } from \"./src/array/keyBy.js\";\n{\n{\n{\nconst people = [\n            { name: 'mike', age: 20 },\n            { name: 'mike', age: 30 },\n        ];\n        const result = keyBy(people, person => person.name);\n        expect(result).toEqual({ mike: { name: 'mike', age: 30 } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/keyBy.spec.ts › keyBy › should pass index to key-generating function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keyBy } from \"./src/array/keyBy.js\";\n{\n{\n{\nconst items = ['a', 'b', 'c'];\n        const result = keyBy(items, (item, index) => index);\n        expect(result).toEqual({ 0: 'a', 1: 'b', 2: 'c' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/keyBy.spec.ts › keyBy › should pass array to key-generating function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keyBy } from \"./src/array/keyBy.js\";\n{\n{\n{\nconst items = [10, 20, 30];\n        const result = keyBy(items, (item, index, arr) => (item > arr[0] ? 'large' : 'small'));\n        expect(result).toEqual({ small: 10, large: 30 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/keyBy.spec.ts › keyBy › should handle empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keyBy } from \"./src/array/keyBy.js\";\n{\n{\n{\nconst people = [];\n        const result = keyBy(people, person => person.name);\n        expect(result).toEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

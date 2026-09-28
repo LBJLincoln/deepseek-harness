@@ -1,0 +1,206 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/words.spec.ts › words › splits a simple ASCII comma-separated string into words",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst result = words('fred, barney, & pebbles');\n        expect(result).toEqual(['fred', 'barney', 'pebbles']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/words.spec.ts › words › returns an empty array when input is an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst result = words('');\n        expect(result).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/words.spec.ts › words › splits a space-separated string into individual words",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst result = words('split these words');\n        expect(result).toEqual(['split', 'these', 'words']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/words.spec.ts › words › splits Unicode emojis and special characters as separate words",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst result = words('example🚀with✨emojis💡and🔍special🌟characters');\n        expect(result).toEqual(['example', '🚀', 'with', '✨', 'emojis', '💡', 'and', '🔍', 'special', '🌟', 'characters']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/words.spec.ts › words › should match camelCase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst str = 'camelCase';\n        const matches = words(str);\n        expect(matches).toEqual(['camel', 'Case']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/words.spec.ts › words › should match snake_case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst str = 'snake_case';\n        const matches = words(str);\n        expect(matches).toEqual(['snake', 'case']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/words.spec.ts › words › should match kebab-case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst str = 'kebab-case';\n        const matches = words(str);\n        expect(matches).toEqual(['kebab', 'case']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/words.spec.ts › words › should handle mixed formats",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst str = 'camelCase_snake_case-kebabCase';\n        const matches = words(str);\n        expect(matches).toEqual(['camel', 'Case', 'snake', 'case', 'kebab', 'Case']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/string/words.spec.ts › words › should match acronyms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst str = 'HTTPRequest';\n        const matches = words(str);\n        expect(matches).toEqual(['HTTP', 'Request']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/string/words.spec.ts › words › should match special characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst str = 'special_characters@123';\n        const matches = words(str);\n        expect(matches).toEqual(['special', 'characters', '123']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/string/words.spec.ts › words › should handle leading and trailing whitespace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst str = '  leading_and_trailing_whitespace  ';\n        const matches = words(str);\n        expect(matches).toEqual(['leading', 'and', 'trailing', 'whitespace']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/string/words.spec.ts › words › should handle underscores",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst str = 'underscore_case_example';\n        const matches = words(str);\n        expect(matches).toEqual(['underscore', 'case', 'example']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/string/words.spec.ts › words › should handle single character words",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nconst str = 'aB';\n        const matches = words(str);\n        expect(matches).toEqual(['a', 'B']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/string/words.spec.ts › words › should work with hyphens",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nexpect(words('--FOO-BAR--')).toEqual(['FOO', 'BAR']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/string/words.spec.ts › words › should work with numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nexpect(words('foo2bar')).toEqual(['foo', '2', 'bar']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "src/string/words.spec.ts › words › should match emojis",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nexpect(words('camelCaseHTTPRequest🚀')).toEqual(['camel', 'Case', 'HTTP', 'Request', '🚀']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "src/string/words.spec.ts › words › should match accented letters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/string/words.js\";\n{\n{\n{\nexpect(words('Lunedì 18 Set')).toEqual(['Lunedì', '18', 'Set']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

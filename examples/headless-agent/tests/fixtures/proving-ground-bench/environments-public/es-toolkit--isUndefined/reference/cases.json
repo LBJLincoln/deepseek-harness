@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isUndefined.spec.ts › isUndefined › returns true if the value is undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isUndefined } from \"./src/predicate/isUndefined.js\";\n{\n{\n{\nexpect(isUndefined(undefined)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isUndefined.spec.ts › isUndefined › returns false if the value is not undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isUndefined } from \"./src/predicate/isUndefined.js\";\n{\n{\n{\nexpect(isUndefined(null)).toBe(false);\n        expect(isUndefined('')).toBe(false);\n        expect(isUndefined(123)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isUndefined.spec.ts › isUndefined › can be used with TypeScript as a type predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isUndefined } from \"./src/predicate/isUndefined.js\";\n{\n{\n{\nconst arr = [1, 2, null, 4, undefined];\n        const result = arr.filter(isUndefined);\n        // Here the type of result should be `undefined[]`.\n        expect(result).toStrictEqual([undefined]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

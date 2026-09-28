@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/partialLastBind.test.ts › should partially apply 0 args",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partialLastBind } from \"./src/partialLastBind.js\";\n{\nconst fn = (x, y, z) => `${x}, ${y}, and ${z}`;\n{\nexpect(partialLastBind(fn)(1, 2, 3)).toBe(fn(1, 2, 3));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/partialLastBind.test.ts › should partially apply 1 arg",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partialLastBind } from \"./src/partialLastBind.js\";\n{\nconst fn = (x, y, z) => `${x}, ${y}, and ${z}`;\n{\nexpect(partialLastBind(fn, 3)(1, 2)).toBe(fn(1, 2, 3));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/partialLastBind.test.ts › should partially apply all args",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partialLastBind } from \"./src/partialLastBind.js\";\n{\nconst fn = (x, y, z) => `${x}, ${y}, and ${z}`;\n{\nexpect(partialLastBind(fn, 1, 2, 3)()).toBe(fn(1, 2, 3));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

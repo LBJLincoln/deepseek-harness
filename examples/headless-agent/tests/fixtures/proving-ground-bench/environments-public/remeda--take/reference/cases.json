@@ -1,0 +1,122 @@
+[
+  {
+    "id": "case-058",
+    "title": "packages/remeda/src/pipe.test.ts › lazy › lazy early exit with hasMany",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { flat } from \"./src/flat.js\";\nimport { identity } from \"./src/identity.js\";\nimport { purryFromLazy } from \"./src/internal/purryFromLazy.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { take } from \"./src/take.js\";\n{\nconst firstTwice = () =>\n// @ts-expect-error [ts2322] -- Our purry functions don't infer the correct return type, we explicit casting to force it.\npurryFromLazy(() => firstTwiceEvaluator, []);\nconst firstTwiceEvaluator = (value) => ({\n    done: true,\n    hasNext: true,\n    hasMany: true,\n    next: [value, value],\n});\n{\n{\nconst result = pipe([\n            [1, 2],\n            [3, 4],\n            [5, 6],\n        ], take(1), flat());\n        expect(result).toStrictEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-059",
+    "title": "packages/remeda/src/take.test.ts › data first › works on regular inputs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(take([1, 2, 3, 4, 5], 2)).toStrictEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-060",
+    "title": "packages/remeda/src/take.test.ts › data first › works trivially on empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(take([], 2)).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-061",
+    "title": "packages/remeda/src/take.test.ts › data first › works trivially with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(take([1, 2, 3, 4, 5], -1)).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-062",
+    "title": "packages/remeda/src/take.test.ts › data first › works when taking more than the length of the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(take([1, 2, 3, 4, 5], 10)).toStrictEqual([1, 2, 3, 4, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-063",
+    "title": "packages/remeda/src/take.test.ts › data first › returns a shallow clone when all items are taken",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nconst data = [1, 2, 3, 4, 5];\n        const result = take(data, 5);\n        expect(result).toStrictEqual([1, 2, 3, 4, 5]);\n        expect(result).not.toBe(data);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-064",
+    "title": "packages/remeda/src/take.test.ts › data last › works on regular inputs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4, 5], take(2))).toStrictEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-065",
+    "title": "packages/remeda/src/take.test.ts › data last › works trivially on empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([], take(2))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-066",
+    "title": "packages/remeda/src/take.test.ts › data last › works trivially with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4, 5], take(-1))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-067",
+    "title": "packages/remeda/src/take.test.ts › data last › works when taking more than the length of the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4, 5], take(10))).toStrictEqual([1, 2, 3, 4, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

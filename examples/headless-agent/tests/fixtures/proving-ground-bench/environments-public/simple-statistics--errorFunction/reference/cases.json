@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-003",
+    "title": "test/cumulative.test.js › cumulativeStdNormalProbability › matches errorFunction",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdLogisticProbability } from \"./src/cumulative_std_logistic_probability.js\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_errorFunction } from \"./src/error_function.js\";\nimport { default as __ns1_probit } from \"./src/probit.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nconst ss = Object.freeze({ cumulativeStdLogisticProbability: __ns1_cumulativeStdLogisticProbability, cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, epsilon: __ns1_epsilon, errorFunction: __ns1_errorFunction, probit: __ns1_probit, standardNormalTable: __ns1_standardNormalTable });\n{\n{\n{\nfor (let i = 0; i < ss.standardNormalTable.length; i++) {\n            if (!(Math.abs(ss.cumulativeStdNormalProbability(i / 100) -\n                (0.5 +\n                    0.5 * ss.errorFunction(i / 100 / Math.sqrt(2)))) < ss.epsilon)) {\n                assert.fail(\"error-fn failure on \" + i);\n            }\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "test/error_function.test.js › errorFunction › symmetry",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_errorFunction } from \"./src/error_function.js\";\nimport { default as __ns1_inverseErrorFunction } from \"./src/inverse_error_function.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, errorFunction: __ns1_errorFunction, inverseErrorFunction: __ns1_inverseErrorFunction });\n{\n{\n{\nassert.equal(ss.errorFunction(-1), -ss.errorFunction(1));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "test/error_function.test.js › errorFunction › inverse",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_errorFunction } from \"./src/error_function.js\";\nimport { default as __ns1_inverseErrorFunction } from \"./src/inverse_error_function.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, errorFunction: __ns1_errorFunction, inverseErrorFunction: __ns1_inverseErrorFunction });\n{\n{\n{\nfor (let i = -1; i <= 1; i += 0.01) {\n            assert.equal(Math.abs(ss.errorFunction(ss.inverseErrorFunction(i)) - i) <\n                4 * ss.epsilon, true);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

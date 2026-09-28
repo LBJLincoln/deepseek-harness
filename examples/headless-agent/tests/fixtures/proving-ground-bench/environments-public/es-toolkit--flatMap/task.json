@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-flatMap",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/flatMap.ts",
+    "tests": [
+      "src/array/flatMap.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/flatMap.js",
+    "function": "flatMap"
+  },
+  "title": "Implement flatMap from es-toolkit",
+  "prompt": "`src/array/flatMap.js` is the JavaScript build of `src/array/flatMap.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `flatMap`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Maps each element in the array using the iteratee function and flattens the result up to the specified depth.\n *\n * @template T - The type of elements within the array.\n * @template U - The type of elements within the returned array from the iteratee function.\n * @template D - The depth to which the array should be flattened.\n * @param arr - The array to flatten.\n * @param iteratee - The function that produces the new array elements. It receives the element, its index, and the array.\n * @param depth - The depth level specifying how deep a nested array structure should be flattened. Defaults to 1.\n * @returns The new array with the mapped and flattened elements.\n *\n * @example\n * const arr = [1, 2, 3];\n *\n * flatMap(arr, (item: number) => [item, item]);\n * // [1, 1, 2, 2, 3, 3]\n *\n * flatMap(arr, (item: number) => [[item, item]], 2);\n * // [1, 1, 2, 2, 3, 3]\n */\nexport function flatMap<T, U, D extends number = 1>(\n  arr: readonly T[],\n  iteratee: (item: T, index: number, array: readonly T[]) => U,\n  depth: D = 1 as D\n): Array<FlatArray<U[], D>>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/array/flatten.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

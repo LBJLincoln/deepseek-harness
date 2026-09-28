@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-003",
+    "title": "test/binomial_distribution.test.js › binomialDistribution › peaks at the mean for a large number of trials",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, binomialDistribution: __ns1_binomialDistribution, epsilon: __ns1_epsilon, max: __ns1_max, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nconst cells = ss.binomialDistribution(10000, 0.5);\n        assert.equal(cells.indexOf(ss.max(cells)), 5000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "test/minmax.test.js › max › can get the maximum of three numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_extent } from \"./src/extent.js\";\nimport { default as __ns1_extentSorted } from \"./src/extent_sorted.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_maxSorted } from \"./src/max_sorted.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_minSorted } from \"./src/min_sorted.js\";\nconst ss = Object.freeze({ extent: __ns1_extent, extentSorted: __ns1_extentSorted, max: __ns1_max, maxSorted: __ns1_maxSorted, min: __ns1_min, minSorted: __ns1_minSorted });\n{\n{\nassert.throws(function () {\n        ss.max([]);\n    });\n{\nassert.equal(ss.max([1, 7, -1000]), 7);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › peaks at the mean for a large lambda",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nconst cells = ss.poissonDistribution(200);\n        const peak = cells.indexOf(ss.max(cells));\n        assert.ok(peak === 199 || peak === 200, \"peaks at \" + peak);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "test/quantile.test.js › quantile › max quantile is equal to the max",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nassert.equal(ss.quantile([1, 2, 3], 1), ss.max([1, 2, 3]));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

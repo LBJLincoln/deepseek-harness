@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-truncate",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/truncate.ts",
+    "tests": [
+      "packages/remeda/src/truncate.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/truncate.js",
+    "function": "truncate"
+  },
+  "title": "Implement truncate from remeda",
+  "prompt": "`src/truncate.js` is the JavaScript build of `packages/remeda/src/truncate.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `truncate`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Truncates strings to a maximum length, adding an ellipsis when truncated.\n *\n * Shorter strings are returned unchanged. If the omission marker is longer than\n * the maximum length, it will be truncated as well.\n *\n * The `separator` argument provides more control by optimistically searching\n * for a matching cutoff point, which could be used to avoid truncating in the\n * middle of a word or other semantic boundary.\n *\n * If you just need to limit the total length of the string, without adding an\n * `omission` or optimizing the cutoff point via `separator`, prefer\n * `sliceString` instead, which runs more efficiently.\n *\n * The function counts Unicode characters, not visual graphemes, and may split\n * emojis, denormalized diacritics, or combining characters, in the middle. For\n * display purposes, prefer CSS [`text-overflow: ellipsis`](https://developer.mozilla.org/en-US/docs/Web/CSS/text-overflow#ellipsis)\n * which is locale-aware and purpose-built for this task.\n *\n * @param data - The input string.\n * @param n - The maximum length of the output string. The output will **never**\n * exceed this length.\n * @param options - An optional options object.\n * @param options.omission - The string that is appended to the end of the\n * output *whenever the input string is truncated*. Default: '...'.\n * @param options.separator - A string or regular expression that defines a\n * cutoff point for the truncation. If multiple cutoff points are found, the one\n * closest to `n` will be used, and if no cutoff point is found then the\n * function will fallback to the trivial cutoff point. Regular expressions are\n * also supported. Default: <none> (which is equivalent to `\"\"` or the regular\n * expression `/./`).\n * @signature\n *   truncate(data, n, { omission, separator });\n * @example\n *   truncate(\"Hello, world!\", 8); //=> \"Hello...\"\n *   truncate(\n *     \"cat, dog, mouse\",\n *     12,\n *     { omission: \"__\", separator: \",\"},\n *   ); //=> \"cat, dog__\"\n * @dataFirst\n * @category String\n */\nexport function truncate(\n  dataOrN: string | number,\n  nOrOptions?: number | TruncateOptions,\n  options?: TruncateOptions,\n): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/internal/utilityEvaluators.js`, `src/pipe.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

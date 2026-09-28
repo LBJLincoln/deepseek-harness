@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/native/to-upper-case.test.ts › toUpperCase › casing functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { SEPARATORS_TEXT, WEIRD_TEXT } from \"./src/internal/fixtures.js\";\nimport { toUpperCase } from \"./src/native/to-upper-case.js\";\n{\n{\n{\nconst expected = ' SOMEWEIRD-CASED$*STRING1986FOO [BAR] W_FOR_WUMBO...';\n        const result = toUpperCase(WEIRD_TEXT);\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/native/to-upper-case.test.ts › toUpperCase › with various separators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { SEPARATORS_TEXT, WEIRD_TEXT } from \"./src/internal/fixtures.js\";\nimport { toUpperCase } from \"./src/native/to-upper-case.js\";\n{\n{\n{\nconst result = toUpperCase(SEPARATORS_TEXT);\n        const expected = '[ONE] TWO-THREE/FOUR.FIVE(SIX){SEVEN}|EIGHT_NINE\\\\TEN';\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/findLast.test.ts › data first › findLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLast } from \"./src/findLast.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(findLast([1, 2, 3, 4], (x) => x % 2 === 1)).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/findLast.test.ts › data first › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLast } from \"./src/findLast.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(findLast([1, 2, 3, 4], (x, i) => x === 3 && i === 2)).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/findLast.test.ts › data first › findLast first value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLast } from \"./src/findLast.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(findLast([1, 2, 3, 4], (x) => x === 1)).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/findLast.test.ts › data first › findLast no match",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLast } from \"./src/findLast.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(findLast([1, 2, 3, 4], (x) => x === 5)).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/findLast.test.ts › data last › findLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLast } from \"./src/findLast.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], findLast((x) => x % 2 === 1))).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/findLast.test.ts › data last › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLast } from \"./src/findLast.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], findLast((x, i) => x === 3 && i === 2))).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-camelCase",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/string/camelCase.ts",
+    "tests": [
+      "src/string/camelCase.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/string/camelCase.js",
+    "function": "camelCase"
+  },
+  "title": "Implement camelCase from es-toolkit",
+  "prompt": "`src/string/camelCase.js` is the JavaScript build of `src/string/camelCase.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `camelCase`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Converts a string to camel case.\n *\n * Camel case is the naming convention in which the first word is written in lowercase and\n * each subsequent word begins with a capital letter, concatenated without any separator characters.\n *\n * @param str - The string that is to be changed to camel case.\n * @returns The converted string to camel case.\n *\n * @example\n * const convertedStr1 = camelCase('camelCase') // returns 'camelCase'\n * const convertedStr2 = camelCase('some whitespace') // returns 'someWhitespace'\n * const convertedStr3 = camelCase('hyphen-text') // returns 'hyphenText'\n * const convertedStr4 = camelCase('HTTPRequest') // returns 'httpRequest'\n * const convertedStr5 = camelCase('Keep unicode 😅') // returns 'keepUnicode😅'\n */\nexport function camelCase(str: string): string\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/string/capitalize.js`, `src/string/words.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/takeRightWhile.spec.ts › takeRightWhile › returns elements from the end while the predicate returns true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeRightWhile } from \"./src/array/takeRightWhile.js\";\n{\n{\n{\nexpect(takeRightWhile([5, 4, 3, 2, 1], n => n < 4)).toEqual([3, 2, 1]);\n        expect(takeRightWhile([1, 2, 3], n => n > 3)).toEqual([]);\n        expect(takeRightWhile([1, 2, 3, 4, 5], n => n > 2)).toEqual([3, 4, 5]);\n        expect(takeRightWhile([1, 2, 3, 4, 5], n => n < 6)).toEqual([1, 2, 3, 4, 5]);\n        expect(takeRightWhile([], n => n < 6)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/takeRightWhile.spec.ts › takeRightWhile › handles empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeRightWhile } from \"./src/array/takeRightWhile.js\";\n{\n{\n{\nexpect(takeRightWhile([], n => n < 6)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/takeRightWhile.spec.ts › takeRightWhile › should pass index to predicate function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeRightWhile } from \"./src/array/takeRightWhile.js\";\n{\n{\n{\nconst arr = [10, 20, 30, 40, 50];\n        const result = takeRightWhile(arr, (_, index) => index > 2);\n        expect(result).toEqual([40, 50]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/takeRightWhile.spec.ts › takeRightWhile › should pass array to predicate function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeRightWhile } from \"./src/array/takeRightWhile.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4];\n        const result = takeRightWhile(arr, (value, index, array) => value >= array.length / 2);\n        expect(result).toEqual([2, 3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

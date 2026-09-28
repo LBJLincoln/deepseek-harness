@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-007",
+    "title": "test/trailing-slash.test.ts › withoutTrailingSlash, queryParams: false › falsy value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { withTrailingSlash, withoutTrailingSlash } from \"./src/utils.js\";\n{\n{\nconst tests = {\n        \"\": \"/\",\n        \"/\": \"/\",\n        bar: \"bar\",\n        \"bar#abc\": \"bar#abc\",\n        \"bar/#abc\": \"bar/#abc\",\n        \"foo?123\": \"foo?123\",\n        \"foo/?123\": \"foo/?123\",\n        \"foo/?123#abc\": \"foo/?123#abc\",\n        \"foo/?k=v\": \"foo/?k=v\",\n        \"foo/?k=/\": \"foo/?k=\",\n    };\n{\nexpect(withoutTrailingSlash()).toBe(\"/\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "test/trailing-slash.test.ts › withoutTrailingSlash, queryParams: true › falsy value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { withTrailingSlash, withoutTrailingSlash } from \"./src/utils.js\";\n{\n{\nconst tests = {\n        \"\": \"/\",\n        \"/\": \"/\",\n        bar: \"bar\",\n        \"bar/\": \"bar\",\n        \"bar#abc\": \"bar#abc\",\n        \"bar/#abc\": \"bar#abc\",\n        \"foo?123\": \"foo?123\",\n        \"foo/?123\": \"foo?123\",\n        \"foo/?123#abc\": \"foo?123#abc\",\n        \"foo/?k=123\": \"foo?k=123\",\n        \"foo?k=/\": \"foo?k=/\",\n        \"foo/?k=/\": \"foo?k=/\",\n        \"foo/?k=/&x=y#abc\": \"foo?k=/&x=y#abc\",\n        \"/a/#abc\": \"/a#abc\",\n        \"/#abc\": \"/#abc\",\n    };\n{\nexpect(withoutTrailingSlash()).toBe(\"/\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

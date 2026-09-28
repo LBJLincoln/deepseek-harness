@@ -1,0 +1,218 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\nexpect(sortedIndexBy([], { age: 21 }, ({ age }) => age)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › array with single item › item smaller than item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([{ age: 22 }], { age: 21 }, ({ age }) => age)).toBe(0);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › array with single item › item larger than item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([{ age: 20 }], { age: 21 }, ({ age }) => age)).toBe(1);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › array with single item › item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([{ age: 21 }], { age: 21 }, ({ age }) => age)).toBe(0);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › array with multiple values › item smaller than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([{ age: 21 }, { age: 22 }, { age: 23 }, { age: 24 }, { age: 25 }], { age: 20 }, ({ age }) => age)).toBe(0);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › array with multiple values › item larger than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([{ age: 21 }, { age: 22 }, { age: 23 }, { age: 24 }, { age: 25 }], { age: 26 }, ({ age }) => age)).toBe(5);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › array with multiple values › item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([{ age: 21 }, { age: 22 }, { age: 23 }, { age: 24 }, { age: 25 }], { age: 23 }, ({ age }) => age)).toBe(2);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › array with duplicates › item smaller than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([{ age: 21 }, { age: 21 }, { age: 21 }, { age: 21 }, { age: 21 }], { age: 20 }, ({ age }) => age)).toBe(0);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › array with duplicates › item larger than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([{ age: 21 }, { age: 21 }, { age: 21 }, { age: 21 }, { age: 21 }], { age: 22 }, ({ age }) => age)).toBe(5);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › array with duplicates › item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([{ age: 21 }, { age: 21 }, { age: 21 }, { age: 21 }, { age: 21 }], { age: 21 }, ({ age }) => age)).toBe(0);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › string array › item smaller than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([\n                { name: \"a\" },\n                { name: \"b\" },\n                { name: \"c\" },\n                { name: \"d\" },\n                { name: \"e\" },\n            ], { name: \" \" }, ({ name }) => name)).toBe(0);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › string array › item larger than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([\n                { name: \"a\" },\n                { name: \"b\" },\n                { name: \"c\" },\n                { name: \"d\" },\n                { name: \"e\" },\n            ], { name: \"z\" }, ({ name }) => name)).toBe(5);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › runtime correctness › string array › item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n{\nexpect(sortedIndexBy([\n                { name: \"a\" },\n                { name: \"b\" },\n                { name: \"c\" },\n                { name: \"d\" },\n                { name: \"e\" },\n            ], { name: \"c\" }, ({ name }) => name)).toBe(2);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › binary search correctness via indexed › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\n// The value function always gets called for the item with index `undefined`\n        expect(indicesSeen([], { age: 21 }, ({ age }) => age)).toStrictEqual([\n            undefined,\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › binary search correctness via indexed › before all",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\nexpect(indicesSeen([\n            { age: 21 },\n            { age: 22 },\n            { age: 23 },\n            { age: 24 },\n            { age: 25 },\n            { age: 26 },\n            { age: 27 },\n            { age: 28 },\n            { age: 29 },\n            { age: 30 },\n            { age: 31 },\n            { age: 32 },\n            { age: 33 },\n            { age: 34 },\n            { age: 35 },\n            { age: 36 },\n        ], { age: 20 }, ({ age }) => age)).toStrictEqual([undefined, 8, 4, 2, 1, 0]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › binary search correctness via indexed › after all",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\nexpect(indicesSeen([\n            { age: 21 },\n            { age: 22 },\n            { age: 23 },\n            { age: 24 },\n            { age: 25 },\n            { age: 26 },\n            { age: 27 },\n            { age: 28 },\n            { age: 29 },\n            { age: 30 },\n            { age: 31 },\n            { age: 32 },\n            { age: 33 },\n            { age: 34 },\n            { age: 35 },\n            { age: 36 },\n        ], { age: 40 }, ({ age }) => age)).toStrictEqual([undefined, 8, 12, 14, 15]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › binary search correctness via indexed › inside the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\nexpect(indicesSeen([\n            { age: 21 },\n            { age: 22 },\n            { age: 23 },\n            { age: 24 },\n            { age: 25 },\n            { age: 26 },\n            { age: 27 },\n            { age: 28 },\n            { age: 29 },\n            { age: 30 },\n            { age: 31 },\n            { age: 32 },\n            { age: 33 },\n            { age: 34 },\n            { age: 35 },\n            { age: 36 },\n        ], { age: 27 }, ({ age }) => age)).toStrictEqual([undefined, 8, 4, 6, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/sortedIndexBy.test.ts › binary search correctness via indexed › with duplicates",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndexBy } from \"./src/sortedIndexBy.js\";\n{\nfunction indicesSeen(items, item, valueFunction) {\n    const indices = [];\n    sortedIndexBy(items, item, (pivot, index) => {\n        indices.push(index);\n        return valueFunction(pivot);\n    });\n    return indices;\n}\n{\n{\nexpect(indicesSeen([\n            { age: 27 },\n            { age: 27 },\n            { age: 27 },\n            { age: 27 },\n            { age: 27 },\n            { age: 27 },\n            { age: 27 },\n            { age: 42 },\n            { age: 42 },\n            { age: 42 },\n            { age: 42 },\n            { age: 42 },\n            { age: 42 },\n            { age: 42 },\n            { age: 42 },\n            { age: 42 },\n        ], { age: 27 }, ({ age }) => age)).toStrictEqual([undefined, 8, 4, 2, 1, 0]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

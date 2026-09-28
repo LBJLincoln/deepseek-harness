@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/findIndex.test.ts › data first › found",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findIndex } from \"./src/findIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(findIndex([10, 20, 30], (x) => x === 20)).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/findIndex.test.ts › data first › not found",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findIndex } from \"./src/findIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(findIndex([2, 3, 4], (x) => x === 20)).toBe(-1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/findIndex.test.ts › data last › found",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findIndex } from \"./src/findIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([10, 20, 30], findIndex((x) => x === 20))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/findIndex.test.ts › data last › not found",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findIndex } from \"./src/findIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([2, 3, 4], findIndex((x) => x === 20))).toBe(-1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

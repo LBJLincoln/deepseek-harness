@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/randomBigInt.test.ts › from is greater than to",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomBigInt } from \"./src/randomBigInt.js\";\n{\nconst ITERATIONS = 10_000;\nconst HUGE_NUMBER = 9999999999999999999999n;\nfunction* randomBigInts(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomBigInt(from, to);\n    }\n}\n{\nexpect(() => randomBigInt(10n, 0n)).toThrow(new RangeError(\"randomBigInt: The range [10,0] is empty.\"));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/randomBigInt.test.ts › non-negative bigints",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomBigInt } from \"./src/randomBigInt.js\";\n{\nconst ITERATIONS = 10_000;\nconst HUGE_NUMBER = 9999999999999999999999n;\nfunction* randomBigInts(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomBigInt(from, to);\n    }\n}\n{\nfor (const v of randomBigInts(0n, 10n)) {\n        expect(v).toBeGreaterThanOrEqual(0n);\n        expect(v).toBeLessThanOrEqual(10n);\n    }\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/randomBigInt.test.ts › negative bigints",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomBigInt } from \"./src/randomBigInt.js\";\n{\nconst ITERATIONS = 10_000;\nconst HUGE_NUMBER = 9999999999999999999999n;\nfunction* randomBigInts(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomBigInt(from, to);\n    }\n}\n{\nconst values = randomBigInts(-10n, -5n);\n    for (const value of values) {\n        expect(value).toBeGreaterThanOrEqual(-10n);\n        expect(value).toBeLessThanOrEqual(-5n);\n    }\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/randomBigInt.test.ts › bigints with same value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomBigInt } from \"./src/randomBigInt.js\";\n{\nconst ITERATIONS = 10_000;\nconst HUGE_NUMBER = 9999999999999999999999n;\nfunction* randomBigInts(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomBigInt(from, to);\n    }\n}\n{\nfor (const v of randomBigInts(10n, 10n)) {\n        expect(v).toBe(10n);\n    }\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/randomBigInt.test.ts › huge bigints",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomBigInt } from \"./src/randomBigInt.js\";\n{\nconst ITERATIONS = 10_000;\nconst HUGE_NUMBER = 9999999999999999999999n;\nfunction* randomBigInts(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomBigInt(from, to);\n    }\n}\n{\nfor (const v of randomBigInts(\n    // This is Number.MAX_SAFE_INTEGER + 1\n    9007199254740992n, HUGE_NUMBER)) {\n        expect(v).toBeGreaterThanOrEqual(9007199254740992n);\n        expect(v).toBeLessThanOrEqual(HUGE_NUMBER);\n    }\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/randomBigInt.test.ts › tiny ranges with huge numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomBigInt } from \"./src/randomBigInt.js\";\n{\nconst ITERATIONS = 10_000;\nconst HUGE_NUMBER = 9999999999999999999999n;\nfunction* randomBigInts(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomBigInt(from, to);\n    }\n}\n{\nconst values = randomBigInts(HUGE_NUMBER, HUGE_NUMBER + 1n);\n    for (const value of values) {\n        expect(value).toBeGreaterThanOrEqual(HUGE_NUMBER);\n        expect(value).toBeLessThanOrEqual(HUGE_NUMBER + 1n);\n    }\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

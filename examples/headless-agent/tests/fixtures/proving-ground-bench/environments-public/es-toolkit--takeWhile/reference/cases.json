@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/takeWhile.spec.ts › takeWhile › should return elements while the predicate is true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeWhile } from \"./src/array/takeWhile.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n        const result = takeWhile(arr, x => x < 4);\n        expect(result).toEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/takeWhile.spec.ts › takeWhile › should return an empty array if the first element does not satisfy the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeWhile } from \"./src/array/takeWhile.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n        const result = takeWhile(arr, x => x > 4);\n        expect(result).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/takeWhile.spec.ts › takeWhile › should return all elements if all satisfy the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeWhile } from \"./src/array/takeWhile.js\";\n{\n{\n{\nconst arr = [1, 2, 3];\n        const result = takeWhile(arr, x => x < 4);\n        expect(result).toEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/takeWhile.spec.ts › takeWhile › should return an empty array if the input array is empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeWhile } from \"./src/array/takeWhile.js\";\n{\n{\n{\nconst arr = [];\n        const result = takeWhile(arr, x => x < 4);\n        expect(result).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/takeWhile.spec.ts › takeWhile › should handle complex predicate functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeWhile } from \"./src/array/takeWhile.js\";\n{\n{\n{\nconst arr = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];\n        const result = takeWhile(arr, item => item.id < 3);\n        expect(result).toEqual([{ id: 1 }, { id: 2 }]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/takeWhile.spec.ts › takeWhile › should pass index to predicate function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeWhile } from \"./src/array/takeWhile.js\";\n{\n{\n{\nconst arr = [10, 20, 30, 40, 50];\n        const result = takeWhile(arr, (_, index) => index < 3);\n        expect(result).toEqual([10, 20, 30]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/takeWhile.spec.ts › takeWhile › should pass array to predicate function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeWhile } from \"./src/array/takeWhile.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4];\n        const result = takeWhile(arr, (value, index, array) => value < array.length);\n        expect(result).toEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/weighted_variance.test.js › weightedVariance › equal weights match variance",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_variance } from \"./src/variance.js\";\nimport { default as __ns1_weightedVariance } from \"./src/weighted_variance.js\";\nconst ss = Object.freeze({ variance: __ns1_variance, weightedVariance: __ns1_weightedVariance });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nconst input = [2, 4, 4, 4, 5, 5, 7, 9];\n        const weights = [1, 1, 1, 1, 1, 1, 1, 1];\n        assert.equal(ss.weightedVariance(input, weights), ss.variance(input));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/weighted_variance.test.js › weightedVariance › can get a weighted variance",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_variance } from \"./src/variance.js\";\nimport { default as __ns1_weightedVariance } from \"./src/weighted_variance.js\";\nconst ss = Object.freeze({ variance: __ns1_variance, weightedVariance: __ns1_weightedVariance });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nassert.equal(rnd(ss.weightedVariance([1, 2, 3], [1, 1, 2])), 0.688);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/weighted_variance.test.js › weightedVariance › zero weights are ignored",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_variance } from \"./src/variance.js\";\nimport { default as __ns1_weightedVariance } from \"./src/weighted_variance.js\";\nconst ss = Object.freeze({ variance: __ns1_variance, weightedVariance: __ns1_weightedVariance });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nassert.equal(ss.weightedVariance([2, 100], [1, 0]), 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

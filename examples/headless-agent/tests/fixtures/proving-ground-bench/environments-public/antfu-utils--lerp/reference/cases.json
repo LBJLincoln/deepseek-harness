@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-002",
+    "title": "src/math.test.ts › lerp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lerp, remap, sum } from \"./src/math.js\";\n{\n{\nexpect(lerp(0, 2, 0)).toEqual(0);\n    expect(lerp(0, 2, 1)).toEqual(2);\n    expect(lerp(0, 2, 0.5)).toEqual(1);\n    expect(lerp(-10, 10, 0.5)).toEqual(0);\n    expect(lerp(10, -10, 0.5)).toEqual(0);\n    expect(lerp(0, 1, -1.5)).toEqual(0);\n    expect(lerp(0, 1, 2.5)).toEqual(1);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math.test.ts › remap",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lerp, remap, sum } from \"./src/math.js\";\n{\n{\nexpect(remap(0, 0, 1, 0, 10)).toEqual(0);\n    expect(remap(1, 0, 1, 0, 10)).toEqual(10);\n    expect(remap(0.5, 0, 1, 0, 10)).toEqual(5);\n    expect(remap(0.5, -1, 1, 0, 1)).toEqual(0.75);\n    expect(remap(0.25, 0, 1, -1, 1)).toEqual(-0.5);\n    expect(remap(2, 0, 1, 5, 10)).toEqual(10);\n    expect(remap(-1, 0, 1, 5, 10)).toEqual(5);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

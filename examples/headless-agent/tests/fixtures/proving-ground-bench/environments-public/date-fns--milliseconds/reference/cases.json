@@ -1,0 +1,122 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/milliseconds/test.ts › milliseconds › converts years to milliseconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { milliseconds } from \"./src/milliseconds/index.js\";\n{\n{\n{\nconst result = milliseconds({ years: 2 });\n        expect(result).toBe(63113903999);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/milliseconds/test.ts › milliseconds › converts months to milliseconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { milliseconds } from \"./src/milliseconds/index.js\";\n{\n{\n{\nconst result = milliseconds({ months: 3 });\n        expect(result).toBe(7889237999);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/milliseconds/test.ts › milliseconds › converts weeks to milliseconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { milliseconds } from \"./src/milliseconds/index.js\";\n{\n{\n{\nconst result = milliseconds({ weeks: 2 });\n        expect(result).toBe(1209600000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/milliseconds/test.ts › milliseconds › converts days to milliseconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { milliseconds } from \"./src/milliseconds/index.js\";\n{\n{\n{\nconst result = milliseconds({ days: 5 });\n        expect(result).toBe(432000000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "pkgs/core/src/milliseconds/test.ts › milliseconds › converts hours to milliseconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { milliseconds } from \"./src/milliseconds/index.js\";\n{\n{\n{\nconst result = milliseconds({ hours: 2 });\n        expect(result).toBe(7200000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "pkgs/core/src/milliseconds/test.ts › milliseconds › converts minutes to milliseconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { milliseconds } from \"./src/milliseconds/index.js\";\n{\n{\n{\nconst result = milliseconds({ minutes: 5 });\n        expect(result).toBe(300000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "pkgs/core/src/milliseconds/test.ts › milliseconds › converts seconds to milliseconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { milliseconds } from \"./src/milliseconds/index.js\";\n{\n{\n{\nconst result = milliseconds({ seconds: 10 });\n        expect(result).toBe(10000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "pkgs/core/src/milliseconds/test.ts › milliseconds › sums all the duration values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { milliseconds } from \"./src/milliseconds/index.js\";\n{\n{\n{\nconst result = milliseconds({\n            years: 2,\n            months: 3,\n            weeks: 2,\n            days: 5,\n            hours: 2,\n            minutes: 5,\n            seconds: 10,\n        });\n        expect(result).toBe(72652252000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "pkgs/core/src/milliseconds/test.ts › milliseconds › returns 0 for an empty duration",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { milliseconds } from \"./src/milliseconds/index.js\";\n{\n{\n{\nconst result = milliseconds({});\n        expect(result).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "pkgs/core/src/milliseconds/test.ts › milliseconds › properly works with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { milliseconds } from \"./src/milliseconds/index.js\";\n{\n{\n{\nexpect(milliseconds({ seconds: 1.2345 })).toBe(1234);\n        expect(milliseconds({ seconds: -1.2345 })).toBe(-1234);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

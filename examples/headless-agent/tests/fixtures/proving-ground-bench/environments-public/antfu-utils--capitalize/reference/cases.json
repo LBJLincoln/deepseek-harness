@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-006",
+    "title": "src/string.test.ts › capitalize",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { capitalize, ensurePrefix, ensureSuffix, slash, template, unindent } from \"./src/string.js\";\n{\n{\nexpect(capitalize('hello World')).toEqual('Hello world');\n    expect(capitalize('123')).toEqual('123');\n    expect(capitalize('中国')).toEqual('中国');\n    expect(capitalize('āÁĂÀ')).toEqual('Āáăà');\n    expect(capitalize('\\a')).toEqual('A');\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

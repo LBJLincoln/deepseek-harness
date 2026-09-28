@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/last.spec.ts › last › returns the last element of an array or undefined for empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { last } from \"./src/array/last.js\";\n{\n{\n{\nexpect(last([1, 2, 3])).toBe(3);\n        expect(last(['a', 'b', 'c'])).toBe('c');\n        expect(last([1, 'string', true])).toBe(true);\n        expect(last([])).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/last.spec.ts › last › returns the only element in a single-element array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { last } from \"./src/array/last.js\";\n{\n{\n{\nexpect(last([42])).toBe(42);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/last.spec.ts › last › returns the last element of a large array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { last } from \"./src/array/last.js\";\n{\n{\n{\nconst largeArray = Array(1000)\n            .fill(0)\n            .map((_, i) => i);\n        expect(last(largeArray)).toBe(999);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/last.spec.ts › last › returns the last element of a nested array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { last } from \"./src/array/last.js\";\n{\n{\n{\nconst nestedArray = [\n            [3, 1],\n            [3, 2],\n            [3, 3],\n        ];\n        expect(last(nestedArray)).toEqual([3, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

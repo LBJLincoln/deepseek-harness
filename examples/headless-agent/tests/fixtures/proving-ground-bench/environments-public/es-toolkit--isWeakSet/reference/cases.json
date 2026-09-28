@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isWeakSet.spec.ts › isWeakSet › returns true if the value is WeakSet",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isWeakSet } from \"./src/predicate/isWeakSet.js\";\n{\n{\n{\nexpect(isWeakSet(new WeakSet())).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isWeakSet.spec.ts › isWeakSet › returns false if the value is not WeakSet",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isWeakSet } from \"./src/predicate/isWeakSet.js\";\n{\n{\n{\nexpect(isWeakSet(null)).toBe(false);\n        expect(isWeakSet('')).toBe(false);\n        expect(isWeakSet(123)).toBe(false);\n        expect(isWeakSet({})).toBe(false);\n        expect(isWeakSet([])).toBe(false);\n        expect(isWeakSet(new Map())).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

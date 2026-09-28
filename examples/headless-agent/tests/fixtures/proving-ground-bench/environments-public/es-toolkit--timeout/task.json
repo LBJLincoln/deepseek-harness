@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-timeout",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/promise/timeout.ts",
+    "tests": [
+      "src/promise/timeout.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/promise/timeout.js",
+    "function": "timeout"
+  },
+  "title": "Implement timeout from es-toolkit",
+  "prompt": "`src/promise/timeout.js` is the JavaScript build of `src/promise/timeout.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `timeout`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Returns a promise that rejects with a `TimeoutError` after a specified delay.\n *\n * You can pass an `AbortSignal` to cancel the timeout. Unlike most `AbortSignal`-aware\n * APIs, aborting does **not** reject the promise. A `timeout` only exists to lose a\n * `Promise.race`, so cancelling it leaves the promise pending forever, allowing the\n * operation it guards to settle on its own. The underlying timer and abort listener\n * are cleared on abort, so nothing is leaked.\n *\n * @param ms - The delay duration in milliseconds.\n * @param options - The options object.\n * @param options.signal - An optional AbortSignal to cancel the timeout. When aborted, the returned promise never settles.\n * @returns A promise that rejects with a `TimeoutError` after the specified delay, or never settles if aborted.\n * @throws {TimeoutError} Throws a `TimeoutError` after the specified delay.\n *\n * @example\n * try {\n *   await timeout(1000); // Timeout exception after 1 second\n * } catch (error) {\n *   console.error(error); // Will log 'The operation was timed out'\n * }\n *\n * @example\n * // Cancelling the timeout lifts the time limit instead of throwing.\n * const controller = new AbortController();\n * setTimeout(() => controller.abort(), 50);\n *\n * const result = await Promise.race([\n *   doWork(),\n *   timeout(1000, { signal: controller.signal }), // never rejects once aborted\n * ]);\n */\nexport function timeout(ms: number, { signal }: TimeoutOptions = {}): Promise<never>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/_internal/DOMException.js`, `src/_internal/globalThis.js`, `src/error/AbortError.js`, `src/error/TimeoutError.js`, `src/promise/delay.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

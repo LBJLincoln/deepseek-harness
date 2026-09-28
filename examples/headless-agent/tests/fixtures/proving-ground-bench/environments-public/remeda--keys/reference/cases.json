@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/keys.test.ts › dataFirst › work with arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keys } from \"./src/keys.js\";\n{\n{\n{\nexpect(keys([\"x\", \"y\", \"z\"])).toStrictEqual([\"0\", \"1\", \"2\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/keys.test.ts › dataFirst › work with objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keys } from \"./src/keys.js\";\n{\n{\n{\nexpect(keys({ a: \"x\", b: \"y\", c: \"z\" })).toStrictEqual([\"a\", \"b\", \"c\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/keys.test.ts › dataFirst › should return strict types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keys } from \"./src/keys.js\";\n{\n{\n{\nexpect(keys({ 5: \"x\", b: \"y\", c: \"z\" })).toStrictEqual([\"5\", \"b\", \"c\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/keys.test.ts › dataFirst › should ignore symbol keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keys } from \"./src/keys.js\";\n{\n{\n{\nexpect(keys({ [Symbol(\"a\")]: 1 })).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/keys.test.ts › dataFirst › should turn numbers to strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { keys } from \"./src/keys.js\";\n{\n{\n{\nexpect(keys({ 1: \"hello\" })).toStrictEqual([\"1\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

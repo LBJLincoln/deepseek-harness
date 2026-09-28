@@ -1,0 +1,194 @@
+[
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › array of strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(countBy([\"a\", \"b\", \"c\", \"B\", \"A\", \"a\"], toLowerCase())).toStrictEqual({ a: 3, b: 2, c: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › mixed data types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n        expect(countBy([1, \"a\", 1, mySymbol, \"A\", mySymbol], when(isString, toLowerCase()))).toStrictEqual({ 1: 2, a: 2, [mySymbol]: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › array of strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(pipe([\"a\", \"b\", \"c\", \"B\", \"A\", \"a\"], countBy(toLowerCase()))).toStrictEqual({ a: 3, b: 2, c: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › mixed data types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n        expect(pipe([1, \"a\", 1, mySymbol, \"A\", mySymbol], countBy(when(isString, toLowerCase())))).toStrictEqual({ 1: 2, a: 2, [mySymbol]: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/toLowerCase.test.ts › data-first › on lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(toLowerCase(\"hello world\")).toBe(\"hello world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/toLowerCase.test.ts › data-first › on upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(toLowerCase(\"HELLO WORLD\")).toBe(\"hello world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/toLowerCase.test.ts › data-first › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(toLowerCase(\"HeLlO WoRlD\")).toBe(\"hello world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/toLowerCase.test.ts › data-last › on lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(pipe(\"hello world\", toLowerCase())).toBe(\"hello world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/toLowerCase.test.ts › data-last › on upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(pipe(\"HELLO WORLD\", toLowerCase())).toBe(\"hello world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/toLowerCase.test.ts › data-last › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(pipe(\"HeLlO WoRlD\", toLowerCase())).toBe(\"hello world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/toLowerCase.test.ts › unicode › handles diacritics",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(toLowerCase(\"CAFÉ NAÏVE\")).toBe(\"café naïve\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/toLowerCase.test.ts › unicode › handles non-Latin scripts",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(toLowerCase(\"МОСКВА\")).toBe(\"москва\");\n        expect(toLowerCase(\"ΕΛΛΆΔΑ\")).toBe(\"ελλάδα\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/toLowerCase.test.ts › unicode › handles surrogate pairs (astral plane)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(toLowerCase(\"𝒽ELLO\")).toBe(\"𝒽ello\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/toLowerCase.test.ts › unicode › doesn't explode on emojis",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(toLowerCase(\"🎉PARTY\")).toBe(\"🎉party\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/toLowerCase.test.ts › unicode › handles combining characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(toLowerCase(\"É\\u{301}LLO\")).toBe(\"é\\u{301}llo\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/toLowerCase.test.ts › unicode › handles Turkish dotted I",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\n{\n{\n{\nexpect(toLowerCase(\"İSTANBUL\")).toBe(\"i̇stanbul\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

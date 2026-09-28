@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/inRange.spec.ts › inRange › returns true for values within the range when two parameters are provided",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inRange } from \"./src/math/inRange.js\";\n{\n{\n{\nexpect(inRange(3, 5)).toBe(true);\n        expect(inRange(3.2, 5.3)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/inRange.spec.ts › inRange › returns false for values outside the range when two parameters are provided",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inRange } from \"./src/math/inRange.js\";\n{\n{\n{\nexpect(inRange(3, 2)).toBe(false);\n        expect(inRange(5.3, 3.2)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math/inRange.spec.ts › inRange › returns true for values within the range when three parameters are provided",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inRange } from \"./src/math/inRange.js\";\n{\n{\n{\nexpect(inRange(1, 0, 5)).toBe(true);\n        expect(inRange(-3, -5, -1)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/math/inRange.spec.ts › inRange › returns false for values outside the range when three parameters are provided",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inRange } from \"./src/math/inRange.js\";\n{\n{\n{\nexpect(inRange(1, 2, 5)).toBe(false);\n        expect(inRange(-5, -3, -1)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/math/inRange.spec.ts › inRange › throws an error if the minimum is greater or equal than the maximum",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inRange } from \"./src/math/inRange.js\";\n{\n{\n{\nexpect(() => inRange(1, 5, 2)).toThrowErrorMatchingInlineSnapshot(`[Error: The maximum value must be greater than the minimum value.]`);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

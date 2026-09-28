@@ -1,0 +1,230 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataFirst › empty containers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(isIncludedIn(1, [])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataFirst › when contained",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(isIncludedIn(2, [1, 2, 3])).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataFirst › when not contained",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(isIncludedIn(4, [1, 2, 3])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataFirst › works with strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(isIncludedIn(\"b\", [\"a\", \"b\", \"c\"])).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataFirst › only tests reference equality: (arrays)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nconst arr = [1];\n        expect(isIncludedIn([1], [arr])).toBe(false);\n        expect(isIncludedIn(arr, [arr])).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataFirst › only tests reference equality: (objects)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nconst obj = { a: 1 };\n        expect(isIncludedIn({ a: 1 }, [obj])).toBe(false);\n        expect(isIncludedIn(obj, [obj])).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataLast › empty containers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe(1, isIncludedIn([]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataLast › when contained",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe(2, isIncludedIn([1, 2, 3]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataLast › when not contained",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe(4, isIncludedIn([1, 2, 3]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataLast › works with strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe(\"b\", isIncludedIn([\"a\", \"b\", \"c\"]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataLast › only tests reference equality: (arrays)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nconst arr = [1];\n        expect(pipe([1], isIncludedIn([arr]))).toBe(false);\n        expect(pipe(arr, isIncludedIn([arr]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataLast › only tests reference equality: (objects)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nconst obj = { a: 1 };\n        expect(pipe({ a: 1 }, isIncludedIn([obj]))).toBe(false);\n        expect(pipe(obj, isIncludedIn([obj]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataLast › dataLast memoization › returns correct result when called multiple times with the same container",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\nconst isIncludedInContainer = isIncludedIn([1, 2, 3]);\n            expect(isIncludedInContainer(2)).toBe(true);\n            expect(isIncludedInContainer(4)).toBe(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataLast › dataLast memoization › returns correct result when called with different containers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\nconst isIncludedInContainer1 = isIncludedIn([1, 2, 3]);\n            const isIncludedInContainer2 = isIncludedIn([4, 5, 6]);\n            expect(isIncludedInContainer1(2)).toBe(true);\n            expect(isIncludedInContainer2(2)).toBe(false);\n            expect(isIncludedInContainer1(4)).toBe(false);\n            expect(isIncludedInContainer2(4)).toBe(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › dataLast › dataLast memoization › does not leak information between invocations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\nconst container = [1, 2, 3];\n            const isIncludedInContainer = isIncludedIn(container);\n            expect(isIncludedInContainer(2)).toBe(true);\n            expect(isIncludedInContainer(4)).toBe(false);\n            // Modifying the original container should not affect the memoized function\n            container.push(4);\n            expect(isIncludedInContainer(2)).toBe(true);\n            expect(isIncludedInContainer(4)).toBe(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › legacy v1 replacements › difference › data_first › should return difference",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\n{\nexpect(filter([1, 2, 3, 4], isNot(isIncludedIn([2, 5, 3])))).toStrictEqual([1, 4]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › legacy v1 replacements › difference › data_last › should return difference",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\n{\nexpect(filter(isNot(isIncludedIn([2, 5, 3])))([1, 2, 3, 4])).toStrictEqual([1, 4]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › legacy v1 replacements › intersection › data_first › intersection",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\n{\nexpect(filter([1, 2, 3], isIncludedIn([2, 3, 5]))).toStrictEqual([\n                    2, 3,\n                ]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › legacy v1 replacements › intersection › data_last › intersection",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\n{\nexpect(filter(isIncludedIn([2, 3, 5]))([1, 2, 3])).toStrictEqual([\n                    2, 3,\n                ]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

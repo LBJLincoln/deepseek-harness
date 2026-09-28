@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/head.spec.ts › head › returns the first element of an array or undefined for empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { head } from \"./src/array/head.js\";\n{\n{\n{\nexpect(head([1, 2, 3])).toBe(1);\n        expect(head(['a', 'b', 'c'])).toBe('a');\n        expect(head([true, false, true])).toBe(true);\n        expect(head([])).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/function/flow.spec.ts › flow › `flow` should work with a curried function and `_.head`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry((i) => i);\n        const combined = flow(head, curried);\n        expect(combined([1])).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/function/flowRight.spec.ts › flowRight › `flowRight` should work with a curried function and `_.head`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flowRight } from \"./src/function/flowRight.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry((i) => i);\n        const combined = flowRight(curried, head);\n        expect(combined([1])).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

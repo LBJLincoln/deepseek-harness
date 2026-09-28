@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/last.test.ts › data first › should return last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { last } from \"./src/last.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(last([1, 2, 3])).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/last.test.ts › data first › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { last } from \"./src/last.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(last([])).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/last.test.ts › data last › should return last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { last } from \"./src/last.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], last())).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/last.test.ts › data last › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { last } from \"./src/last.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([], last())).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

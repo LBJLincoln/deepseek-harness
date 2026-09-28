@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/minBy.spec.ts › minBy › minBy selects one min value in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minBy } from \"./src/array/minBy.js\";\n{\n{\n{\nconst people = [\n            { name: 'Mark', age: 30 },\n            { name: 'Nunu', age: 20 },\n            { name: 'Overmars', age: 35 },\n        ];\n        const result = minBy(people, person => person.age);\n        expect(result).toEqual({ name: 'Nunu', age: 20 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/minBy.spec.ts › minBy › if there are two min values, first one is selected",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minBy } from \"./src/array/minBy.js\";\n{\n{\n{\nconst people = [\n            { name: 'Mark', age: 30 },\n            { name: 'Nunu', age: 20 },\n            { name: 'Overmars', age: 20 },\n        ];\n        const result = minBy(people, person => person.age);\n        expect(result).toEqual({ name: 'Nunu', age: 20 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/minBy.spec.ts › minBy › if array is single-element, return unique element of array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minBy } from \"./src/array/minBy.js\";\n{\n{\n{\nconst people = [{ name: 'Mark', age: 25 }];\n        const result = minBy(people, person => person.age);\n        expect(result).toEqual({ name: 'Mark', age: 25 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/minBy.spec.ts › minBy › if array is empty, return undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minBy } from \"./src/array/minBy.js\";\n{\n{\n{\nconst people = [];\n        const result = minBy(people, person => person.age);\n        expect(result).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/minBy.spec.ts › minBy › should propagate NaN regardless of its position, matching Math.min",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minBy } from \"./src/array/minBy.js\";\n{\n{\n{\nexpect(minBy([Number.NaN, 3, 1, 2], x => x)).toBeNaN();\n        expect(minBy([3, Number.NaN, 1, 2], x => x)).toBeNaN();\n        expect(minBy([3, 1, 2, Number.NaN], x => x)).toBeNaN();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/minBy.spec.ts › minBy › should provide index parameter to getValue function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minBy } from \"./src/array/minBy.js\";\n{\n{\n{\nconst items = [{ value: 10 }, { value: 20 }, { value: 15 }];\n        const result = minBy(items, (item, index) => item.value + index);\n        expect(result).toEqual({ value: 10 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/minBy.spec.ts › minBy › should provide array parameter to getValue function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minBy } from \"./src/array/minBy.js\";\n{\n{\n{\nconst items = [{ value: 10 }, { value: 20 }, { value: 15 }];\n        const result = minBy(items, (item, _index, array) => item.value * array.length);\n        expect(result).toEqual({ value: 10 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

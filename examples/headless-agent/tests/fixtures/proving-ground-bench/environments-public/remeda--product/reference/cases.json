@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/product.test.ts › dataFirst › should return the product of numbers in the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { product } from \"./src/product.js\";\n{\n{\n{\nexpect(product([1, 2, 3])).toBe(6);\n        expect(product([4, 5, 6])).toBe(120);\n        expect(product([0, 1, 2])).toBe(0);\n        expect(product([-1, -2, -3])).toBe(-6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/product.test.ts › dataFirst › should return 1 for an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { product } from \"./src/product.js\";\n{\n{\n{\nexpect(product([])).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/product.test.ts › dataFirst › works with bigints",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { product } from \"./src/product.js\";\n{\n{\n{\nexpect(product([1n, 2n, 3n])).toBe(6n);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/product.test.ts › dataLast › should return the product of numbers in the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { product } from \"./src/product.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], product())).toBe(6);\n        expect(pipe([4, 5, 6], product())).toBe(120);\n        expect(pipe([0, 1, 2], product())).toBe(0);\n        expect(pipe([-1, -2, -3], product())).toBe(-6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/product.test.ts › dataLast › should return 1 for an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { product } from \"./src/product.js\";\n{\n{\n{\nexpect(pipe([], product())).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/product.test.ts › known issues! › returns 1 (`number`) instead of 1n (`bigint`) for empty `bigint` arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { product } from \"./src/product.js\";\n{\n{\n{\nconst result = product([]);\n        expect(result).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

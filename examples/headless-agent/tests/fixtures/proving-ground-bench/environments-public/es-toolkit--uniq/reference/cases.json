@@ -1,0 +1,158 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/uniq.spec.ts › uniq › uniq function creates unique elements from the array passed as an argument.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\nexpect(uniq([11, 2, 3, 44, 11, 2, 3])).toEqual([11, 2, 3, 44]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/uniq.spec.ts › uniq › uniq function works with strings.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\nexpect(uniq(['a', 'b', 'b', 'c', 'a'])).toEqual(['a', 'b', 'c']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/uniq.spec.ts › uniq › uniq function works with boolean values.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\nexpect(uniq([true, false, true, false, false])).toEqual([true, false]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/uniq.spec.ts › uniq › uniq function works with nullish values.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\nexpect(uniq([null, undefined, null, undefined])).toEqual([null, undefined]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/uniq.spec.ts › uniq › uniq function works with empty arrays.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\nexpect(uniq([])).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/uniq.spec.ts › uniq › uniq function works with multiple types.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\nexpect(uniq([1, 'a', 2, 'b', 1, 'a'])).toEqual([1, 'a', 2, 'b']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/uniq.spec.ts › uniq › uniq function keeps its original order.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\nexpect(uniq([1, 2, 2, 3, 4, 4, 5])).toEqual([1, 2, 3, 4, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/array/uniq.spec.ts › uniq › uniq function should create a new array.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\nconst array = [1, 2, 3];\n        const result = uniq(array);\n        expect(result).toEqual([1, 2, 3]);\n        expect(result).not.toBe(array);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/array/uniq.spec.ts › uniq › uniq function should not mutate the original array.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\nconst array = [1, 2, 3, 2, 1, 3];\n        uniq(array);\n        expect(array).toEqual([1, 2, 3, 2, 1, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/array/uniq.spec.ts › uniq › should handle arrays with undefined And Hole",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\n// eslint-disable-next-line no-sparse-arrays\n        const arr = [1, , 2, undefined, 3, , 2];\n        expect(uniq(arr)).toEqual([1, undefined, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/array/uniq.spec.ts › uniq › should handle arrays with special values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { uniq } from \"./src/array/uniq.js\";\n{\n{\n{\nconst arr = [NaN, NaN, 0, -0, Infinity, -Infinity];\n        expect(uniq(arr)).toEqual([NaN, 0, Infinity, -Infinity]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/function/flow.spec.ts › flow › `flow` should work with curried functions with placeholders",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry(ary(map, 2), 2);\n        // eslint-disable-next-line @typescript-eslint/ban-ts-comment\n        // @ts-expect-error\n        const getProp = curried(curried.placeholder, (value) => value.a);\n        const objects = [{ a: 1 }, { a: 2 }, { a: 1 }];\n        const combined = flow(getProp, uniq);\n        expect(combined(objects)).toEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "src/function/flowRight.spec.ts › flowRight › `flowRight` should work with curried functions with placeholders",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flowRight } from \"./src/function/flowRight.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry(ary(map, 2), 2);\n        // eslint-disable-next-line @typescript-eslint/ban-ts-comment\n        // @ts-expect-error\n        const getProp = curried(curried.placeholder, (value) => value.a);\n        const objects = [{ a: 1 }, { a: 2 }, { a: 1 }];\n        const combined = flowRight(uniq, getProp);\n        expect(combined(objects)).toEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

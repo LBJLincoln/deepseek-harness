@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/anyPass.test.ts › data first › anyPass",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { anyPass } from \"./src/anyPass.js\";\n{\nconst fns = [(x) => x === 3, (x) => x === 4];\n{\n{\nexpect(anyPass(3, fns)).toBe(true);\n        expect(anyPass(4, fns)).toBe(true);\n        expect(anyPass(1, fns)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/anyPass.test.ts › data last › anyPass",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { anyPass } from \"./src/anyPass.js\";\n{\nconst fns = [(x) => x === 3, (x) => x === 4];\n{\n{\nexpect(anyPass(fns)(3)).toBe(true);\n        expect(anyPass(fns)(4)).toBe(true);\n        expect(anyPass(fns)(1)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

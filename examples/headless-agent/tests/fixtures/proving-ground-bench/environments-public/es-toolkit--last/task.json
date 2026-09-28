@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-last",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/last.ts",
+    "tests": [
+      "src/array/last.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/last.js",
+    "function": "last"
+  },
+  "title": "Implement last from es-toolkit",
+  "prompt": "`src/array/last.js` is the JavaScript build of `src/array/last.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `last`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Returns the last element of an array.\n *\n * This function takes an array and returns the last element of the array.\n * If the array is empty, the function returns `undefined`.\n *\n * Unlike some implementations, this function is optimized for performance\n * by directly accessing the last index of the array.\n *\n * @template T - The type of elements in the array.\n * @param arr - The array from which to get the last element.\n * @returns The last element of the array, or `undefined` if the array is empty.\n *\n * @example\n * const arr = [1, 2, 3];\n * const lastElement = last(arr);\n * // lastElement will be 3\n *\n * const emptyArr: number[] = [];\n * const noElement = last(emptyArr);\n * // noElement will be undefined\n */\nexport function last<T>(arr: readonly T[]): T | undefined\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+# Implement isLength from es-toolkit
+
+`src/predicate/isLength.js` is the JavaScript build of `src/predicate/isLength.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `isLength`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:
+
+/**
+ * Checks if a given value is a valid length.
+ *
+ * A valid length is of type `number`, is a non-negative integer, and is less than or equal to
+ * JavaScript's maximum safe integer (`Number.MAX_SAFE_INTEGER`).
+ * It returns `true` if the value is a valid length, and `false` otherwise.
+ *
+ * This function can also serve as a type predicate in TypeScript, narrowing the type of the
+ * argument to a valid length (`number`).
+ *
+ * @param value The value to check.
+ * @returns Returns `true` if `value` is a valid length, else `false`.
+ *
+ * @example
+ * isLength(0); // true
+ * isLength(42); // true
+ * isLength(-1); // false
+ * isLength(1.5); // false
+ * isLength(Number.MAX_SAFE_INTEGER); // true
+ * isLength(Number.MAX_SAFE_INTEGER + 1); // false
+ */
+export function isLength(value?: any): boolean
+
+Keep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.
+
+## Attribution
+
+This task is derived from `src/predicate/isLength.ts` of es-toolkit (https://github.com/toss/es-toolkit) at commit `d6f796064886b6229385c5f3e6165dab584ebfb6`, distributed under the MIT licence (Copyright (c) 2024 Viva Republica, Inc.); the licence text is kept in `LICENSE` and accompanies every copy of this task and anything derived from it.

@@ -1,0 +1,326 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/range.test.ts › trivial 0 cases › start at 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(0, 5)).toStrictEqual([0, 1, 2, 3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/range.test.ts › trivial 0 cases › end at 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(5, 0)).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/range.test.ts › trivial 0 cases › empty range",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(0, 0)).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/range.test.ts › trivial 0 cases › step 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(() => range(0, { end: 5, step: 0 })).toThrow(RangeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/range.test.ts › simple range",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\nexpect(range(10, 20)).toStrictEqual([10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/range.test.ts › switched bounds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\nexpect(range(20, 1)).toStrictEqual([]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/range.test.ts › data last › simple range",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(pipe(1, range(5))).toStrictEqual([1, 2, 3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/range.test.ts › data last › with step",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(pipe(1, range({ end: 20, step: 5 }))).toStrictEqual([1, 6, 11, 16]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/range.test.ts › positive step › trivial step",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(1, { end: 5, step: 1 })).toStrictEqual([1, 2, 3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/range.test.ts › positive step › simple step",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(1, { end: 20, step: 5 })).toStrictEqual([1, 6, 11, 16]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/range.test.ts › positive step › step larger than range",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(1, { end: 5, step: 100 })).toStrictEqual([1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/range.test.ts › positive step › step exactly divides range",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(0, { end: 10, step: 5 })).toStrictEqual([0, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/range.test.ts › negative step › trivial step",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(5, { end: 0, step: -1 })).toStrictEqual([5, 4, 3, 2, 1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/range.test.ts › negative step › simple decrementing range",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(20, { end: 1, step: -5 })).toStrictEqual([20, 15, 10, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/range.test.ts › negative step › step in wrong direction",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(1, { end: 20, step: -5 })).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/range.test.ts › non-integer inputs › floating-point start",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(0.5, 5)).toStrictEqual([0.5, 1.5, 2.5, 3.5, 4.5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/range.test.ts › non-integer inputs › floating-point step",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(1, { end: 5, step: 0.5 })).toStrictEqual([\n            1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5,\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/range.test.ts › non-integer inputs › floating-point end",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(1, 5.5)).toStrictEqual([1, 2, 3, 4, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/range.test.ts › non-integer inputs › floating-point snap prevents extra element",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(0, { end: 3, step: 0.1 })).toHaveLength(30);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/range.test.ts › non-integer inputs › very small range near zero is not snapped away",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(0, 1e-13)).toStrictEqual([0]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/range.test.ts › lodash spec › should infer the sign of `step` when only `start` and `end` are given - incrementing",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(1, 5)).toStrictEqual([1, 2, 3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/range.test.ts › lodash spec › should work with a `start`, `end`, and `step`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(0, { end: -4, step: -1 })).toStrictEqual([0, -1, -2, -3]);\n        expect(range(5, { end: 1, step: -1 })).toStrictEqual([5, 4, 3, 2]);\n        expect(range(0, { end: 20, step: 5 })).toStrictEqual([0, 5, 10, 15]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/range.test.ts › lodash spec › should work with a `step` larger than `end`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(1, { end: 5, step: 20 })).toStrictEqual([1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/range.test.ts › lodash spec › should work with a negative `step`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(range(0, { end: -4, step: -1 })).toStrictEqual([0, -1, -2, -3]);\n        expect(range(21, { end: 10, step: -3 })).toStrictEqual([21, 18, 15, 12]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/range.test.ts › lodash spec › should support `start` of `-0`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\nexpect(1 / range(-0, 1)[0]).toBe(-Infinity);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/range.test.ts › lodash spec › should treat falsey `start` as `0` - zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\n// Trivially correct!\n        expect(range(0, 1)).toStrictEqual([0]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/range.test.ts › lodash spec › should coerce arguments to finite numbers - NaN",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { range } from \"./src/range.js\";\nimport { map } from \"./src/map.js\";\nimport { mapValues } from \"./src/mapValues.js\";\n{\n{\n{\n// We don't explicitly handle NaN and therefore the behavior when\n        // providing NaN is not explicitly defined or ensured. When both `start`\n        // and `end` are NaN they happen to result in an empty range, but this is\n        // not strictly enforced and is implementation dependent, and might break\n        // in the future (without it being considered a breaking API change!)\n        expect(range(NaN, NaN)).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

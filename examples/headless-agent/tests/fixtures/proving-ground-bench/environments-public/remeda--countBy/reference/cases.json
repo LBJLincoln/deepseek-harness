@@ -1,0 +1,182 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › countBy",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(countBy([1, 2, 3, 2, 1, 5], identity())).toStrictEqual({\n            1: 2,\n            2: 2,\n            3: 1,\n            5: 1,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › array of strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(countBy([\"a\", \"b\", \"c\", \"B\", \"A\", \"a\"], toLowerCase())).toStrictEqual({ a: 3, b: 2, c: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › array of objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(countBy([\n            { id: 1, category: \"A\" },\n            { id: 2, category: \"B\" },\n            { id: 3, category: \"A\" },\n        ], prop(\"category\"))).toStrictEqual({ A: 2, B: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbolA = Symbol(\"mySymbolA\");\n        const mySymbolB = Symbol(\"mySymbolB\");\n        expect(countBy([mySymbolA, mySymbolB, mySymbolA], identity())).toStrictEqual({\n            [mySymbolA]: 2,\n            [mySymbolB]: 1,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › mixed data types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n        expect(countBy([1, \"a\", 1, mySymbol, \"A\", mySymbol], when(isString, toLowerCase()))).toStrictEqual({ 1: 2, a: 2, [mySymbol]: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(countBy([1, 2, 3, 2, 1], (_, index) => index % 2 === 0 ? \"even\" : \"odd\")).toStrictEqual({ even: 3, odd: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › countBy",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 2, 1, 5], countBy(identity()))).toStrictEqual({\n            1: 2,\n            2: 2,\n            3: 1,\n            5: 1,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › array of strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(pipe([\"a\", \"b\", \"c\", \"B\", \"A\", \"a\"], countBy(toLowerCase()))).toStrictEqual({ a: 3, b: 2, c: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › array of objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(pipe([\n            { id: 1, category: \"A\" },\n            { id: 2, category: \"B\" },\n            { id: 3, category: \"A\" },\n        ], countBy(prop(\"category\")))).toStrictEqual({ A: 2, B: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbolA = Symbol(\"mySymbolA\");\n        const mySymbolB = Symbol(\"mySymbolB\");\n        expect(pipe([mySymbolA, mySymbolB, mySymbolA], countBy(identity()))).toStrictEqual({ [mySymbolA]: 2, [mySymbolB]: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › mixed data types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n        expect(pipe([1, \"a\", 1, mySymbol, \"A\", mySymbol], countBy(when(isString, toLowerCase())))).toStrictEqual({ 1: 2, a: 2, [mySymbol]: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 2, 1], countBy((_, index) => (index % 2 === 0 ? \"even\" : \"odd\")))).toStrictEqual({ even: 3, odd: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/countBy.test.ts › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\nexpect(countBy([], identity())).toStrictEqual({});\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/countBy.test.ts › category is an object instance method name",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\nexpect(countBy([\n        { a: \"toString\", b: \"toString\" },\n        { a: \"toString\", b: \"valueOf\" },\n        { a: \"valueOf\", b: \"toString\" },\n        { a: \"toString\", b: \"__proto__\" },\n    ], prop(\"a\"))).toStrictEqual({ toString: 3, valueOf: 1 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/countBy.test.ts › skip items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\nexpect(countBy([1, 2, 3, 4, 5], when(isStrictEqual(3), constant(undefined)))).toStrictEqual({ 1: 1, 2: 1, 4: 1, 5: 1 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

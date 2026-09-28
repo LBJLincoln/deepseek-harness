@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/swapProps.test.ts › data-first",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { swapProps } from \"./src/swapProps.js\";\n{\n{\nexpect(swapProps({ a: 1, b: 2 }, \"a\", \"b\")).toStrictEqual({ a: 2, b: 1 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/swapProps.test.ts › data-last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { swapProps } from \"./src/swapProps.js\";\n{\n{\nexpect(pipe({ a: 1, b: 2 }, swapProps(\"a\", \"b\"))).toStrictEqual({\n        a: 2,\n        b: 1,\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/swapProps.test.ts › maintains the shape of the rest of the object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { swapProps } from \"./src/swapProps.js\";\n{\n{\nexpect(swapProps({ a: true, b: \"hello\", c: 3 }, \"a\", \"b\")).toStrictEqual({\n        a: \"hello\",\n        b: true,\n        c: 3,\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

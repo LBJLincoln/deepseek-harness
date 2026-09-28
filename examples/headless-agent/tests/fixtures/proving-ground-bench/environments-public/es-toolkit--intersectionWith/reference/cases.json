@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/intersectionWith.spec.ts › intersectionWith › should return the intersection of two arrays with `mapper`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { intersectionWith } from \"./src/array/intersectionWith.js\";\n{\n{\n{\nexpect(intersectionWith([1.2, 2.1], [1.4, 3.1], (x, y) => Math.floor(x) === Math.floor(y))).toStrictEqual([1.2]);\n        expect(intersectionWith([{ foo: 1 }, { foo: 2 }], [{ foo: 1 }, { foo: 3 }], (x, y) => x.foo === y.foo)).toStrictEqual([{ foo: 1 }]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/intersectionWith.spec.ts › intersectionWith › should return the intersection of two arrays have different type",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { intersectionWith } from \"./src/array/intersectionWith.js\";\n{\n{\n{\nconst array1 = [\n            { id: 1, csv: 1 },\n            { id: 2, csv: 1 },\n            { id: 3, csv: 1 },\n        ];\n        const array2 = [\n            { id: 2, json: 2 },\n            { id: 4, json: 2 },\n        ];\n        const result = intersectionWith(array1, array2, (a, b) => a.id === b.id);\n        expect(result).toEqual([{ id: 2, csv: 1 }]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

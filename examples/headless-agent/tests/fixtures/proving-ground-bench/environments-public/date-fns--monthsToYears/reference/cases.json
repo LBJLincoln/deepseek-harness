@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/monthsToYears/test.ts › monthsToYears › converts months to years",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { monthsToYears } from \"./src/monthsToYears/index.js\";\n{\n{\n{\nexpect(monthsToYears(12)).toBe(1);\n        expect(monthsToYears(24)).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/monthsToYears/test.ts › monthsToYears › uses floor rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { monthsToYears } from \"./src/monthsToYears/index.js\";\n{\n{\n{\nexpect(monthsToYears(13)).toBe(1);\n        expect(monthsToYears(11)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/monthsToYears/test.ts › monthsToYears › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { monthsToYears } from \"./src/monthsToYears/index.js\";\n{\n{\n{\nexpect(monthsToYears(12.5)).toBe(1);\n        expect(monthsToYears(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/monthsToYears/test.ts › monthsToYears › properly works with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { monthsToYears } from \"./src/monthsToYears/index.js\";\n{\n{\n{\nexpect(monthsToYears(1234567)).toBe(102880);\n        expect(monthsToYears(-1234567)).toBe(-102880);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

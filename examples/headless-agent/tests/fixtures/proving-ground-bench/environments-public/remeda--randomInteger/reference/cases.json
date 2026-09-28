@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/randomInteger.test.ts › from is greater than to",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInteger } from \"./src/randomInteger.js\";\n{\nconst ITERATIONS = 1000;\nfunction* randomIntegers(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomInteger(from, to);\n    }\n}\n{\nexpect(() => randomInteger(10, 0)).toThrow(new RangeError(\"randomInteger: The range [10,0] contains no integer\"));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/randomInteger.test.ts › from and to are decimals with same whole number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInteger } from \"./src/randomInteger.js\";\n{\nconst ITERATIONS = 1000;\nfunction* randomIntegers(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomInteger(from, to);\n    }\n}\n{\nexpect(() => randomInteger(1.5, 1.6)).toThrow(new RangeError(\"randomInteger: The range [1.5,1.6] contains no integer\"));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/randomInteger.test.ts › non-negative integers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInteger } from \"./src/randomInteger.js\";\n{\nconst ITERATIONS = 1000;\nfunction* randomIntegers(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomInteger(from, to);\n    }\n}\n{\nfor (const v of randomIntegers(0, 10)) {\n        expect(v).toBeGreaterThanOrEqual(0);\n        expect(v).toBeLessThanOrEqual(10);\n    }\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/randomInteger.test.ts › negative integers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInteger } from \"./src/randomInteger.js\";\n{\nconst ITERATIONS = 1000;\nfunction* randomIntegers(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomInteger(from, to);\n    }\n}\n{\nconst values = randomIntegers(-10, -5);\n    for (const value of values) {\n        expect(value).toBeGreaterThanOrEqual(-10);\n        expect(value).toBeLessThanOrEqual(-5);\n    }\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/randomInteger.test.ts › positive decimals",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInteger } from \"./src/randomInteger.js\";\n{\nconst ITERATIONS = 1000;\nfunction* randomIntegers(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomInteger(from, to);\n    }\n}\n{\nfor (const v of randomIntegers(0.1, 10.9)) {\n        expect(v).toBeGreaterThanOrEqual(0.1);\n        expect(v).toBeLessThanOrEqual(10.9);\n    }\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/randomInteger.test.ts › negative decimals",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInteger } from \"./src/randomInteger.js\";\n{\nconst ITERATIONS = 1000;\nfunction* randomIntegers(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomInteger(from, to);\n    }\n}\n{\nconst values = randomIntegers(-10.9, -0.1);\n    for (const value of values) {\n        expect(value).toBeGreaterThanOrEqual(-10.9);\n        expect(value).toBeLessThanOrEqual(-0.1);\n    }\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/randomInteger.test.ts › integers with same value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInteger } from \"./src/randomInteger.js\";\n{\nconst ITERATIONS = 1000;\nfunction* randomIntegers(from, to) {\n    for (let i = 0; i < ITERATIONS; i += 1) {\n        yield randomInteger(from, to);\n    }\n}\n{\nfor (const v of randomIntegers(10, 10)) {\n        expect(v).toBe(10);\n    }\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,146 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › should merge objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: \"baz\", x: 1 };\n        const b = { foo: \"bar\", y: 2 };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: \"bar\", x: 1, y: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › should merge nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: { bar: \"baz\" } };\n        const b = { foo: { qux: \"quux\" } };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: { bar: \"baz\", qux: \"quux\" } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › should not merge object and array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: [\"qux\"] };\n        const b = { foo: { bar: \"baz\" } };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: { bar: \"baz\" } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › should not merge array and object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: { bar: \"baz\" } };\n        const b = { foo: [\"qux\"] };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: [\"qux\"] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › should not merge arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: [\"bar\"] };\n        const b = { foo: [\"baz\"] };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: [\"baz\"] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › should merge different types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: \"bar\" };\n        const b = { foo: 123 };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: 123 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › should work with weird object types, null",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: null };\n        const b = { foo: 123 };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: 123 });\n        expect(mergeDeep(b, a)).toStrictEqual({ foo: null });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › should work with weird object types, functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: doNothing() };\n        const b = { foo: 123 };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: 123 });\n        expect(mergeDeep(b, a)).toStrictEqual({ foo: doNothing() });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › should work with weird object types, date",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: new Date(1337) };\n        const b = { foo: 123 };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: 123 });\n        expect(mergeDeep(b, a)).toStrictEqual({ foo: new Date(1337) });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › doesn't spread arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: [\"bar\"] };\n        const b = { foo: [\"baz\"] };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: [\"baz\"] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › doesn't recurse into arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: [{ bar: \"baz\" }] };\n        const b = { foo: [{ bar: \"hello, world\" }] };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: [{ bar: \"hello, world\" }] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataLast) › should merge objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: \"baz\", x: 1 };\n        const b = { foo: \"bar\", y: 2 };\n        expect(mergeDeep(b)(a)).toStrictEqual({ foo: \"bar\", x: 1, y: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/isExists/test.ts › isValid › returns true if the given date is valid",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isExists } from \"./src/isExists/index.js\";\n{\n{\n{\nconst result = isExists(2018, 0, 31);\n        expect(result).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/isExists/test.ts › isValid › returns false if the given date is invalid",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isExists } from \"./src/isExists/index.js\";\n{\n{\n{\nconst result = isExists(2018, 1 /* Feb */, 31);\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

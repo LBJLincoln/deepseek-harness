@@ -1,0 +1,51 @@
+{
+  "id": "code:simple-statistics--implement-silhouetteMetric",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/silhouette_metric.js",
+    "tests": [
+      "test/silhouette.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/silhouette_metric.js",
+    "function": "silhouetteMetric"
+  },
+  "title": "Implement silhouetteMetric from simple-statistics",
+  "prompt": "`src/silhouette_metric.js` is the JavaScript build of `src/silhouette_metric.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `silhouetteMetric`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Calculate the [silhouette metric](https://en.wikipedia.org/wiki/Silhouette_(clustering))\n * for a set of N-dimensional points arranged in groups. The metric is the largest\n * individual silhouette value for the data.\n *\n * @param {Array<Array<number>>} points N-dimensional coordinates of points.\n * @param {Array<number>} labels Labels of points. This must be the same length as `points`,\n * and values must lie in [0..G-1], where G is the number of groups.\n * @return {number} The silhouette metric for the groupings.\n *\n * @example\n * silhouetteMetric([[0.25], [0.75]], [0, 0]); // => 1.0\n */\nfunction silhouetteMetric(points, labels)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/approx_equal.js`, `src/epsilon.js`, `src/euclidean_distance.js`, `src/make_matrix.js`, `src/max.js`, `src/relative_error.js`, `src/silhouette.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

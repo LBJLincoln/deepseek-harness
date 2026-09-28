@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/partition.test.ts › data first › partition",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNumber } from \"./src/isNumber.js\";\nimport { partition } from \"./src/partition.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(partition([\n            { a: 1, b: 1 },\n            { a: 1, b: 2 },\n            { a: 2, b: 1 },\n            { a: 1, b: 3 },\n        ], ({ a }) => a === 1)).toStrictEqual([\n            [\n                { a: 1, b: 1 },\n                { a: 1, b: 2 },\n                { a: 1, b: 3 },\n            ],\n            [{ a: 2, b: 1 }],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/partition.test.ts › data first › partition with type guard",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNumber } from \"./src/isNumber.js\";\nimport { partition } from \"./src/partition.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(partition([1, \"a\", 2, \"b\"], isNumber)).toStrictEqual([\n            [1, 2],\n            [\"a\", \"b\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/partition.test.ts › data first › partition with type guard in pipe",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNumber } from \"./src/isNumber.js\";\nimport { partition } from \"./src/partition.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, \"a\", 2, \"b\"], partition((value) => typeof value === \"number\"))).toStrictEqual([\n            [1, 2],\n            [\"a\", \"b\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/partition.test.ts › data first › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNumber } from \"./src/isNumber.js\";\nimport { partition } from \"./src/partition.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(partition([\n            { a: 1, b: 1 },\n            { a: 1, b: 2 },\n            { a: 2, b: 1 },\n            { a: 1, b: 3 },\n        ], (_, index) => index !== 2)).toStrictEqual([\n            [\n                { a: 1, b: 1 },\n                { a: 1, b: 2 },\n                { a: 1, b: 3 },\n            ],\n            [{ a: 2, b: 1 }],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/partition.test.ts › data last › partition",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNumber } from \"./src/isNumber.js\";\nimport { partition } from \"./src/partition.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\n            { a: 1, b: 1 },\n            { a: 1, b: 2 },\n            { a: 2, b: 1 },\n            { a: 1, b: 3 },\n        ], partition(({ a }) => a === 1))).toStrictEqual([\n            [\n                { a: 1, b: 1 },\n                { a: 1, b: 2 },\n                { a: 1, b: 3 },\n            ],\n            [{ a: 2, b: 1 }],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/partition.test.ts › data last › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNumber } from \"./src/isNumber.js\";\nimport { partition } from \"./src/partition.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\n            { a: 1, b: 1 },\n            { a: 1, b: 2 },\n            { a: 2, b: 1 },\n            { a: 1, b: 3 },\n        ], partition((_, index) => index !== 2))).toStrictEqual([\n            [\n                { a: 1, b: 1 },\n                { a: 1, b: 2 },\n                { a: 1, b: 3 },\n            ],\n            [{ a: 2, b: 1 }],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

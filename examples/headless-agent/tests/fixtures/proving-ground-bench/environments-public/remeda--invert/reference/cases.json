@@ -1,0 +1,134 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/invert.test.ts › data first › empty object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(invert({})).toStrictEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/invert.test.ts › data first › no duplicate values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(invert({ a: \"d\", b: \"e\", c: \"f\" })).toStrictEqual({\n            d: \"a\",\n            e: \"b\",\n            f: \"c\",\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/invert.test.ts › data first › duplicate values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(invert({ a: \"d\", b: \"e\", c: \"d\" })).toStrictEqual({\n            e: \"b\",\n            d: \"c\",\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/invert.test.ts › data first › numeric values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(invert([\"a\", \"b\", \"c\"])).toStrictEqual({ a: \"0\", b: \"1\", c: \"2\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/invert.test.ts › data first › symbol keys are filtered out",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(invert({ [Symbol(\"a\")]: 4, a: \"hello\" })).toStrictEqual({\n            hello: \"a\",\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/invert.test.ts › data first › number keys are converted to strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(invert({ 1: \"a\", 2: \"b\" })).toStrictEqual({ a: \"1\", b: \"2\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/invert.test.ts › data first › symbol values are fine",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst mySymbol = Symbol(\"my\");\n        expect(invert({ a: mySymbol })).toStrictEqual({ [mySymbol]: \"a\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/invert.test.ts › data last › empty object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe({}, invert())).toStrictEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/invert.test.ts › data last › no duplicate values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe({ a: \"d\", b: \"e\", c: \"f\" }, invert())).toStrictEqual({\n            d: \"a\",\n            e: \"b\",\n            f: \"c\",\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/invert.test.ts › data last › duplicate values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe({ a: \"d\", b: \"e\", c: \"d\" }, invert())).toStrictEqual({\n            e: \"b\",\n            d: \"c\",\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/invert.test.ts › data last › numeric values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/invert.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\"a\", \"b\", \"c\"], invert())).toStrictEqual({\n            a: \"0\",\n            b: \"1\",\n            c: \"2\",\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

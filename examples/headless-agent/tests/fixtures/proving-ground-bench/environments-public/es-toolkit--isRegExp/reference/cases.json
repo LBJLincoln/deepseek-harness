@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isRegExp.spec.ts › isRegExp › returns `true` for RegExp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isRegExp } from \"./src/predicate/isRegExp.js\";\n{\n{\n{\nexpect(isRegExp(new RegExp(''))).toBe(true);\n        expect(isRegExp(/abc/)).toBe(true);\n        expect(isRegExp(/abc/g)).toBe(true);\n        expect(isRegExp(/abc/i)).toBe(true);\n        expect(isRegExp(/abc/m)).toBe(true);\n        expect(isRegExp(/abc/s)).toBe(true);\n        expect(isRegExp(/abc/u)).toBe(true);\n        expect(isRegExp(/abc/y)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isRegExp.spec.ts › isRegExp › returns `false` for non-RegExp values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isRegExp } from \"./src/predicate/isRegExp.js\";\n{\n{\n{\nexpect(isRegExp({})).toBe(false);\n        expect(isRegExp('/abc/')).toBe(false);\n        expect(isRegExp(new Date())).toBe(false);\n        expect(isRegExp(new Map())).toBe(false);\n        expect(isRegExp(new Set())).toBe(false);\n        expect(isRegExp([1, 2, 3])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

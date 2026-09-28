@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/utils/object-keys/deep-snake-keys.test.ts › deepSnakeKeys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepSnakeKeys } from \"./src/utils/object-keys/deep-snake-keys.js\";\n{\n{\nconst expected = {\n        some: { deep_nested: { value: true } },\n        other_value: true,\n    };\n    const result = deepSnakeKeys({\n        some: { deepNested: { value: true } },\n        otherValue: true,\n    });\n    expect(result).toEqual(expected);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

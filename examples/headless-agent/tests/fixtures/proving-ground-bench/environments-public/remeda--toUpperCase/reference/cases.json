@@ -1,0 +1,158 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/toUpperCase.test.ts › data-first › on lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(toUpperCase(\"hello world\")).toBe(\"HELLO WORLD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/toUpperCase.test.ts › data-first › on upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(toUpperCase(\"HELLO WORLD\")).toBe(\"HELLO WORLD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/toUpperCase.test.ts › data-first › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(toUpperCase(\"HeLlO WoRlD\")).toBe(\"HELLO WORLD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/toUpperCase.test.ts › data-last › on lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(pipe(\"hello world\", toUpperCase())).toBe(\"HELLO WORLD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/toUpperCase.test.ts › data-last › on upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(pipe(\"HELLO WORLD\", toUpperCase())).toBe(\"HELLO WORLD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/toUpperCase.test.ts › data-last › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(pipe(\"HeLlO WoRlD\", toUpperCase())).toBe(\"HELLO WORLD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/toUpperCase.test.ts › unicode › handles diacritics",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(toUpperCase(\"café naïve\")).toBe(\"CAFÉ NAÏVE\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/toUpperCase.test.ts › unicode › handles non-Latin scripts",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(toUpperCase(\"москва\")).toBe(\"МОСКВА\");\n        expect(toUpperCase(\"ελλάδα\")).toBe(\"ΕΛΛΆΔΑ\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/toUpperCase.test.ts › unicode › doesn't explode on emojis",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(toUpperCase(\"🎉party\")).toBe(\"🎉PARTY\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/toUpperCase.test.ts › unicode › handles surrogate pairs (astral plane)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(toUpperCase(\"𝒽ello\")).toBe(\"𝒽ELLO\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/toUpperCase.test.ts › unicode › handles combining characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(toUpperCase(\"e\\u{301}llo\")).toBe(\"E\\u{301}LLO\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/toUpperCase.test.ts › unicode › handles German eszett",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(toUpperCase(\"straße\")).toBe(\"STRASSE\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/toUpperCase.test.ts › unicode › handles Turkish dotted I",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toUpperCase } from \"./src/toUpperCase.js\";\n{\n{\n{\nexpect(toUpperCase(\"i̇stanbul\")).toBe(\"İSTANBUL\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

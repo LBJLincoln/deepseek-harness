@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/pick.test.ts › dataFirst",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pick } from \"./src/pick.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pick({ a: 1, b: 2, c: 3, d: 4 }, [\"a\", \"d\"])).toStrictEqual({\n        a: 1,\n        d: 4,\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/pick.test.ts › dataLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pick } from \"./src/pick.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pipe({ a: 1, b: 2, c: 3, d: 4 }, pick([\"a\", \"d\"]))).toStrictEqual({\n        a: 1,\n        d: 4,\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/pick.test.ts › it can pick symbol keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pick } from \"./src/pick.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n    expect(pick({ [mySymbol]: 3, a: 4 }, [mySymbol])).toStrictEqual({\n        [mySymbol]: 3,\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/pick.test.ts › picking from non-existent keys (in a union)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pick } from \"./src/pick.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pick({ a: 1 }, [\"b\"])).toStrictEqual({});\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/pick.test.ts › supports inherited properties (issue #107)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pick } from \"./src/pick.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nclass BaseClass {\n        // eslint-disable-next-line @typescript-eslint/class-methods-use-this -- This is fine...\n        testProp() {\n            return \"abc\";\n        }\n    }\n    class TestClass extends BaseClass {\n    }\n    const picked = pick(new TestClass(), [\"testProp\"]);\n    expect(Object.keys(picked)).toStrictEqual([\"testProp\"]);\n    expect(picked.testProp()).toBe(\"abc\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

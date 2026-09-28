@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-008",
+    "title": "src/object.test.ts › objectId",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepMerge, deepMergeWithArray, objectId, objectMap } from \"./src/object.js\";\n{\n{\nconst foo = { a: 1, b: 2 };\n    const bar = new Map();\n    // eslint-disable-next-line prefer-regex-literals\n    const baz = new RegExp('foo', 'g');\n    expect(objectId(foo)).toBe(objectId(foo));\n    expect(objectId(bar)).toBe(objectId(bar));\n    expect(objectId(baz)).toBe(objectId(baz));\n    expect(objectId(foo)).not.toBe(objectId(bar));\n    expect(objectId({})).not.toBe(objectId({}));\n    expect(objectId([])).not.toBe(objectId([]));\n    expect(objectId(/a/)).not.toBe(objectId(/a/));\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,182 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/uncapitalize.test.ts › data-first › empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"\")).toBe(\"\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/uncapitalize.test.ts › data-first › on lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"hello world\")).toBe(\"hello world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/uncapitalize.test.ts › data-first › on upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"HELLO WORLD\")).toBe(\"hELLO WORLD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/uncapitalize.test.ts › data-first › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"HeLlO WoRlD\")).toBe(\"heLlO WoRlD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/uncapitalize.test.ts › data-last › empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(pipe(\"\", uncapitalize())).toBe(\"\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/uncapitalize.test.ts › data-last › on lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(pipe(\"hello world\", uncapitalize())).toBe(\"hello world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/uncapitalize.test.ts › data-last › on upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(pipe(\"HELLO WORLD\", uncapitalize())).toBe(\"hELLO WORLD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/uncapitalize.test.ts › data-last › on mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(pipe(\"HeLlO WoRlD\", uncapitalize())).toBe(\"heLlO WoRlD\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/uncapitalize.test.ts › unicode › maintains diacritics in rest of word",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"Café Naïve\")).toBe(\"café Naïve\");\n        expect(uncapitalize(\"CAFÉ NAÏVE\")).toBe(\"cAFÉ NAÏVE\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/uncapitalize.test.ts › unicode › handles non-Latin scripts",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"Москва\")).toBe(\"москва\");\n        expect(uncapitalize(\"Ελλάδα\")).toBe(\"ελλάδα\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/uncapitalize.test.ts › unicode › handles surrogate pairs (astral plane)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"𝒽Ello World\")).toBe(\"𝒽Ello World\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/uncapitalize.test.ts › unicode › doesn't explode on emojis",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"🎉Party Time\")).toBe(\"🎉Party Time\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/uncapitalize.test.ts › unicode › handles combining characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"É\\u{301}llo\")).toBe(\"é\\u{301}llo\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/uncapitalize.test.ts › unicode › single surrogate pair",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"𝒽\")).toBe(\"𝒽\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/uncapitalize.test.ts › unicode › single accented character",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { uncapitalize } from \"./src/uncapitalize.js\";\n{\n{\n{\nexpect(uncapitalize(\"É\")).toBe(\"é\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

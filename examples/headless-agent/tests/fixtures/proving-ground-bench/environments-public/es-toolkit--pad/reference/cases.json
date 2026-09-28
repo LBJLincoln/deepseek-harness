@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/pad.spec.ts › pad › should pad a string on the left and right sides if it is shorter than the length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pad } from \"./src/string/pad.js\";\n{\n{\n{\nexpect(pad('abc', 8)).toBe('  abc   ');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/pad.spec.ts › pad › should pad a string on the left and right sides with custom characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pad } from \"./src/string/pad.js\";\n{\n{\n{\nexpect(pad('abc', 8, '_-')).toBe('_-abc_-_');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/pad.spec.ts › pad › should not pad a string if it has the same length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pad } from \"./src/string/pad.js\";\n{\n{\n{\nexpect(pad('abc', 3)).toBe('abc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/pad.spec.ts › pad › should not pad a string if the length is less than the string length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pad } from \"./src/string/pad.js\";\n{\n{\n{\nexpect(pad('abc', 2)).toBe('abc');\n        expect(pad('abc', 0)).toBe('abc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/pad.spec.ts › pad › should not pad a string if the length is not a number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pad } from \"./src/string/pad.js\";\n{\n{\n{\nexpect(pad('abc', NaN)).toBe('abc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/pad.spec.ts › pad › should not pad a string if the length is not an integer",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pad } from \"./src/string/pad.js\";\n{\n{\n{\nexpect(pad('abc', 3.5)).toBe('abc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/pad.spec.ts › pad › should not pad a string if the length is negative",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pad } from \"./src/string/pad.js\";\n{\n{\n{\nexpect(pad('abc', -3)).toBe('abc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

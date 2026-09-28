@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/combine_variances.test.js › combineVariances › can combine the variances of two lists",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_combineVariances } from \"./src/combine_variances.js\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nimport { default as __ns1_variance } from \"./src/variance.js\";\nconst ss = Object.freeze({ combineVariances: __ns1_combineVariances, mean: __ns1_mean, variance: __ns1_variance });\n{\n{\n{\nconst values1 = Object.freeze([8, 3, 4]);\n        const values2 = Object.freeze([2, 6, 4]);\n        assert.equal(+ss\n            .combineVariances(ss.variance(values1), ss.mean(values1), values1.length, ss.variance(values2), ss.mean(values2), values2.length)\n            .toPrecision(3), 3.92);\n        assert.equal(ss.combineVariances(ss.variance(values1), ss.mean(values1), values1.length, ss.variance(values2), ss.mean(values2), values2.length), ss.variance(values1.concat(values2)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

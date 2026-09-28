@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/quickselect.test.js › quickselect",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as quickselect } from \"./src/quickselect.js\";\n{\n{\nconst arr = [65, 28, 59, 33, 21, 56, 22, 95, 50, 12, 90, 53, 28, 77, 39];\n    quickselect(arr, 8);\n    assert.deepEqual(arr, [39, 28, 28, 33, 21, 12, 22, 50, 53, 56, 59, 65, 90, 77, 95]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/quickselect.test.js › quickselect long arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as quickselect } from \"./src/quickselect.js\";\n{\n{\nconst arr = [];\n    for (let i = 1000; i >= 0; i--)\n        arr.push(i);\n    quickselect(arr, 300);\n    assert.equal(arr[300], 300);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/quickselect.test.js › quickselect long arrays L35 coverage",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as quickselect } from \"./src/quickselect.js\";\n{\n{\nconst arr = [];\n    for (let i = 1000; i >= 0; i--)\n        arr.push(i);\n    quickselect(arr, 500, 10, 620);\n    assert.equal(arr[300], 700);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

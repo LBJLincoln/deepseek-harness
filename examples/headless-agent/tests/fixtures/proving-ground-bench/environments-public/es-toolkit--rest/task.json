@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-rest",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/function/rest.ts",
+    "tests": [
+      "src/function/rest.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/function/rest.js",
+    "function": "rest"
+  },
+  "title": "Implement rest from es-toolkit",
+  "prompt": "`src/function/rest.js` is the JavaScript build of `src/function/rest.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `rest`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Creates a function that transforms the arguments of the provided function `func`.\n * The transformed arguments are passed to `func` such that the arguments starting from a specified index\n * are grouped into an array, while the previous arguments are passed as individual elements.\n *\n * @template F - The type of the function being transformed.\n * @param func - The function whose arguments are to be transformed.\n * @param [startIndex=func.length - 1] - The index from which to start grouping the remaining arguments into an array.\n *                                            Defaults to `func.length - 1`, grouping all arguments after the last parameter.\n * @returns A new function that, when called, returns the result of calling `func` with the transformed arguments.\n *\n * The transformed arguments are:\n * - The first `start` arguments as individual elements.\n * - The remaining arguments from index `start` onward grouped into an array.\n * @example\n * function fn(a, b, c) {\n *   return [a, b, c];\n * }\n *\n * // Using default start index (func.length - 1, which is 2 in this case)\n * const transformedFn = rest(fn);\n * console.log(transformedFn(1, 2, 3, 4)); // [1, 2, [3, 4]]\n *\n * // Using start index 1\n * const transformedFnWithStart = rest(fn, 1);\n * console.log(transformedFnWithStart(1, 2, 3, 4)); // [1, [2, 3, 4], undefined]\n *\n * // With fewer arguments than the start index\n * console.log(transformedFn(1)); // [1, undefined, []]\n */\nexport function rest<F extends (...args: any[]) => any>(\n  func: F,\n  startIndex = func.length - 1\n): (...args: any[]) => ReturnType<F>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

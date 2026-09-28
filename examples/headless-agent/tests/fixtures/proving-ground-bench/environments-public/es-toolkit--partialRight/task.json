@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-partialRight",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/function/partialRight.ts",
+    "tests": [
+      "src/function/partialRight.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/function/partialRight.js",
+    "function": "partialRight"
+  },
+  "title": "Implement partialRight from es-toolkit",
+  "prompt": "`src/function/partialRight.js` is the JavaScript build of `src/function/partialRight.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `partialRight`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * This method is like `partial` except that partially applied arguments are appended to the arguments it receives.\n *\n * The partialRight.placeholder value, which defaults to a `symbol`, may be used as a placeholder for partially applied arguments.\n *\n * Note: This method doesn't set the `length` property of partially applied functions.\n *\n * @template F The type of the function to partially apply.\n * @param func The function to partially apply arguments to.\n * @param partialArgs The arguments to be partially applied.\n * @returns Returns the new partially applied function.\n *\n * @example\n * function greet(greeting, name) {\n *   return greeting + ' ' + name;\n * }\n *\n * const greetFred = partialRight(greet, 'fred');\n * greetFred('hi');\n * // => 'hi fred'\n *\n * // Partially applied with placeholders.\n * const sayHelloTo = partialRight(greet, 'hello', partialRight.placeholder);\n * sayHelloTo('fred');\n * // => 'hello fred'\n */\nexport function partialRight<F extends (...args: any[]) => any>(\n  func: F,\n  ...partialArgs: any[]\n): (...args: any[]) => ReturnType<F>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/compat/function/curry.js`, `src/function/identity.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

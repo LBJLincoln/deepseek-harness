@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/flow.spec.ts › flow › `flow` should supply each function with the return value of the previous",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst fixed = function (n) {\n            return n.toFixed(1);\n        };\n        const combined = flow(add, square, fixed);\n        expect(combined(1, 2)).toBe('9.0');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/function/flow.spec.ts › flow › `flow` should return a new function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst noop = () => { };\n        const combined = flow(noop);\n        expect(combined).not.toBe(noop);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/function/flow.spec.ts › flow › `flow` should work with a curried function and `_.head`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry((i) => i);\n        const combined = flow(head, curried);\n        expect(combined([1])).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/function/flow.spec.ts › flow › `flow` should work with curried functions with placeholders",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry(ary(map, 2), 2);\n        // eslint-disable-next-line @typescript-eslint/ban-ts-comment\n        // @ts-expect-error\n        const getProp = curried(curried.placeholder, (value) => value.a);\n        const objects = [{ a: 1 }, { a: 2 }, { a: 1 }];\n        const combined = flow(getProp, uniq);\n        expect(combined(objects)).toEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/function/flow.spec.ts › flow › `flow` should return the first argument when no functions are provided",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst combined = flow();\n        expect(combined(42)).toBe(42);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/function/flow.spec.ts › flow › `flow` should preserve `this` context",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst obj = {\n            multiplier: 2,\n            multiply: function (x, y) {\n                return add(x, y) * this.multiplier;\n            },\n        };\n        const combined = flow(obj.multiply, square);\n        expect(combined.call(obj, 1, 2)).toBe(36);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

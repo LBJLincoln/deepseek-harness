@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/k_means_cluster.test.js › k-means clustering test › Single cluster of one point contains only that point",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_kMeansCluster } from \"./src/k_means_cluster.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, kMeansCluster: __ns1_kMeansCluster });\n{\nfunction nonRNG() {\n    return 1.0 - ss.epsilon;\n}\n{\n{\nconst points = Object.freeze([[0.5]]);\n        const { labels, centroids } = ss.kMeansCluster(points, 1, nonRNG);\n        assert.deepEqual(labels, [0]);\n        assert.deepEqual(centroids, [[0.5]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/k_means_cluster.test.js › k-means clustering test › Clustering with default Math.random",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_kMeansCluster } from \"./src/k_means_cluster.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, kMeansCluster: __ns1_kMeansCluster });\n{\nfunction nonRNG() {\n    return 1.0 - ss.epsilon;\n}\n{\n{\nconst points = Object.freeze([[0.5]]);\n        const { labels, centroids } = ss.kMeansCluster(points, 1);\n        assert.deepEqual(labels.length, 1);\n        assert.deepEqual(centroids.length, 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/k_means_cluster.test.js › k-means clustering test › Single cluster of two points contains both points",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_kMeansCluster } from \"./src/k_means_cluster.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, kMeansCluster: __ns1_kMeansCluster });\n{\nfunction nonRNG() {\n    return 1.0 - ss.epsilon;\n}\n{\n{\nconst points = Object.freeze([[0.0], [1.0]]);\n        const { labels, centroids } = ss.kMeansCluster(points, 1, nonRNG);\n        assert.deepEqual(labels, [0, 0]);\n        assert.deepEqual(centroids, [[0.5]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/k_means_cluster.test.js › k-means clustering test › Two clusters of two points puts each point in its own cluster",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_kMeansCluster } from \"./src/k_means_cluster.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, kMeansCluster: __ns1_kMeansCluster });\n{\nfunction nonRNG() {\n    return 1.0 - ss.epsilon;\n}\n{\n{\nconst points = Object.freeze([[0.0], [1.0]]);\n        const { labels, centroids } = ss.kMeansCluster(points, 2, nonRNG);\n        assert.deepEqual(labels, [0, 1]);\n        assert.deepEqual(centroids, [[0.0], [1.0]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/k_means_cluster.test.js › k-means clustering test › Two clusters of four paired points puts each pair in a cluster",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_kMeansCluster } from \"./src/k_means_cluster.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, kMeansCluster: __ns1_kMeansCluster });\n{\nfunction nonRNG() {\n    return 1.0 - ss.epsilon;\n}\n{\n{\nconst points = Object.freeze([[0.0], [1.0], [0.0], [1.0]]);\n        const { labels, centroids } = ss.kMeansCluster(points, 2, nonRNG);\n        assert.deepEqual(labels, [0, 1, 0, 1]);\n        assert.deepEqual(centroids, [[0.0], [1.0]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/k_means_cluster.test.js › k-means clustering test › Two clusters of two 2D points puts each point in its own cluster",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_kMeansCluster } from \"./src/k_means_cluster.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, kMeansCluster: __ns1_kMeansCluster });\n{\nfunction nonRNG() {\n    return 1.0 - ss.epsilon;\n}\n{\n{\nconst points = Object.freeze([\n            [0.0, 0.5],\n            [1.0, 0.5]\n        ]);\n        const { labels, centroids } = ss.kMeansCluster(points, 2, nonRNG);\n        assert.deepEqual(labels, [0, 1]);\n        assert.deepEqual(centroids, [\n            [0.0, 0.5],\n            [1.0, 0.5]\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "test/k_means_cluster.test.js › k-means clustering test › Two clusters of three 2D points puts two points in one cluster and one in the other",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_kMeansCluster } from \"./src/k_means_cluster.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, kMeansCluster: __ns1_kMeansCluster });\n{\nfunction nonRNG() {\n    return 1.0 - ss.epsilon;\n}\n{\n{\nconst points = Object.freeze([\n            [0.0, 0.5],\n            [1.0, 0.5],\n            [0.1, 0.0]\n        ]);\n        const { labels, centroids } = ss.kMeansCluster(points, 2, nonRNG);\n        assert.deepEqual(labels, [0, 1, 0]);\n        assert.deepEqual(centroids, [\n            [0.05, 0.25],\n            [1.0, 0.5]\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

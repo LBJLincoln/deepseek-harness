@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/splitWhen.test.ts › should split array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitWhen } from \"./src/splitWhen.js\";\n{\n{\nexpect(splitWhen([1, 2, 3, 1, 2, 3], (x) => x === 2)).toStrictEqual([\n        [1],\n        [2, 3, 1, 2, 3],\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/splitWhen.test.ts › should with no matches",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitWhen } from \"./src/splitWhen.js\";\n{\n{\nconst n = 1232;\n    expect(splitWhen([1, 2, 3, 1, 2, 3], (x) => x === n)).toStrictEqual([\n        [1, 2, 3, 1, 2, 3],\n        [],\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

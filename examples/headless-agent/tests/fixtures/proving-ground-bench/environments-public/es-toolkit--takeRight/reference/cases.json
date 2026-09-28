@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/takeRight.spec.ts › takeRight › returns the last n elements from the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeRight } from \"./src/array/takeRight.js\";\n{\n{\n{\nexpect(takeRight([1, 2, 3, 4, 5], 2)).toEqual([4, 5]);\n        expect(takeRight(['a', 'b', 'c', 'd'], 2)).toEqual(['c', 'd']);\n        expect(takeRight([true, false, true], 1)).toEqual([true]);\n        expect(takeRight([1, 2, 3], 5)).toEqual([1, 2, 3]);\n        expect(takeRight([1, 2, 3], 0)).toEqual([]);\n        expect(takeRight([], 3)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/takeRight.spec.ts › takeRight › handles cases where count is greater than array length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeRight } from \"./src/array/takeRight.js\";\n{\n{\n{\nexpect(takeRight([1, 2, 3], 5)).toEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/takeRight.spec.ts › takeRight › handles cases where count is zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeRight } from \"./src/array/takeRight.js\";\n{\n{\n{\nexpect(takeRight([1, 2, 3], 0)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/takeRight.spec.ts › takeRight › handles empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeRight } from \"./src/array/takeRight.js\";\n{\n{\n{\nexpect(takeRight([], 3)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/takeRight.spec.ts › takeRight › handles negative counts",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { takeRight } from \"./src/array/takeRight.js\";\n{\n{\n{\nexpect(takeRight([1, 2, 3], -1)).toEqual([]);\n        expect(takeRight([1, 2, 3], -5)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/secondsToMilliseconds/test.ts › secondsToMilliseconds › converts seconds to milliseconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { secondsToMilliseconds } from \"./src/secondsToMilliseconds/index.js\";\n{\n{\n{\nexpect(secondsToMilliseconds(1)).toBe(1000);\n        expect(secondsToMilliseconds(2)).toBe(2000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/secondsToMilliseconds/test.ts › secondsToMilliseconds › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { secondsToMilliseconds } from \"./src/secondsToMilliseconds/index.js\";\n{\n{\n{\nexpect(secondsToMilliseconds(1.5)).toBe(1500);\n        expect(secondsToMilliseconds(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

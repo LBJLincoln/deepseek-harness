@@ -1,0 +1,122 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/dropWhile.test.ts › data first › should return items starting from the first predicate failure",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(dropWhile([1, 2, 3, 4], (n) => n !== 3)).toStrictEqual([3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/dropWhile.test.ts › data first › should return an empty array when all items pass the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(dropWhile([1, 2, 3, 4], (n) => n > 0)).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/dropWhile.test.ts › data first › should return an empty array when an empty array is passed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(dropWhile([], (n) => n > 0)).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/dropWhile.test.ts › data first › should return last item when last item fails the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(dropWhile([1, 2, 3, 4], (n) => n !== 4)).toStrictEqual([4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/dropWhile.test.ts › data first › should return a copy of the array when the first item fails the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [1, 2, 3, 4];\n        const result = dropWhile(data, (n) => n !== 1);\n        expect(result).toStrictEqual(data);\n        expect(result).not.toBe(data);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/dropWhile.test.ts › data last › should return items starting from the first predicate failure",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], dropWhile((n) => n !== 3))).toStrictEqual([3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/dropWhile.test.ts › data last › should return an empty array when all items pass the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], dropWhile((n) => n > 0))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/dropWhile.test.ts › data last › should return an empty array when an empty array is passed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], dropWhile((n) => n > 0))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/dropWhile.test.ts › data last › should return last item when last item fails the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], dropWhile((n) => n !== 4))).toStrictEqual([4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/dropWhile.test.ts › data last › should return a copy of the array when the first item fails the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropWhile } from \"./src/dropWhile.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [1, 2, 3, 4];\n        const result = pipe(data, dropWhile((n) => n !== 1));\n        expect(result).toStrictEqual(data);\n        expect(result).not.toBe(data);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

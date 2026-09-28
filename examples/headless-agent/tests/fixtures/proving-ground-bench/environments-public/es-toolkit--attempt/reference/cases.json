@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/attempt.spec.ts › attempt › should return the result of the function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attempt } from \"./src/util/attempt.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nexpect(attempt(() => 1)).toEqual([null, 1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/attempt.spec.ts › attempt › should return the error of the function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attempt } from \"./src/util/attempt.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nexpect(attempt(() => {\n            throw new Error('test');\n        })).toEqual([new Error('test'), null]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/util/attempt.spec.ts › attempt › should accept a single type argument for the result type",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attempt } from \"./src/util/attempt.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst [error, names] = attempt(() => ['Alice', 'Bob']);\n        expect(error).toBeNull();\n        expect(names).toEqual(['Alice', 'Bob']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/util/attempt.spec.ts › attempt › should return the result of the promise",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attempt } from \"./src/util/attempt.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst [error, result] = attempt(async () => 1);\n        expect(error).toBeNull();\n        expect(await result).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/util/attempt.spec.ts › attempt › should return the result of the promise that throws an error",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attempt } from \"./src/util/attempt.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst [error, result] = attempt(async () => {\n            await delay(100);\n            throw new Error('test');\n        });\n        expect(error).toBeNull();\n        try {\n            await result;\n        }\n        catch (tryError) {\n            expect(tryError).toBeInstanceOf(Error);\n            expect(error).toBeNull();\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

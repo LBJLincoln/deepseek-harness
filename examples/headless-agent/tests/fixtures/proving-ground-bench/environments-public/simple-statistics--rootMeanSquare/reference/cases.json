@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/root_mean_square.test.js › root_mean_square › can get the RMS of two or more numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_rootMeanSquare } from \"./src/root_mean_square.js\";\nconst ss = Object.freeze({ rootMeanSquare: __ns1_rootMeanSquare });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nassert.equal(ss.rootMeanSquare([1, 1]), 1);\n        assert.equal(rnd(ss.rootMeanSquare([3, 4, 5])), 4.082);\n        assert.equal(rnd(ss.rootMeanSquare([-0.1, 5, -2, 10])), 5.679);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/scaled_root_mean_square.test.js › scaledRootMeanSquare › agrees with rootMeanSquare on ordinary input",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_rootMeanSquare } from \"./src/root_mean_square.js\";\nimport { default as __ns1_scaledRootMeanSquare } from \"./src/scaled_root_mean_square.js\";\nconst ss = Object.freeze({ rootMeanSquare: __ns1_rootMeanSquare, scaledRootMeanSquare: __ns1_scaledRootMeanSquare });\n{\n{\n{\nconst cases = [[-1, 1, -1, 1], [1, 2, 3, 4], [-3, 4], [7], [0, 0, 0]];\n        for (const x of cases) {\n            assert.equal(ss.scaledRootMeanSquare(x), ss.rootMeanSquare(x), JSON.stringify(x));\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/scaled_root_mean_square.test.js › scaledRootMeanSquare › stays finite where the squares leave range",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_rootMeanSquare } from \"./src/root_mean_square.js\";\nimport { default as __ns1_scaledRootMeanSquare } from \"./src/scaled_root_mean_square.js\";\nconst ss = Object.freeze({ rootMeanSquare: __ns1_rootMeanSquare, scaledRootMeanSquare: __ns1_scaledRootMeanSquare });\n{\n{\n{\n// sqrt((1 + 4 + 9) / 3) * 1e200\n        const expected = Math.sqrt(14 / 3) * 1e200;\n        const actual = ss.scaledRootMeanSquare([1e200, 2e200, 3e200]);\n        assert.equal(Math.abs(actual - expected) / expected < 1e-15, true);\n        assert.equal(ss.rootMeanSquare([1e200, 2e200, 3e200]), Infinity);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/scaled_root_mean_square.test.js › scaledRootMeanSquare › stays nonzero where the squares underflow",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_rootMeanSquare } from \"./src/root_mean_square.js\";\nimport { default as __ns1_scaledRootMeanSquare } from \"./src/scaled_root_mean_square.js\";\nconst ss = Object.freeze({ rootMeanSquare: __ns1_rootMeanSquare, scaledRootMeanSquare: __ns1_scaledRootMeanSquare });\n{\n{\n{\nconst expected = Math.sqrt(14 / 3) * 1e-200;\n        const actual = ss.scaledRootMeanSquare([1e-200, 2e-200, 3e-200]);\n        assert.equal(Math.abs(actual - expected) / expected < 1e-15, true);\n        assert.equal(ss.rootMeanSquare([1e-200, 2e-200, 3e-200]), 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

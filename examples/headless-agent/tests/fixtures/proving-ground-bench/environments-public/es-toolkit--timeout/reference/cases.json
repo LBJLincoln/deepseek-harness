@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/promise/timeout.spec.ts › timeout › never settles when aborted before the delay elapses (disarmed, not rejected)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { delay } from \"./src/promise/delay.js\";\nimport { timeout } from \"./src/promise/timeout.js\";\n{\n{\n{\nconst controller = new AbortController();\n        const promise = timeout(50, { signal: controller.signal });\n        let settled = false;\n        promise.then(() => (settled = true), () => (settled = true));\n        controller.abort();\n        await delay(100); // wait past the original deadline\n        expect(settled).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/promise/timeout.spec.ts › timeout › never settles when the signal is already aborted",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { delay } from \"./src/promise/delay.js\";\nimport { timeout } from \"./src/promise/timeout.js\";\n{\n{\n{\nconst controller = new AbortController();\n        controller.abort();\n        const promise = timeout(50, { signal: controller.signal });\n        let settled = false;\n        promise.then(() => (settled = true), () => (settled = true));\n        await delay(100);\n        expect(settled).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

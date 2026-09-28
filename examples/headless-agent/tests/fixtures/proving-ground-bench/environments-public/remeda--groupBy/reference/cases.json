@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/groupBy.test.ts › data first › groupBy",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/groupBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\n{\nexpect(groupBy([\n            { a: 1, b: 1 },\n            { a: 1, b: 2 },\n            { a: 2, b: 1 },\n            { a: 1, b: 3 },\n        ], prop(\"a\"))).toStrictEqual({\n            1: [\n                { a: 1, b: 1 },\n                { a: 1, b: 2 },\n                { a: 1, b: 3 },\n            ],\n            2: [{ a: 2, b: 1 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/groupBy.test.ts › data last › groupBy",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/groupBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\n{\nexpect(pipe([\n            { a: 1, b: 1 },\n            { a: 1, b: 2 },\n            { a: 2, b: 1 },\n            { a: 1, b: 3 },\n        ], groupBy(prop(\"a\")))).toStrictEqual({\n            1: [\n                { a: 1, b: 1 },\n                { a: 1, b: 2 },\n                { a: 1, b: 3 },\n            ],\n            2: [{ a: 2, b: 1 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/groupBy.test.ts › filtering on undefined grouper result › regular",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/groupBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\n{\nconst result = groupBy([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], (x) => x % 2 === 0 ? \"even\" : undefined);\n        expect(Object.values(result)).toHaveLength(1);\n        expect(result.even).toStrictEqual([0, 2, 4, 6, 8]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/groupBy.test.ts › filtering on undefined grouper result › regular indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/groupBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\n{\nconst result = groupBy([\"a\", \"b\", \"c\", \"d\", \"e\", \"f\", \"g\", \"h\", \"i\", \"j\"], (_, index) => (index % 2 === 0 ? \"even\" : undefined));\n        expect(Object.values(result)).toHaveLength(1);\n        expect(result.even).toStrictEqual([\"a\", \"c\", \"e\", \"g\", \"i\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/groupBy.test.ts › key is an object instance method name › groupBy",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/groupBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\n{\nexpect(groupBy([\n            { a: \"toString\", b: \"toString\" },\n            { a: \"toString\", b: \"valueOf\" },\n            { a: \"valueOf\", b: \"toString\" },\n            { a: \"toString\", b: \"__proto__\" },\n        ], prop(\"a\"))).toStrictEqual({\n            toString: [\n                { a: \"toString\", b: \"toString\" },\n                { a: \"toString\", b: \"valueOf\" },\n                { a: \"toString\", b: \"__proto__\" },\n            ],\n            valueOf: [{ a: \"valueOf\", b: \"toString\" }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

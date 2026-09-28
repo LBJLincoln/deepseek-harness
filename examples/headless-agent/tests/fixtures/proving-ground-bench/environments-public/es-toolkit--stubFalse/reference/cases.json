@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-038",
+    "title": "src/predicate/isEqualWith.spec.ts › isEqualWith › should return `false` for objects with custom `toString` methods when customizer returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqualWith } from \"./src/predicate/isEqualWith.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { arrayViews } from \"./src/compat/_internal/arrayViews.js\";\nimport { stubFalse } from \"./src/compat/util/stubFalse.js\";\nimport { noop } from \"./src/function/noop.js\";\n{\n{\nconst symbol1 = Symbol ? Symbol('a') : true;\nconst symbol2 = Symbol ? Symbol('b') : false;\n{\nlet primitive;\n        const object = {\n            toString: function () {\n                return primitive;\n            },\n        };\n        const values = [true, null, 1, 'a', undefined];\n        const expected = values.map(stubFalse);\n        const actual = values.map(value => {\n            primitive = value;\n            return isEqualWith(object, value, noop);\n        });\n        expect(actual).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

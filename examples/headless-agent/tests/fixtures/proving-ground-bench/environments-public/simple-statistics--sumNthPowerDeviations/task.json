@@ -1,0 +1,51 @@
+{
+  "id": "code:simple-statistics--implement-sumNthPowerDeviations",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/sum_nth_power_deviations.js",
+    "tests": [
+      "test/sum_nth_power_deviations.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/sum_nth_power_deviations.js",
+    "function": "sumNthPowerDeviations"
+  },
+  "title": "Implement sumNthPowerDeviations from simple-statistics",
+  "prompt": "`src/sum_nth_power_deviations.js` is the JavaScript build of `src/sum_nth_power_deviations.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `sumNthPowerDeviations`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * The sum of deviations to the Nth power.\n * When n=2 it's the sum of squared deviations.\n * When n=3 it's the sum of cubed deviations.\n *\n * @param {Array<number>} x\n * @param {number} n power\n * @returns {number} sum of nth power deviations\n *\n * @example\n * var input = [1, 2, 3];\n * // since the variance of a set is the mean squared\n * // deviations, we can calculate that with sumNthPowerDeviations:\n * sumNthPowerDeviations(input, 2) / input.length;\n */\nfunction sumNthPowerDeviations(x, n)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/mean.js`, `src/sum.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

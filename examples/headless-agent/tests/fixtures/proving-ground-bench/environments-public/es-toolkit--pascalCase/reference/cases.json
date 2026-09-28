@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/pascalCase.spec.ts › pascalCase › should change space to pascal case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCase } from \"./src/string/pascalCase.js\";\n{\n{\n{\nexpect(pascalCase('some whitespace')).toEqual('SomeWhitespace');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/pascalCase.spec.ts › pascalCase › should change hyphen to pascal case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCase } from \"./src/string/pascalCase.js\";\n{\n{\n{\nexpect(pascalCase('hyphen-text')).toEqual('HyphenText');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/pascalCase.spec.ts › pascalCase › should change Acronyms to small letter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCase } from \"./src/string/pascalCase.js\";\n{\n{\n{\nexpect(pascalCase('HTTPRequest')).toEqual('HttpRequest');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/pascalCase.spec.ts › pascalCase › should handle leading and trailing whitespace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCase } from \"./src/string/pascalCase.js\";\n{\n{\n{\nexpect(pascalCase('    leading and trailing whitespace    ')).toEqual('LeadingAndTrailingWhitespace');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/pascalCase.spec.ts › pascalCase › should handle special characters correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCase } from \"./src/string/pascalCase.js\";\n{\n{\n{\nexpect(pascalCase('special@characters!')).toEqual('SpecialCharacters');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/pascalCase.spec.ts › pascalCase › should handle strings that are already in PascalCase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCase } from \"./src/string/pascalCase.js\";\n{\n{\n{\nexpect(pascalCase('PascalCase')).toEqual('PascalCase');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/pascalCase.spec.ts › pascalCase › should work with an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCase } from \"./src/string/pascalCase.js\";\n{\n{\n{\nexpect(pascalCase('')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/pascalCase.spec.ts › pascalCase › should work with screaming camel case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCase } from \"./src/string/pascalCase.js\";\n{\n{\n{\nexpect(pascalCase('FOO_BAR')).toEqual('FooBar');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

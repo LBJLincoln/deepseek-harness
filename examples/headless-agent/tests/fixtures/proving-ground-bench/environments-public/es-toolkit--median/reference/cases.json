@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/median.spec.ts › median › returns the median for an odd number of elements",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { median } from \"./src/math/median.js\";\n{\n{\n{\nexpect(median([1, 2, 3, 4, 5])).toEqual(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/median.spec.ts › median › returns the average of two middle elements for an even number of elements",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { median } from \"./src/math/median.js\";\n{\n{\n{\nexpect(median([1, 2, 3, 4])).toEqual(2.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math/median.spec.ts › median › returns the correct median for unsorted arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { median } from \"./src/math/median.js\";\n{\n{\n{\nexpect(median([5, 2, 1, 4, 3])).toEqual(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/math/median.spec.ts › median › returns NaN for empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { median } from \"./src/math/median.js\";\n{\n{\n{\nexpect(median([])).toEqual(NaN);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/math/median.spec.ts › median › returns the single element for arrays with one element",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { median } from \"./src/math/median.js\";\n{\n{\n{\nexpect(median([42])).toEqual(42);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

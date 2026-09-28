@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/isMatch/test.ts › isMatch › accepts a dd-MM-yyyy format against 22-02-1998",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isMatch } from \"./src/isMatch/index.js\";\nimport { eo } from \"./src/locale/eo/index.js\";\n{\n{\n{\nexpect(isMatch(\"22-02-1998\", \"dd-MM-yyyy\")).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/isMatch/test.ts › isMatch › reject a yyyy-dd-MM format against 22-02-1998",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isMatch } from \"./src/isMatch/index.js\";\nimport { eo } from \"./src/locale/eo/index.js\";\n{\n{\n{\nexpect(!isMatch(\"22-02-1998\", \"yyyy-dd-MM\")).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/isMatch/test.ts › isMatch › accepts a date & format with locale",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isMatch } from \"./src/isMatch/index.js\";\nimport { eo } from \"./src/locale/eo/index.js\";\n{\n{\n{\nexpect(isMatch(\"28-a de februaro\", \"do 'de' MMMM\", {\n            locale: eo,\n        })).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

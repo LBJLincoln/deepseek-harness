@@ -1,0 +1,290 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/truncate.test.ts › empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"\", 10)).toBe(\"\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/truncate.test.ts › trivial (0) n",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"hello, world!\", 0)).toBe(\"\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/truncate.test.ts › trivial case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"hello, world!\", 8)).toBe(\"hello...\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/truncate.test.ts › empty omission",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"hello, world!\", 5, { omission: \"\" })).toBe(\"hello\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/truncate.test.ts › empty separator",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"hello, world!\", 8, { separator: \"\" })).toBe(\"hello...\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/truncate.test.ts › trivial regex separator",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"hello, world!\", 8, { separator: /./u })).toBe(\"hello...\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/truncate.test.ts › trivial global regex separator",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"hello, world!\", 8, { separator: /./gu })).toBe(\"hello...\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/truncate.test.ts › multiple string separators within maxLength",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"cat, dog, mouse, elephant\", 20, { separator: \",\" })).toBe(\"cat, dog, mouse...\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/truncate.test.ts › multiple regex separators within maxLength",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"cat. dog, mouse. elephant\", 20, { separator: /,|\\./gu })).toBe(\"cat. dog, mouse...\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/truncate.test.ts › string separator matches after maxLength",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"A long sentence followed by a period. Another sentence\", 20, {\n        separator: \".\",\n    })).toBe(\"A long sentence f...\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/truncate.test.ts › string separator never matches",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"A long sentence without the chosen separator\", 20, {\n        separator: \"|\",\n    })).toBe(\"A long sentence w...\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/truncate.test.ts › regex separator matches after maxLength",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"A long sentence followed by a period. Another sentence\", 20, {\n        separator: /\\./u,\n    })).toBe(\"A long sentence f...\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/truncate.test.ts › regex separator never matches",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"A long sentence without the chosen separator\", 20, {\n        separator: /|/u,\n    })).toBe(\"A long sentence w...\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/truncate.test.ts › omission is longer than maxLength",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"Hello, world!\", 5, { omission: \"123456789\" })).toBe(\"12345\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/truncate.test.ts › n is in range ((data.length - omission.length)..data.length]",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(truncate(\"Hello, world!\", 11)).toBe(\"Hello, w...\");\n    expect(truncate(\"Hello, world!\", 12)).toBe(\"Hello, wo...\");\n    expect(truncate(\"Hello, world!\", 13)).toBe(\"Hello, world!\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/truncate.test.ts › data-last › has an implicit default options object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe(\"Hello, world!\", truncate(8))).toBe(\"Hello...\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/truncate.test.ts › data-last › accepts an options object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe(\"Hello, world!\", truncate(10, { omission: \"Bye!\", separator: \",\" }))).toBe(\"HelloBye!\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/truncate.test.ts › lodash spec › should not truncate if `string` is <= `length`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(truncate(\"hi-diddly-ho there, neighborino\", 31)).toBe(\"hi-diddly-ho there, neighborino\");\n        expect(truncate(\"hi-diddly-ho there, neighborino\", 33)).toBe(\"hi-diddly-ho there, neighborino\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/truncate.test.ts › lodash spec › should truncate string the given length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(truncate(\"hi-diddly-ho there, neighborino\", 24)).toBe(\"hi-diddly-ho there, n...\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/truncate.test.ts › lodash spec › should support a `omission` option",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(truncate(\"hi-diddly-ho there, neighborino\", 30, { omission: \" [...]\" })).toBe(\"hi-diddly-ho there, neig [...]\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/truncate.test.ts › lodash spec › should support a `maxLength` option",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(truncate(\"hi-diddly-ho there, neighborino\", 4)).toBe(\"h...\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/truncate.test.ts › lodash spec › should support a `separator` option",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(truncate(\"hi-diddly-ho there, neighborino\", 24, { separator: \" \" })).toBe(\"hi-diddly-ho there,...\");\n        expect(truncate(\"hi-diddly-ho there, neighborino\", 24, { separator: /,? +/u })).toBe(\"hi-diddly-ho there...\");\n        expect(truncate(\"hi-diddly-ho there, neighborino\", 24, { separator: /,? +/gu })).toBe(\"hi-diddly-ho there...\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/truncate.test.ts › lodash spec › should treat negative `length` as `0`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\n// Lodash returns the omission, but that would cause the string to overflow\n        // its defined max length which seems odd...\n        expect(truncate(\"hi-diddly-ho there, neighborino\", -2)).toBe(\"\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/truncate.test.ts › lodash spec › should coerce `length` to an integer",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { truncate } from \"./src/truncate.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(truncate(\"hi-diddly-ho there, neighborino\", 4.6)).toBe(\"h...\");\n        expect(truncate(\"hi-diddly-ho there, neighborino\", NaN)).toBe(\"...\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

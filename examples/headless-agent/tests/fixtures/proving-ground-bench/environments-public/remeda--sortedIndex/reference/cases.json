@@ -1,0 +1,158 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/sortedIndex.test.ts › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\nexpect(sortedIndex([], 1)).toBe(0);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/sortedIndex.test.ts › array with single item › item smaller than item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([2], 1)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/sortedIndex.test.ts › array with single item › item larger than item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([0], 1)).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/sortedIndex.test.ts › array with single item › item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([1], 1)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/sortedIndex.test.ts › array with multiple values › item smaller than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([1, 2, 3, 4, 5], 0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/sortedIndex.test.ts › array with multiple values › item larger than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([1, 2, 3, 4, 5], 6)).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/sortedIndex.test.ts › array with multiple values › item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([1, 2, 3, 4, 5], 3)).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/sortedIndex.test.ts › array with duplicates › item smaller than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([1, 1, 1, 1, 1], 0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/sortedIndex.test.ts › array with duplicates › item larger than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([1, 1, 1, 1, 1], 2)).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/sortedIndex.test.ts › array with duplicates › item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([1, 1, 1, 1, 1], 1)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/sortedIndex.test.ts › string array › item smaller than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([\"a\", \"b\", \"c\", \"d\", \"e\"], \" \")).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/sortedIndex.test.ts › string array › item larger than all items in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([\"a\", \"b\", \"c\", \"d\", \"e\"], \"z\")).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/sortedIndex.test.ts › string array › item in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortedIndex } from \"./src/sortedIndex.js\";\n{\n{\n{\nexpect(sortedIndex([\"a\", \"b\", \"c\", \"d\", \"e\"], \"c\")).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

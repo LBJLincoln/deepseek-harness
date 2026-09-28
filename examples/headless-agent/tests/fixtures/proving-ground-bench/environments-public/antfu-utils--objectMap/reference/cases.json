@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object.test.ts › objectMap",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepMerge, deepMergeWithArray, objectId, objectMap } from \"./src/object.js\";\n{\n{\nexpect(objectMap({}, (...args) => args)).toEqual({});\n    expect(objectMap({ a: 1, b: 2 }, (k, v) => [k.toString().toUpperCase(), v.toString()])).toEqual({ A: '1', B: '2' });\n    expect(objectMap({ a: 1, b: 2 }, () => undefined)).toEqual({});\n    expect(objectMap({ a: 1, b: 2 }, (k, v) => k === 'a' ? undefined : [k, v])).toEqual({ b: 2 });\n    expect(objectMap({ a: 1, b: 2 }, (k, v) => [v, k])).toEqual({ 1: 'a', 2: 'b' });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

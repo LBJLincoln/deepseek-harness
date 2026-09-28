@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/takeWhile.test.ts › data_first › takeWhile",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeWhile } from \"./src/takeWhile.js\";\n{\n{\n{\nexpect(takeWhile([1, 2, 3, 4, 3, 2, 1], (x) => x !== 4)).toStrictEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/takeWhile.test.ts › data_last › takeWhile",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeWhile } from \"./src/takeWhile.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4, 3, 2, 1], takeWhile((x) => x !== 4))).toStrictEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

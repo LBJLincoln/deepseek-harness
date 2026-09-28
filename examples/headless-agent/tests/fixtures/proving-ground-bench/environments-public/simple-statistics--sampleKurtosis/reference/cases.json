@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-005",
+    "title": "test/sample_kurtosis.test.js › sample kurtosis › can calculate the kurtosis of SAS example 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleKurtosis } from \"./src/sample_kurtosis.js\";\nconst ss = Object.freeze({ sampleKurtosis: __ns1_sampleKurtosis });\n{\n{\n{\n// Data and answer taken from KURTOSIS function documentation at\n        // https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm#a000245906.htm\n        const data = Object.freeze([5, 9, 3, 6]);\n        assert.equal(+ss.sampleKurtosis(data).toPrecision(10), 0.928);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/sample_kurtosis.test.js › sample kurtosis › can calculate the kurtosis of SAS example 2",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleKurtosis } from \"./src/sample_kurtosis.js\";\nconst ss = Object.freeze({ sampleKurtosis: __ns1_sampleKurtosis });\n{\n{\n{\n// Data and answer taken from KURTOSIS function documentation at\n        // https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm#a000245906.htm\n        const data = Object.freeze([5, 8, 9, 6]);\n        assert.equal(+ss.sampleKurtosis(data).toPrecision(10), -3.3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "test/sample_kurtosis.test.js › sample kurtosis › can calculate the kurtosis of SAS example 3",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleKurtosis } from \"./src/sample_kurtosis.js\";\nconst ss = Object.freeze({ sampleKurtosis: __ns1_sampleKurtosis });\n{\n{\n{\n// Data and answer taken from KURTOSIS function documentation at\n        // https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm#a000245906.htm\n        const data = Object.freeze([8, 9, 6, 1]);\n        assert.equal(+ss.sampleKurtosis(data).toPrecision(10), 1.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "test/sample_kurtosis.test.js › sample kurtosis › can calculate the kurtosis of SAS example 4",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleKurtosis } from \"./src/sample_kurtosis.js\";\nconst ss = Object.freeze({ sampleKurtosis: __ns1_sampleKurtosis });\n{\n{\n{\n// Data and answer taken from KURTOSIS function documentation at\n        // https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm#a000245906.htm\n        const data = Object.freeze([8, 1, 6, 1]);\n        assert.equal(+ss.sampleKurtosis(data).toPrecision(10), -4.483379501);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

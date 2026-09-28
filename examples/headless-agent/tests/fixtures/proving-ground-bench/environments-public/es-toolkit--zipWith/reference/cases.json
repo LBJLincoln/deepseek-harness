@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/zipWith.spec.ts › zipWith › zips multiple arrays with the given combine function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { zipWith } from \"./src/array/zipWith.js\";\n{\n{\n{\nexpect(zipWith([1, 2, 3], x => x)).toEqual([1, 2, 3]);\n        expect(zipWith([1, 2, 3], ['a', 'b', 'c'], (x, y) => `${x}${y}`)).toEqual(['1a', '2b', '3c']);\n        expect(zipWith([1, 2, 3], ['a', 'b'], (x, y) => `${x}${y}`)).toEqual(['1a', '2b', '3undefined']);\n        expect(zipWith([1, 2, 3], ['a', 'b', 'c'], [true, true, false], (x, y, z) => `${x}-${y}-${z}`)).toEqual([\n            `1-a-true`,\n            `2-b-true`,\n            `3-c-false`,\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/zipWith.spec.ts › zipWith › should provide index parameter to combine function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { zipWith } from \"./src/array/zipWith.js\";\n{\n{\n{\nconst result = zipWith([10, 20, 30], [1, 2, 3], (a, b, index) => a + b + index);\n        expect(result).toEqual([11, 23, 35]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

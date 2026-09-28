@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/serialize/serializeBigInt.spec.ts › serializeBigInt › should serialize bigints with an n suffix",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeBigInt } from \"./src/util/serialize/serializeBigInt.js\";\n{\n{\n{\nexpect(serializeBigInt(0n)).toBe('0n');\n        expect(serializeBigInt(123n)).toBe('123n');\n        expect(serializeBigInt(-123n)).toBe('-123n');\n        expect(serializeBigInt(9007199254740991n)).toBe('9007199254740991n');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/serialize/serializeBigInt.spec.ts › serializeBigInt › should serialize bigints larger than Number.MAX_SAFE_INTEGER",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeBigInt } from \"./src/util/serialize/serializeBigInt.js\";\n{\n{\n{\nexpect(serializeBigInt(123456789012345678901234567890n)).toBe('123456789012345678901234567890n');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

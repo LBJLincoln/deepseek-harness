@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/pick.spec.ts › pick › should pick properties from an object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pick } from \"./src/object/pick.js\";\n{\n{\n{\nconst object = { foo: 1, bar: 2, baz: 3 };\n        const result = pick(object, ['foo', 'bar']);\n        expect(result).toEqual({ foo: 1, bar: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/pick.spec.ts › pick › should return the same object if all keys are picked",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pick } from \"./src/object/pick.js\";\n{\n{\n{\nconst object = { a: 1, b: 2, c: 3 };\n        const result = pick(object, ['a', 'b', 'c']);\n        expect(result).toEqual(object);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/pick.spec.ts › pick › should return an empty object if the key array is empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pick } from \"./src/object/pick.js\";\n{\n{\n{\nconst object = { a: 1, b: 2, c: 3 };\n        const result = pick(object, []);\n        expect(result).toEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/pick.spec.ts › pick › should work with nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pick } from \"./src/object/pick.js\";\n{\n{\n{\nconst object = { a: 1, b: { nested: 'pick' }, c: 3 };\n        const result = pick(object, ['a', 'b', 'c']);\n        expect(result).toEqual({ a: 1, b: { nested: 'pick' }, c: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/pick.spec.ts › pick › should not pick from nonexistent keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pick } from \"./src/object/pick.js\";\n{\n{\n{\nconst obj = {};\n        const result = pick(obj, ['a']);\n        expect(Reflect.ownKeys(result)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

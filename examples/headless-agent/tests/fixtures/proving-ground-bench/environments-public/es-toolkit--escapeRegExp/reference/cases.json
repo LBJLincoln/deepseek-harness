@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/escapeRegExp.spec.ts › escapeRegExp › should escape values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { escapeRegExp } from \"./src/string/escapeRegExp.js\";\n{\n{\nconst escaped = '\\\\^\\\\$\\\\.\\\\*\\\\+\\\\?\\\\(\\\\)\\\\[\\\\]\\\\{\\\\}\\\\|\\\\\\\\';\nconst unescaped = '^$.*+?()[]{}|\\\\';\n{\nexpect(escapeRegExp(unescaped + unescaped)).toBe(escaped + escaped);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/escapeRegExp.spec.ts › escapeRegExp › should handle strings with nothing to escape",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { escapeRegExp } from \"./src/string/escapeRegExp.js\";\n{\n{\nconst escaped = '\\\\^\\\\$\\\\.\\\\*\\\\+\\\\?\\\\(\\\\)\\\\[\\\\]\\\\{\\\\}\\\\|\\\\\\\\';\nconst unescaped = '^$.*+?()[]{}|\\\\';\n{\nexpect(escapeRegExp('abc')).toBe('abc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

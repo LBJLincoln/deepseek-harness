@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-003",
+    "title": "src/function/flow.spec.ts › flow › `flow` should work with a curried function and `_.head`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry((i) => i);\n        const combined = flow(head, curried);\n        expect(combined([1])).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/function/flow.spec.ts › flow › `flow` should work with curried functions with placeholders",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry(ary(map, 2), 2);\n        // eslint-disable-next-line @typescript-eslint/ban-ts-comment\n        // @ts-expect-error\n        const getProp = curried(curried.placeholder, (value) => value.a);\n        const objects = [{ a: 1 }, { a: 2 }, { a: 1 }];\n        const combined = flow(getProp, uniq);\n        expect(combined(objects)).toEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/function/flowRight.spec.ts › flowRight › `flowRight` should work with a curried function and `_.head`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flowRight } from \"./src/function/flowRight.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry((i) => i);\n        const combined = flowRight(curried, head);\n        expect(combined([1])).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/function/flowRight.spec.ts › flowRight › `flowRight` should work with curried functions with placeholders",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flowRight } from \"./src/function/flowRight.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry(ary(map, 2), 2);\n        // eslint-disable-next-line @typescript-eslint/ban-ts-comment\n        // @ts-expect-error\n        const getProp = curried(curried.placeholder, (value) => value.a);\n        const objects = [{ a: 1 }, { a: 2 }, { a: 1 }];\n        const combined = flowRight(uniq, getProp);\n        expect(combined(objects)).toEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "src/function/partial.spec.ts › partial › partial should work with curried functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst fn = function (a, b, c) {\n            return a + b + c;\n        }, curried = curry(partial(fn, 1), 2);\n        expect(curried(2, 3)).toBe(6);\n        expect(curried(2)(3)).toBe(6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "src/function/partial.spec.ts › partial › partial should work with placeholders and curried functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst fn = function () {\n            // eslint-disable-next-line prefer-rest-params\n            return Array.from(arguments);\n        }, curried = curry(fn), par = partial(curried, partial.placeholder, 'b', partial.placeholder, 'd');\n        expect(par('a', 'c')).toEqual(['a', 'b', 'c', 'd']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-033",
+    "title": "src/function/partialRight.spec.ts › partialRight › partialRight should work with curried functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/function/identity.js\";\nimport { partialRight } from \"./src/function/partialRight.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\n{\nconst { placeholder } = partialRight;\n{\nconst fn = function (a, b, c) {\n            return a + b + c;\n        }, curried = curry(partialRight(fn, 1), 2);\n        expect(curried(2, 3)).toBe(6);\n        expect(curried(2)(3)).toBe(6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-034",
+    "title": "src/function/partialRight.spec.ts › partialRight › partialRight should work with placeholders and curried functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/function/identity.js\";\nimport { partialRight } from \"./src/function/partialRight.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\n{\nconst { placeholder } = partialRight;\n{\nconst fn = function () {\n            // eslint-disable-next-line prefer-rest-params\n            return Array.from(arguments);\n        }, curried = curry(fn), par = partialRight(curried, partialRight.placeholder, 'b', partialRight.placeholder, 'd');\n        expect(par('a', 'c')).toEqual(['a', 'b', 'c', 'd']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/rangeRight.spec.ts › rangeRight › returns 3, 2, 1, 0 for rangeRight 0 to 4",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { rangeRight } from \"./src/math/rangeRight.js\";\n{\n{\n{\nexpect(rangeRight(4)).toEqual([3, 2, 1, 0]);\n        expect(rangeRight(0, 4)).toEqual([3, 2, 1, 0]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/rangeRight.spec.ts › rangeRight › returns an empty array for rangeRight 0 to -4",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { rangeRight } from \"./src/math/rangeRight.js\";\n{\n{\n{\nexpect(rangeRight(-4)).toEqual([]);\n        expect(rangeRight(0, -4)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math/rangeRight.spec.ts › rangeRight › can have positive step",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { rangeRight } from \"./src/math/rangeRight.js\";\n{\n{\n{\nexpect(rangeRight(0, 20, 5)).toEqual([15, 10, 5, 0]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/math/rangeRight.spec.ts › rangeRight › returns an empty array when the step is negative",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { rangeRight } from \"./src/math/rangeRight.js\";\n{\n{\n{\nexpect(rangeRight(0, 4, -1)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/math/rangeRight.spec.ts › rangeRight › throws an error when step is zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { rangeRight } from \"./src/math/rangeRight.js\";\n{\n{\n{\nexpect(() => rangeRight(1, 4, 0)).toThrowErrorMatchingInlineSnapshot(`[Error: The step value must be a non-zero integer.]`);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/math/rangeRight.spec.ts › rangeRight › returns an empty array when for rangeRight 0 to 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { rangeRight } from \"./src/math/rangeRight.js\";\n{\n{\n{\nexpect(rangeRight(0)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

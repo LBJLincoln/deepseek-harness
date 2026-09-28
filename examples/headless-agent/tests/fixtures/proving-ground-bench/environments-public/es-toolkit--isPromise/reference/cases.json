@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isPromise.spec.ts › isPromise › returns true if the value is a Promise",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isPromise } from \"./src/predicate/isPromise.js\";\n{\n{\n{\nexpect(isPromise(new Promise(resolve => resolve()))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isPromise.spec.ts › isPromise › returns false if the value is not a Promise",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isPromise } from \"./src/predicate/isPromise.js\";\n{\n{\n{\nexpect(isPromise(null)).toBe(false);\n        expect(isPromise('')).toBe(false);\n        expect(isPromise(123)).toBe(false);\n        expect(isPromise({})).toBe(false);\n        expect(isPromise([])).toBe(false);\n        expect(isPromise(new Map())).toBe(false);\n        expect(isPromise(new Set())).toBe(false);\n        expect(isPromise(new WeakSet())).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

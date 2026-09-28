@@ -1,0 +1,242 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/clone.spec.ts › clone › should return primitive values as is",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst symbol = Symbol('symbol');\n        expect(clone(42)).toBe(42);\n        expect(clone('es-toolkit')).toBe('es-toolkit');\n        expect(clone(symbol)).toBe(symbol);\n        expect(clone(true)).toBe(true);\n        expect(clone(null)).toBe(null);\n        expect(clone(undefined)).toBe(undefined);\n        expect(clone(42n)).toBe(42n);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/clone.spec.ts › clone › should clone arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst arr = [1, 2, 3];\n        const clonedArr = clone(arr);\n        expect(clonedArr).toEqual(arr);\n        expect(clonedArr).not.toBe(arr);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/clone.spec.ts › clone › should clone ArrayBuffer",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst buffer = new ArrayBuffer(8);\n        const clonedBuffer = clone(buffer);\n        expect(clonedBuffer).toEqual(buffer);\n        expect(clonedBuffer).not.toBe(buffer);\n        expect(clonedBuffer).toBeInstanceOf(ArrayBuffer);\n        expect(clonedBuffer.byteLength).toBe(buffer.byteLength);\n        expect(new Uint8Array(clonedBuffer)).toEqual(new Uint8Array(buffer));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/clone.spec.ts › clone › should clone buffers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst buffer = Buffer.from([1, 2, 3]);\n        const clonedBuffer = clone(buffer);\n        expect(clonedBuffer).toEqual(buffer);\n        expect(clonedBuffer).not.toBe(buffer);\n        expect(clonedBuffer).toBeInstanceOf(Buffer);\n        expect(clonedBuffer.length).toBe(buffer.length);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/clone.spec.ts › clone › should clone SharedArrayBuffer",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst buffer = new SharedArrayBuffer(8);\n        const clonedBuffer = clone(buffer);\n        expect(clonedBuffer).toEqual(buffer);\n        expect(clonedBuffer).not.toBe(buffer);\n        expect(clonedBuffer).toBeInstanceOf(SharedArrayBuffer);\n        expect(clonedBuffer.byteLength).toBe(buffer.byteLength);\n        expect(new Uint8Array(clonedBuffer)).toEqual(new Uint8Array(buffer));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object/clone.spec.ts › clone › should clone objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst obj = { a: 1, b: 'es-toolkit', c: [1, 2, 3] };\n        const clonedObj = clone(obj);\n        expect(clonedObj).toEqual(obj);\n        expect(clonedObj).not.toBe(obj);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/object/clone.spec.ts › clone › should clone objects with a null prototype",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst obj = Object.create(null);\n        const clonedObj = clone(obj);\n        expect(clonedObj).toEqual(obj);\n        expect(clonedObj).not.toBe(obj);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/object/clone.spec.ts › clone › should clone custom classes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nclass Person {\n            name;\n            age;\n            constructor(name, age) {\n                this.name = name;\n                this.age = age;\n            }\n            greet() {\n                return `Hello, my name is ${this.name}`;\n            }\n        }\n        const person = new Person('es-toolkit', 100);\n        const clonedPerson = clone(person);\n        expect(clonedPerson).toEqual(person);\n        expect(clonedPerson).not.toBe(person);\n        expect(clonedPerson.greet).toBe(person.greet);\n        expect(clonedPerson).toBeInstanceOf(Person);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/object/clone.spec.ts › clone › should clone dates",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst date = new Date();\n        const clonedDate = clone(date);\n        expect(clonedDate).toEqual(date);\n        expect(clonedDate).not.toBe(date);\n        expect(clonedDate).toBeInstanceOf(Date);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/object/clone.spec.ts › clone › should clone regular expressions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst regex = /abc/gsu;\n        regex.lastIndex = 10;\n        const clonedRegex = clone(regex);\n        expect(clonedRegex).toEqual(regex);\n        expect(clonedRegex).not.toBe(regex);\n        expect(clonedRegex).toBeInstanceOf(RegExp);\n        expect(clonedRegex.source).toBe(regex.source);\n        expect(clonedRegex.flags).toBe(regex.flags);\n        expect(clonedRegex.lastIndex).toBe(regex.lastIndex);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/object/clone.spec.ts › clone › should shallow clone nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst nestedObj = { a: [1, 2, 3], b: { c: 'es-toolkit' }, d: new Date() };\n        const clonedNestedObj = clone(nestedObj);\n        expect(clonedNestedObj).toEqual(nestedObj);\n        expect(clonedNestedObj).not.toBe(nestedObj);\n        expect(clonedNestedObj.a).toEqual(nestedObj.a);\n        expect(clonedNestedObj.a[2]).toEqual(nestedObj.a[2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/object/clone.spec.ts › clone › should return functions as is",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst func = () => { };\n        const clonedFunc = clone(func);\n        expect(clonedFunc).toBe(func);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/object/clone.spec.ts › clone › should clone sets",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst set = new Set([1, 2, 3]);\n        const clonedSet = clone(set);\n        expect(clonedSet).toEqual(set);\n        expect(clonedSet).not.toBe(set);\n        expect(clonedSet).toBeInstanceOf(Set);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/object/clone.spec.ts › clone › should clone maps",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst map = new Map([\n            [1, 'a'],\n            [2, 'b'],\n            [3, 'c'],\n        ]);\n        const clonedMap = clone(map);\n        expect(clonedMap).toEqual(map);\n        expect(clonedMap).not.toBe(map);\n        expect(clonedMap).toBeInstanceOf(Map);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/object/clone.spec.ts › clone › should clone typed arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst typedArray = new Uint8Array([1, 2, 3]);\n        const clonedTypedArray = clone(typedArray);\n        expect(clonedTypedArray).toEqual(typedArray);\n        expect(clonedTypedArray).not.toBe(typedArray);\n        expect(clonedTypedArray).toBeInstanceOf(Uint8Array);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "src/object/clone.spec.ts › clone › should clone BigInt64Array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst bigIntArray = new BigInt64Array([1n, 2n, 3n]);\n        const clonedBigIntArray = clone(bigIntArray);\n        expect(clonedBigIntArray).toEqual(bigIntArray);\n        expect(clonedBigIntArray).not.toBe(bigIntArray);\n        expect(clonedBigIntArray).toBeInstanceOf(BigInt64Array);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "src/object/clone.spec.ts › clone › should clone Data views",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst buffer = new ArrayBuffer(8);\n        const dataView = new DataView(buffer);\n        const clonedDataView = clone(dataView);\n        expect(clonedDataView).toEqual(dataView);\n        expect(clonedDataView).not.toBe(dataView);\n        expect(clonedDataView).toBeInstanceOf(DataView);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "src/object/clone.spec.ts › clone › should clone Error",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nconst error = new Error('Something went wrong', { cause: 'Unknown' });\n        const clonedError = clone(error);\n        expect(clonedError).toEqual(error);\n        expect(clonedError).not.toBe(error);\n        expect(clonedError).toBeInstanceOf(Error);\n        expect(clonedError.message).toBe(error.message);\n        expect(clonedError.stack).toBe(error.stack);\n        expect(clonedError.name).toBe(error.name);\n        expect(clonedError.cause).toBe(error.cause);\n        const aggregateError = new AggregateError([new Error('First'), new Error('Second')], 'Multiple errors occurred');\n        const clonedAggregateError = clone(aggregateError);\n        expect(clonedAggregateError).toEqual(aggregateError);\n        expect(clonedAggregateError).not.toBe(aggregateError);\n        expect(clonedAggregateError).toBeInstanceOf(AggregateError);\n        expect(clonedAggregateError.message).toBe(aggregateError.message);\n        expect(clonedAggregateError.stack).toBe(aggregateError.stack);\n        expect(clonedAggregateError.name).toBe(aggregateError.name);\n        expect(clonedAggregateError.errors).toEqual(aggregateError.errors);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "src/object/clone.spec.ts › clone › should clone Custom Error",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nclass CustomError extends Error {\n            name;\n            custom;\n            constructor(message) {\n                super(message);\n                this.name = 'CustomError';\n            }\n        }\n        const error = new CustomError('Something went wrong');\n        error.custom = 'Custom property';\n        const clonedError = clone(error);\n        expect(clonedError).toEqual(error);\n        expect(clonedError).not.toBe(error);\n        expect(clonedError).toBeInstanceOf(CustomError);\n        expect(clonedError.message).toBe(error.message);\n        expect(clonedError.name).toBe(error.name);\n        expect(clonedError.stack).toBe(error.stack);\n        expect(clonedError.custom).toBe(error.custom);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "src/object/clone.spec.ts › clone › should clone class instance",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clone } from \"./src/object/clone.js\";\n{\n{\n{\nclass CustomClass {\n            value;\n            constructor(value) {\n                this.value = value;\n            }\n            getValue() {\n                return this.value;\n            }\n        }\n        const instance = new CustomClass(123);\n        const clonedInstance = clone(instance);\n        expect(clonedInstance).toEqual(instance);\n        expect(clonedInstance).not.toBe(instance);\n        expect(clonedInstance).toBeInstanceOf(CustomClass);\n        expect(clonedInstance.value).toBe(instance.value);\n        expect(clonedInstance.getValue()).toBe(123);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

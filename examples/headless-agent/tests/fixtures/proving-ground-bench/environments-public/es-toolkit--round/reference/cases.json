@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/round.spec.ts › round function › rounds a number to zero decimal places by default",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { round } from \"./src/math/round.js\";\n{\n{\n{\nexpect(round(1.5)).toBe(2);\n        expect(round(1.4)).toBe(1);\n        // JavaScript는 반올림 하는 부분이 정확히 음수 0.5라면 +∞방향, 즉, 정수로 반올림 한다.\n        // If the fractional portion is exactly 0.5, the argument is rounded to the next integer in the direction of +∞. (positive number)\n        expect(round(-1.5)).toBe(-1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/round.spec.ts › round function › rounds a number to a specified number of decimal places",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { round } from \"./src/math/round.js\";\n{\n{\n{\nexpect(round(1.2345, 2)).toBe(1.23);\n        expect(round(1.2365, 2)).toBe(1.24);\n        expect(round(-1.2345, 2)).toBe(-1.23);\n        expect(round(-1.2365, 2)).toBe(-1.24);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math/round.spec.ts › round function › handles zero precision as default precision",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { round } from \"./src/math/round.js\";\n{\n{\n{\nexpect(round(1.999)).toBe(2);\n        expect(round(-1.999)).toBe(-2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/math/round.spec.ts › round function › handles negative numbers properly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { round } from \"./src/math/round.js\";\n{\n{\n{\n// JavaScript는 반올림 하는 부분이 정확히 음수 0.5라면 +∞방향, 즉, 정수로 반올림 한다.\n        // If the fractional portion is exactly 0.5, the argument is rounded to the next integer in the direction of +∞. (positive number)\n        expect(round(-1.2345, 3)).toBe(-1.234);\n        expect(round(-1.2344, 3)).toBe(-1.234);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/math/round.spec.ts › round function › rounds correctly at high precision levels",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { round } from \"./src/math/round.js\";\n{\n{\n{\nexpect(round(1.123456789, 5)).toBe(1.12346);\n        expect(round(-1.123456789, 5)).toBe(-1.12346);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/math/round.spec.ts › round function › rounds correctly with edge cases",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { round } from \"./src/math/round.js\";\n{\n{\n{\nexpect(round(1.25, 1)).toBe(1.3);\n        // JavaScript는 반올림 하는 부분이 정확히 음수 0.5라면 +∞방향, 즉, 정수로 반올림 한다.\n        // If the fractional portion is exactly 0.5, the argument is rounded to the next integer in the direction of +∞. (positive number)\n        expect(round(-1.25, 1)).toBe(-1.2);\n        // JavaScript는 일반적인 다른 언어들과 다르게 Round half to even 으로 동작하지 않는다.\n        // The round function in JavaScript does not work as 'Round half to Even'\n        expect(round(-1.35, 1)).toBe(-1.3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/math/round.spec.ts › round function › works with zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { round } from \"./src/math/round.js\";\n{\n{\n{\nexpect(round(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/math/round.spec.ts › round function › works with precision leading to no rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { round } from \"./src/math/round.js\";\n{\n{\n{\nexpect(round(8.88888, 5)).toBe(8.88888);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/math/round.spec.ts › round function › handles edge cases where precision is not integer",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { round } from \"./src/math/round.js\";\n{\n{\n{\nconst value = 1.2345;\n        const precision = 3.1;\n        expect(() => round(value, precision)).toThrow('Precision must be an integer.');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

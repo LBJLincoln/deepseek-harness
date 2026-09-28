@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › can reduce to different type",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3];\n        const reducer = async (acc, n) => {\n            await delay(10);\n            return acc + n.toString();\n        };\n        const result = await reduceAsync(arr, reducer, '');\n        expect(result).toBe('123');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › processes elements sequentially",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n        const order = [];\n        const reducer = async (acc, n) => {\n            order.push(n);\n            await delay(10);\n            return acc + n;\n        };\n        await reduceAsync(arr, reducer, 0);\n        expect(order).toEqual([1, 2, 3, 4, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › maintains correct accumulator across iterations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = ['a', 'b', 'c'];\n        const reducer = async (acc, item) => {\n            await delay(10);\n            return [...acc, item.toUpperCase()];\n        };\n        const result = await reduceAsync(arr, reducer, []);\n        expect(result).toEqual(['A', 'B', 'C']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › without initial value › concatenates strings without initial value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\n{\nconst arr = ['Hello', ' ', 'World'];\n            const reducer = async (acc, str) => {\n                await delay(10);\n                return acc + str;\n            };\n            const result = await reduceAsync(arr, reducer);\n            expect(result).toBe('Hello World');\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › without initial value › processes elements sequentially without initial value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n            const order = [];\n            const reducer = async (acc, n) => {\n                order.push(n);\n                await delay(10);\n                return acc + n;\n            };\n            await reduceAsync(arr, reducer);\n            expect(order).toEqual([2, 3, 4, 5]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › without initial value › works with complex objects without initial value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\n{\nconst arr = [{ value: 1 }, { value: 2 }, { value: 3 }];\n            const reducer = async (acc, item) => {\n                await delay(10);\n                return { value: acc.value + item.value };\n            };\n            const result = await reduceAsync(arr, reducer);\n            expect(result).toEqual({ value: 6 });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/reduceAsync.spec.ts › reduceAsync › can build complex objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reduceAsync } from \"./src/array/reduceAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [\n            { key: 'a', value: 1 },\n            { key: 'b', value: 2 },\n            { key: 'c', value: 3 },\n        ];\n        const reducer = async (acc, item) => {\n            await delay(10);\n            acc[item.key] = item.value * 2;\n            return acc;\n        };\n        const result = await reduceAsync(arr, reducer, {});\n        expect(result).toEqual({ a: 2, b: 4, c: 6 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-clamp",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/math/clamp.ts",
+    "tests": [
+      "src/math/clamp.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/math/clamp.js",
+    "function": "clamp"
+  },
+  "title": "Implement clamp from es-toolkit",
+  "prompt": "`src/math/clamp.js` is the JavaScript build of `src/math/clamp.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `clamp`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Clamps a number within the specified bounds.\n *\n * This function takes a number and one or two bounds, and returns the number clamped within the specified bounds.\n * If only one bound is provided, it returns the minimum of the value and the bound.\n *\n * @param value - The number to clamp.\n * @param bound1 - The minimum bound to clamp the number, or the maximum bound if bound2 is not provided.\n * @param [bound2] - The maximum bound to clamp the number. If not provided, the function will only consider bound1 as the upper limit.\n * @returns The clamped number within the specified bounds.\n *\n * @example\n * const result1 = clamp(10, 5); // result1 will be 5, as 10 is clamped to the bound 5\n * const result2 = clamp(10, 5, 15); // result2 will be 10, as it is within the bounds 5 and 15\n * const result3 = clamp(2, 5, 15); // result3 will be 5, as 2 is clamped to the lower bound 5\n * const result4 = clamp(20, 5, 15); // result4 will be 15, as 20 is clamped to the upper bound 15\n */\nexport function clamp(value: number, bound1: number, bound2?: number): number\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

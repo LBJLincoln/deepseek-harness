@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/piped.test.ts › should pipe a single operation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { piped } from \"./src/piped.js\";\n{\n{\nconst fn = piped((x) => x * 2);\n    expect(fn(1)).toBe(2);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/piped.test.ts › should pipe operations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { piped } from \"./src/piped.js\";\n{\n{\nconst fn = piped((x) => x * 2, (x) => x * 3);\n    expect(fn(1)).toBe(6);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

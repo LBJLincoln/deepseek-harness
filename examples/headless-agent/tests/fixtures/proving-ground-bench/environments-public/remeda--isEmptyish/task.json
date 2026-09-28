@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-isEmptyish",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/isEmptyish.ts",
+    "tests": [
+      "packages/remeda/src/isEmptyish.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/isEmptyish.js",
+    "function": "isEmptyish"
+  },
+  "title": "Implement isEmptyish from remeda",
+  "prompt": "`src/isEmptyish.js` is the JavaScript build of `packages/remeda/src/isEmptyish.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `isEmptyish`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * A function that checks if the input is empty. Empty is defined as anything\n * exposing a numerical `length`, or `size` property that is equal to `0`. This\n * definition covers strings, arrays, Maps, Sets, plain objects, and custom\n * classes. Additionally, `null` and `undefined` are also considered empty.\n *\n * `number`, `bigint`, `boolean`, `symbol`, and `function` will always return\n * `false`. `RegExp`, `Date`, and weak collections will always return `true`.\n * Classes and Errors are treated as plain objects: if they expose any public\n * property they would be considered non-empty, unless they expose a numerical\n * `length` or `size` property, which defines their emptiness regardless of\n * other properties.\n *\n * This function has *limited* utility at the type level because **negating** it\n * does not yield a useful type in most cases because of TypeScript\n * limitations. Additionally, utilities which accept a narrower input type\n * provide better type-safety on their inputs. In most cases, you should use\n * one of the following functions instead:\n * * `isEmpty` - provides better type-safety on inputs by accepting a narrower set of cases.\n * * `hasAtLeast` - when the input is just an array/tuple.\n * * `isStrictEqual` - when you just need to check for a specific literal value.\n * * `isNullish` - when you just care about `null` and `undefined`.\n * * `isTruthy` - when you need to also filter `number` and `boolean`.\n *\n * @param data - The variable to check.\n * @signature\n *    isEmptyish(data)\n * @example\n *    isEmptyish(undefined); //=> true\n *    isEmptyish(null); //=> true\n *    isEmptyish(''); //=> true\n *    isEmptyish([]); //=> true\n *    isEmptyish({}); //=> true\n *    isEmptyish(new Map()); //=> true\n *    isEmptyish(new Set()); //=> true\n *    isEmptyish({ a: \"hello\", size: 0 }); //=> true\n *    isEmptyish(/abc/); //=> true\n *    isEmptyish(new Date()); //=> true\n *    isEmptyish(new WeakMap()); //=> true\n *\n *    isEmptyish('test'); //=> false\n *    isEmptyish([1, 2, 3]); //=> false\n *    isEmptyish({ a: \"hello\" }); //=> false\n *    isEmptyish({ length: 1 }); //=> false\n *    isEmptyish(0); //=> false\n *    isEmptyish(true); //=> false\n *    isEmptyish(() => {}); //=> false\n * @category Guard\n */\nexport function isEmptyish(data: unknown): boolean\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

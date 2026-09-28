@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/splitAt.test.ts › data_first › split",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAt } from \"./src/splitAt.js\";\n{\n{\n{\nexpect(splitAt([1, 2, 3], 1)).toStrictEqual([[1], [2, 3]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/splitAt.test.ts › data_first › split at -1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAt } from \"./src/splitAt.js\";\n{\n{\n{\nexpect(splitAt([1, 2, 3, 4, 5], -1)).toStrictEqual([\n            [1, 2, 3, 4],\n            [5],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/splitAt.test.ts › data_last › split",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAt } from \"./src/splitAt.js\";\n{\n{\n{\nexpect(splitAt(1)([1, 2, 3])).toStrictEqual([[1], [2, 3]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/splitAt.test.ts › data_last › split at -1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAt } from \"./src/splitAt.js\";\n{\n{\n{\nexpect(splitAt(-1)([1, 2, 3, 4, 5])).toStrictEqual([\n            [1, 2, 3, 4],\n            [5],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

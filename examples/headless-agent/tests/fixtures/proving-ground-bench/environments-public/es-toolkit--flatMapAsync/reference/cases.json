@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/flatMapAsync.spec.ts › flatMapAsync › handles callbacks returning arrays of different lengths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatMapAsync } from \"./src/array/flatMapAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3];\n        const callback = async (n) => {\n            if (n === 1) {\n                return [n];\n            }\n            if (n === 2) {\n                return [n, n, n];\n            }\n            return [];\n        };\n        const result = await flatMapAsync(arr, callback);\n        expect(result).toEqual([1, 2, 2, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/flatMapAsync.spec.ts › flatMapAsync › flattens only one level deep",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatMapAsync } from \"./src/array/flatMapAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2];\n        const callback = async (n) => [[n, n * 2]];\n        const result = await flatMapAsync(arr, callback);\n        expect(result).toEqual([\n            [1, 2],\n            [2, 4],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/flatMapAsync.spec.ts › flatMapAsync › uses full concurrency when not specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatMapAsync } from \"./src/array/flatMapAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\n        let running = 0;\n        let maxRunning = 0;\n        const fn = async (item) => {\n            running++;\n            if (running > maxRunning) {\n                maxRunning = running;\n            }\n            await delay(20);\n            running--;\n            return [item];\n        };\n        await flatMapAsync(arr, fn);\n        expect(maxRunning).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

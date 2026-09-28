@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/locale/fr/test.ts › fr locale › format edge case with day ordinal and long month format › returns ordinal for the first day of the month",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { format } from \"./src/format/index.js\";\nimport { fr } from \"./src/locale/fr/index.js\";\n{\n{\n{\n{\n[\n                [\"do\", \"1er\"],\n                [\"do M\", \"1er 1\"],\n                [\"do MMM\", \"1er janv.\"],\n                [\"do MMMM\", \"1er janvier\"],\n            ].forEach(([formatString, expectedResult]) => {\n                const result = format(new Date(2017, 0 /* Jan */, 1), formatString, {\n                    locale: fr,\n                });\n                expect(result).toBe(expectedResult);\n            });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/locale/fr/test.ts › fr locale › format edge case with day ordinal and long month format › returns cardinal for days of the month greater than one",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { format } from \"./src/format/index.js\";\nimport { fr } from \"./src/locale/fr/index.js\";\n{\n{\n{\n{\n[\n                [\"do\", \"2ème\"],\n                [\"do M\", \"2ème 1\"],\n                [\"do MMM\", \"2 janv.\"],\n                [\"do MMMM\", \"2 janvier\"],\n            ].forEach(([formatString, expectedResult]) => {\n                const result = format(new Date(2017, 0 /* Jan */, 2), formatString, {\n                    locale: fr,\n                });\n                expect(result).toBe(expectedResult);\n            });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

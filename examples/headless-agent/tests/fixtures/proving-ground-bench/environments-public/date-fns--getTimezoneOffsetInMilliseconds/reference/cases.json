@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/_lib/getTimezoneOffsetInMilliseconds/test.ts › getTimezoneOffsetInMilliseconds › works for a modern date",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { getTimezoneOffsetInMilliseconds } from \"./src/_lib/getTimezoneOffsetInMilliseconds/index.js\";\n{\n{\n{\nconst date = new Date(2018, 0 /* Jan */, 1, 12, 34, 56, 789);\n        const result = date.getTime() - getTimezoneOffsetInMilliseconds(date);\n        const expectedResult = Date.UTC(2018, 0 /* Jan */, 1, 12, 34, 56, 789);\n        expect(result).toBe(expectedResult);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/_lib/getTimezoneOffsetInMilliseconds/test.ts › getTimezoneOffsetInMilliseconds › works for a date before standardized timezones",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { getTimezoneOffsetInMilliseconds } from \"./src/_lib/getTimezoneOffsetInMilliseconds/index.js\";\n{\n{\n{\nconst date = new Date(1800, 0 /* Jan */, 1, 12, 34, 56, 789);\n        const result = date.getTime() - getTimezoneOffsetInMilliseconds(date);\n        const expectedResult = Date.UTC(1800, 0 /* Jan */, 1, 12, 34, 56, 789);\n        expect(result).toBe(expectedResult);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/_lib/getTimezoneOffsetInMilliseconds/test.ts › getTimezoneOffsetInMilliseconds › works for a date BC",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { getTimezoneOffsetInMilliseconds } from \"./src/_lib/getTimezoneOffsetInMilliseconds/index.js\";\n{\n{\n{\nconst date = new Date(-500, 0 /* Jan */, 1, 12, 34, 56, 789);\n        const result = date.getTime() - getTimezoneOffsetInMilliseconds(date);\n        const expectedResult = Date.UTC(-500, 0 /* Jan */, 1, 12, 34, 56, 789);\n        expect(result).toBe(expectedResult);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

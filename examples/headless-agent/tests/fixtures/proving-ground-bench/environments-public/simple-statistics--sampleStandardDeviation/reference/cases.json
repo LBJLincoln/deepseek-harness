@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/sample_standard_deviation.test.js › sampleStandardDeviation › can get the standard deviation of an example on wikipedia",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleStandardDeviation } from \"./src/sample_standard_deviation.js\";\nconst ss = Object.freeze({ sampleStandardDeviation: __ns1_sampleStandardDeviation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\nassert.throws(function () {\n        ss.sampleStandardDeviation([]);\n    });\n{\nassert.equal(rnd(ss.sampleStandardDeviation([2, 4, 4, 4, 5, 5, 7, 9])), 2.138);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

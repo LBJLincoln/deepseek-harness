@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-004",
+    "title": "test/sample_correlation.test.js › sample rank correlation › absolute rank correlation for monotonic function equals one",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleCorrelation } from \"./src/sample_correlation.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleCorrelation: __ns1_sampleCorrelation, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nconst x = Object.freeze([1, 2, 3, 4, 5, 6]);\n        let y;\n        for (const sign of [-1, 1]) {\n            y = x.map((a) => sign * a * a);\n            if (rnd(ss.sampleRankCorrelation(x, y)) !== sign * 1) {\n                assert.fail(\"absolute rank correlation not equal to one\");\n            }\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/sample_correlation.test.js › sample rank correlation › rank correlation agrees with R calculation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleCorrelation } from \"./src/sample_correlation.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleCorrelation: __ns1_sampleCorrelation, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nconst x = Object.freeze([\n            -0.008718749, -0.06111878, 0.067698537, -1.075537181, 0.041328545,\n            0.56687373, 0.193619496, -2.057133298, -1.058808987, -0.173177955\n        ]);\n        const y = Object.freeze([\n            -3.02455481, -1.30596109, 0.03873244, -1.27909938, -0.24630809,\n            -0.18103793, -0.48281339, -2.78997293, -1.30551335, -1.63361636\n        ]);\n        const rankCorr = 0.6484848; // calculated using cor(x, y, method = \"spearman\") in R\n        if (Math.abs(ss.sampleRankCorrelation(x, y) - rankCorr) > ss.epsilon) {\n            console.log(ss.sampleRankCorrelation(x, y));\n            assert.fail(\"rank correlation is incorrect for sample data\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/sample_rank_correlation.test.js › sample rank correlation with tied values › does not depend on the order the pairs are listed in",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\n{\n{\n// The same three paired observations {(1,1), (1,2), (2,1)}, with the\n        // first two rows swapped. A correlation is a property of the pairs,\n        // so both orderings must agree.\n        const first = ss.sampleRankCorrelation([1, 1, 2], [1, 2, 1]);\n        const second = ss.sampleRankCorrelation([1, 1, 2], [2, 1, 1]);\n        assert.ok(Math.abs(first - second) < ss.epsilon, `orderings disagree: ${first} vs ${second}`);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "test/sample_rank_correlation.test.js › sample rank correlation with tied values › gives tied values the average of the ranks they span",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\n{\n{\n// x ranks as [0.5, 0.5, 2] and y as [0.5, 2, 0.5], whose correlation\n        // works out to exactly -0.5.\n        const rankCorr = ss.sampleRankCorrelation([1, 1, 2], [1, 2, 1]);\n        assert.ok(Math.abs(rankCorr - -0.5) < ss.epsilon, `expected -0.5, got ${rankCorr}`);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "test/sample_rank_correlation.test.js › sample rank correlation with tied values › is zero when ties leave no monotonic association",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\n{\n{\n// Both variables rank as two tied pairs, arranged so that every\n        // increase in one is matched by a decrease in the other.\n        const rankCorr = ss.sampleRankCorrelation([1, 1, 2, 2], [1, 2, 1, 2]);\n        assert.ok(Math.abs(rankCorr) < ss.epsilon, `expected 0, got ${rankCorr}`);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "test/sample_rank_correlation.test.js › sample rank correlation with tied values › is not a number when an input has no rank variance",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\n{\n{\n// Every y is tied, so its ranks are constant and rho is undefined.\n        assert.ok(Number.isNaN(ss.sampleRankCorrelation([1, 2, 3, 4], [5, 5, 5, 5])));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "test/sample_rank_correlation.test.js › sample rank correlation with tied values › is unchanged by reordering a larger tied dataset",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\n{\n{\nconst x = Object.freeze([1, 1, 2, 2, 3, 3]);\n        const y = Object.freeze([1, 2, 2, 3, 1, 3]);\n        const expected = ss.sampleRankCorrelation(x, y);\n        const orderings = [\n            [5, 4, 3, 2, 1, 0],\n            [1, 0, 3, 2, 5, 4],\n            [2, 4, 0, 5, 1, 3],\n            [3, 1, 4, 0, 2, 5]\n        ];\n        for (const order of orderings) {\n            const rankCorr = ss.sampleRankCorrelation(order.map((i) => x[i]), order.map((i) => y[i]));\n            assert.ok(Math.abs(rankCorr - expected) < ss.epsilon, `reordering changed the result: ${rankCorr} vs ${expected}`);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "test/sample_rank_correlation.test.js › sample rank correlation with tied values › still reports perfect correlation for a monotonic tie-free input",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_sampleRankCorrelation } from \"./src/sample_rank_correlation.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, sampleRankCorrelation: __ns1_sampleRankCorrelation });\n{\n{\n{\nconst rankCorr = ss.sampleRankCorrelation([1, 2, 3, 4], [10, 20, 30, 40]);\n        assert.ok(Math.abs(rankCorr - 1) < ss.epsilon, `expected 1, got ${rankCorr}`);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

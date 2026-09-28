@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-xorWith",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/xorWith.ts",
+    "tests": [
+      "src/array/xorWith.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/xorWith.js",
+    "function": "xorWith"
+  },
+  "title": "Implement xorWith from es-toolkit",
+  "prompt": "`src/array/xorWith.js` is the JavaScript build of `src/array/xorWith.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `xorWith`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Computes the symmetric difference between two arrays using a custom equality function.\n * The symmetric difference is the set of elements which are in either of the arrays,\n * but not in their intersection.\n *\n * @template T - Type of elements in the input arrays.\n *\n * @param arr1 - The first array.\n * @param arr2 - The second array.\n * @param areElementsEqual - The custom equality function to compare elements.\n * @returns An array containing the elements that are present in either `arr1` or `arr2` but not in both, based on the custom equality function.\n *\n * @example\n * // Custom equality function for objects with an 'id' property\n * const areObjectsEqual = (a, b) => a.id === b.id;\n * xorWith([{ id: 1 }, { id: 2 }], [{ id: 2 }, { id: 3 }], areObjectsEqual);\n * // Returns [{ id: 1 }, { id: 3 }]\n */\nexport function xorWith<T>(\n  arr1: readonly T[],\n  arr2: readonly T[],\n  areElementsEqual: (item1: T, item2: T) => boolean\n): T[]\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/array/differenceWith.js`, `src/array/intersectionWith.js`, `src/array/unionWith.js`, `src/array/uniqWith.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "id": "code:case-anything--implement-lowerCase",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "case-anything",
+    "url": "https://github.com/mesqueeb/case-anything",
+    "commit": "b0e95907e6a81c0417915db3bd1c910a706fd666",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "90ccec25ab1d18b0398b8ce1b8431ff7e8b04524c5de31076b4674810a781afc",
+    "copyright": "Copyright (c) 2019 Luca Ban - Mesqueeb",
+    "module": "src/core.ts",
+    "tests": [
+      "test/comprehensive.test.ts",
+      "test/short.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/core.js",
+    "function": "lowerCase"
+  },
+  "title": "Implement lowerCase from case-anything",
+  "prompt": "`src/core.js` is the JavaScript build of `src/core.ts` from case-anything (https://github.com/mesqueeb/case-anything at commit b0e95907e6a8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `lowerCase`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * # 🔡 lower case\n *\n * Converts a string to lower case\n *\n * - Makes words lowercase and adds spaces\n * - _keeps_ special characters by default\n *\n * @example\n *   lowerCase('$catDog') === '$cat dog'\n *\n * @example\n *   lowerCase('$catDog', { keepSpecialCharacters: false }) === 'cat dog'\n *\n *   ⟪ if you do not want to add spaces, use the native JS `toLowerCase()` ⟫\n */\nexport function lowerCase(\n  string: string,\n  options: { keepSpecialCharacters?: boolean; keep?: string[] } = { keepSpecialCharacters: true },\n): string\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/utils.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

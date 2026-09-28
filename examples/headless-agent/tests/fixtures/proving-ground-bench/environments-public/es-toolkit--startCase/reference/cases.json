@@ -1,0 +1,158 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/startCase.spec.ts › startCase › should capitalize each word",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('--foo-bar--')).toBe('Foo Bar');\n        expect(startCase('fooBar')).toBe('Foo Bar');\n        expect(startCase('__FOO_BAR__')).toBe('Foo Bar');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/startCase.spec.ts › startCase › should handle compound words",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('createElement')).toBe('Create Element');\n        expect(startCase('iPhone')).toBe('I Phone');\n        expect(startCase('XMLHttpRequest')).toBe('Xml Http Request');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/startCase.spec.ts › startCase › should handle various delimiters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('_abc_123_def')).toBe('Abc 123 Def');\n        expect(startCase('__abc__123__def__')).toBe('Abc 123 Def');\n        expect(startCase('ABC-DEF')).toBe('Abc Def');\n        expect(startCase('ABC DEF')).toBe('Abc Def');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/startCase.spec.ts › startCase › should handle empty strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('')).toBe('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/startCase.spec.ts › startCase › should handle strings with only delimiters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('_-_-_-_')).toBe('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/startCase.spec.ts › startCase › should work with numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('12abc 12ABC')).toBe('12 Abc 12 Abc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/startCase.spec.ts › startCase › should handle consecutive uppercase letters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('ABC')).toBe('Abc');\n        expect(startCase('ABCdef')).toBe('Ab Cdef');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/startCase.spec.ts › startCase › should handle combinations of numbers and letters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('123ABC')).toBe('123 Abc');\n        expect(startCase('a1B2c3')).toBe('A 1 B 2 C 3');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/string/startCase.spec.ts › startCase › should handle special characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('foo@bar')).toBe('Foo Bar');\n        expect(startCase('test*case')).toBe('Test Case');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/string/startCase.spec.ts › startCase › should handle long strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('thisIsAVeryLongStringWithManyWordsAndNumbers123')).toBe('This Is A Very Long String With Many Words And Numbers 123');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/string/startCase.spec.ts › startCase › should handle whitespace characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('  foo  bar  ')).toBe('Foo Bar');\n        expect(startCase('\\tfoo\\nbar')).toBe('Foo Bar');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/string/startCase.spec.ts › startCase › should convert the non-first characters to lowercase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('FOO BAR')).toBe('Foo Bar');\n        expect(startCase('FOO BAR BAZ')).toBe('Foo Bar Baz');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/string/startCase.spec.ts › startCase › should correctly handle accented letters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { startCase } from \"./src/string/startCase.js\";\n{\n{\n{\nexpect(startCase('lunedì 18 set')).toBe('Lunedì 18 Set');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataFirst) › works",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [2, 1, 3];\n        expect(nthBy(data, 0, identity())).toBe(1);\n        expect(nthBy(data, 1, identity())).toBe(2);\n        expect(nthBy(data, 2, identity())).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataFirst) › handles negative indexes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [2, 1, 3];\n        expect(nthBy(data, -1, identity())).toBe(3);\n        expect(nthBy(data, -2, identity())).toBe(2);\n        expect(nthBy(data, -3, identity())).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataFirst) › handles overflows gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(nthBy([1, 2, 3], 100, identity())).toBeUndefined();\n        expect(nthBy([1, 2, 3], -100, identity())).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataFirst) › works with complex order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [\"aaaa\", \"b\", \"bb\", \"a\", \"aaa\", \"bbbb\", \"aa\", \"bbb\"];\n        expect(nthBy(data, 0, (a) => a.length, identity())).toBe(\"a\");\n        expect(nthBy(data, 1, (a) => a.length, identity())).toBe(\"b\");\n        expect(nthBy(data, 2, (a) => a.length, identity())).toBe(\"aa\");\n        expect(nthBy(data, 3, (a) => a.length, identity())).toBe(\"bb\");\n        expect(nthBy(data, 4, (a) => a.length, identity())).toBe(\"aaa\");\n        expect(nthBy(data, 5, (a) => a.length, identity())).toBe(\"bbb\");\n        expect(nthBy(data, 6, (a) => a.length, identity())).toBe(\"aaaa\");\n        expect(nthBy(data, 7, (a) => a.length, identity())).toBe(\"bbbb\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataLast) › works",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [2, 1, 3];\n        expect(pipe(data, nthBy(0, identity()))).toBe(1);\n        expect(pipe(data, nthBy(1, identity()))).toBe(2);\n        expect(pipe(data, nthBy(2, identity()))).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataLast) › handles negative indexes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [2, 1, 3];\n        expect(pipe(data, nthBy(-1, identity()))).toBe(3);\n        expect(pipe(data, nthBy(-2, identity()))).toBe(2);\n        expect(pipe(data, nthBy(-3, identity()))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataLast) › handles overflows gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], nthBy(100, identity()))).toBeUndefined();\n        expect(pipe([1, 2, 3], nthBy(-100, identity()))).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataLast) › works with complex order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [\"aaaa\", \"b\", \"bb\", \"a\", \"aaa\", \"bbbb\", \"aa\", \"bbb\"];\n        expect(pipe(data, nthBy(0, (a) => a.length, identity()))).toBe(\"a\");\n        expect(pipe(data, nthBy(1, (a) => a.length, identity()))).toBe(\"b\");\n        expect(pipe(data, nthBy(2, (a) => a.length, identity()))).toBe(\"aa\");\n        expect(pipe(data, nthBy(3, (a) => a.length, identity()))).toBe(\"bb\");\n        expect(pipe(data, nthBy(4, (a) => a.length, identity()))).toBe(\"aaa\");\n        expect(pipe(data, nthBy(5, (a) => a.length, identity()))).toBe(\"bbb\");\n        expect(pipe(data, nthBy(6, (a) => a.length, identity()))).toBe(\"aaaa\");\n        expect(pipe(data, nthBy(7, (a) => a.length, identity()))).toBe(\"bbbb\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

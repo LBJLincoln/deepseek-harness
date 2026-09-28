@@ -1,0 +1,194 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/defaultTo.test.ts › falsy values › nullish › undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\n{\nexpect(defaultTo(undefined, \"fallback\")).toBe(\"fallback\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/defaultTo.test.ts › falsy values › nullish › null",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\n{\nexpect(defaultTo(null, \"fallback\")).toBe(\"fallback\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/defaultTo.test.ts › falsy values › non-nullish › nan",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\n{\n// We handle NaN differently than Lodash and Ramda intentionally, we\n            // prefer to maintain the ECMAScript semantics for the nullish coalescing\n            // operator `??`.\n            expect(defaultTo(NaN, 42)).toBeNaN();\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/defaultTo.test.ts › falsy values › non-nullish › empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\n{\nexpect(defaultTo(\"\", \"fallback\")).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/defaultTo.test.ts › falsy values › non-nullish › false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\n{\nexpect(defaultTo(false, true)).toBe(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/defaultTo.test.ts › falsy values › non-nullish › zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\n{\nexpect(defaultTo(0, 42)).toBe(0);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/defaultTo.test.ts › falsy values › non-nullish › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\n{\nexpect(defaultTo([], [\"a\"])).toStrictEqual([]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/defaultTo.test.ts › falsy values › non-nullish › empty object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\n{\nexpect(defaultTo({}, { a: \"b\" })).toStrictEqual({});\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/defaultTo.test.ts › truthy values › string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\nexpect(defaultTo(\"a\", \"fallback\")).toBe(\"a\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/defaultTo.test.ts › truthy values › number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\nexpect(defaultTo(42, 0)).toBe(42);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/defaultTo.test.ts › truthy values › boolean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\nexpect(defaultTo(true, false)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/defaultTo.test.ts › truthy values › array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\nexpect(defaultTo([\"a\"], [\"b\"])).toStrictEqual([\n            \"a\",\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/defaultTo.test.ts › truthy values › object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\nexpect(defaultTo({ a: \"a\" }, { a: \"b\" })).toStrictEqual({ a: \"a\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/defaultTo.test.ts › object identity › value isn't cloned",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\nconst data = { a: \"a\" };\n        expect(defaultTo(data, { a: \"b\" })).toBe(data);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/defaultTo.test.ts › object identity › fallback isn't cloned",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\n{\nconst fallback = { a: \"b\" };\n        expect(defaultTo(undefined, fallback)).toBe(fallback);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/defaultTo.test.ts › undefined fallback",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { defaultTo } from \"./src/defaultTo.js\";\n{\n{\nexpect(defaultTo(undefined, undefined)).toBeUndefined();\n    expect(defaultTo(null, null)).toBeNull();\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

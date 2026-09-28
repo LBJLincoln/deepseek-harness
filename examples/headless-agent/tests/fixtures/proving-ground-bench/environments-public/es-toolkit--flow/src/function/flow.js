@@ -1,0 +1,18 @@
+/**
+ * Creates a new function that executes the given functions in sequence. The return value of the previous function is passed as an argument to the next function.
+ *
+ * The `this` context of the returned function is also passed to the functions provided as parameters.
+ *
+ * @param funcs The functions to invoke.
+ * @returns Returns the new composite function.
+ *
+ * @example
+ * const add = (x: number, y: number) => x + y;
+ * const square = (n: number) => n * n;
+ *
+ * const combined = flow(add, square);
+ * console.log(combined(1, 2)); // 9
+ */
+export function flow(...funcs) {
+    throw new Error('not implemented');
+}

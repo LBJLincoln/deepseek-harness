@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › legacy v1 replacements › difference › data_first › should return difference",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\n{\nexpect(filter([1, 2, 3, 4], isNot(isIncludedIn([2, 5, 3])))).toStrictEqual([1, 4]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › legacy v1 replacements › difference › data_last › should return difference",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\n{\nexpect(filter(isNot(isIncludedIn([2, 5, 3])))([1, 2, 3, 4])).toStrictEqual([1, 4]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-033",
+    "title": "packages/remeda/src/when.test.ts › recipes › acts as a coalesce tool",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\nexpect(map([0, 1, 2, undefined, 4, undefined, 6], when(isNot(isDefined), constant(\"missing\")))).toStrictEqual([0, 1, 2, \"missing\", 4, \"missing\", 6]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

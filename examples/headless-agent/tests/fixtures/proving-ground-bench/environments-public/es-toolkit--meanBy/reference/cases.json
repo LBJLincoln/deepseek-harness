@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/meanBy.spec.ts › meanBy › calculates the mean of values extracted from objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { meanBy } from \"./src/math/meanBy.js\";\n{\n{\n{\nconst result = meanBy([{ a: 1 }, { a: 2 }, { a: 3 }], x => x.a);\n        expect(result).toEqual(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/meanBy.spec.ts › meanBy › returns NaN for empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { meanBy } from \"./src/math/meanBy.js\";\n{\n{\n{\nconst people = [];\n        expect(meanBy(people, x => x.age)).toEqual(NaN);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

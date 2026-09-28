@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/utils/object-keys/deep-pascal-keys.test.ts › deepPascalKeys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepPascalKeys } from \"./src/utils/object-keys/deep-pascal-keys.js\";\n{\n{\nconst expected = {\n        Some: { DeepNested: { Value: true } },\n        OtherValue: true,\n    };\n    const result = deepPascalKeys({\n        some: { deepNested: { value: true } },\n        otherValue: true,\n    });\n    expect(result).toEqual(expected);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

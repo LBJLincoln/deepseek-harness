@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/differenceBy.spec.ts › differenceBy › should the difference of two arrays using the `mapper` function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { differenceBy } from \"./src/array/differenceBy.js\";\n{\n{\n{\nexpect(differenceBy([1.2, 2.3, 3.4], [1.2], Math.floor)).toEqual([2.3, 3.4]);\n        expect(differenceBy([], [1.2], Math.floor)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/differenceBy.spec.ts › differenceBy › should return the difference of two arrays with different element types using the `mapper` function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { differenceBy } from \"./src/array/differenceBy.js\";\n{\n{\n{\nconst array1 = [\n            { id: 1, csv: 1 },\n            { id: 2, csv: 1 },\n            { id: 3, csv: 1 },\n        ];\n        const array2 = [\n            { id: 2, json: 2 },\n            { id: 4, json: 2 },\n        ];\n        const result = differenceBy(array1, array2, value => value.id);\n        expect(result).toEqual([\n            { id: 1, csv: 1 },\n            { id: 3, csv: 1 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

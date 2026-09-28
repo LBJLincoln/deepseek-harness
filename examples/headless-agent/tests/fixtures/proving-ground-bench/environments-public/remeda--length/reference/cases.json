@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/evolve.test.ts › data first › can handle data that is complex nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(evolve({\n            array: [\"1\", \"2\", \"3\"],\n            nestedObj: { a: { b: \"c\" } },\n            objAry: [\n                { a: 0, b: 0 },\n                { a: 1, b: 1 },\n            ],\n        }, {\n            array: length(),\n            nestedObj: { a: (x) => set(x, \"b\", \"Set\") },\n            objAry: (x) => map(x, omit([\"b\"])),\n        })).toStrictEqual({\n            array: 3,\n            nestedObj: { a: { b: \"Set\" } },\n            objAry: [{ a: 0 }, { a: 1 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/evolve.test.ts › data last › can handle data that is complex nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(pipe({\n            array: [\"1\", \"2\", \"3\"],\n            nestedObj: { a: { b: \"c\" } },\n            objAry: [\n                { a: 0, b: 0 },\n                { a: 1, b: 1 },\n            ],\n        }, evolve({\n            array: length(),\n            nestedObj: { a: (x) => set(x, \"b\", \"Set\") },\n            objAry: (x) => map(x, omit([\"b\"])),\n        }))).toStrictEqual({\n            array: 3,\n            nestedObj: { a: { b: \"Set\" } },\n            objAry: [{ a: 0 }, { a: 1 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/length.test.ts › data first › array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { length } from \"./src/length.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(length([0, 1, 2, 3, 4])).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/length.test.ts › data first › iterable",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { length } from \"./src/length.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(length({\n            *[Symbol.iterator]() {\n                yield 0;\n                yield 1;\n                yield 2;\n                yield 3;\n            },\n        })).toBe(4);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/length.test.ts › curried › array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { length } from \"./src/length.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([0, 1, 2, 3, 4], length())).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/length.test.ts › curried › iterable",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { length } from \"./src/length.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe({\n            *[Symbol.iterator]() {\n                yield 0;\n                yield 1;\n                yield 2;\n                yield 3;\n            },\n        }, length())).toBe(4);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

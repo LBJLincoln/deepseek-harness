@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-keyBy",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/keyBy.ts",
+    "tests": [
+      "src/array/keyBy.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/keyBy.js",
+    "function": "keyBy"
+  },
+  "title": "Implement keyBy from es-toolkit",
+  "prompt": "`src/array/keyBy.js` is the JavaScript build of `src/array/keyBy.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `keyBy`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Maps each element of an array based on a provided key-generating function.\n *\n * This function takes an array and a function that generates a key from each element. It returns\n * an object where the keys are the generated keys and the values are the corresponding elements.\n * If there are multiple elements generating the same key, the last element among them is used\n * as the value.\n *\n * @template T - The type of elements in the array.\n * @template K - The type of keys.\n * @param arr - The array of elements to be mapped.\n * @param getKeyFromItem - A function that generates a key from an element, its index, and the array.\n * @returns An object where keys are mapped to each element of an array.\n *\n * @example\n * const array = [\n *   { category: 'fruit', name: 'apple' },\n *   { category: 'fruit', name: 'banana' },\n *   { category: 'vegetable', name: 'carrot' }\n * ];\n * const result = keyBy(array, item => item.category);\n * // result will be:\n * // {\n * //   fruit: { category: 'fruit', name: 'banana' },\n * //   vegetable: { category: 'vegetable', name: 'carrot' }\n * // }\n *\n * @example\n * // Using index parameter\n * const items = ['a', 'b', 'c'];\n * const result = keyBy(items, (item, index) => index);\n * // result will be: { 0: 'a', 1: 'b', 2: 'c' }\n */\nexport function keyBy<T, K extends PropertyKey>(\n  arr: readonly T[],\n  getKeyFromItem: (item: T, index: number, array: readonly T[]) => K\n): Record<K, T>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

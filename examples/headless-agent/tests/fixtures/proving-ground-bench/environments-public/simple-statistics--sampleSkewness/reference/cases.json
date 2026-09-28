@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-004",
+    "title": "test/sample_skewness.test.js › sample skewness › can calculate the skewness of SAS example 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleSkewness } from \"./src/sample_skewness.js\";\nconst ss = Object.freeze({ sampleSkewness: __ns1_sampleSkewness });\n{\n{\n{\n// Data and answer taken from SKEWNESS function documentation at\n        // http://support.sas.com/documentation/c../lrdict/64316/HTML/default/viewer.htm#a000245947.htm\n        const data = Object.freeze([0, 1, 1]);\n        assert.equal(+ss.sampleSkewness(data).toPrecision(10), -1.732050808);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/sample_skewness.test.js › sample skewness › can calculate the skewness of SAS example 2",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleSkewness } from \"./src/sample_skewness.js\";\nconst ss = Object.freeze({ sampleSkewness: __ns1_sampleSkewness });\n{\n{\n{\n// Data and answer taken from SKEWNESS function documentation at\n        // http://support.sas.com/documentation/c../lrdict/64316/HTML/default/viewer.htm#a000245947.htm\n        const data = Object.freeze([2, 4, 6, 3, 1]);\n        assert.equal(+ss.sampleSkewness(data).toPrecision(10), 0.5901286564);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/sample_skewness.test.js › sample skewness › can calculate the skewness of SAS example 3",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleSkewness } from \"./src/sample_skewness.js\";\nconst ss = Object.freeze({ sampleSkewness: __ns1_sampleSkewness });\n{\n{\n{\n// Data and answer taken from SKEWNESS function documentation at\n        // http://support.sas.com/documentation/c../lrdict/64316/HTML/default/viewer.htm#a000245947.htm\n        const data = Object.freeze([2, 0, 0]);\n        assert.equal(+ss.sampleSkewness(data).toPrecision(10), 1.732050808);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "test/sample_skewness.test.js › sample skewness › can calculate the biased skewness",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleSkewness } from \"./src/sample_skewness.js\";\nconst ss = Object.freeze({ sampleSkewness: __ns1_sampleSkewness });\n{\n{\n{\n// Expected values from scipy.stats.skew(data, bias=True), which is\n        // also what R reports. The unadjusted values above are the same\n        // call with bias=False.\n        const cases = [\n            [[2, 4, 6, 3, 1], 0.3958703373438167],\n            [[1, 1, 2, 3, 8], 1.2181208646399415],\n            [[2, 4, 4, 4, 5, 5, 7, 9], 0.65625],\n            [[10, 20, 30, 40, 100], 1.1384199576606167]\n        ];\n        for (const [data, expected] of cases) {\n            assert.equal(Math.abs(ss.sampleSkewness(data, true) - expected) < 1e-14, true, JSON.stringify(data));\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "test/sample_skewness.test.js › sample skewness › biased and unadjusted skewness differ by the known factor",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleSkewness } from \"./src/sample_skewness.js\";\nconst ss = Object.freeze({ sampleSkewness: __ns1_sampleSkewness });\n{\n{\n{\n// G1 = g1 * sqrt(n * (n - 1)) / (n - 2)\n        const data = Object.freeze([1, 1, 2, 3, 8, 13, 21]);\n        const n = data.length;\n        const factor = Math.sqrt(n * (n - 1)) / (n - 2);\n        assert.equal(Math.abs(ss.sampleSkewness(data) - ss.sampleSkewness(data, true) * factor) < 1e-14, true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "test/sample_skewness.test.js › sample skewness › defaults to the unadjusted coefficient",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleSkewness } from \"./src/sample_skewness.js\";\nconst ss = Object.freeze({ sampleSkewness: __ns1_sampleSkewness });\n{\n{\n{\nconst data = Object.freeze([2, 4, 6, 3, 1]);\n        assert.equal(ss.sampleSkewness(data), ss.sampleSkewness(data, false));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

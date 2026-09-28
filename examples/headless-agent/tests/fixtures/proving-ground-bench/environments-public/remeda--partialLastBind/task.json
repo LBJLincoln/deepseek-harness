@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-partialLastBind",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/partialLastBind.ts",
+    "tests": [
+      "packages/remeda/src/partialLastBind.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/partialLastBind.js",
+    "function": "partialLastBind"
+  },
+  "title": "Implement partialLastBind from remeda",
+  "prompt": "`src/partialLastBind.js` is the JavaScript build of `packages/remeda/src/partialLastBind.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `partialLastBind`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Creates a function that calls `func` with `partial` put after the arguments\n * it receives. Note that this doesn't support functions with both optional\n * and rest parameters.\n *\n * Can be thought of as \"freezing\" some portion of a function's arguments,\n * resulting in a new function with a simplified signature.\n *\n * Useful for converting a data-first function to a data-last one.\n *\n * @param func - The function to wrap.\n * @param partial - The arguments to put after.\n * @returns A partially bound function.\n * @signature\n *    partialLastBind(func, ...partial);\n * @example\n *    const fn = (x: number, y: number, z: number) => x * 100 + y * 10 + z;\n *    const partialFn = partialLastBind(fn, 2, 3);\n *    partialFn(1); //=> 123\n *\n *    const parseBinary = partialLastBind(parseInt, \"2\");\n *    parseBinary(\"101\"); //=> 5\n *\n *    pipe(\n *      { a: 1 },\n *      // instead of (arg) => JSON.stringify(arg, null, 2)\n *      partialLastBind(JSON.stringify, null, 2),\n *    ); //=> '{\\n  \"a\": 1\\n}'\n * @dataFirst\n * @category Function\n * @see partialBind\n */\nexport function partialLastBind<\n  F extends StrictFunction,\n  SuffixArgs extends TupleSuffix<Parameters<F>>,\n  RemovedSuffix extends RemoveSuffix<Parameters<F>, SuffixArgs>,\n>(\n  func: F,\n  ...partial: SuffixArgs\n): (\n  ...rest: RemovedSuffix extends IterableContainer ? RemovedSuffix : never\n) => ReturnType<F>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

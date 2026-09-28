@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-isLength",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/predicate/isLength.ts",
+    "tests": [
+      "src/predicate/isLength.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/predicate/isLength.js",
+    "function": "isLength"
+  },
+  "title": "Implement isLength from es-toolkit",
+  "prompt": "`src/predicate/isLength.js` is the JavaScript build of `src/predicate/isLength.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `isLength`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Checks if a given value is a valid length.\n *\n * A valid length is of type `number`, is a non-negative integer, and is less than or equal to\n * JavaScript's maximum safe integer (`Number.MAX_SAFE_INTEGER`).\n * It returns `true` if the value is a valid length, and `false` otherwise.\n *\n * This function can also serve as a type predicate in TypeScript, narrowing the type of the\n * argument to a valid length (`number`).\n *\n * @param value The value to check.\n * @returns Returns `true` if `value` is a valid length, else `false`.\n *\n * @example\n * isLength(0); // true\n * isLength(42); // true\n * isLength(-1); // false\n * isLength(1.5); // false\n * isLength(Number.MAX_SAFE_INTEGER); // true\n * isLength(Number.MAX_SAFE_INTEGER + 1); // false\n */\nexport function isLength(value?: any): boolean\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

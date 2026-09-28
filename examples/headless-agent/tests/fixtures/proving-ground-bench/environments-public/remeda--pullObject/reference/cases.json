@@ -1,0 +1,170 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/pullObject.test.ts › dataFirst › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pullObject([], constant(\"key\"), constant(\"value\"))).toStrictEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/pullObject.test.ts › dataFirst › number items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pullObject([1, 2], (item) => `item_${item}`, add(2))).toStrictEqual({\n            item_1: 3,\n            item_2: 4,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/pullObject.test.ts › dataFirst › string items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pullObject([\"a\", \"b\"], (item) => `item_${item}`, (item) => item.toUpperCase())).toStrictEqual({ item_a: \"A\", item_b: \"B\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/pullObject.test.ts › dataFirst › object items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pullObject([\n            { key: \"a\", value: 1 },\n            { key: \"b\", value: 2 },\n        ], prop(\"key\"), prop(\"value\"))).toStrictEqual({ a: 1, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/pullObject.test.ts › dataFirst › number keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pullObject([\"a\", \"aa\"], (item) => item.length, identity())).toStrictEqual({\n            1: \"a\",\n            2: \"aa\",\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/pullObject.test.ts › dataFirst › undefined values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pullObject([\"a\"], identity(), constant(undefined))).toStrictEqual({\n            a: undefined,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/pullObject.test.ts › dataFirst › last value wins",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pullObject([\n            { id: \"a\", val: \"hello\" },\n            { id: \"a\", val: \"world\" },\n        ], prop(\"id\"), prop(\"val\"))).toStrictEqual({ a: \"world\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([], pullObject(constant(\"key\"), constant(\"value\")))).toStrictEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › number items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([1, 2], pullObject((item) => `item_${item}`, add(2)))).toStrictEqual({ item_1: 3, item_2: 4 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › string items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([\"a\", \"b\"], pullObject((item) => `item_${item}`, (item) => item.toUpperCase()))).toStrictEqual({ item_a: \"A\", item_b: \"B\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › object items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([\n            { key: \"a\", value: 1 },\n            { key: \"b\", value: 2 },\n        ], pullObject(prop(\"key\"), prop(\"value\")))).toStrictEqual({ a: 1, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › number keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([\"a\", \"aa\"], pullObject((item) => item.length, identity()))).toStrictEqual({ 1: \"a\", 2: \"aa\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › undefined values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([\"a\"], pullObject(identity(), constant(undefined)))).toStrictEqual({\n            a: undefined,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › last value wins",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([\n            { id: \"a\", val: \"hello\" },\n            { id: \"a\", val: \"world\" },\n        ], pullObject(prop(\"id\"), prop(\"val\")))).toStrictEqual({ a: \"world\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

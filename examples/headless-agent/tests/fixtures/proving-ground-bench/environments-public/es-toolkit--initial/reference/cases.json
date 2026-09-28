@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/initial.spec.ts › initial › returns a new array containing all elements except the last one from the input array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { initial } from \"./src/array/initial.js\";\n{\n{\n{\nexpect(initial([1, 2, 3])).toEqual([1, 2]);\n        expect(initial(['a', 'b', 'c'])).toEqual(['a', 'b']);\n        expect(initial([1, true, 'string'])).toEqual([1, true]);\n        expect(initial([])).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/initial.spec.ts › initial › returns an empty array for a single-element array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { initial } from \"./src/array/initial.js\";\n{\n{\n{\nexpect(initial(['one'])).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/initial.spec.ts › initial › returns all elements except the last one for a large array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { initial } from \"./src/array/initial.js\";\n{\n{\n{\nconst largeArray = Array(1000)\n            .fill(0)\n            .map((_, i) => i);\n        const expectedArray = Array(999)\n            .fill(0)\n            .map((_, i) => i);\n        expect(initial(largeArray)).toEqual(expectedArray);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/initial.spec.ts › initial › returns all elements except the last one for a nested array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { initial } from \"./src/array/initial.js\";\n{\n{\n{\nconst nestedArray = [\n            [3, 1],\n            [3, 2],\n            [3, 3],\n        ];\n        expect(initial(nestedArray)).toEqual([\n            [3, 1],\n            [3, 2],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

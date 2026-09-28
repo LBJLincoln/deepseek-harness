@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/isBefore/test.ts › isBefore › returns true if the first date is before the second one",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBefore } from \"./src/isBefore/index.js\";\n{\n{\n{\nconst result = isBefore(new Date(1987, 1 /* Feb */, 11), new Date(1989, 6 /* Jul */, 10));\n        expect(result).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/isBefore/test.ts › isBefore › returns false if the first date is after the second one",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBefore } from \"./src/isBefore/index.js\";\n{\n{\n{\nconst result = isBefore(new Date(1989, 6 /* Jul */, 10), new Date(1987, 1 /* Feb */, 11));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/isBefore/test.ts › isBefore › returns false if the first date is equal to the second one",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBefore } from \"./src/isBefore/index.js\";\n{\n{\n{\nconst result = isBefore(new Date(1989, 6 /* Jul */, 10), new Date(1989, 6 /* Jul */, 10));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/isBefore/test.ts › isBefore › accepts a timestamp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBefore } from \"./src/isBefore/index.js\";\n{\n{\n{\nconst result = isBefore(new Date(1987, 1 /* Feb */, 11).getTime(), new Date(1989, 6 /* Jul */, 10).getTime());\n        expect(result).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "pkgs/core/src/isBefore/test.ts › isBefore › returns false if the first date is `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBefore } from \"./src/isBefore/index.js\";\n{\n{\n{\nconst result = isBefore(new Date(NaN), new Date(1989, 6 /* Jul */, 10));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "pkgs/core/src/isBefore/test.ts › isBefore › returns false if the second date is `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBefore } from \"./src/isBefore/index.js\";\n{\n{\n{\nconst result = isBefore(new Date(1987, 1 /* Feb */, 11), new Date(NaN));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "pkgs/core/src/isBefore/test.ts › isBefore › returns false if the both dates are `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBefore } from \"./src/isBefore/index.js\";\n{\n{\n{\nconst result = isBefore(new Date(NaN), new Date(NaN));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

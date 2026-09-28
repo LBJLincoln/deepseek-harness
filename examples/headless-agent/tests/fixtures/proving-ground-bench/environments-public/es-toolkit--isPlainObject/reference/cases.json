@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isPlainObject.spec.ts › isPlainObject › should return true for plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { runInNewContext } from 'node:vm';\nimport { isPlainObject } from \"./src/predicate/isPlainObject.js\";\n{\n{\n{\nconst str = 'key';\n        expect(isPlainObject({})).toBe(true);\n        expect(isPlainObject(Object.create(null))).toBe(true);\n        expect(isPlainObject(new Object({ key: 'new_object' }))).toBe(true);\n        expect(isPlainObject(new Object({ key: new Date() }))).toBe(true);\n        expect(isPlainObject({ 1: 'integer_key' })).toBe(true);\n        expect(isPlainObject({ name: 'string_key' })).toBe(true);\n        expect(isPlainObject({ [str]: 'dynamic_string_key' })).toBe(true);\n        expect(isPlainObject({ [Symbol('tag')]: 'value' })).toBe(true);\n        expect(isPlainObject({\n            children: [{ key: 'deep-children' }],\n            name: 'deep-plain',\n        })).toBe(true);\n        expect(isPlainObject({\n            children: [{ key: new Date() }],\n            name: 'deep-with-regular-object',\n        })).toBe(true);\n        expect(isPlainObject({ constructor: { name: 'Object2' } })).toBe(true);\n        expect(isPlainObject(JSON.parse('{}'))).toBe(true);\n        expect(isPlainObject(new Proxy({}, {}))).toBe(true);\n        expect(isPlainObject(new Proxy({ key: 'proxied_key' }, {}))).toBe(true);\n        expect(isPlainObject({\n            [Symbol.iterator]: function* () {\n                yield 1;\n            },\n        })).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isPlainObject.spec.ts › isPlainObject › should return false for invalid plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { runInNewContext } from 'node:vm';\nimport { isPlainObject } from \"./src/predicate/isPlainObject.js\";\n{\n{\n{\nfunction fnWithProto(x) {\n            // @ts-expect-error for the sake of testing\n            this.x = x;\n        }\n        function ObjectConstructor() { }\n        ObjectConstructor.prototype.constructor = Object;\n        expect(isPlainObject('hello')).toBe(false);\n        expect(isPlainObject(false)).toBe(false);\n        expect(isPlainObject(undefined)).toBe(false);\n        expect(isPlainObject(null)).toBe(false);\n        expect(isPlainObject(10)).toBe(false);\n        expect(isPlainObject([])).toBe(false);\n        expect(isPlainObject(Number.NaN)).toBe(false);\n        expect(isPlainObject(JSON)).toBe(false);\n        expect(isPlainObject(Math)).toBe(false);\n        expect(isPlainObject(Atomics)).toBe(false);\n        expect(isPlainObject({ [Symbol.toStringTag]: 'string-tagged' })).toBe(false);\n        expect(isPlainObject(() => 'cool')).toBe(false);\n        expect(isPlainObject(new (class Cls {\n        })())).toBe(false);\n        expect(isPlainObject(new Intl.Locale('en'))).toBe(false);\n        expect(isPlainObject(new (class extends Object {\n        })())).toBe(false);\n        expect(isPlainObject(fnWithProto)).toBe(false);\n        expect(isPlainObject(Symbol('cool'))).toBe(false);\n        expect(isPlainObject(globalThis)).toBe(false);\n        expect(isPlainObject(new Date())).toBe(false);\n        expect(isPlainObject(new Map())).toBe(false);\n        expect(isPlainObject(new Error())).toBe(false);\n        expect(isPlainObject(new Set())).toBe(false);\n        expect(isPlainObject(new Request('http://localhost'))).toBe(false);\n        expect(isPlainObject(new Promise(() => { }))).toBe(false);\n        expect(isPlainObject(Promise.resolve({}))).toBe(false);\n        expect(isPlainObject(Buffer.from('ABC'))).toBe(false);\n        expect(isPlainObject(new Uint8Array([1, 2, 3]))).toBe(false);\n        expect(isPlainObject(Object.create({}))).toBe(false);\n        expect(isPlainObject(/(\\d+)/)).toBe(false);\n        expect(isPlainObject(new RegExp('/d+/'))).toBe(false);\n        expect(isPlainObject(/d+/)).toBe(false);\n        expect(isPlainObject(`cool`)).toBe(false);\n        expect(isPlainObject(String.raw `rawtemplate`)).toBe(false);\n        // eslint-disable-next-line\n        // @ts-ignore\n        expect(isPlainObject(new ObjectConstructor())).toBe(false);\n        expect(isPlainObject(new Proxy(new Date(), {\n            get(target) {\n                return target;\n            },\n        }))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isPlainObject.spec.ts › isPlainObject › should return true for cross-realm plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { runInNewContext } from 'node:vm';\nimport { isPlainObject } from \"./src/predicate/isPlainObject.js\";\n{\n{\n{\nexpect(isPlainObject(runInNewContext('({})'))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

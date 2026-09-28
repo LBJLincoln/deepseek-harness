@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/isEqual/test.ts › isEqual › returns true if the given dates are equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqual } from \"./src/isEqual/index.js\";\n{\n{\n{\nconst result = isEqual(new Date(1987, 1 /* Feb */, 11), new Date(1987, 1 /* Feb */, 11));\n        expect(result).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/isEqual/test.ts › isEqual › returns false if the given dates are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqual } from \"./src/isEqual/index.js\";\n{\n{\n{\nconst result = isEqual(new Date(1989, 6 /* Jul */, 10), new Date(1987, 1 /* Feb */, 11));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/isEqual/test.ts › isEqual › accepts a timestamp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqual } from \"./src/isEqual/index.js\";\n{\n{\n{\nconst result = isEqual(new Date(1987, 1 /* Feb */, 11).getTime(), new Date(1987, 1 /* Feb */, 11).getTime());\n        expect(result).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/isEqual/test.ts › isEqual › returns false if the first date is `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqual } from \"./src/isEqual/index.js\";\n{\n{\n{\nconst result = isEqual(new Date(NaN), new Date(1989, 6 /* Jul */, 10));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "pkgs/core/src/isEqual/test.ts › isEqual › returns false if the second date is `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqual } from \"./src/isEqual/index.js\";\n{\n{\n{\nconst result = isEqual(new Date(1987, 1 /* Feb */, 11), new Date(NaN));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "pkgs/core/src/isEqual/test.ts › isEqual › returns false if the both dates are `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEqual } from \"./src/isEqual/index.js\";\n{\n{\n{\nconst result = isEqual(new Date(NaN), new Date(NaN));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

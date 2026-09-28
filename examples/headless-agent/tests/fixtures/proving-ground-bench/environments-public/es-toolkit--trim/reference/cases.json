@@ -1,0 +1,134 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/trim.spec.ts › trim › should return the string without the double quotes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('\"hello, world!\"', '\"')).toEqual('hello, world!');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/trim.spec.ts › trim › should return the string without special characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('!@#$%^&*wow%#$', ['!', '@', '#', '$', '%', '^', '&', '*'])).toEqual('wow');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/trim.spec.ts › trim › should return the string unchanged when no matching characters are found",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('hello', 'x')).toEqual('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/trim.spec.ts › trim › should remove all occurrences of a single character",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('banana', 'a')).toEqual('banan');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/trim.spec.ts › trim › should remove all occurrences of multiple characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('abracadabra', ['a', 'b'])).toEqual('racadabr');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/trim.spec.ts › trim › should handle an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('', 'a')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/trim.spec.ts › trim › should remove spaces when specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('hello world', ' ')).toEqual('hello world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/trim.spec.ts › trim › should handle a case where the string is already trimmed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('alreadyTrimmed', 'x')).toEqual('alreadyTrimmed');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/string/trim.spec.ts › trim › should return an empty string when all characters are removed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('aaaaa', 'a')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/string/trim.spec.ts › trim › should remove numbers from a string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('123abc456', ['1', '2', '3', '4', '5', '6'])).toEqual('abc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/string/trim.spec.ts › trim › should trim the string without giving the second parameter, which defaults to whitespace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trim } from \"./src/string/trim.js\";\n{\n{\n{\nexpect(trim('  hello world  ')).toEqual('hello world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

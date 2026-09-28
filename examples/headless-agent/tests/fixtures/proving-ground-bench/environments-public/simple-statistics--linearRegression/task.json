@@ -1,0 +1,53 @@
+{
+  "id": "code:simple-statistics--implement-linearRegression",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/linear_regression.js",
+    "tests": [
+      "test/linear_regression.test.js",
+      "test/r_squared.test.js",
+      "test/weighted_linear_regression.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/linear_regression.js",
+    "function": "linearRegression"
+  },
+  "title": "Implement linearRegression from simple-statistics",
+  "prompt": "`src/linear_regression.js` is the JavaScript build of `src/linear_regression.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `linearRegression`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * [Simple linear regression](http://en.wikipedia.org/wiki/Simple_linear_regression)\n * is a simple way to find a fitted line\n * between a set of coordinates. This algorithm finds the slope and y-intercept of a regression line\n * using the least sum of squares.\n *\n * @param {Array<Array<number>>} data an array of two-element of arrays,\n * like `[[0, 1], [2, 3]]`\n * @returns {Object} object containing slope and intersect of regression line\n * @example\n * linearRegression([[0, 0], [1, 1]]); // => { m: 1, b: 0 }\n */\nfunction linearRegression(data)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/linear_regression_line.js`, `src/r_squared.js`, `src/validate_weighted_input.js`, `src/weighted_linear_regression.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

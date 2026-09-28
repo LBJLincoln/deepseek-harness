@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/quartersToYears/test.ts › quartersToYears › converts quarters to years",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { quartersToYears } from \"./src/quartersToYears/index.js\";\n{\n{\n{\nexpect(quartersToYears(4)).toBe(1);\n        expect(quartersToYears(8)).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/quartersToYears/test.ts › quartersToYears › uses floor rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { quartersToYears } from \"./src/quartersToYears/index.js\";\n{\n{\n{\nexpect(quartersToYears(5)).toBe(1);\n        expect(quartersToYears(3)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/quartersToYears/test.ts › quartersToYears › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { quartersToYears } from \"./src/quartersToYears/index.js\";\n{\n{\n{\nexpect(quartersToYears(4.5)).toBe(1);\n        expect(quartersToYears(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/quartersToYears/test.ts › quartersToYears › properly works with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { quartersToYears } from \"./src/quartersToYears/index.js\";\n{\n{\n{\nexpect(quartersToYears(12.34)).toBe(3);\n        expect(quartersToYears(-12.34)).toBe(-3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

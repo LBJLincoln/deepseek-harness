@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/utils/object-keys/kebab-keys.test.ts › kebabKeys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { kebabKeys } from \"./src/utils/object-keys/kebab-keys.js\";\n{\n{\nconst expected = {\n        some: { deepNested: { value: true } },\n        'other-value': true,\n    };\n    const result = kebabKeys({\n        some: { deepNested: { value: true } },\n        otherValue: true,\n    });\n    expect(result).toEqual(expected);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

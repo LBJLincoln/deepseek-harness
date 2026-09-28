@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/invert.spec.ts › invert › should invert a simple object with string keys and number values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/object/invert.js\";\n{\n{\n{\nexpect(invert({ a: 1, b: 2, c: 3 })).toEqual({ 1: 'a', 2: 'b', 3: 'c' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/invert.spec.ts › invert › should invert an object with number keys and string values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/object/invert.js\";\n{\n{\n{\nexpect(invert({ 1: 'a', 2: 'b', 3: 'c' })).toEqual({ a: '1', b: '2', c: '3' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/invert.spec.ts › invert › should handle an object with mixed key and value types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/object/invert.js\";\n{\n{\n{\nexpect(invert({ a: 1, 2: 'b', c: 3, 4: 'd' })).toEqual({ 1: 'a', b: '2', 3: 'c', d: '4' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/invert.spec.ts › invert › should handle an object with symbol keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/object/invert.js\";\n{\n{\n{\nconst sym1 = Symbol('sym1');\n        const sym2 = Symbol('sym2');\n        expect(invert({ a: sym1, b: sym2 })).toEqual({ [sym1]: 'a', [sym2]: 'b' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/invert.spec.ts › invert › should handle an empty object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/object/invert.js\";\n{\n{\n{\nexpect(invert({})).toEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object/invert.spec.ts › invert › should handle objects with duplicate values by keeping the last key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/object/invert.js\";\n{\n{\n{\nexpect(invert({ a: 1, b: 1, c: 2 })).toEqual({ 1: 'b', 2: 'c' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/object/invert.spec.ts › invert › should work with values that shadow keys on `Object.prototype`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/object/invert.js\";\n{\n{\n{\nconst object = { a: 'hasOwnProperty', b: 'constructor' };\n        expect(invert(object)).toEqual({ hasOwnProperty: 'a', constructor: 'b' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/object/invert.spec.ts › invert › should work with an object that has a `length` property",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/object/invert.js\";\n{\n{\n{\nconst object = { 0: 'a', 1: 'b', length: 2 };\n        expect(invert(object)).toEqual({ a: '0', b: '1', 2: 'length' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/object/invert.spec.ts › invert › should not invert inherited properties",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { invert } from \"./src/object/invert.js\";\n{\n{\n{\nconst object = Object.create({ a: 1 });\n        object.b = 2;\n        expect(invert(object)).toEqual({ 2: 'b' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

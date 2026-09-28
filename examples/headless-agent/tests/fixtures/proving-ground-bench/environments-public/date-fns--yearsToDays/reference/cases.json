@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/yearsToDays/test.ts › yearsToDays › converts years to days",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { yearsToDays } from \"./src/yearsToDays/index.js\";\n{\n{\n{\nexpect(yearsToDays(1)).toBe(365);\n        expect(yearsToDays(2)).toBe(730);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/yearsToDays/test.ts › yearsToDays › uses floor rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { yearsToDays } from \"./src/yearsToDays/index.js\";\n{\n{\n{\nexpect(yearsToDays(1.7)).toBe(620);\n        expect(yearsToDays(0.1)).toBe(36);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/yearsToDays/test.ts › yearsToDays › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { yearsToDays } from \"./src/yearsToDays/index.js\";\n{\n{\n{\nexpect(yearsToDays(1.5)).toBe(547);\n        expect(yearsToDays(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/yearsToDays/test.ts › yearsToDays › properly works with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { yearsToDays } from \"./src/yearsToDays/index.js\";\n{\n{\n{\nexpect(yearsToDays(1.23)).toBe(449);\n        expect(yearsToDays(-1.23)).toBe(-449);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

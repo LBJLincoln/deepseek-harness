@@ -1,0 +1,146 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should capitalize the first word and lowercase the rest",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('hello world')).toBe('Hello world');\n        expect(sentenceCase('HELLO WORLD')).toBe('Hello world');\n        expect(sentenceCase('Hello World')).toBe('Hello world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should convert camelCase and PascalCase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('fooBar')).toBe('Foo bar');\n        expect(sentenceCase('createElement')).toBe('Create element');\n        expect(sentenceCase('PascalCase')).toBe('Pascal case');\n        expect(sentenceCase('XMLHttpRequest')).toBe('Xml http request');\n        expect(sentenceCase('iPhone')).toBe('I phone');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should handle various delimiters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('hello-world')).toBe('Hello world');\n        expect(sentenceCase('hello_world')).toBe('Hello world');\n        expect(sentenceCase('--foo-bar--')).toBe('Foo bar');\n        expect(sentenceCase('__FOO_BAR__')).toBe('Foo bar');\n        expect(sentenceCase('ABC-DEF')).toBe('Abc def');\n        expect(sentenceCase('_abc_123_def')).toBe('Abc 123 def');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should handle empty strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('')).toBe('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should handle strings with only delimiters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('_-_-_-_')).toBe('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should handle single words",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('hello')).toBe('Hello');\n        expect(sentenceCase('HELLO')).toBe('Hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should work with numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('12abc 12ABC')).toBe('12 abc 12 abc');\n        expect(sentenceCase('123ABC')).toBe('123 abc');\n        expect(sentenceCase('a1B2c3')).toBe('A 1 b 2 c 3');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should handle consecutive uppercase letters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('ABC')).toBe('Abc');\n        expect(sentenceCase('ABCdef')).toBe('Ab cdef');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should handle special characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('foo@bar')).toBe('Foo bar');\n        expect(sentenceCase('test*case')).toBe('Test case');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should handle whitespace characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('  foo  bar  ')).toBe('Foo bar');\n        expect(sentenceCase('\\tfoo\\nbar')).toBe('Foo bar');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should handle long strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('thisIsAVeryLongStringWithManyWordsAndNumbers123')).toBe('This is a very long string with many words and numbers 123');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/string/sentenceCase.spec.ts › sentenceCase › should correctly handle accented letters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sentenceCase } from \"./src/string/sentenceCase.js\";\n{\n{\n{\nexpect(sentenceCase('lunedì 18 SET')).toBe('Lunedì 18 set');\n        expect(sentenceCase('héllo wörld')).toBe('Héllo wörld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

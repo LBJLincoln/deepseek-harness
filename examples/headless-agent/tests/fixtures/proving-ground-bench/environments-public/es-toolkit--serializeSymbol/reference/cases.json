@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/serialize/serializeSymbol.spec.ts › serializeSymbol › should serialize symbols with a quoted description",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeSymbol } from \"./src/util/serialize/serializeSymbol.js\";\n{\n{\n{\nexpect(serializeSymbol(Symbol('test'))).toBe(\"Symbol('test')\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/serialize/serializeSymbol.spec.ts › serializeSymbol › should distinguish no description from an empty description",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeSymbol } from \"./src/util/serialize/serializeSymbol.js\";\n{\n{\n{\nexpect(serializeSymbol(Symbol())).toBe('Symbol()');\n        expect(serializeSymbol(Symbol(''))).toBe(\"Symbol('')\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/util/serialize/serializeSymbol.spec.ts › serializeSymbol › should serialize registered symbols the same as unregistered ones",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeSymbol } from \"./src/util/serialize/serializeSymbol.js\";\n{\n{\n{\nexpect(serializeSymbol(Symbol.for('test'))).toBe(\"Symbol('test')\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/util/serialize/serializeSymbol.spec.ts › serializeSymbol › should serialize well-known symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeSymbol } from \"./src/util/serialize/serializeSymbol.js\";\n{\n{\n{\nexpect(serializeSymbol(Symbol.iterator)).toBe(\"Symbol('Symbol.iterator')\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

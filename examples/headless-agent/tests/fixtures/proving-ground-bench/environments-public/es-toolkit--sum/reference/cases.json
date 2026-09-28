@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/sum.spec.ts › sum function › calculates the sum of an array of numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sum } from \"./src/math/sum.js\";\n{\n{\n{\nconst result = sum([1, 2, 3, 4]);\n        expect(result).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/sum.spec.ts › sum function › returns 0 for an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sum } from \"./src/math/sum.js\";\n{\n{\n{\nconst result = sum([]);\n        expect(result).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math/sum.spec.ts › sum function › handles arrays with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sum } from \"./src/math/sum.js\";\n{\n{\n{\nconst result = sum([-1, -2, -3, 4]);\n        expect(result).toBe(-2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/math/sum.spec.ts › sum function › ensures that adding the sums of two arrays equals the sum of their concatenation.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sum } from \"./src/math/sum.js\";\n{\n{\n{\nconst array1 = [];\n        const array2 = [1, 2, 3, 4];\n        expect(sum(array1) + sum(array2)).toBe(sum([...array1, ...array2]));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

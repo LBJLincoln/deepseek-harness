@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/chunk.test.ts › data first › equal size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunk } from \"./src/chunk.js\";\n{\n{\n{\nexpect(chunk([\"a\", \"b\", \"c\", \"d\"], 2)).toStrictEqual([\n            [\"a\", \"b\"],\n            [\"c\", \"d\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/chunk.test.ts › data first › not equal size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunk } from \"./src/chunk.js\";\n{\n{\n{\nexpect(chunk([\"a\", \"b\", \"c\", \"d\"], 3)).toStrictEqual([\n            [\"a\", \"b\", \"c\"],\n            [\"d\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/chunk.test.ts › data first › 1 element",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunk } from \"./src/chunk.js\";\n{\n{\n{\nexpect(chunk([\"x\"], 3)).toStrictEqual([[\"x\"]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/chunk.test.ts › data first › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunk } from \"./src/chunk.js\";\n{\n{\n{\nexpect(chunk([], 3)).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/chunk.test.ts › data last › equal size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunk } from \"./src/chunk.js\";\n{\n{\n{\nexpect(chunk(2)([\"a\", \"b\", \"c\", \"d\"])).toStrictEqual([\n            [\"a\", \"b\"],\n            [\"c\", \"d\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/chunk.test.ts › edge-cases › throws on 0 size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunk } from \"./src/chunk.js\";\n{\n{\n{\nexpect(() => chunk([\"a\", \"b\", \"c\", \"d\"], 0)).toThrow(\"chunk: A chunk size of '0' would result in an infinite array\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/chunk.test.ts › edge-cases › throws on negative size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunk } from \"./src/chunk.js\";\n{\n{\n{\nexpect(() => chunk([\"a\", \"b\", \"c\", \"d\"], -10)).toThrow(\"chunk: A chunk size of '-10' would result in an infinite array\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/chunk.test.ts › edge-cases › size > data.length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunk } from \"./src/chunk.js\";\n{\n{\n{\nconst data = [1, 2, 3];\n        const result = chunk(data, 10);\n        expect(result).toStrictEqual([data]);\n        // We expect the result to be a shallow clone\n        expect(result[0]).not.toBe(data);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/chunk.test.ts › edge-cases › chunk of size 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { chunk } from \"./src/chunk.js\";\n{\n{\n{\nconst data = [1, 2, 3, 4, 5];\n        const result = chunk(data, 1);\n        expect(result).toStrictEqual([[1], [2], [3], [4], [5]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

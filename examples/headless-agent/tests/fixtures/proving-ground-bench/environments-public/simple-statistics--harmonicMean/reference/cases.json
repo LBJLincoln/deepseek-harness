@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/harmonic_mean.test.js › harmonicMean › can get the mean of two or more numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_harmonicMean } from \"./src/harmonic_mean.js\";\nconst ss = Object.freeze({ harmonicMean: __ns1_harmonicMean });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\n{\nassert.equal(ss.harmonicMean([1, 1]), 1);\n        assert.equal(rnd(ss.harmonicMean([2, 3])), 2.4);\n        assert.equal(ss.harmonicMean([1, 2, 4]), 12 / 7);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/isSubsetWith.spec.ts › isSubsetWith › should return true if the subset is entirely contained within the superset using the `areItemsEqual` function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSubsetWith } from \"./src/array/isSubsetWith.js\";\n{\n{\n{\nconst superset = [{ id: 1 }, { id: 2 }, { id: 3 }];\n        const subset = [{ id: 2 }, { id: 1 }];\n        const areItemsEqual = (x, y) => x.id === y.id;\n        expect(isSubsetWith(superset, subset, areItemsEqual)).toBeTruthy();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/isSubsetWith.spec.ts › isSubsetWith › should return false if the subset is not entirely contained within the superset",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSubsetWith } from \"./src/array/isSubsetWith.js\";\n{\n{\n{\nconst superset = [{ id: 1 }, { id: 2 }, { id: 3 }];\n        const subset = [{ id: 4 }];\n        const areItemsEqual = (x, y) => x.id === y.id;\n        expect(isSubsetWith(superset, subset, areItemsEqual)).toBeFalsy();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/isSubsetWith.spec.ts › isSubsetWith › should handle empty arrays correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSubsetWith } from \"./src/array/isSubsetWith.js\";\n{\n{\n{\nconst superset = [1, 2, 3];\n        const emptySubset = [];\n        const areItemsEqual = (x, y) => x === y;\n        expect(isSubsetWith(superset, emptySubset, areItemsEqual)).toBeTruthy();\n        const emptySuperset = [];\n        const subset = [1];\n        expect(isSubsetWith(emptySuperset, subset, areItemsEqual)).toBeFalsy();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/isSubsetWith.spec.ts › isSubsetWith › should handle duplicates correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSubsetWith } from \"./src/array/isSubsetWith.js\";\n{\n{\n{\nconst superset = [1, 2, 2, 3];\n        const subset = [2, 2];\n        const areItemsEqual = (x, y) => x === y;\n        expect(isSubsetWith(superset, subset, areItemsEqual)).toBeTruthy();\n        const subsetWithExtra = [2, 2, 4];\n        expect(isSubsetWith(superset, subsetWithExtra, areItemsEqual)).toBeFalsy();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

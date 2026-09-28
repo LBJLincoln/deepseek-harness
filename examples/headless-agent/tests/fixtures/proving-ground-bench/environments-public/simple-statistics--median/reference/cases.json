@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/median.test.js › median › can get the median of three numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_medianSorted } from \"./src/median_sorted.js\";\nconst ss = Object.freeze({ median: __ns1_median, medianSorted: __ns1_medianSorted });\n{\n{\n{\nassert.equal(ss.median([1, 2, 3]), 2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/median.test.js › median › can get the median of two numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_medianSorted } from \"./src/median_sorted.js\";\nconst ss = Object.freeze({ median: __ns1_median, medianSorted: __ns1_medianSorted });\n{\n{\n{\nassert.equal(ss.median([1, 2]), 1.5);\n        assert.equal(ss.medianSorted([1, 2]), 1.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/median.test.js › median › can get the median of four numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_medianSorted } from \"./src/median_sorted.js\";\nconst ss = Object.freeze({ median: __ns1_median, medianSorted: __ns1_medianSorted });\n{\n{\n{\nassert.equal(ss.median([1, 2, 3, 4]), 2.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/median.test.js › median › sorts numbers numerically",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_medianSorted } from \"./src/median_sorted.js\";\nconst ss = Object.freeze({ median: __ns1_median, medianSorted: __ns1_medianSorted });\n{\n{\n{\nassert.equal(ss.median([8, 9, 10]), 9);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/median.test.js › median › does not change the sorting order of its input",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_medianSorted } from \"./src/median_sorted.js\";\nconst ss = Object.freeze({ median: __ns1_median, medianSorted: __ns1_medianSorted });\n{\n{\n{\nconst x = Object.freeze([1, 0]);\n        assert.equal(ss.median(x), 0.5);\n        assert.equal(x[0], 1);\n        assert.equal(x[1], 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "test/quantile.test.js › quantile › the median quantile is equal to the median",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nconst rand = Object.freeze([1, 4, 5, 8]);\n        assert.equal(ss.quantile(rand, 0.5), ss.median(rand));\n        const rand2 = Object.freeze([10, 50, 2, 4, 4, 5, 8]);\n        assert.equal(ss.quantile(rand2, 0.5), ss.median(rand2));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

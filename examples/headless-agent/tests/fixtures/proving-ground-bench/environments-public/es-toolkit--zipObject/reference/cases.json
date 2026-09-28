@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/zipObject.spec.ts › zipObject › creates an object from two arrays of keys and values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { zipObject } from \"./src/array/zipObject.js\";\n{\n{\n{\nexpect(zipObject(['a', 'b', 'c'], [1, 2, 3])).toEqual({ a: 1, b: 2, c: 3 });\n        expect(zipObject(['a', 'b', 'c'], [1, 2])).toEqual({ a: 1, b: 2, c: undefined });\n        expect(zipObject(['a', 'b'], [1, 2, 3])).toEqual({ a: 1, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-intersectionBy",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/intersectionBy.ts",
+    "tests": [
+      "src/array/intersectionBy.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/intersectionBy.js",
+    "function": "intersectionBy"
+  },
+  "title": "Implement intersectionBy from es-toolkit",
+  "prompt": "`src/array/intersectionBy.js` is the JavaScript build of `src/array/intersectionBy.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `intersectionBy`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Returns the intersection of two arrays based on a mapping function.\n *\n * This function takes two arrays and a mapping function. It returns a new array containing\n * the elements from the first array that, when mapped using the provided function, have matching\n * mapped elements in the second array. It effectively filters out any elements from the first array\n * that do not have corresponding mapped values in the second array.\n *\n * @template T - The type of elements in the first array.\n * @template U - The type of elements in the second array.\n * @param firstArr - The first array to compare.\n * @param secondArr - The second array to compare.\n * @param mapper - A function to map the elements of both arrays for comparison.\n * @returns A new array containing the elements from the first array that have corresponding mapped values in the second array.\n *\n * @example\n * const array1 = [{ id: 1 }, { id: 2 }, { id: 3 }];\n * const array2 = [{ id: 2 }, { id: 4 }];\n * const mapper = item => item.id;\n * const result = intersectionBy(array1, array2, mapper);\n * // result will be [{ id: 2 }] since only this element has a matching id in both arrays.\n *\n * @example\n * const array1 = [\n *   { id: 1, name: 'jane' },\n *   { id: 2, name: 'amy' },\n *   { id: 3, name: 'michael' },\n * ];\n * const array2 = [2, 4];\n * const mapper = item => (typeof item === 'object' ? item.id : item);\n * const result = intersectionBy(array1, array2, mapper);\n * // result will be [{ id: 2, name: 'amy' }] since only this element has a matching id that is equal to seconds array's element.\n */\nexport function intersectionBy<T, U>(\n  firstArr: readonly T[],\n  secondArr: readonly U[],\n  mapper: (item: T | U) => unknown\n): T[]\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

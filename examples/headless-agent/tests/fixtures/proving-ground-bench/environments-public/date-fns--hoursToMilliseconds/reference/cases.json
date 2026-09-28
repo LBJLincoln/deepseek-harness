@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/hoursToMilliseconds/test.ts › hoursToMilliseconds › converts hours to milliseconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hoursToMilliseconds } from \"./src/hoursToMilliseconds/index.js\";\n{\n{\n{\nexpect(hoursToMilliseconds(1)).toBe(3600000);\n        expect(hoursToMilliseconds(2)).toBe(7200000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/hoursToMilliseconds/test.ts › hoursToMilliseconds › uses floor rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hoursToMilliseconds } from \"./src/hoursToMilliseconds/index.js\";\n{\n{\n{\nexpect(hoursToMilliseconds(0.123456)).toBe(444441);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/hoursToMilliseconds/test.ts › hoursToMilliseconds › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hoursToMilliseconds } from \"./src/hoursToMilliseconds/index.js\";\n{\n{\n{\nexpect(hoursToMilliseconds(1.5)).toBe(5400000);\n        expect(hoursToMilliseconds(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/hoursToMilliseconds/test.ts › hoursToMilliseconds › works with negative numbers properly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hoursToMilliseconds } from \"./src/hoursToMilliseconds/index.js\";\n{\n{\n{\nexpect(hoursToMilliseconds(1.234567)).toBe(4444441);\n        expect(hoursToMilliseconds(-1.234567)).toBe(-4444441);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

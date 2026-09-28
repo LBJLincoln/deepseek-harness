@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-002",
+    "title": "src/array.test.ts › range",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filterInPlace, flattenArrayable, partition, range, toArray } from \"./src/array.js\";\n{\n{\nexpect(range(0)).toEqual([]);\n    expect(range(2)).toEqual([0, 1]);\n    expect(range(2, 5)).toEqual([2, 3, 4]);\n    expect(range(2, 10, 2)).toEqual([2, 4, 6, 8]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array.test.ts › partition",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filterInPlace, flattenArrayable, partition, range, toArray } from \"./src/array.js\";\n{\n{\nconst data = range(10);\n    expect(partition(data, i => i % 2)).toEqual([\n        [1, 3, 5, 7, 9],\n        [0, 2, 4, 6, 8],\n    ]);\n    expect(partition(data, i => i % 3 === 0, i => i % 2 === 0)).toEqual([\n        [0, 3, 6, 9],\n        [2, 4, 8],\n        [1, 5, 7],\n    ]);\n    expect(partition(data, i => i)).toHaveLength(2);\n    expect(partition(data, i => i, i => i, i => i, i => i, i => i)).toHaveLength(6);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array.test.ts › filterInPlace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filterInPlace, flattenArrayable, partition, range, toArray } from \"./src/array.js\";\n{\n{\nconst data = range(10);\n    const result = filterInPlace(data, i => i % 2);\n    expect(data).toEqual([1, 3, 5, 7, 9]);\n    expect(data).toBe(result);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

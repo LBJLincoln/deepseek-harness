@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/pathOr.test.ts › data first › should return default value (input undefined)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pathOr } from \"./src/pathOr.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst obj = {\n    a: {\n        b: {\n            c: 1,\n        },\n    },\n    y: 10,\n};\n{\n{\nexpect(pathOr(undefined, [\"x\"], 2)).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/pathOr.test.ts › data first › should return value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pathOr } from \"./src/pathOr.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst obj = {\n    a: {\n        b: {\n            c: 1,\n        },\n    },\n    y: 10,\n};\n{\n{\nexpect(pathOr(obj, [\"y\"], 2)).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/pathOr.test.ts › data first › should return default value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pathOr } from \"./src/pathOr.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst obj = {\n    a: {\n        b: {\n            c: 1,\n        },\n    },\n    y: 10,\n};\n{\n{\nexpect(pathOr(obj, [\"x\"], 2)).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/pathOr.test.ts › data first › should return value (2 level deep)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pathOr } from \"./src/pathOr.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst obj = {\n    a: {\n        b: {\n            c: 1,\n        },\n    },\n    y: 10,\n};\n{\n{\nexpect(pathOr(obj, [\"a\", \"b\"], { c: 0 })).toStrictEqual({ c: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/pathOr.test.ts › data first › should return default value (2 level deep)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pathOr } from \"./src/pathOr.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst obj = {\n    a: {\n        b: {\n            c: 1,\n        },\n    },\n    y: 10,\n};\n{\n{\nexpect(pathOr(obj, [\"a\", \"z\"], 3)).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/pathOr.test.ts › data first › should return value (3 level deep)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pathOr } from \"./src/pathOr.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst obj = {\n    a: {\n        b: {\n            c: 1,\n        },\n    },\n    y: 10,\n};\n{\n{\nexpect(pathOr(obj, [\"a\", \"b\", \"c\"], 0)).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/pathOr.test.ts › data last › 1 level",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pathOr } from \"./src/pathOr.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst obj = {\n    a: {\n        b: {\n            c: 1,\n        },\n    },\n    y: 10,\n};\n{\n{\nexpect(pipe(obj, pathOr([\"x\"], 1))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/pathOr.test.ts › data last › 2 level",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pathOr } from \"./src/pathOr.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst obj = {\n    a: {\n        b: {\n            c: 1,\n        },\n    },\n    y: 10,\n};\n{\n{\nexpect(pipe(obj, pathOr([\"a\", \"z\"], 1))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/pathOr.test.ts › data last › 3 level",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pathOr } from \"./src/pathOr.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst obj = {\n    a: {\n        b: {\n            c: 1,\n        },\n    },\n    y: 10,\n};\n{\n{\nexpect(pipe(obj, pathOr([\"a\", \"b\", \"d\"], 1))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

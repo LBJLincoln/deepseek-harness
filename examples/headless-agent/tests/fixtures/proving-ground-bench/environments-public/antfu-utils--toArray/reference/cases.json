@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array.test.ts › flattenArrayable",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filterInPlace, flattenArrayable, partition, range, toArray } from \"./src/array.js\";\n{\n{\nexpect(flattenArrayable()).toEqual([]);\n    expect(flattenArrayable([])).toEqual([]);\n    expect(flattenArrayable(1)).toEqual([1]);\n    expect(flattenArrayable([1, '2', 3])).toEqual([1, '2', 3]);\n    expect(flattenArrayable([1, [1, 2]])).toEqual([1, 1, 2]);\n    expect(flattenArrayable([1, [1, [2]]])).toEqual([1, 1, [2]]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

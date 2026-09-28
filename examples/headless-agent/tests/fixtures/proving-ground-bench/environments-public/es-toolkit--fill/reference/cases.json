@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/fill.spec.ts › fill › fills the entire array with the specified value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fill } from \"./src/array/fill.js\";\n{\n{\n{\nconst array = [1, 2, 3];\n        expect(fill(array, 'a')).toEqual(['a', 'a', 'a']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/fill.spec.ts › fill › fills a new array with a specified value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fill } from \"./src/array/fill.js\";\n{\n{\n{\nexpect(fill(Array(3), 2)).toEqual([2, 2, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/fill.spec.ts › fill › fills part of an array from the start index to the end index",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fill } from \"./src/array/fill.js\";\n{\n{\n{\nexpect(fill([4, 6, 8, 10], '*', 1, 3)).toEqual([4, '*', '*', 10]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/fill.spec.ts › fill › fills middle values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fill } from \"./src/array/fill.js\";\n{\n{\n{\nconst result = fill([1, 2, 3, 4, 5], '*', 1, 4);\n        expect(result).toEqual([1, '*', '*', '*', 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/fill.spec.ts › fill › fills from specified start position",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fill } from \"./src/array/fill.js\";\n{\n{\n{\nconst result = fill([1, 2, 3, 4, 5], '*', 2);\n        expect(result).toEqual([1, 2, '*', '*', '*']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/fill.spec.ts › fill › fills with negative start position",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fill } from \"./src/array/fill.js\";\n{\n{\n{\nconst result = fill([1, 2, 3, 4, 5], '*', -3);\n        expect(result).toEqual([1, 2, '*', '*', '*']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/fill.spec.ts › fill › fills with positive start and negative end positions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fill } from \"./src/array/fill.js\";\n{\n{\n{\nconst result = fill([1, 2, 3, 4, 5], '*', 1, -1);\n        expect(result).toEqual([1, '*', '*', '*', 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/array/fill.spec.ts › fill › fills with both negative start and end positions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fill } from \"./src/array/fill.js\";\n{\n{\n{\nconst result = fill([1, 2, 3, 4, 5], '*', -4, -1);\n        expect(result).toEqual([1, '*', '*', '*', 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/array/fill.spec.ts › fill › does not fill if start is greater than end",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { fill } from \"./src/array/fill.js\";\n{\n{\n{\nconst result = fill([1, 2, 3, 4, 5], '*', 3, 2);\n        expect(result).toEqual([1, 2, 3, 4, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/forEachObj.test.ts › number keys are translated to string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { forEachObj } from \"./src/forEachObj.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nconst data = { 123: 456 };\n    forEachObj(data, (value, key) => {\n        expect(key).toBe(\"123\");\n        expect(value).toBe(456);\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

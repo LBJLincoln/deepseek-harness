@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-mergeWith",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/object/mergeWith.ts",
+    "tests": [
+      "src/object/mergeWith.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/object/mergeWith.js",
+    "function": "mergeWith"
+  },
+  "title": "Implement mergeWith from es-toolkit",
+  "prompt": "`src/object/mergeWith.js` is the JavaScript build of `src/object/mergeWith.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `mergeWith`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Merges the properties of the source object into the target object.\n *\n * You can provide a custom `merge` function to control how properties are merged. It should return the value to be set in the target object.\n *\n * If it returns `undefined`, a default deep merge will be applied for arrays and objects:\n *\n * - If a property in the source object is an array or an object and the corresponding property in the target object is also an array or object, they will be merged.\n * - If a property in the source object is undefined, it will not overwrite a defined property in the target object.\n *\n * Note that this function mutates the target object.\n *\n * @param target - The target object into which the source object properties will be merged. This object is modified in place.\n * @param source - The source object whose properties will be merged into the target object.\n * @param merge - A custom merge function that defines how properties should be combined. It receives the following arguments:\n *   - `targetValue`: The current value of the property in the target object.\n *   - `sourceValue`: The value of the property in the source object.\n *   - `key`: The key of the property being merged.\n *   - `target`: The target object.\n *   - `source`: The source object.\n *\n * @returns The updated target object with properties from the source object merged in.\n *\n * @template T - Type of the target object.\n * @template S - Type of the source object.\n *\n * @example\n * const target = { a: 1, b: 2 };\n * const source = { b: 3, c: 4 };\n *\n * mergeWith(target, source, (targetValue, sourceValue) => {\n *   if (typeof targetValue === 'number' && typeof sourceValue === 'number') {\n *     return targetValue + sourceValue;\n *   }\n * });\n * // Returns { a: 1, b: 5, c: 4 }\n * @example\n * const target = { a: [1], b: [2] };\n * const source = { a: [3], b: [4] };\n *\n * const result = mergeWith(target, source, (objValue, srcValue) => {\n *   if (Array.isArray(objValue)) {\n *     return objValue.concat(srcValue);\n *   }\n * });\n *\n * expect(result).toEqual({ a: [1, 3], b: [2, 4] });\n */\nexport function mergeWith<T extends Record<PropertyKey, any>, S extends Record<PropertyKey, any>>(\n  target: T,\n  source: S,\n  merge: (targetValue: any, sourceValue: any, key: string, target: T, source: S) => any\n): T & S\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/_internal/globalThis.js`, `src/_internal/isMergeableValue.js`, `src/_internal/isUnsafeProperty.js`, `src/compat/_internal/getSymbols.js`, `src/compat/_internal/getTag.js`, `src/compat/_internal/tags.js`, `src/object/cloneDeep.js`, `src/object/cloneDeepWith.js`, `src/predicate/isBuffer.js`, `src/predicate/isPlainObject.js`, `src/predicate/isPrimitive.js`, `src/predicate/isTypedArray.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

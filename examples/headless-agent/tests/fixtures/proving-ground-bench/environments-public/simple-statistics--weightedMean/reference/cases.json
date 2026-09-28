@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/weighted_mean.test.js › weightedMean › can get a weighted mean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nimport { default as __ns1_weightedMean } from \"./src/weighted_mean.js\";\nconst ss = Object.freeze({ mean: __ns1_mean, weightedMean: __ns1_weightedMean });\n{\n{\n{\nassert.equal(ss.weightedMean([80, 90, 100], [1, 1, 2]), 92.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/weighted_mean.test.js › weightedMean › equal weights match mean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nimport { default as __ns1_weightedMean } from \"./src/weighted_mean.js\";\nconst ss = Object.freeze({ mean: __ns1_mean, weightedMean: __ns1_weightedMean });\n{\n{\n{\nassert.equal(ss.weightedMean([1, 2, 3, 4], [1, 1, 1, 1]), ss.mean([1, 2, 3, 4]));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/weighted_mean.test.js › weightedMean › zero weights are ignored",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nimport { default as __ns1_weightedMean } from \"./src/weighted_mean.js\";\nconst ss = Object.freeze({ mean: __ns1_mean, weightedMean: __ns1_weightedMean });\n{\n{\n{\nassert.equal(ss.weightedMean([1, 100], [1, 0]), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/weighted_mean.test.js › weightedMean › equal weights match mean even with catastrophic cancellation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nimport { default as __ns1_weightedMean } from \"./src/weighted_mean.js\";\nconst ss = Object.freeze({ mean: __ns1_mean, weightedMean: __ns1_weightedMean });\n{\n{\n{\nconst x = [1e16, 1, -1e16];\n        assert.equal(ss.weightedMean(x, [1, 1, 1]), ss.mean(x));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]
