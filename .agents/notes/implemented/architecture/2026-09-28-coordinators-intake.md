@@ -1,0 +1,51 @@
+# Agent Note: The Program Departments coordinators are the enterprise's intake
+
+Status: implemented
+
+English | [中文](2026-09-28-coordinators-intake.zh.md)
+
+## Problem
+
+The enterprise's [ticket queue](../../../../data/enterprise/tickets/README.md) is written by hand: two hand-written intakes filed `T-0001` to `T-0037`, and the engine works open tickets on a schedule. An enterprise that runs unattended through the night therefore runs out of work once the queue is worked through, and nothing but a person writes more. The ten Program Departments coordinator seats of the [roster](../../../../data/enterprise/README.md), each defined over one package group (`packages/jobs/` to `packages/boot/`), had no function of their own. Tickets an agent files unattended are worth filing only when something other than the writer checks them: an acceptance check that already passes certifies nothing, a ticket repeating an open one spends a shift twice, a queue numbered with a gap fails the validator, and a run that keeps calling a subscription route stopped at its usage limit records the limit as work ([route-limit note](2026-09-27-route-limit-halts-the-run.md)).
+
+## Decision
+
+**The coordinators are the intake.** `pnpm run enterprise:intake` ([`scripts/enterprise-intake.ts`](../../../../scripts/enterprise-intake.ts)) counts the open tickets — queued and, by the engine's ticket-line rule, neither shipped nor rejected — and at or above `--min-open` (default 8) records that nothing was needed. Below it, it selects the named coordinators or the `--count` with the fewest open tickets, clones the committed tip, adds a clean, installed checkout of the same commit, and runs one [program](../../../../packages/improvement/program/README.md) through the [enterprise-intake fixture](../../../../examples/headless-agent/tests/fixtures/enterprise-intake/README.md): one department per coordinator on the composition's route (the Claude Code overlay runs `sonnet` with a 4,000,000-token cap per department), each told to read its own package group and commit at most `--max-tickets` tickets in the queue's exact schema to `.intake/<seat>.json`.
+
+**Admission is each department's verifier, and runs again across departments.** [`scripts/enterprise-intake-admission.ts`](../../../../scripts/enterprise-intake-admission.ts) admits a proposal only when it is within the limit, the queue's validator accepts it under the next free id, its seat owns its scope, no open or shipped ticket and no ticket admitted earlier in the intake has its source path and anchor, and every acceptance check of its own exits non-zero on the clean checkout. A department's one check is `enterprise-intake.ts admit` over its committed file, passing when at least one proposal is admitted, so a department whose proposals were all refused reads each reason in the program's directive and gets one more round. After the program the intake admits every department's committed file once more in department order, which decides ids and duplicates across departments, refuses everything of a department that did not certify, and writes only the admitted tickets. A refused proposal takes no id, so the queue stays gap-free by construction.
+
+**The seat that owns a scope is the most specific seat whose source covers it.** A `README.md` source covers its directory, a directory covers itself, and a file covers only itself; among the seats covering every scope entry, those with the longest prefix own it. A change under `packages/core/agent/` is owned by its Harness Core steward; a change under a coordinator's package group is owned by that coordinator, because no steward's source covers any of the ten groups — the rule the hand-written intake already applied to `T-0025`, `T-0029` and `T-0034`.
+
+**The queue's guards are not run at admission.** `pnpm run typecheck`, `pnpm run doc-sync` and the package's `--coverage` run pass before and after a change by the queue's own rules, so they can refuse nothing a check of the ticket's own does not; the engine runs every acceptance command when it verifies the implemented ticket. Each check of its own runs with `bash -c` in its own process group under `--check-timeout-ms`, without any credential-named variable or the `GIT_CONFIG_*` set, and a check that changes the clean checkout is recorded and reset.
+
+**A usage limit walls the process.** The fixture's [`route-wall.ts`](../../../../examples/headless-agent/tests/fixtures/enterprise-intake/route-wall.ts) reads the classification the route-limit note put at the LLM seam: after the first turn that ends in `QUOTA_EXCEEDED_CODE`, every later step is rejected at `agent/pre-step` before a request is assembled, and the session's goal is blocked under `route-limit`, which the program records as the department's blocking code. No request reaches the route after the refusal; the intake admits what certified departments committed, records the refusal with the reset the notice states, and exits 3.
+
+**Every run leaves a record and function lines.** The record under `data/enterprise/intake/<UTC date>-<id>/` holds `result.json`, one `<seat>.json` per coordinator with its proposals, verdicts and check outputs, and every session log, all with credential-shaped strings masked. Each coordinator whose department reached the route gets one function line in `data/enterprise/ledger.jsonl` with the field set the enterprise functions share: `pass` when a ticket of its was admitted, `error` when its department was cut, `fail` otherwise.
+
+## Alternatives considered
+
+**Departments writing tickets straight into `data/enterprise/tickets/`.** Two departments cannot number from the same queue without colliding, and a refused ticket would leave the gap the validator rejects; the program's integration would merge both into conflicting files. Proposals in a file of the department's own, numbered by admission, keep the queue's numbering a property of what was admitted.
+
+**A structural department check, with admission only after the program.** The program would certify a department whose every proposal is refused, and the coordinator would never learn why. With admission as the verifier the program's own directive carries each refusal back for one more round, at the price of running each department's checks twice.
+
+**Certifying a department only when every proposal is admitted.** One imperfect proposal would spend a round of every department, and the usage window, for tickets the intake can simply refuse; admitting at least one is what the function line's `pass` means.
+
+**Only seats whose role is `steward` owning tickets.** No steward covers any coordinator's package group, so every coordinator's work on its own group would be refused, and the queue already holds coordinator-owned tickets.
+
+**Running every acceptance command, guards included.** `pnpm run typecheck` rebuilds the host libraries and a coverage run takes minutes on a machine the enterprise shares, and both pass before the change by the queue's rules, so running them refuses nothing. What is given up is the hand-written intake's proof of the coverage set: a coordinator's ticket naming the wrong set fails at the engine's verification, not at admission.
+
+**Disposing the application at the first refusal.** The program's teardown waits for the pass in flight while the rest of the Loader tree is disposed around it, and departments never started would be left without a record. Rejecting steps at `agent/pre-step` lets every department end through the program's own ledger, blocked under a code the record names.
+
+**Waiting for the reset.** As in the route-limit note, the reset is recorded rather than awaited; the next scheduled cycle runs the intake again.
+
+**Full checkouts.** The repository's committed data is about a gigabyte, and a run holds the clone, the clean checkout, a worktree per department and the integration's; the checkouts leave out `data/` apart from `data/enterprise/`, which admission reads, and git gives every worktree added from the clone the same sparse patterns.
+
+## Consequences
+
+The queue refills itself when it runs low: each scheduled cycle that finds fewer than `--min-open` open tickets spends at most one model session per selected coordinator, bounded by the composition's token cap and two rounds, and files only what admission accepts. The Program Departments seats occupy through function lines, and their tickets are owned by the seats whose sources cover them, which for the ten package groups are the coordinators themselves. The enterprise ledger carries a second line type beside the engine's ticket lines, so every reader of it must pass over function lines.
+
+Admission proves that each check of a ticket's own fails before the change; it cannot prove that the check passes after a correct one, that the ticket is small, or that a check fails for the reason it names — a check needing a credential fails on the scrubbed checkout and is admitted. The engine's verification and its independent review remain the gate for those. A record holds every session log of its run, so a real run commits a few hundred kilobytes to a few megabytes of logs.
+
+## Verification
+
+[`scripts/enterprise-intake-admission.spec.ts`](../../../../scripts/enterprise-intake-admission.spec.ts) pins the ledger status reading, coverage and ownership, coordinator selection, the guard classification, every refusal code with a refused proposal taking no id, duplicates within one intake, the uncertified refusal, the ticket file layout the validator reads back, credential masking, the scrubbed environment, and the check runner's output, reset and timeout. [`scripts/enterprise-intake.spec.ts`](../../../../scripts/enterprise-intake.spec.ts) pins the command's options and their validation, the coordinator's objective, the plan's admission check, the ledger outcome and the function line's field set. [`examples/headless-agent/tests/enterprise-intake.e2e.ts`](../../../../examples/headless-agent/tests/enterprise-intake.e2e.ts) runs the command keyless over a seeded repository: the nothing-needed exit, an intake that admits one ticket of each coordinator and refuses a proposal whose check already passes and one repeating a queued source, and the usage-limit stop with no request from the next department.

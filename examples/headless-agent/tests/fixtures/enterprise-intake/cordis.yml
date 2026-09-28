@@ -1,0 +1,124 @@
+# Test-only composition: the Program Departments coordinators' intake program —
+# one department per coordinator in its own git worktree and session, each
+# measured by the admission of the tickets it commits, an integration over the
+# merged proposals, and a ledger in the program's own session.
+#
+# This file is the keyless half: the departments run on the scripted `cli-mock`
+# route below. `overlays/claude-code.cordis.yml` is the same composition with
+# the operator's Claude Code route in its place and a real run's caps.
+- id: intake-llm
+  name: './intake-llm.ts'
+
+# After the first turn a route refuses under QUOTA, no later step is sent: the
+# refused department and every one after it are blocked under `route-limit`.
+- id: route-wall
+  name: './route-wall.ts'
+
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+# A department's admission check runs every acceptance command of its
+# proposals on the clean checkout, each bounded by the intake's own timeout,
+# so the foreground bound covers several of them in one check.
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+  config:
+    timeoutMs: 900000
+    maxTimeoutMs: 1800000
+
+- id: fs
+  name: '@deepseek-ai/dsh-fs-local'
+  config:
+    cwd: !!js process.cwd()
+
+- id: read-barrier
+  name: '@deepseek-ai/dsh-read-barrier'
+
+- id: fs-read-barrier
+  name: '@deepseek-ai/dsh-fs-read-barrier'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+# Composed beside the program, which disarms every goal it creates: a department
+# an operator resumes by hand is driven by this row instead.
+- id: goal-round-driver
+  name: '@deepseek-ai/dsh-goal-round-driver'
+
+# The admission check's output is the only instruction a department gets
+# between attempts, so the text bound carries one line per proposal whole.
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 4096
+
+# The roster's root is absolute: the driver exports the presets beside this file by path.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: proposing
+    roots:
+      - path: !!js process.env.DSH_TEST_PROGRAM_PRESETS
+        trust: system
+    includeUserRoot: false
+
+# The route every department session is created with. The overlay replaces this
+# entry, and only this entry, to put a product model in the coordinators' place.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. These caps are also each department's own: the driver reads them into
+# every goal's budget, so the overlay's patch of this row is what sets a real
+# run's token cap per department.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 2000000
+    maxWallMs: 1500000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'You coordinate one package group of a repository you did not write. Your function is intake: you read the group, find small verifiable work in it, and write that work up as tickets. You change no code.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: !!js process.env.DSH_TEST_SESSION_ROOT ?? './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+# The two signatures the program's `requireSignoff` reads are recorded on the
+# program session by the driver, through this service, before `start` opens it.
+- id: signoff
+  name: '@deepseek-ai/dsh-signoff'
+  config:
+    maxEvidence: 8
+    maxEvidenceRefChars: 512
+
+# One department at a time: every admission check runs its commands in the one
+# clean checkout, and the wall stops the departments not yet started.
+- id: program
+  name: '@deepseek-ai/dsh-program'
+  config:
+    workspaceRoot: !!js process.env.DSH_TEST_PROGRAM_REPO
+    requireSignoff: true
+    maxConcurrentGoals: 1
+    # A department whose every proposal was refused gets one more round to
+    # replace them; a second refusal of all of them fails the department.
+    maxGoalRounds: 2
+    branchPrefix: program
+    evidenceMaxChars: 4096

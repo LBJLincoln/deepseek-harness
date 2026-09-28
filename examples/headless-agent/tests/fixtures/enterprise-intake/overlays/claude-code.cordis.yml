@@ -1,0 +1,34 @@
+# The intake program with the operator's own Claude Code installation as the
+# route every coordinator is driven through: the real run, and the only file
+# that differs from the keyless composition beside it.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      - id: intake-llm
+        disabled: true
+      # The token cap per department, which the driver reads into every goal's
+      # budget. The cap counts billed input, and every step reads the whole
+      # conversation back from cache, so reading a package group and writing up
+      # three tickets spends millions before the first attempt is measured. An
+      # id-targeted patch replaces the whole config, so both fields are restated.
+      - id: budget-policy
+        config:
+          maxTotalTokens: 4000000
+          maxWallMs: 1500000
+      - insert:
+          - id: llm-claude-code
+            name: '@deepseek-ai/dsh-llm-claude-code'
+            config:
+              provider: claude-code
+              models:
+                - id: sonnet
+                  name: Claude Code sonnet
+                  productModel: sonnet
+                  contextWindow: 200000
+              effort: medium
+      - id: agent-default-model
+        config:
+          provider: claude-code
+          model: sonnet

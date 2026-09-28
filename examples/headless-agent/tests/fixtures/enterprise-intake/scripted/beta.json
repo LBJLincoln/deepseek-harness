@@ -1,0 +1,36 @@
+[
+  {
+    "id": "T-0002",
+    "title": "Bound the beta retries again",
+    "division": "program-departments",
+    "seat": "program-departments-beta-coordinator",
+    "kind": "fix",
+    "source": { "path": "packages/beta/limits.json", "anchor": "Retries are unbounded." },
+    "task": "Problem: packages/beta/src/cache.json:2 sets retries to unbounded. Required: add maxRetries.",
+    "scope": ["packages/beta/"],
+    "acceptance": [
+      { "id": "retries-bounded", "run": "grep -q maxRetries packages/beta/src/cache.json" },
+      { "id": "coverage", "run": "pnpm exec vitest run packages/beta/ --coverage --coverage.include='packages/beta/src/**'" },
+      { "id": "typecheck", "run": "pnpm run typecheck" }
+    ],
+    "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+    "priority": 1
+  },
+  {
+    "id": "T-0003",
+    "title": "Give the beta cache an expiry",
+    "division": "program-departments",
+    "seat": "program-departments-beta-coordinator",
+    "kind": "fix",
+    "source": { "path": "packages/beta/limits.json", "anchor": "The cache never expires." },
+    "task": "Problem: packages/beta/src/cache.json:3 sets expiry to null. Required: add ttlSeconds and honour it.",
+    "scope": ["packages/beta/"],
+    "acceptance": [
+      { "id": "expiry-set", "run": "grep -q ttlSeconds packages/beta/src/cache.json" },
+      { "id": "coverage", "run": "pnpm exec vitest run packages/beta/ --coverage --coverage.include='packages/beta/src/**'" },
+      { "id": "typecheck", "run": "pnpm run typecheck" }
+    ],
+    "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+    "priority": 1
+  }
+]

@@ -1,0 +1,36 @@
+[
+  {
+    "id": "T-0002",
+    "title": "Cap how many jobs one alpha drain takes",
+    "division": "program-departments",
+    "seat": "program-departments-alpha-coordinator",
+    "kind": "fix",
+    "source": { "path": "packages/alpha/limits.json", "anchor": "The queue drains without a bound" },
+    "task": "Problem: packages/alpha/src/queue.json:2 drains in fifo order with no cap. Required: add maxJobs to the drain and document it.",
+    "scope": ["packages/alpha/"],
+    "acceptance": [
+      { "id": "drain-capped", "run": "grep -q maxJobs packages/alpha/src/queue.json" },
+      { "id": "coverage", "run": "pnpm exec vitest run packages/alpha/ --coverage --coverage.include='packages/alpha/src/**'" },
+      { "id": "typecheck", "run": "pnpm run typecheck" }
+    ],
+    "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+    "priority": 1
+  },
+  {
+    "id": "T-0003",
+    "title": "Keep the alpha timeout configurable",
+    "division": "program-departments",
+    "seat": "program-departments-alpha-coordinator",
+    "kind": "chore",
+    "source": { "path": "packages/alpha/limits.json", "anchor": "Timeouts are fixed at thirty seconds." },
+    "task": "Problem: packages/alpha/src/queue.json:3 fixes the timeout. Required: keep timeoutSeconds as the setting.",
+    "scope": ["packages/alpha/"],
+    "acceptance": [
+      { "id": "timeout-set", "run": "grep -q timeoutSeconds packages/alpha/src/queue.json" },
+      { "id": "coverage", "run": "pnpm exec vitest run packages/alpha/ --coverage --coverage.include='packages/alpha/src/**'" },
+      { "id": "typecheck", "run": "pnpm run typecheck" }
+    ],
+    "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+    "priority": 2
+  }
+]
