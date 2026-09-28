@@ -18,7 +18,9 @@ data/code-safety/
     verifier.txt       the committed examiner's exit code and output over the released worktree
     stderr.txt         what the driver wrote to stderr, when it wrote anything
     sessions/          every session log: the ledger, the six departments and the integration, named by session id
+    seeded.ground-truth.json, seed-manifest.json, seeded-recall.json   in a record of a seeded copy only: the planted defects, how they were planted, and the released findings scored against them
   targets/<target>.ground-truth.json   a target's own documented defects, for reading a record's recall against; never part of the release gate
+  targets/<target>.target.json         a target pinned without a ground truth: revision, paths in scope, language, lock digest and seeding parameters; targets/README.md states each target's scope
   tools/record-run.mjs                 copies one run directory into a record, redacts it, and writes its manifest
   tools/redact-record.mjs              replaces private-key bodies and example cloud keys in a record and refreshes its manifest; record-run.mjs runs it before digesting
   tools/redact-record.cases.mjs        one behavior case per private-key shape the tool covers; scripts/code-safety-redaction.spec.ts runs it under plain Node
@@ -27,6 +29,7 @@ data/code-safety/
   tools/trajectory.mjs                 reads a record's session logs for its provenance and each finding's read trail
   tools/assemble-comparison.mjs        assembles one target's three-tier comparison into comparisons/<date>-<target>/comparison.json
   tools/seed-defects.mjs               plants N defects drawn from the mutation catalogue into a copy of a target, for seeded-recall estimation; never part of the release gate
+  tools/seed-defects.cases.mjs         the seeder's TypeScript behavior cases; scripts/code-safety-seeding.spec.ts runs them under plain Node
   tools/seeded-recall.mjs              scores a findings list against a seed-defects.mjs ground truth, with a Wilson 95% interval, overall and per CWE class
   tools/seed-catalogue.json            the mutation catalogue seed-defects.mjs draws from: one CWE class, language, site pattern, and insertion template per entry
   comparisons/<date>-<target>/         a target reviewed three ways — a scanner, one model, the enterprise — scored against one ground truth
@@ -40,7 +43,7 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
   --composition examples/headless-agent/tests/fixtures/program-code-safety/overlays/claude-code.cordis.yml
 ```
 
-记录器拒绝覆盖已有记录。记录完成后在下表添加一行，并把运行所暴露的一切——轮次耗尽的部门、始终未能通过审查器的集成——原样留在旁边，而不是反复重跑直到看起来漂亮。
+记录器拒绝覆盖已有记录。对带种子副本的运行，记录时还要加上 `--seeded <seed out dir>`，它把答案、seed manifest 与打分结果加进记录。记录完成后在下表添加一行，并把运行所暴露的一切——轮次耗尽的部门、始终未能通过审查器的集成——原样留在旁边，而不是反复重跑直到看起来漂亮。
 
 ## 运行
 
@@ -59,6 +62,7 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
 | [2026-09-27-nodegoat-10-base-c](2026-09-27-nodegoat-10-base-c/manifest.json) | `745d904b1` | OWASP NodeGoat，111 个文件，同一配对的第一个 `without` 臂：诊断之前的那个提交，从其自身检出运行，更早的运行目录已事先移走；紧接在 `with` 臂之后运行的那次尝试尚未提交便随会话的暂存磁盘一起丢失，因此这一次晚了六小时才运行 | `sonnet` | 7 of 7 | 45 (6 critical, 20 high, 13 medium, 5 low, 1 info) | 退出码 0 | 1383 s |
 | [2026-09-27-nodegoat-11-misses-b](2026-09-27-nodegoat-11-misses-b/manifest.json) | `679eca6bd` | OWASP NodeGoat，111 个文件，同一配对的第二个 `with` 臂，从诊断提交的暂存检出运行；其第一次尝试从第一个检出运行，在集成之前止于路由的会话上限，没有发布任何东西 | `sonnet` | 7 of 7 | 49 (5 critical, 19 high, 17 medium, 7 low, 1 info) | 退出码 0 | 1559 s |
 | [2026-09-27-nodegoat-12-base-d](2026-09-27-nodegoat-12-base-d/manifest.json) | `745d904b1` | OWASP NodeGoat，111 个文件，同一配对的第二个 `without` 臂；收束第三次迭代 | `sonnet` | 7 of 7 | 49 (9 critical, 16 high, 15 medium, 9 low, 0 info) | 退出码 0 | 1636 s |
+| [2026-09-28-dsh-self-review](2026-09-28-dsh-self-review/manifest.json) | `0e9b0cb26` | 本仓库 `599da7580` 处的四个外部 agent subagent provider，24 个文件，植入了八个 TypeScript canary（[目标](targets/README.md#dsh-subagent-providers-the-enterprises-own-code)）；本部门对自己企业代码的第一次评审，分拣为 7 条 canary 发现与 4 条误报，无一确认；seeded recall 8 中 6 | `sonnet` | 7 of 7 | 11 (0 critical, 1 high, 4 medium, 4 low, 2 info) | 退出码 0 | 1390 s |
 
 ## 一条记录证明了什么
 
@@ -72,7 +76,7 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
 
 `targets/nodegoat.ground-truth.json` 与 dvja 的对应文件是仅有的两份带有已记载缺陷列表的目标，因为它们是仅有的两个被数过的目标。客户自己的应用两者皆无，因此对它的一次审查发布的发现数与严重度列表，没有任何东西可供比对。**seeded-defect（canary）估计法**仍能给出一个读数：在目标的一份完整副本里，向记录在案的位置植入已知数量的合成缺陷实例；在这份副本上运行审查，且不告知它这一点；用 `compare.mjs` 与 `recall.mjs` 已经使用的同一条三行容差规则，为已发布发现落在这些植入位置上的比例打分。这个比例就是该代码库上、针对这些类别的召回率估计，并附带一个置信区间。
 
-`tools/seed-defects.mjs` 从 `tools/seed-catalogue.json` 里的一份**缺陷变异目录**中取样植入：每个条目命名一个 CWE、一种语言、一个用于找到真实插入位置的正则表达式，以及一个在该位置添加一行代码的字符串模板。该目录八个 JavaScript/Express 条目中的七个共用同一个位置——任何已经读取 `req.query`/`req.body`/`req.params.<field>` 的行——并在其后插入一行新代码，把同一个字段带入该类别的汇点：对它调用 `eval()`（模仿 NodeGoat 自身的 `contributions.js`）、用它拼出一个 NoSQL `$where` 过滤器、对它做一次裸的 `fetch()`、对它调用 `console.log()`、用 `res.redirect()` 重定向到它、用它编译一个 `new RegExp()`，或者把它拼接进 `res.send()`。第八个条目，硬编码凭证，则改为锚定在文件自身的某一行 `require(...)` 上，添加一条形如 secrets 技能自身 `process.env.JWT_SECRET || 'literal'` 示例的兜底密钥声明。每一行插入的代码都会立即用 `node --check` 校验；事后解析失败的文件，其对应位置会被撤销，不计入 N。同一文件内没有两个植入位置的距离在 10 行以内。选取过程是对每个候选位置的一次带 seed 的洗牌，因此同一个 seed 与同一个目标总是植入同一批位置；`--max-per-entry` 为单个类别在较小 N 中所占的份额设置上限；`--avoid <ground-truth.json>` 让植入位置与目标自身已记载的问题保持三行以外的距离，因此对一个真实、已存在缺陷的命中绝不会被误认成对一个合成缺陷的命中。`--dry-run` 列出每一个候选位置，并标出 seeded 选取的结果，不触碰任何文件。该工具从不修改原始目标：它把整棵树复制到 `<out dir>/repo`，并把答案——`seeded.ground-truth.json`（植入的位置，格式与 `nodegoat.ground-truth.json` 自身的 id/category/cwe/file/lines 相同）与 `seed-manifest.json`（seed、目录摘要、考虑过的位置、植入的位置、逐条目计数）——写在它旁边，而不是里面，因此这次估计所评分的审查，永远不会被指向自己的答案。
+`tools/seed-defects.mjs` 从 `tools/seed-catalogue.json` 里的一份**缺陷变异目录**中取样植入：每个条目命名一个 CWE、一种语言（`javascript` 或 `typescript`）、一个用于找到真实插入位置的正则表达式，以及一个在该位置添加一行代码的字符串模板。该目录八个 JavaScript/Express 条目中的七个共用同一个位置——任何已经读取 `req.query`/`req.body`/`req.params.<field>` 的行——并在其后插入一行新代码，把同一个字段带入该类别的汇点：对它调用 `eval()`（模仿 NodeGoat 自身的 `contributions.js`）、用它拼出一个 NoSQL `$where` 过滤器、对它做一次裸的 `fetch()`、对它调用 `console.log()`、用 `res.redirect()` 重定向到它、用它编译一个 `new RegExp()`，或者把它拼接进 `res.send()`。第八个条目，硬编码凭证，则改为锚定在文件自身的某一行 `require(...)` 上，添加一条形如 secrets 技能自身 `process.env.JWT_SECRET || 'literal'` 示例的兜底密钥声明。每一行插入的代码都会立即校验——JavaScript 用 `node --check`；TypeScript 用 TypeScript 解析器，它还必须把插入的那一行读作独立成句的一条语句，这样不写分号的相邻行永远不会把它吞并——校验失败的文件，其对应位置会被撤销，不计入 N。四个 TypeScript 条目在一个驱动另一个进程的 TypeScript 库真正拥有的输入上镜像其中四个类别，即从那个进程线协议消息里读出的值：一行把它写进 stderr 的日志、对它调用 `eval`、用它编译 `RegExp`，以及在模块级常量行上加一个带硬编码回退值的令牌。同一文件内没有两个植入位置的距离在 10 行以内。选取过程是对每个候选位置的一次带 seed 的洗牌，因此同一个 seed 与同一个目标总是植入同一批位置；`--max-per-entry` 为单个类别在较小 N 中所占的份额设置上限；`--avoid <ground-truth.json>` 让植入位置与目标自身已记载的问题保持三行以外的距离，因此对一个真实、已存在缺陷的命中绝不会被误认成对一个合成缺陷的命中。`--dry-run` 列出每一个候选位置，并标出 seeded 选取的结果，不触碰任何文件。该工具从不修改原始目标：它把整棵树——除了任何一个其 diff 会打印出每一行植入代码的 `.git` 目录——复制到 `<out dir>/repo`，并把答案——`seeded.ground-truth.json`（植入的位置，格式与 `nodegoat.ground-truth.json` 自身的 id/category/cwe/file/lines 相同）与 `seed-manifest.json`（seed、目录摘要、考虑过的位置、植入的位置、逐条目计数）——写在它旁边，而不是里面，因此这次估计所评分的审查，永远不会被指向自己的答案。
 
 `tools/seeded-recall.mjs` 用 `compare.mjs` 的精确匹配规则，把一份发现列表——一个纯 JSON 文件、一个 `record-run.mjs` 记录目录，或直接从其 `stdout.jsonl` 读取的一次 `pnpm run code-safety --out <dir>` 原始运行目录——与这份答案对比打分，并打印出总体及逐 CWE 类别的「命中数/N」，以 Wilson 95% 置信区间的形式给出。之所以用 Wilson 而不是正态近似区间，是因为它始终落在 [0, 1] 之内，且在一次 seeding 运行产生的小计数（`k = 0` 或 `k = n`）下不会收缩为零宽度。
 
@@ -91,9 +95,11 @@ node data/code-safety/tools/seed-defects.mjs <target> <out dir> --seed <seed> --
 node data/code-safety/tools/seeded-recall.mjs <findings.json, or a record or raw run dir> <out dir>/seeded.ground-truth.json
 ```
 
-六部门 program 自身的 seeded-recall 读数，尚未运行：
+### 六部门 program 在带种子副本上的读数
+
+完整 program 的第一次 seeded 读数，是企业对自己代码的评审 [`2026-09-28-dsh-self-review`](2026-09-28-dsh-self-review/manifest.json)：在四个外部 agent subagent provider 里植入八个 TypeScript canary，用 `record-run.mjs --seeded` 记录，读数为 **8 中 6**，95% CI **[0.409, 0.929]**。八个中有三个没有植入任何可达的缺陷——它们用 `String()` 包裹一个已被收窄为对象的值，得到的是常量——injection 部门正是以这个理由把三处都排除了；在五个携带子进程可控值的 canary 上，评审读出 5 中 5，95% CI [0.566, 1.0]。[目标的 README](targets/README.md#the-2026-09-28-review-and-its-triage) 保存了对每条已发布发现的分拣。在任意目标上复现这类读数：
 
 ```sh
 pnpm run code-safety -- <out dir>/repo --out .code-safety/<name>-seeded --model sonnet
-node data/code-safety/tools/seeded-recall.mjs .code-safety/<name>-seeded <out dir>/seeded.ground-truth.json
+node data/code-safety/tools/record-run.mjs .code-safety/<name>-seeded <date>-<name> --composition examples/headless-agent/tests/fixtures/program-code-safety/overlays/claude-code.cordis.yml --seeded <out dir>
 ```

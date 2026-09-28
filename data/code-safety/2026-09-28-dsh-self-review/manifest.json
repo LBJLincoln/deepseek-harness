@@ -1,0 +1,200 @@
+{
+  "run": "2026-09-28-dsh-self-review",
+  "ranAt": "2026-09-28T17:23:54.822Z",
+  "endedAt": "2026-09-28T17:47:04.167Z",
+  "elapsedSeconds": 1390,
+  "repository": {
+    "branch": "opus-safety-dogfood",
+    "head": "0e9b0cb2644171f9259df0fa01301d6e52df3472",
+    "changedPaths": []
+  },
+  "composition": "examples/headless-agent/tests/fixtures/program-code-safety/overlays/claude-code.cordis.yml",
+  "knowledge": {
+    "root": "data/knowledge/code-safety",
+    "files": 13,
+    "sha256": "0ec2cc9b3913a0a7c0120ecbaeeb313842a0a1a0a012176661746b81e5a78795"
+  },
+  "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+  "outcome": "released",
+  "mergedRevision": "435484f5ffc98bf1a9f06f2e8f8ae2d0f9d73f92",
+  "target": {
+    "root": "/home/user/enterprise-scratch/dsh-subagent-providers/repo",
+    "files": 24,
+    "sha256": "a2da992332d755dcdd20b89b8fac7ca936580e1ee450ed766c9c5e96649a592f"
+  },
+  "departments": [
+    {
+      "key": "secrets",
+      "status": "merged",
+      "revision": "c1f5ef6e1e82989244f6333ca66adaaf4052bed6",
+      "tree": "9bf635d1e978611b4a5aaf4723514b038b695a44"
+    },
+    {
+      "key": "injection",
+      "status": "merged",
+      "revision": "eeced07b9540c63b12f398bb4b59b307f0d9c61f",
+      "tree": "e22c619311ac74661ddd814a765949874f34d4b6"
+    },
+    {
+      "key": "access",
+      "status": "merged",
+      "revision": "cf05fe48991af8ae3d4689bc2e0a007aeb7e9b61",
+      "tree": "6f6669d7f7040a01c2735366fb738cd8aa7d4b73"
+    },
+    {
+      "key": "data",
+      "status": "merged",
+      "revision": "41f12743fa09a55be433b39ed17cda2562b66ab0",
+      "tree": "aab40a9080b6a58600996c293866322acffbd373"
+    },
+    {
+      "key": "dependencies",
+      "status": "merged",
+      "revision": "5dbf8042a1c50898a4a3b576a430f1b03d292d6d",
+      "tree": "e5cae08e62c249f744aa0e74678905b42010419b"
+    },
+    {
+      "key": "platform",
+      "status": "merged",
+      "revision": "ce89f579a7b2c02cb35a674283acf571980d5826",
+      "tree": "6133e5d0b874d00203982e3527d3cef318a82274"
+    }
+  ],
+  "certified": [
+    "@integration",
+    "access",
+    "data",
+    "dependencies",
+    "injection",
+    "platform",
+    "secrets"
+  ],
+  "findings": {
+    "total": 11,
+    "bySeverity": {
+      "critical": 0,
+      "high": 1,
+      "medium": 4,
+      "low": 4,
+      "info": 2
+    },
+    "byConfidence": {
+      "confirmed": 7,
+      "likely": 4,
+      "possible": 0
+    }
+  },
+  "verifier": {
+    "exitCode": 0
+  },
+  "denials": 0,
+  "sessions": {
+    "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a.jsonl",
+    "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-~0040integration": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-~0040integration.jsonl",
+    "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-access": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-access.jsonl",
+    "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-data": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-data.jsonl",
+    "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-dependencies": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-dependencies.jsonl",
+    "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-injection": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-injection.jsonl",
+    "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-platform": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-platform.jsonl",
+    "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets.jsonl"
+  },
+  "files": [
+    {
+      "path": "result.json",
+      "bytes": 79588,
+      "sha256": "f8b22c07854a5cbfcb8dd46bb84ab93ee38c5b25f5e8e843f8f0ee2773775600"
+    },
+    {
+      "path": "SAFETY-REPORT.md",
+      "bytes": 18118,
+      "sha256": "8ff3430c9f236d0ac2f1180eb94d3c299a0a491a225120edf81fd7c04fc57100"
+    },
+    {
+      "path": "findings.json",
+      "bytes": 20081,
+      "sha256": "2e8a8d0abf7b7a024e01a1872a48b4a13c145ae4eec1adb40d6be6131cebae89"
+    },
+    {
+      "path": "verifier.txt",
+      "bytes": 121,
+      "sha256": "1484c7b96013e6e5736222901fec4e04f2a7c45eb5e46625930d3832b5f4701d"
+    },
+    {
+      "path": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a.jsonl",
+      "bytes": 26077,
+      "sha256": "aba4876c7f7c65661eeab74d9ae9aa6650a0c6b1f045c0c807e7850490052d8a"
+    },
+    {
+      "path": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-~0040integration.jsonl",
+      "bytes": 545151,
+      "sha256": "526ec17d6dc39ef6b3e19589b044d99ae67766a1064a1d61579f96d1872f4a05"
+    },
+    {
+      "path": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-access.jsonl",
+      "bytes": 654413,
+      "sha256": "fb5cadd81e2e3c9d973e76275143b998c58eb13d6c7269425ccb38db9843c30c"
+    },
+    {
+      "path": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-data.jsonl",
+      "bytes": 641376,
+      "sha256": "6209b0a1f2a885504d1985dbe1f2d93fbadc1263002d23e5e8a7d641d9fcd222"
+    },
+    {
+      "path": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-dependencies.jsonl",
+      "bytes": 421886,
+      "sha256": "b65fb4f54159efc3ed8b077e9e61c8ed65636cfac68330c3971a6e82fcaef7d0"
+    },
+    {
+      "path": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-injection.jsonl",
+      "bytes": 624890,
+      "sha256": "dbd1cee56f5444a204e0f72ff8db638f1a36a575907730c0101d965cd8d5570a"
+    },
+    {
+      "path": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-platform.jsonl",
+      "bytes": 764022,
+      "sha256": "1caaab25dc0daebc84c487f24bcf7d7575abf17d041341001e7be1716a858b34"
+    },
+    {
+      "path": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets.jsonl",
+      "bytes": 741576,
+      "sha256": "41d58713fc78d953ffe45384ab2d56a649fe6bcb7fb83742c338bc47fe61cbf2"
+    },
+    {
+      "path": "seeded.ground-truth.json",
+      "bytes": 3279,
+      "sha256": "1b3e933c00c212a8c73643b8ac6efd89b268263580efa8ac50c682fcb9aeee4f"
+    },
+    {
+      "path": "seed-manifest.json",
+      "bytes": 2006,
+      "sha256": "851693aca2d0317a991ed1e5076a35ff4880b9d0e1e69cb5370ccfa73f4e648a"
+    },
+    {
+      "path": "seeded-recall.json",
+      "bytes": 3535,
+      "sha256": "67ca7e594ed2a4f7d91c605357ac655d8f83d3efcec4e16e5b7e25f120e5e67d"
+    }
+  ],
+  "redactions": {
+    "rule": "Private key material and example cloud keys the departments read out of the target were replaced before the record was committed; the cited lines the examiner verified are untouched.",
+    "tool": "tools/redact-record.mjs",
+    "files": [
+      {
+        "file": "sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets.jsonl",
+        "privateKeyBodies": 0,
+        "exampleAwsKeys": 1
+      }
+    ]
+  },
+  "seeded": {
+    "groundTruth": "seeded.ground-truth.json",
+    "manifest": "seed-manifest.json",
+    "reading": "seeded-recall.json",
+    "planted": 8,
+    "caught": 6,
+    "interval": {
+      "low": 0.409,
+      "high": 0.929
+    }
+  }
+}

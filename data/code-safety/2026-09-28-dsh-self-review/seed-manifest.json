@@ -1,0 +1,71 @@
+{
+  "generatedAt": "2026-09-28T17:23:28.809Z",
+  "seed": "dsh-self-review-2026-09-28",
+  "language": "typescript",
+  "catalogueDigest": "b31f0c4a0cf40605534f95c153080687ca54037bcd57831feb6f6cda66650bcb",
+  "cataloguePath": "data/code-safety/tools/seed-catalogue.json",
+  "targetDir": "/home/user/enterprise-scratch/dsh-target-clean",
+  "targetRevision": "599da758095bd221b6747d5b5631592b8620efe4",
+  "outDir": "/home/user/enterprise-scratch/dsh-subagent-providers",
+  "requested": 8,
+  "planted": 8,
+  "sitesConsidered": 98,
+  "rejectedBySeparation": 5,
+  "rejectedByCheck": 1,
+  "perEntryCounts": {
+    "ts-log-injection": 2,
+    "ts-eval-injection": 2,
+    "ts-redos-new-regexp": 2,
+    "ts-hardcoded-credential": 2
+  },
+  "sites": [
+    {
+      "id": "SEED-001",
+      "entryId": "ts-log-injection",
+      "file": "packages/subagent/subagent-acp/src/run.ts",
+      "line": 258
+    },
+    {
+      "id": "SEED-002",
+      "entryId": "ts-eval-injection",
+      "file": "packages/subagent/subagent-claude-code/src/bridge.ts",
+      "line": 60
+    },
+    {
+      "id": "SEED-003",
+      "entryId": "ts-hardcoded-credential",
+      "file": "packages/subagent/subagent-claude-code/src/run.ts",
+      "line": 45
+    },
+    {
+      "id": "SEED-004",
+      "entryId": "ts-log-injection",
+      "file": "packages/subagent/subagent-claude-code/src/run.ts",
+      "line": 141
+    },
+    {
+      "id": "SEED-005",
+      "entryId": "ts-hardcoded-credential",
+      "file": "packages/subagent/subagent-codex/src/run.ts",
+      "line": 26
+    },
+    {
+      "id": "SEED-006",
+      "entryId": "ts-eval-injection",
+      "file": "packages/subagent/subagent-codex/src/wire.ts",
+      "line": 325
+    },
+    {
+      "id": "SEED-007",
+      "entryId": "ts-redos-new-regexp",
+      "file": "packages/subagent/subagent-codex/src/wire.ts",
+      "line": 344
+    },
+    {
+      "id": "SEED-008",
+      "entryId": "ts-redos-new-regexp",
+      "file": "packages/subagent/subagent-codex/src/wire.ts",
+      "line": 363
+    }
+  ]
+}

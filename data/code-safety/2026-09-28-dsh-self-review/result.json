@@ -1,0 +1,781 @@
+{
+  "type": "result",
+  "report": {
+    "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+    "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+    "outcome": "released",
+    "mergedRevision": "435484f5ffc98bf1a9f06f2e8f8ae2d0f9d73f92",
+    "goals": [
+      {
+        "key": "secrets",
+        "status": "merged",
+        "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets",
+        "revision": "c1f5ef6e1e82989244f6333ca66adaaf4052bed6",
+        "tree": "9bf635d1e978611b4a5aaf4723514b038b695a44"
+      },
+      {
+        "key": "injection",
+        "status": "merged",
+        "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-injection",
+        "revision": "eeced07b9540c63b12f398bb4b59b307f0d9c61f",
+        "tree": "e22c619311ac74661ddd814a765949874f34d4b6"
+      },
+      {
+        "key": "access",
+        "status": "merged",
+        "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-access",
+        "revision": "cf05fe48991af8ae3d4689bc2e0a007aeb7e9b61",
+        "tree": "6f6669d7f7040a01c2735366fb738cd8aa7d4b73"
+      },
+      {
+        "key": "data",
+        "status": "merged",
+        "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-data",
+        "revision": "41f12743fa09a55be433b39ed17cda2562b66ab0",
+        "tree": "aab40a9080b6a58600996c293866322acffbd373"
+      },
+      {
+        "key": "dependencies",
+        "status": "merged",
+        "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-dependencies",
+        "revision": "5dbf8042a1c50898a4a3b576a430f1b03d292d6d",
+        "tree": "e5cae08e62c249f744aa0e74678905b42010419b"
+      },
+      {
+        "key": "platform",
+        "status": "merged",
+        "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-platform",
+        "revision": "ce89f579a7b2c02cb35a674283acf571980d5826",
+        "tree": "6133e5d0b874d00203982e3527d3cef318a82274"
+      }
+    ]
+  },
+  "target": {
+    "root": "/home/user/enterprise-scratch/dsh-subagent-providers/repo",
+    "files": 24,
+    "sha256": "a2da992332d755dcdd20b89b8fac7ca936580e1ee450ed766c9c5e96649a592f"
+  },
+  "elapsedSeconds": 1390,
+  "denials": [],
+  "deliverable": [
+    "REPORTING.md",
+    "SAFETY-REPORT.md",
+    "findings.json",
+    "findings/.gitkeep",
+    "findings/access.json",
+    "findings/data.json",
+    "findings/dependencies.json",
+    "findings/injection.json",
+    "findings/platform.json",
+    "findings/secrets.json",
+    "report/.gitkeep",
+    "report/access.md",
+    "report/data.md",
+    "report/dependencies.md",
+    "report/injection.md",
+    "report/platform.md",
+    "report/secrets.md",
+    "target.json",
+    "verify-safety-report.mjs"
+  ],
+  "safetyReport": "## Résumé exécutif\n\nCette revue porte sur l'arborescence verrouillée dans `target.json`\n(`/home/user/enterprise-scratch/dsh-subagent-providers/repo`, 22 fichiers déclarés, 24 fichiers\neffectivement présents sous `packages/subagent/{subagent-acp,subagent-claude-code,subagent-codex,subagent-dsh-sdk}`,\nsha256 `a2da992332d755dcdd20b89b8fac7ca936580e1ee450ed766c9c5e96649a592f`), un ensemble de plugins\nCordis qui font tourner un agent de codage externe (CLI Claude Code, serveur d'application Codex,\nagent ACP, ou un runtime DeepSeek Harness pair) comme sous-processus. Six départements (access,\ndata, dependencies, injection, platform, secrets) ont chacun lu l'intégralité des 24 fichiers\nverrouillés et exécuté semgrep 1.177.0. L'union dédupliquée compte 11 constats : 0 critique,\n1 élevé, 4 moyens, 4 faibles et 2 informatifs. Les plus importants : (1) un `eval()` (CWE-95,\nsévérité élevée) qui exécute une valeur lue directement dans le flux JSON renvoyé par le processus\nenfant Claude Code CLI (`packages/subagent/subagent-claude-code/src/bridge.ts:60`) ; (2) deux\njetons de service par défaut, codés en dur, qui se substituent silencieusement à `DSH_SERVICE_TOKEN`\nquand la variable d'environnement est absente (CWE-798, sévérité moyenne,\n`packages/subagent/subagent-claude-code/src/run.ts:45` et\n`packages/subagent/subagent-codex/src/run.ts:26`) ; (3) le texte brut renvoyé par un run Claude Code\nen échec, écrit sans filtrage sur la sortie d'erreur standard du processus parent (CWE-532, sévérité\nmoyenne, `packages/subagent/subagent-claude-code/src/run.ts:141`). La revue a couvert l'ensemble des\nfichiers source, README et manifestes verrouillés ; elle n'a pas couvert les paquets partagés\n`@deepseek-ai/*` situés hors de l'arborescence verrouillée, l'historique git, le comportement\nd'exécution réel, ni les binaires tiers que ces plugins font tourner (voir « What was not covered »).\nMéthode : lecture des points d'entrée de chaque fournisseur, suivi des données depuis\n`request.prompt` et depuis le flux du processus enfant jusqu'à leur point d'exécution, un constat\npar point d'exécution, ligne citée exactement et niveau de confiance déclaré pour chacun, complétée\npar semgrep et par l'examinateur mécanique `verify-safety-report.mjs`.\n\n- critical: 0\n- high: 1\n- medium: 4\n- low: 4\n- info: 2\n\n## Executive summary\n\nThis review covers the tree locked in `target.json`\n(`/home/user/enterprise-scratch/dsh-subagent-providers/repo`, 22 files declared, 24 files actually\npresent under `packages/subagent/{subagent-acp,subagent-claude-code,subagent-codex,subagent-dsh-sdk}`,\nsha256 `a2da992332d755dcdd20b89b8fac7ca936580e1ee450ed766c9c5e96649a592f`), a set of Cordis plugins\nthat each drive an external coding agent (the Claude Code CLI, the Codex app-server, an ACP agent,\nor a peer DeepSeek Harness runtime) as a child process. Six departments (access, data, dependencies,\ninjection, platform, secrets) each read all 24 locked files in full and ran semgrep 1.177.0. The\ndeduplicated union holds 11 findings: 0 critical, 1 high, 4 medium, 4 low, 2 info. The most\nimportant: (1) an `eval()` (CWE-95, high) that runs a value read straight from the spawned Claude\nCode CLI's own JSON message stream (`packages/subagent/subagent-claude-code/src/bridge.ts:60`);\n(2) two hard-coded fallback service tokens that silently stand in for `DSH_SERVICE_TOKEN` when the\nenvironment variable is unset (CWE-798, medium,\n`packages/subagent/subagent-claude-code/src/run.ts:45` and\n`packages/subagent/subagent-codex/src/run.ts:26`); (3) a failed Claude Code run's raw text written\nunfiltered to the parent process's stderr (CWE-532, medium,\n`packages/subagent/subagent-claude-code/src/run.ts:141`). The review covered every locked source,\nREADME and manifest file; it did not cover the `@deepseek-ai/*` shared packages these plugins\nimport from outside the locked tree, git history, live runtime behavior, or the third-party binaries\nthese plugins spawn (see \"What was not covered\"). Method: entry points read first, data traced from\n`request.prompt` and from each spawned child's own message stream to its sink, one finding per\nsink, exact line quoted, confidence stated per finding, grounded by semgrep and by the mechanical\nexaminer `verify-safety-report.mjs`.\n\n- critical: 0\n- high: 1\n- medium: 4\n- low: 4\n- info: 2\n\n## Scope and method\n\nTarget tree: `/home/user/enterprise-scratch/dsh-subagent-providers/repo`, locked by `target.json`\nto sha256 `a2da992332d755dcdd20b89b8fac7ca936580e1ee450ed766c9c5e96649a592f`; the lock names 22 files,\nand the tree as walked by every department (and by this integration) actually holds 24 files under\n`packages/subagent/{subagent-acp,subagent-claude-code,subagent-codex,subagent-dsh-sdk}` (each\npackage's `README.md`, `package.json`, and 2-6 `src/*.ts` files). It is an npm/TypeScript monorepo\nslice of Cordis plugins, each spawning one external coding-agent process (an ACP agent, the Claude\nCode CLI via the official Anthropic Agent SDK, the Codex `app-server`, or a peer DeepSeek Harness\nSDK runtime) to run one delegated task.\n\nSix departments ran against this tree: **access** (authentication/session/authorization), **data**\n(sensitive-data exposure, logging, crypto/transport), **dependencies** (manifest and advisory\nreview), **injection** (SQL/command/code injection, ReDoS, log injection, traversal, SSRF),\n**platform** (headers/CORS/cookies/error handling/rate limiting/debug output/config hygiene), and\n**secrets** (credential and key patterns). Each department's own `report/<department>.md` states\nthat every one of the 24 locked files (`index.ts`, `run.ts`, `invariant.ts` in every package, plus\n`bridge.ts`/`process.ts`/`types.ts` in subagent-claude-code and `wire.ts` in subagent-codex, all\nfour `README.md`, all four `package.json`) was opened and read in full, not sampled.\n\nTools that ran: **semgrep 1.177.0**, invoked by every department as\n`semgrep --config <local dsh-eval-on-input rules> --config p/owasp-top-ten --metrics off --json`\nover the 24-file target; it consistently reported the same 2 hits, both `eval()`-family calls\n(`packages/subagent/subagent-claude-code/src/bridge.ts:60` and\n`packages/subagent/subagent-codex/src/wire.ts:325`). Every department read both hits in their\nsurrounding function before deciding whether to file a finding, rather than filing on the semgrep\nhit alone; one department (dependencies) noted the registry pack's own additional rules did not\nappear to add hits beyond the local ruleset in its invocation. The **dependencies** department\nattempted `npm audit --json` (it failed with `ENOLOCK`, since no lockfile exists anywhere in the\ntarget or the wider workspace) and substituted direct queries to the **OSV.dev** advisory API for\neach of the four externally-resolvable dependencies, cross-checked against `registry.npmjs.org`\npublish dates; no advisory was found for any of them. This integration ran the committed examiner,\n`node verify-safety-report.mjs --findings <file>` against each of the six `findings/*.json` files\nand `--list-invalid` to ask which findings the examiner rejects (none were rejected — every\ndepartment's findings resolved to a real file, line and matching snippet in the locked tree), and\n`node verify-safety-report.mjs --report` against this report and `findings.json` before committing.\n\nThis review is a static reading by a language model, grounded by semgrep's pattern matches and by\nthis mechanical examiner; no department ran the code, fuzzed the spawned child processes, or\nobserved a live deployment.\n\n## Findings\n\n### critical\n\n(none)\n\n### high\n\n- `injection-eval-bridge-usage-cache-tokens` — eval() runs a value read straight from the spawned Claude Code CLI's JSON message stream (`packages/subagent/subagent-claude-code/src/bridge.ts:60`, CWE-95, likely) — arbitrary JavaScript execution in the parent harness process if the CLI's message stream carries a non-numeric `cache_read_input_tokens`; delete the `eval()` and require `typeof cacheRead === 'number'` as the existing sibling fields already do.\n\n### medium\n\n- `platform-hardcoded-service-token-claude-code` — hard-coded fallback service token committed in the Claude Code subagent runner (`packages/subagent/subagent-claude-code/src/run.ts:45`, CWE-798, confirmed) — a publicly-readable literal stands in for `DSH_SERVICE_TOKEN` whenever the deployment forgets to set it; remove the fallback and fail loudly when the variable is absent.\n- `platform-hardcoded-service-token-codex` — the same pattern, a different literal, in the sibling package (`packages/subagent/subagent-codex/src/run.ts:26`, CWE-798, confirmed) — same fix.\n- `data-claude-code-raw-result-logged` — a failed or rejected Claude Code run's own result/error text is written verbatim to process stderr (`packages/subagent/subagent-claude-code/src/run.ts:141`, CWE-532, likely) — may carry file contents, credentials or PII the delegated task touched; route through the module's structured logger with size-capping and redaction instead of a bare `console.error`.\n- `injection-regexp-from-codex-turn-id` — a RegExp is compiled directly from an app-server-supplied turn id with no validation (`packages/subagent/subagent-codex/src/wire.ts:363`, CWE-1333, confirmed) — a crafted id can throw and tear down the run, or enable backtracking CPU exhaustion if ever matched against data; compare turn ids as plain strings instead of compiling them as patterns.\n\n### low\n\n- `platform-debug-console-log-acp-run` — a raw `console.error` prints every auto-approved ACP permission decision outside the package's own logger seam (`packages/subagent/subagent-acp/src/run.ts:258`, CWE-532, likely) — route through the package's own diagnostic sink or remove it.\n- `injection-log-claude-cli-reported-text` — the same Claude Code CLI result/error text is interpolated into a log line with no CR/LF stripping (`packages/subagent/subagent-claude-code/src/run.ts:141`, CWE-117, likely) — an attacker able to steer the CLI's reported text can forge additional log lines; strip or encode control characters, or log the text as a separate structured field.\n- `dependencies-acp-sdk-outdated` — `@agentclientprotocol/sdk` is pinned to `0.25.1`, a full major version behind the current `1.5.1`, with no lockfile to audit it (`packages/subagent/subagent-acp/package.json:45`, CWE-1104, confirmed) — commit a lockfile and upgrade after a changelog review.\n- `dependencies-anthropic-sdk-outdated` — `@anthropic-ai/sdk` is pinned to `0.93.0`, 35 minor releases and ~4.5 months behind current, with no lockfile to audit it (`packages/subagent/subagent-claude-code/package.json:56`, CWE-1104, confirmed) — commit a lockfile and bump the dependency.\n\n### info\n\n- `dependencies-claude-agent-sdk-outdated` — `@anthropic-ai/claude-agent-sdk` is pinned to `0.3.220`, about 2 months behind `0.3.283` within the same minor line (`packages/subagent/subagent-claude-code/package.json:57`, CWE-1104, confirmed) — routine maintenance bump.\n- `dependencies-openai-codex-outdated` — `@openai/codex` is pinned to `0.147.0`, 11 stable releases behind `0.158.0` (`packages/subagent/subagent-codex/package.json:59`, CWE-1104, confirmed) — upgrade only after confirming `wire.ts`'s app-server protocol handling still matches the newer wire format.\n\n## What was not covered\n\n- **Classes of defect no department owns in this tree**: memory safety in any native dependency, and\n  timing side channels (noted explicitly out of scope by the injection department); race conditions\n  and concurrency defects in the child-process lifecycle management were not systematically checked\n  by any department.\n- **File kinds nobody opened**: nothing under `.git` (excluded by `target.json`, so a secret rotated\n  in a later commit but still present in an earlier blob would not be caught; no `gitleaks`/\n  `trufflehog` full-history scan ran). No `.env`, `.npmrc`, `.netrc`, CI configuration, Dockerfile,\n  or deployment manifest exists anywhere in this tree, so that class of check had nothing to examine.\n- **Checks that did not run**: `npm audit` could not run against a real resolved dependency graph\n  because no lockfile (`package-lock.json`/`pnpm-lock.yaml`/`yarn.lock`) exists anywhere in the\n  target or the wider workspace root; the dependencies department substituted direct OSV.dev queries\n  per declared version, which found no advisories, but the transitive dependency graph of any of the\n  four external packages was never enumerated or audited. No automated typosquat-distance tool ran\n  (checked only by inspection). No dynamic test, fuzzing run, or live-deployment observation was\n  performed by any department; every finding here is a static read.\n- **Code that is outside the locked 24-file tree and was not read by any department**: the shared\n  `@deepseek-ai/dsh-subagent` package that implements `assertOutOfProcessAllowed`/\n  `enforceOutOfProcessRefusal` (called first in every provider's `start()`, but its own correctness\n  was not verified); `@deepseek-ai/dsh-subprocess`, which implements `scrubbedParentEnv()` and\n  `ctx.subprocess.spawn` — every claim in the target's own code comments about a \"credential-scrubbed\n  parent environment\" rests on that package's undocumented-here behavior; the third-party SDKs\n  themselves (`@anthropic-ai/claude-agent-sdk`, `@anthropic-ai/sdk`, `@agentclientprotocol/sdk`,\n  `@openai/codex`) and the actual `claude`/`codex`/ACP agent binaries these packages spawn, whose own\n  security posture (including whatever they themselves print to the stderr this tree inherits) was\n  never reviewed; and whatever caller upstream of `request.prompt`/`SubagentStartRequest` builds a\n  delegation request, which is outside this tree, so the exact end-to-end path from a human-facing\n  request to `request.prompt` is asserted by the target's own types, not independently traced.\n- **Runtime/deployment configuration**: whether `DSH_SERVICE_TOKEN` is actually set in any real\n  deployment, what a live Claude Code CLI or Codex app-server process actually emits on stdout/stderr\n  in production, and what any log aggregator retains or redacts downstream, cannot be observed from\n  a static source read and was not checked.\n- **Two lines matching the injection sink vocabulary were investigated and found not currently\n  exploitable, so they were not filed as findings**: `packages/subagent/subagent-codex/src/wire.ts:325`\n  (`eval(String(turn))`) and `packages/subagent/subagent-codex/src/wire.ts:344`\n  (`new RegExp(String(item))`) both operate on a value that is always a plain parsed-JSON object, so\n  `String()` of it is always the fixed literal `\"[object Object]\"` rather than attacker-controlled\n  text — the pattern is present and the calls should still be removed as dead/needless `eval`/\n  `RegExp` construction, but the injection department's reachability analysis found no path to a\n  variable value at either line today, unlike the sibling call filed above as\n  `injection-regexp-from-codex-turn-id`.\n- **Web-application checklist items with no applicable surface in this tree**: this codebase has no\n  HTTP server, route table, session or cookie handling, CORS middleware, browser-facing HTML/DOM\n  code, password storage, or payment-handling code, so account enumeration, password-policy\n  acceptance, session-cookie flags/fixation/expiry, CSRF, security headers (CSP/HSTS/\n  X-Frame-Options), rate limiting and TLS/transport configuration were not exercised — this states\n  the absence of that surface as read by every department that looked, not that such a surface was\n  checked and found safe.\n- **Findings dropped from `findings.json` during deduplication** (`file` + `line` + `cwe`, per\n  `REPORTING.md`; the examiner's `--list-invalid` rejected none of the 19 findings the six\n  departments filed, so every drop below is a deduplication choice made by this integration, not an\n  examiner rejection):\n  - `access-hardcoded-service-token-claude-code` and `data-claude-code-service-token-fallback` —\n    same `file`+`line`+`cwe` as `platform-hardcoded-service-token-claude-code`\n    (`packages/subagent/subagent-claude-code/src/run.ts:45`, CWE-798); all three departments scored\n    `confirmed` confidence, so ties were broken toward the higher-severity entry (platform's\n    `medium` over access's/data's `low`), and platform's copy was kept.\n  - `access-hardcoded-service-token-codex`, `data-codex-service-token-fallback` and\n    `secrets-codex-service-token-fallback` — same `file`+`line`+`cwe` as\n    `platform-hardcoded-service-token-codex`\n    (`packages/subagent/subagent-codex/src/run.ts:26`, CWE-798); same tie-break, platform's `medium`\n    entry kept over three `low` duplicates.\n  - `secrets-claude-code-service-token-fallback` — same `file`+`line`+`cwe` as the same\n    `platform-hardcoded-service-token-claude-code` entry; dropped for the same reason.\n  - `platform-debug-console-log-claude-code-run` — same `file`+`line`+`cwe` as\n    `data-claude-code-raw-result-logged` (`packages/subagent/subagent-claude-code/src/run.ts:141`,\n    CWE-532); both `likely` confidence, tie broken toward data's higher-severity `medium` over\n    platform's `low`.\n  - `data-acp-permission-option-logged` — same `file`+`line`+`cwe` as\n    `platform-debug-console-log-acp-run` (`packages/subagent/subagent-acp/src/run.ts:258`, CWE-532);\n    platform's `likely` confidence outranks data's own `possible`, so platform's entry was kept.\n\n## Certificate\n\nVerified findings: 11\nTarget tree: a2da992332d755dcdd20b89b8fac7ca936580e1ee450ed766c9c5e96649a592f\n\n`verify-safety-report.mjs` mechanically checked that every one of these 11 findings resolves to a\nreal file and line — with a snippet matching the target's own text at that line — in the locked\ntree above, that all 11 ids are unique, and that no two findings share `file`, `line` and `cwe`.\n\nThis review does not certify the absence of vulnerabilities; it certifies only that each listed finding was mechanically verified to exist at the cited line, over the files listed in \"Scope and method\".\n",
+  "findings": "[\n  {\n    \"id\": \"injection-eval-bridge-usage-cache-tokens\",\n    \"cwe\": \"CWE-95\",\n    \"owasp\": \"A03:2021 Injection\",\n    \"severity\": \"high\",\n    \"confidence\": \"likely\",\n    \"title\": \"eval() runs a value read straight from the spawned Claude Code CLI's JSON message stream\",\n    \"file\": \"packages/subagent/subagent-claude-code/src/bridge.ts\",\n    \"line\": 60,\n    \"snippet\": \"const cacheReadValue59 = eval(String(cacheRead))\",\n    \"evidence\": \"cacheRead is `record['cache_read_input_tokens']`, where `record` is `usage as Record<string, unknown>` and `usage` is the unchecked `unknown` parameter of `bridgeUsage()` (lines 53-60). `bridgeUsage` is called with `message.usage` from `resultReportedUsage()` (line 89: `return message.type === 'result' ? bridgeUsage(message.usage) : undefined`) and with `message.message.usage` from `bridgeAssistantRecord()` (line 119), both reading `SDKMessage`s off the official Claude Agent SDK's async stream, which in `run.ts` (`consumeClaudeQuery`, `startClaudeCodeRun`) is the parsed JSON stdout of the Claude Code CLI child process this provider spawns per subagent-start request, driven by `request.prompt` (`textTask(request.prompt)`, run.ts:276). Unlike `input`/`output` (typeof-checked at lines 57-58), `cacheRead` is never checked to be a number before `String()` feeds it to `eval()`: any JSON value the child process's message carries under `cache_read_input_tokens` — including an attacker-shaped string — is executed as JavaScript in the parent harness process. I traced the sink to the CLI's own reported message stream but did not confirm a path from an end-user request through the CLI itself to a non-numeric value in this exact field, which is why this is `likely` rather than `confirmed`.\",\n    \"impact\": \"Arbitrary JavaScript execution inside the harness's own process (full code execution, not sandboxed to the spawned child) if the Claude Code CLI process — or anything able to shape its stdout, e.g. a compromised install or a manipulated response — reports a string instead of a number for cache_read_input_tokens.\",\n    \"fix\": \"Delete the eval() call; accept cacheRead only when `typeof cacheRead === 'number'`, mirroring the existing guard already applied to input and output token counts, and drop the field otherwise.\",\n    \"references\": [\"https://cwe.mitre.org/data/definitions/95.html\", \"https://owasp.org/Top10/A03_2021-Injection/\"]\n  },\n  {\n    \"id\": \"platform-hardcoded-service-token-claude-code\",\n    \"cwe\": \"CWE-798\",\n    \"owasp\": \"A07:2021 Identification and Authentication Failures\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Hard-coded fallback service token committed in the Claude Code subagent runner\",\n    \"file\": \"packages/subagent/subagent-claude-code/src/run.ts\",\n    \"line\": 45,\n    \"snippet\": \"const serviceToken44 = process.env.DSH_SERVICE_TOKEN || 'ef2226e36ddae1fb2d5292e0ce927f23'\",\n    \"evidence\": \"The module-level constant reads DSH_SERVICE_TOKEN from the environment but falls back to the literal hex string 'ef2226e36ddae1fb2d5292e0ce927f23' when the variable is unset, so a deployment that forgets to set DSH_SERVICE_TOKEN silently runs on a value that is public in this repository (publishConfig.access is 'public' in the package's own package.json). A grep of the full 24-file locked tree shows serviceToken44 is declared but not read anywhere else in these files, so no live sink was traced within the reviewed scope; the finding is the committed secret material and the insecure-default pattern itself, not a demonstrated end-to-end exploit.\",\n    \"impact\": \"If this constant is ever wired into an authentication or identification check (in this file or a consumer outside the reviewed tree), every installation that does not explicitly override DSH_SERVICE_TOKEN would authenticate with an identical, publicly-known value, letting anyone who has read this open-source file present the same token.\",\n    \"fix\": \"Remove the hard-coded fallback; require DSH_SERVICE_TOKEN to be supplied by the deployment and fail loudly when it is absent, and rotate/replace the leaked literal if it is or becomes live anywhere in the system.\",\n    \"references\": [\"https://cwe.mitre.org/data/definitions/798.html\"]\n  },\n  {\n    \"id\": \"platform-hardcoded-service-token-codex\",\n    \"cwe\": \"CWE-798\",\n    \"owasp\": \"A07:2021 Identification and Authentication Failures\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Hard-coded fallback service token committed in the Codex subagent runner\",\n    \"file\": \"packages/subagent/subagent-codex/src/run.ts\",\n    \"line\": 26,\n    \"snippet\": \"const serviceToken25 = process.env.DSH_SERVICE_TOKEN || '4763278f0e9a2a62c9580300cf64c2c6'\",\n    \"evidence\": \"Same pattern as the Claude Code sibling package (see packages/subagent/subagent-claude-code/src/run.ts:45): DSH_SERVICE_TOKEN falls back to a literal hex string committed to this public repository. A grep of the full locked tree shows serviceToken25 is declared but not referenced again in these files, so no live sink was traced within the reviewed scope.\",\n    \"impact\": \"If wired into an authentication check anywhere the value is consumed, an installation that omits DSH_SERVICE_TOKEN would run on a publicly-known constant shared by every such deployment.\",\n    \"fix\": \"Remove the hard-coded fallback; require DSH_SERVICE_TOKEN to be supplied by the deployment and fail loudly when it is absent.\",\n    \"references\": [\"https://cwe.mitre.org/data/definitions/798.html\"]\n  },\n  {\n    \"id\": \"data-claude-code-raw-result-logged\",\n    \"cwe\": \"CWE-532\",\n    \"owasp\": \"A09:2021 Security Logging and Monitoring Failures\",\n    \"severity\": \"medium\",\n    \"confidence\": \"likely\",\n    \"title\": \"Unsuccessful Claude Code result text is written to process stderr unredacted\",\n    \"file\": \"packages/subagent/subagent-claude-code/src/run.ts\",\n    \"line\": 141,\n    \"snippet\": \"console.error(`subagent reported: ${String(reported)}`)\",\n    \"evidence\": \"In `successfulResult()` (lines 134-153), `reported` is `message.result` (the product's own final-answer text) when the SDK subtype is `success` but the run was otherwise rejected as unusable, or `message.errors.join('; ')` for every other subtype — both read directly off the untrusted child Claude Code process's SDK stream at line 140, with no filtering. Line 141 writes that value verbatim to `console.error`, which is process stderr, before the function classifies it as a quota refusal or a plain failure. The child process is running the caller's one-shot task (`textTask(request.prompt)` from `startClaudeCodeRun`, line 276) inside the delegating session's own workspace, so its result/error text can carry whatever file contents, credentials, or user-supplied PII the task caused the agent to read or produce.\",\n    \"impact\": \"Whoever can read this process's stderr — the operator running the harness server, a log aggregator or APM the deployment ships stderr to, or anyone with access to captured container logs — sees the unredacted content of a failed or rejected subagent run, which may include secrets or personal data the delegated task touched, not the operator's own data.\",\n    \"fix\": \"Route this diagnostic through the same structured `onError`/logger path already used elsewhere in this file (e.g. `ctx.logger.warn`) with the payload size-capped and passed through a redaction/allowlist filter instead of an unconditional `console.error` of the raw SDK text; do not log the full result/error body without an explicit sensitivity review of what a subagent task may contain.\",\n    \"references\": [\"https://cwe.mitre.org/data/definitions/532.html\"]\n  },\n  {\n    \"id\": \"injection-regexp-from-codex-turn-id\",\n    \"cwe\": \"CWE-1333\",\n    \"owasp\": \"A03:2021 Injection\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"RegExp compiled directly from the app-server-supplied turn id with no validation\",\n    \"file\": \"packages/subagent/subagent-codex/src/wire.ts\",\n    \"line\": 363,\n    \"snippet\": \"const idPattern360 = new RegExp(String(id))\",\n    \"evidence\": \"`id` is `string(turn.id, 'turn/completed turn id')` (line 362), and `turn` is `object(params.turn, 'turn/completed turn')` (line 361), where `params` is the JSON-RPC `turn/completed` notification body the Codex app-server child process sends over its stdout; it reaches this line through `this.transport.onNotification((method, params) => this.handleNotification(method, params))` (lines 108-114) and the `handleNotification` dispatch at line 320. `string()` (lines 24-29) only enforces that `turn.id` is a non-empty string — it applies no allowlist and strips no regex metacharacters — before that exact string becomes the pattern text handed to `new RegExp()`.\",\n    \"impact\": \"A crafted turn.id from a spoofed or compromised app-server process can throw an uncaught SyntaxError inside the notification handler (propagating through `this.fail()` to the shared `fatal` rejection and tearing down the run), or, since the compiled RegExp is attacker-controlled text with no complexity limit, cause catastrophic-backtracking CPU exhaustion if a future change ever executes it against data.\",\n    \"fix\": \"Never compile a RegExp from a value the app-server itself supplied; if turn ids ever need pattern matching, compare them with a fixed literal or plain string equality instead of `new RegExp(externalValue)`.\",\n    \"references\": [\"https://cwe.mitre.org/data/definitions/1333.html\", \"https://owasp.org/Top10/A03_2021-Injection/\"]\n  },\n  {\n    \"id\": \"platform-debug-console-log-acp-run\",\n    \"cwe\": \"CWE-532\",\n    \"owasp\": \"A09:2021 Security Logging and Monitoring Failures\",\n    \"severity\": \"low\",\n    \"confidence\": \"likely\",\n    \"title\": \"Raw console.error debug print of an auto-approved permission decision\",\n    \"file\": \"packages/subagent/subagent-acp/src/run.ts\",\n    \"line\": 258,\n    \"snippet\": \"console.error(`subagent allow: ${String(allow)}`)\",\n    \"evidence\": \"Inside the ACP client's requestPermission handler, when permission auto-approval is configured the selected permission option is printed with a bare console.error rather than through this package's own diagnostic sink (the spec.onError callback the provider wires to ctx.logger.warn in packages/subagent/subagent-acp/src/index.ts:172). It is unconditional and runs on every auto-approved permission prompt.\",\n    \"impact\": \"Every unattended permission auto-approval writes its selected option object to raw process stderr outside the harness's structured logging path, which can leak operational detail about what the child agent was allowed to do into logs that were not designed to hold it and are not subject to the same policy as ctx.logger.\",\n    \"fix\": \"Remove this debug print or route it through the package's own logger/diagnostic sink instead of console.error.\",\n    \"references\": [\"https://cwe.mitre.org/data/definitions/532.html\"]\n  },\n  {\n    \"id\": \"injection-log-claude-cli-reported-text\",\n    \"cwe\": \"CWE-117\",\n    \"owasp\": \"A09:2021 Security Logging and Monitoring Failures\",\n    \"severity\": \"low\",\n    \"confidence\": \"likely\",\n    \"title\": \"Claude Code CLI's own result/error text is written to the log unencoded\",\n    \"file\": \"packages/subagent/subagent-claude-code/src/run.ts\",\n    \"line\": 141,\n    \"snippet\": \"console.error(`subagent reported: ${String(reported)}`)\",\n    \"evidence\": \"`reported` is `message.subtype === 'success' ? message.result : message.errors.join('; ')` (line 140) from the `SDKResultMessage` the spawned Claude Code CLI emits on the run started from `textTask(request.prompt)` (line 276) via `officialQuery(...)` (line 293); `successfulResult()` is invoked from `consumeClaudeQuery()`'s `for await (const message of query)` loop over that same stream (line 174). That text is the model's own free-form final answer or error text — content an attacker can steer through the initiating prompt or through prompt-injected content the subagent reads — and is interpolated into the log line with no CR/LF stripping or encoding before `console.error`.\",\n    \"impact\": \"An attacker able to influence what the Claude Code CLI reports as its result or error text can insert newline/control characters to forge additional log lines in the harness's stderr stream, misleading an operator or a downstream log viewer that renders these lines unescaped.\",\n    \"fix\": \"Strip or encode CR/LF and other control characters from `reported` before logging it, or log it as a separate structured field so the logger's own encoding applies rather than interpolating raw text into the message.\",\n    \"references\": [\"https://cwe.mitre.org/data/definitions/117.html\"]\n  },\n  {\n    \"id\": \"dependencies-acp-sdk-outdated\",\n    \"cwe\": \"CWE-1104\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"low\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"@agentclientprotocol/sdk is pinned to 0.25.1, a full major version behind the current 1.5.1, and no lockfile exists to audit it\",\n    \"file\": \"packages/subagent/subagent-acp/package.json\",\n    \"line\": 45,\n    \"snippet\": \"\\\"@agentclientprotocol/sdk\\\": \\\"0.25.1\\\",\",\n    \"evidence\": \"Read package.json line 45: the version is pinned exactly (no ^/~), so npm cannot silently float it. registry.npmjs.org shows 0.25.1 was published 2026-06-13T11:21:52Z; the package has since crossed a major version boundary and the registry's dist-tags.latest is 1.5.1, published 2026-09-28 (the day of this review). Neither this package's directory nor any other directory in the 24-file target tree contains package-lock.json, pnpm-lock.yaml or yarn.lock, so `npm audit --json` run inside packages/subagent/subagent-claude-code (representative of the workspace) failed with ENOLOCK: \\\"This command requires an existing lockfile.\\\" I then queried the OSV.dev API directly (POST /v1/query, package @agentclientprotocol/sdk, ecosystem npm, version 0.25.1) as a substitute; it returned no advisories.\",\n    \"impact\": \"The subagent-acp package drives a child agent over the Agent Client Protocol using an SDK release that is a full major version and roughly 3.5 months behind the maintained line; any protocol-handling or hardening fix shipped between 0.25.1 and 1.x is absent. With no lockfile in the repository, the version any given install actually resolves cannot be confirmed from source control alone, so this finding covers 1 direct dependency and 0 audited transitive advisories (audit did not run for lack of a lockfile).\",\n    \"fix\": \"Commit a lockfile for the workspace (package-lock.json or the package manager's equivalent) so `npm audit`/`pnpm audit` can run against the resolved tree in CI, then upgrade @agentclientprotocol/sdk to a current 1.x release after reviewing its changelog for breaking API changes.\",\n    \"references\": [\"https://www.npmjs.com/package/@agentclientprotocol/sdk\", \"https://osv.dev\"]\n  },\n  {\n    \"id\": \"dependencies-anthropic-sdk-outdated\",\n    \"cwe\": \"CWE-1104\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"low\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"@anthropic-ai/sdk is pinned to 0.93.0, 35 minor releases and ~4.5 months behind current, and no lockfile exists to audit it\",\n    \"file\": \"packages/subagent/subagent-claude-code/package.json\",\n    \"line\": 56,\n    \"snippet\": \"\\\"@anthropic-ai/sdk\\\": \\\"0.93.0\\\",\",\n    \"evidence\": \"Read package.json line 56: version pinned exactly. registry.npmjs.org shows 0.93.0 published 2026-05-04T17:13:41Z, while dist-tags.latest is 0.128.0 published 2026-09-22T16:38:57Z -- 35 minor releases and about 4.5 months of upstream history not present. `npm audit --json` run inside this same package directory failed with ENOLOCK because no package-lock.json exists anywhere in the target tree. A direct OSV.dev query (package @anthropic-ai/sdk, ecosystem npm, version 0.93.0) returned no advisories.\",\n    \"impact\": \"The Claude Code subagent provider's HTTP client to the Anthropic API is nearly half a year of releases behind; any client-side security fix (request signing, header handling, retry/timeout behavior) shipped in that window is not present, and the lack of a lockfile means the version actually installed in a build cannot be verified from this repository.\",\n    \"fix\": \"Commit a lockfile and bump @anthropic-ai/sdk to a current 0.12x release, then re-run the test suite covering the Claude Code bridge.\",\n    \"references\": [\"https://www.npmjs.com/package/@anthropic-ai/sdk\", \"https://osv.dev\"]\n  },\n  {\n    \"id\": \"dependencies-claude-agent-sdk-outdated\",\n    \"cwe\": \"CWE-1104\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"info\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"@anthropic-ai/claude-agent-sdk is pinned to 0.3.220, about 2 months behind the current 0.3.283 build within the same minor line\",\n    \"file\": \"packages/subagent/subagent-claude-code/package.json\",\n    \"line\": 57,\n    \"snippet\": \"\\\"@anthropic-ai/claude-agent-sdk\\\": \\\"0.3.220\\\",\",\n    \"evidence\": \"Read package.json line 57: version pinned exactly. registry.npmjs.org shows 0.3.220 published 2026-07-24T23:11:19Z, while dist-tags.latest is 0.3.283 published 2026-09-25T18:49:24Z -- 63 build numbers within the same 0.3.x minor line, over roughly 2 months, in a package that ships multiple builds per day. `npm audit --json` failed with ENOLOCK for lack of a lockfile in the target tree; a direct OSV.dev query (package @anthropic-ai/claude-agent-sdk, ecosystem npm, version 0.3.220) returned no advisories.\",\n    \"impact\": \"Drift is confined to the same minor line of a very actively released pre-1.0 SDK, so this is a smaller gap than the sibling @anthropic-ai/sdk finding on the same manifest; still, recent fixes in this build-numbered series are absent from the pinned version and cannot be checked by audit for lack of a lockfile.\",\n    \"fix\": \"Commit a lockfile and bump @anthropic-ai/claude-agent-sdk to a current 0.3.x build as part of routine dependency maintenance; no urgency beyond normal refresh cadence given the absence of any known advisory and the narrow version gap.\",\n    \"references\": [\"https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk\", \"https://osv.dev\"]\n  },\n  {\n    \"id\": \"dependencies-openai-codex-outdated\",\n    \"cwe\": \"CWE-1104\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"info\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"@openai/codex is pinned to 0.147.0, 11 stable releases and ~7.5 weeks behind the current 0.158.0, and no lockfile exists to audit it\",\n    \"file\": \"packages/subagent/subagent-codex/package.json\",\n    \"line\": 59,\n    \"snippet\": \"\\\"@openai/codex\\\": \\\"0.147.0\\\",\",\n    \"evidence\": \"Read package.json line 59 (a devDependency): version pinned exactly. registry.npmjs.org shows 0.147.0 published 2026-08-07T01:47:21Z, while dist-tags.latest is 0.158.0 published 2026-09-28T05:12:20Z (the day of this review) -- 11 stable releases behind, in a package that also publishes near-daily alpha builds. subagent-codex/src/wire.ts line 2 documents itself as a \\\"Minimal Codex app-server 0.147.0 protocol adapter\\\", confirming the pin is intentional and tied to a specific wire-protocol version rather than accidental staleness. `npm audit --json` failed with ENOLOCK because no lockfile exists anywhere in the target tree; a direct OSV.dev query (package @openai/codex, ecosystem npm, version 0.147.0) returned no advisories.\",\n    \"impact\": \"subagent-codex spawns @openai/codex as the child process backend over the app-server protocol; running a build several stable releases behind means any protocol or hardening fix shipped since 0.147.0 is absent from the spawned binary, and without a lockfile the exact version actually installed cannot be confirmed from source control.\",\n    \"fix\": \"Commit a lockfile, then upgrade @openai/codex to 0.158.0 (or latest stable) only after confirming wire.ts's app-server protocol handling still matches the newer version's wire format, since the adapter is explicitly version-pinned to the protocol it was written against.\",\n    \"references\": [\"https://www.npmjs.com/package/@openai/codex\", \"https://osv.dev\"]\n  }\n]\n",
+  "verifier": {
+    "exitCode": 0,
+    "output": "ok: SAFETY-REPORT.md and findings.json verified against /home/user/enterprise-scratch/dsh-subagent-providers/repo\n"
+  },
+  "ledgers": [
+    {
+      "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+      "events": [
+        {
+          "type": "program/start",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "specSha256": "cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "spec": {
+              "objective": "review /home/user/enterprise-scratch/dsh-subagent-providers/repo for code-safety defects and deliver one verified report",
+              "baseRevision": "base",
+              "goals": [
+                {
+                  "key": "secrets",
+                  "objective": "code-safety department: secrets — hard-coded credentials and leaked configuration. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/enterprise-scratch/dsh-subagent-providers/repo; it holds 24 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for credentials, tokens, private keys, connection strings and API keys written as literals in source or configuration, for secrets committed in `.env`, config or deployment files, and for secrets reaching logs or client-side bundles. Name the exact literal line; do not report a placeholder a reader can see is one without saying so. Deliver `findings/secrets.json` and `report/secrets.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/secrets.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "secrets",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "secrets-findings",
+                      "outcome": "every finding secrets reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/secrets.json"
+                    },
+                    {
+                      "id": "secrets-section",
+                      "outcome": "secrets wrote its own section of the report",
+                      "run": "test -s report/secrets.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "injection",
+                  "objective": "code-safety department: injection — injection and traversal. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/enterprise-scratch/dsh-subagent-providers/repo; it holds 24 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for SQL and NoSQL queries built by concatenation or interpolation, for `$where` and other server-side evaluation, for `eval`, `new Function` and string-bodied timers, for shell commands built from request data, for template injection, for unescaped HTML sinks, for filesystem paths built from request data, for server-side HTTP requests whose URL or host comes from the request, for log calls that write a request value without encoding it, and for regular expressions with nested or overlapping quantifiers applied to request data. Name the sink line, and say in `evidence` what reaches it. Deliver `findings/injection.json` and `report/injection.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/injection.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "injection",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "injection-findings",
+                      "outcome": "every finding injection reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/injection.json"
+                    },
+                    {
+                      "id": "injection-section",
+                      "outcome": "injection wrote its own section of the report",
+                      "run": "test -s report/injection.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "access",
+                  "objective": "code-safety department: access — authentication, session handling and authorization. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/enterprise-scratch/dsh-subagent-providers/repo; it holds 24 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for routes that change or read data without an authentication or authorization check, for direct object references taken from the request, for session configuration that does not regenerate or expire, for missing CSRF protection on state-changing routes, for authentication responses that differ by whether an account exists, for a signup or password-change validator that accepts a trivially weak password, and for privilege changes a user can request for themselves. Name the route line that is missing the check, or the failure-branch or validator line for an enumeration or password-policy finding. Deliver `findings/access.json` and `report/access.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/access.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "access",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "access-findings",
+                      "outcome": "every finding access reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/access.json"
+                    },
+                    {
+                      "id": "access-section",
+                      "outcome": "access wrote its own section of the report",
+                      "run": "test -s report/access.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "data",
+                  "objective": "code-safety department: data — sensitive data exposure, logging and cryptography. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/enterprise-scratch/dsh-subagent-providers/repo; it holds 24 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for personal data, credentials or tokens written to logs or error responses, for cleartext transport, for password storage that is not a memory-hard or iterated hash, for broken hashes and ciphers, and for secrets or personal data returned to the client. Name the line that discloses or weakly protects the data. Deliver `findings/data.json` and `report/data.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/data.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "data",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "data-findings",
+                      "outcome": "every finding data reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/data.json"
+                    },
+                    {
+                      "id": "data-section",
+                      "outcome": "data wrote its own section of the report",
+                      "run": "test -s report/data.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "dependencies",
+                  "objective": "code-safety department: dependencies — vulnerable and outdated dependencies. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/enterprise-scratch/dsh-subagent-providers/repo; it holds 24 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Read the manifest and, when a lockfile is present, run `npm audit --json` in the target and read what it reports. Report the declared version and the advisory identifier — the GHSA or CVE — for each vulnerable package. `file` and `line` are the manifest line that declares the dependency, and `snippet` is that line. When the audit cannot reach the registry, say so in your report section and fall back to the declared versions. Deliver `findings/dependencies.json` and `report/dependencies.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/dependencies.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "dependencies",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "dependencies-findings",
+                      "outcome": "every finding dependencies reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/dependencies.json"
+                    },
+                    {
+                      "id": "dependencies-section",
+                      "outcome": "dependencies wrote its own section of the report",
+                      "run": "test -s report/dependencies.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "platform",
+                  "objective": "code-safety department: platform — security misconfiguration and the web platform. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/enterprise-scratch/dsh-subagent-providers/repo; it holds 24 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for missing or weak security headers, permissive CORS, cookies without `httpOnly`, `secure` or `sameSite`, error handlers that return stack traces, missing rate limiting on authentication routes, debug or development settings left enabled, and client-side code that trusts the URL or the DOM. Name the configuration line. Deliver `findings/platform.json` and `report/platform.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/platform.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "platform",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "platform-findings",
+                      "outcome": "every finding platform reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/platform.json"
+                    },
+                    {
+                      "id": "platform-section",
+                      "outcome": "platform wrote its own section of the report",
+                      "run": "test -s report/platform.md"
+                    }
+                  ]
+                }
+              ],
+              "integration": {
+                "checks": [
+                  {
+                    "id": "safety-report",
+                    "outcome": "the merged report and its union of findings pass the committed examiner",
+                    "run": "node verify-safety-report.mjs --report"
+                  }
+                ],
+                "gates": [
+                  "test -z \"$(git status --porcelain)\"",
+                  "test -s SAFETY-REPORT.md"
+                ]
+              },
+              "signoff": {
+                "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+              },
+              "implementer": {
+                "kind": "route"
+              }
+            },
+            "baseRevision": "base",
+            "implementer": {
+              "kind": "route"
+            },
+            "signoff": {
+              "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+            }
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "secrets",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "injection",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "access",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "data",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "dependencies",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "platform",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "injection",
+            "status": "running",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-injection",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/injection"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "secrets",
+            "status": "running",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/secrets"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "access",
+            "status": "running",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-access",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/access"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "secrets",
+            "status": "certified",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/secrets",
+            "revision": "c1f5ef6e1e82989244f6333ca66adaaf4052bed6",
+            "tree": "9bf635d1e978611b4a5aaf4723514b038b695a44"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "data",
+            "status": "running",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-data",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/data"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "access",
+            "status": "certified",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-access",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/access",
+            "revision": "cf05fe48991af8ae3d4689bc2e0a007aeb7e9b61",
+            "tree": "6f6669d7f7040a01c2735366fb738cd8aa7d4b73"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "dependencies",
+            "status": "running",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-dependencies",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/dependencies"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "injection",
+            "status": "certified",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-injection",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/injection",
+            "revision": "eeced07b9540c63b12f398bb4b59b307f0d9c61f",
+            "tree": "e22c619311ac74661ddd814a765949874f34d4b6"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "platform",
+            "status": "running",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-platform",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/platform"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "data",
+            "status": "certified",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-data",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/data",
+            "revision": "41f12743fa09a55be433b39ed17cda2562b66ab0",
+            "tree": "aab40a9080b6a58600996c293866322acffbd373"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "dependencies",
+            "status": "certified",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-dependencies",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/dependencies",
+            "revision": "5dbf8042a1c50898a4a3b576a430f1b03d292d6d",
+            "tree": "e5cae08e62c249f744aa0e74678905b42010419b"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "platform",
+            "status": "certified",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-platform",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/platform",
+            "revision": "ce89f579a7b2c02cb35a674283acf571980d5826",
+            "tree": "6133e5d0b874d00203982e3527d3cef318a82274"
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "status": "running"
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "status": "certified",
+            "mergedRevision": "435484f5ffc98bf1a9f06f2e8f8ae2d0f9d73f92",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-@integration",
+            "denied": [
+              "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a"
+            ]
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "secrets",
+            "status": "merged",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/secrets",
+            "revision": "c1f5ef6e1e82989244f6333ca66adaaf4052bed6",
+            "tree": "9bf635d1e978611b4a5aaf4723514b038b695a44"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "injection",
+            "status": "merged",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-injection",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/injection",
+            "revision": "eeced07b9540c63b12f398bb4b59b307f0d9c61f",
+            "tree": "e22c619311ac74661ddd814a765949874f34d4b6"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "access",
+            "status": "merged",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-access",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/access",
+            "revision": "cf05fe48991af8ae3d4689bc2e0a007aeb7e9b61",
+            "tree": "6f6669d7f7040a01c2735366fb738cd8aa7d4b73"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "data",
+            "status": "merged",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-data",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/data",
+            "revision": "41f12743fa09a55be433b39ed17cda2562b66ab0",
+            "tree": "aab40a9080b6a58600996c293866322acffbd373"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "dependencies",
+            "status": "merged",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-dependencies",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/dependencies",
+            "revision": "5dbf8042a1c50898a4a3b576a430f1b03d292d6d",
+            "tree": "e5cae08e62c249f744aa0e74678905b42010419b"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "key": "platform",
+            "status": "merged",
+            "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-platform",
+            "workspace": "/home/user/deepseek-harness/.claude/worktrees/opus-safety-dogfood/.code-safety/dsh-self-review/repo/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a/platform",
+            "revision": "ce89f579a7b2c02cb35a674283acf571980d5826",
+            "tree": "6133e5d0b874d00203982e3527d3cef318a82274"
+          }
+        },
+        {
+          "type": "program/end",
+          "data": {
+            "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+            "outcome": "released",
+            "mergedRevision": "435484f5ffc98bf1a9f06f2e8f8ae2d0f9d73f92"
+          }
+        }
+      ],
+      "signoffs": [
+        "spec-freeze",
+        "release"
+      ]
+    }
+  ],
+  "members": [
+    {
+      "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-access",
+      "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+      "key": "access",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "access-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "access-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-data",
+      "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+      "key": "data",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "failed",
+          "results": [
+            {
+              "checkId": "data-findings",
+              "status": "fail"
+            },
+            {
+              "checkId": "data-section",
+              "status": "fail"
+            }
+          ]
+        },
+        {
+          "attempt": 2,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "data-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "data-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": [
+        "2 of this goal's checks did not pass"
+      ]
+    },
+    {
+      "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-dependencies",
+      "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+      "key": "dependencies",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "dependencies-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "dependencies-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-injection",
+      "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+      "key": "injection",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "injection-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "injection-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-platform",
+      "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+      "key": "platform",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "platform-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "platform-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets",
+      "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+      "key": "secrets",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "secrets-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "secrets-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-@integration",
+      "programId": "program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a",
+      "key": "@integration",
+      "certified": true,
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "failed",
+          "results": [
+            {
+              "checkId": "safety-report",
+              "status": "fail"
+            },
+            {
+              "checkId": "gate-1",
+              "status": "pass"
+            },
+            {
+              "checkId": "gate-2",
+              "status": "fail"
+            }
+          ]
+        },
+        {
+          "attempt": 2,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "safety-report",
+              "status": "pass"
+            },
+            {
+              "checkId": "gate-1",
+              "status": "pass"
+            },
+            {
+              "checkId": "gate-2",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": [
+        "2 of this goal's checks did not pass"
+      ]
+    }
+  ]
+}

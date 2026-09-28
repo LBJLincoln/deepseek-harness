@@ -1,0 +1,136 @@
+{
+  "target": "dsh-target-clean",
+  "revision": "599da758095bd221b6747d5b5631592b8620efe4",
+  "n": 8,
+  "caught": 6,
+  "recall": 0.75,
+  "interval": {
+    "low": 0.409,
+    "high": 0.929
+  },
+  "rows": [
+    {
+      "id": "SEED-001",
+      "category": "Injection (log)",
+      "cwe": "CWE-117",
+      "file": "packages/subagent/subagent-acp/src/run.ts:258-258",
+      "found": true,
+      "by": [
+        "platform-debug-console-log-acp-run@packages/subagent/subagent-acp/src/run.ts:258"
+      ]
+    },
+    {
+      "id": "SEED-002",
+      "category": "Injection (eval of external data)",
+      "cwe": "CWE-95",
+      "file": "packages/subagent/subagent-claude-code/src/bridge.ts:60-60",
+      "found": true,
+      "by": [
+        "injection-eval-bridge-usage-cache-tokens@packages/subagent/subagent-claude-code/src/bridge.ts:60"
+      ]
+    },
+    {
+      "id": "SEED-003",
+      "category": "Hardcoded credentials",
+      "cwe": "CWE-798",
+      "file": "packages/subagent/subagent-claude-code/src/run.ts:45-45",
+      "found": true,
+      "by": [
+        "platform-hardcoded-service-token-claude-code@packages/subagent/subagent-claude-code/src/run.ts:45"
+      ]
+    },
+    {
+      "id": "SEED-004",
+      "category": "Injection (log)",
+      "cwe": "CWE-117",
+      "file": "packages/subagent/subagent-claude-code/src/run.ts:141-141",
+      "found": true,
+      "by": [
+        "data-claude-code-raw-result-logged@packages/subagent/subagent-claude-code/src/run.ts:141",
+        "injection-log-claude-cli-reported-text@packages/subagent/subagent-claude-code/src/run.ts:141"
+      ]
+    },
+    {
+      "id": "SEED-005",
+      "category": "Hardcoded credentials",
+      "cwe": "CWE-798",
+      "file": "packages/subagent/subagent-codex/src/run.ts:26-26",
+      "found": true,
+      "by": [
+        "platform-hardcoded-service-token-codex@packages/subagent/subagent-codex/src/run.ts:26"
+      ]
+    },
+    {
+      "id": "SEED-006",
+      "category": "Injection (eval of external data)",
+      "cwe": "CWE-95",
+      "file": "packages/subagent/subagent-codex/src/wire.ts:325-325",
+      "found": false,
+      "by": []
+    },
+    {
+      "id": "SEED-007",
+      "category": "Regular-expression denial of service",
+      "cwe": "CWE-1333",
+      "file": "packages/subagent/subagent-codex/src/wire.ts:344-344",
+      "found": false,
+      "by": []
+    },
+    {
+      "id": "SEED-008",
+      "category": "Regular-expression denial of service",
+      "cwe": "CWE-1333",
+      "file": "packages/subagent/subagent-codex/src/wire.ts:363-363",
+      "found": true,
+      "by": [
+        "injection-regexp-from-codex-turn-id@packages/subagent/subagent-codex/src/wire.ts:363"
+      ]
+    }
+  ],
+  "byClass": [
+    {
+      "cwe": "CWE-117",
+      "category": "Injection (log)",
+      "n": 2,
+      "caught": 2,
+      "recall": 1,
+      "interval": {
+        "low": 0.342,
+        "high": 1
+      }
+    },
+    {
+      "cwe": "CWE-1333",
+      "category": "Regular-expression denial of service",
+      "n": 2,
+      "caught": 1,
+      "recall": 0.5,
+      "interval": {
+        "low": 0.095,
+        "high": 0.905
+      }
+    },
+    {
+      "cwe": "CWE-798",
+      "category": "Hardcoded credentials",
+      "n": 2,
+      "caught": 2,
+      "recall": 1,
+      "interval": {
+        "low": 0.342,
+        "high": 1
+      }
+    },
+    {
+      "cwe": "CWE-95",
+      "category": "Injection (eval of external data)",
+      "n": 2,
+      "caught": 1,
+      "recall": 0.5,
+      "interval": {
+        "low": 0.095,
+        "high": 0.905
+      }
+    }
+  ]
+}
