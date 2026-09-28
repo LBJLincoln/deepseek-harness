@@ -55,6 +55,10 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
 | [2026-09-22-nodegoat-6-base-a](2026-09-22-nodegoat-6-base-a/manifest.json) | `f59f7a70c` | OWASP NodeGoat，111 个文件，同一配对的第一个 `without` 臂：只有六个专科部门，紧接在 `with` 臂之后、使用同一知识包运行 | `sonnet` | 7 of 7 | 57 (7 critical, 16 high, 17 medium, 16 low, 1 info) | 退出码 0 | 1383 s |
 | [2026-09-22-nodegoat-7-generalist-b](2026-09-22-nodegoat-7-generalist-b/manifest.json) | `af1f81270` | OWASP NodeGoat，111 个文件，同一配对的第二个 `with` 臂 | `sonnet` | 8 of 8 | 44 (7 critical, 15 high, 13 medium, 6 low, 3 info) | 退出码 0 | 1556 s |
 | [2026-09-22-nodegoat-8-base-b](2026-09-22-nodegoat-8-base-b/manifest.json) | `a15e48033` | OWASP NodeGoat，111 个文件，同一配对的第二个 `without` 臂；收束第二次迭代 | `sonnet` | 7 of 7 | 46 (10 critical, 18 high, 14 medium, 3 low, 1 info) | 退出码 0 | 1347 s |
+| [2026-09-27-nodegoat-9-misses-a](2026-09-27-nodegoat-9-misses-a/manifest.json) | `679eca6bd` | OWASP NodeGoat，111 个文件，循环的第三次迭代以配对方式运行，第一个 `with` 臂：[漏报诊断](../../.agents/notes/proposed/process/2026-09-27-code-safety-misses-diagnosis.md)所改动的清单（injection 与 access 的职责范围和技能、platform 的引用规则），从诊断提交的检出运行 | `sonnet` | 7 of 7 | 70 (14 critical, 24 high, 20 medium, 10 low, 2 info) | 退出码 0 | 1730 s |
+| [2026-09-27-nodegoat-10-base-c](2026-09-27-nodegoat-10-base-c/manifest.json) | `745d904b1` | OWASP NodeGoat，111 个文件，同一配对的第一个 `without` 臂：诊断之前的那个提交，从其自身检出运行，更早的运行目录已事先移走；紧接在 `with` 臂之后运行的那次尝试尚未提交便随会话的暂存磁盘一起丢失，因此这一次晚了六小时才运行 | `sonnet` | 7 of 7 | 45 (6 critical, 20 high, 13 medium, 5 low, 1 info) | 退出码 0 | 1383 s |
+| [2026-09-27-nodegoat-11-misses-b](2026-09-27-nodegoat-11-misses-b/manifest.json) | `679eca6bd` | OWASP NodeGoat，111 个文件，同一配对的第二个 `with` 臂，从诊断提交的暂存检出运行；其第一次尝试从第一个检出运行，在集成之前止于路由的会话上限，没有发布任何东西 | `sonnet` | 7 of 7 | 49 (5 critical, 19 high, 17 medium, 7 low, 1 info) | 退出码 0 | 1559 s |
+| [2026-09-27-nodegoat-12-base-d](2026-09-27-nodegoat-12-base-d/manifest.json) | `745d904b1` | OWASP NodeGoat，111 个文件，同一配对的第二个 `without` 臂；收束第三次迭代 | `sonnet` | 7 of 7 | 49 (9 critical, 16 high, 15 medium, 9 low, 0 info) | 退出码 0 | 1636 s |
 
 ## 一条记录证明了什么
 

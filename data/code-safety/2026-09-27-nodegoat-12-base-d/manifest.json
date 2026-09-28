@@ -1,0 +1,174 @@
+{
+  "run": "2026-09-27-nodegoat-12-base-d",
+  "ranAt": "2026-09-28T00:06:10.605Z",
+  "endedAt": "2026-09-28T00:33:26.255Z",
+  "elapsedSeconds": 1636,
+  "repository": {
+    "branch": "",
+    "head": "745d904b1c35aff49a845d0f0b32e016b4499633",
+    "changedPaths": []
+  },
+  "composition": "examples/headless-agent/tests/fixtures/program-code-safety/overlays/claude-code.cordis.yml",
+  "knowledge": {
+    "root": "data/knowledge/code-safety",
+    "files": 13,
+    "sha256": "cfea561b10e97bda53a808c96078984b6eee9ea7399f7aa379aad325ae2d9450"
+  },
+  "programId": "program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672",
+  "outcome": "released",
+  "mergedRevision": "9ee8864c555d7edbae680b9eee2df0bba089418c",
+  "target": {
+    "root": "/root/targets/NodeGoat",
+    "files": 111,
+    "sha256": "78ac112b7bd5083bb065086c4642dcd8a3932a8d3052f9405503124c90a70fe3"
+  },
+  "departments": [
+    {
+      "key": "secrets",
+      "status": "merged",
+      "revision": "60a04e57b927c3f4f40c4de58566e9338ba43989",
+      "tree": "ecc7fc62854206cd81b0b012a1f9d21a59122fd5"
+    },
+    {
+      "key": "injection",
+      "status": "merged",
+      "revision": "89499c28042fd7061fe19648b219ee3c56863438",
+      "tree": "07ad0b0842477c01e247a376c3a291ea6c5f768c"
+    },
+    {
+      "key": "access",
+      "status": "merged",
+      "revision": "39027f1c4da6fb5b7e0d42e88f3868a56eb68f86",
+      "tree": "83af3a3b4803c3696f91014d53adc474aca9dd6b"
+    },
+    {
+      "key": "data",
+      "status": "merged",
+      "revision": "4053917f1f0f7922d1e305b201077c3deb1b56f3",
+      "tree": "96d6354deba46d1720573807b05752e3aff8ee78"
+    },
+    {
+      "key": "dependencies",
+      "status": "merged",
+      "revision": "9c7c5f32e67afacc16b36faac341498f1eaff47b",
+      "tree": "8a598f14fea72e1cd99cb68f8de319a67d426895"
+    },
+    {
+      "key": "platform",
+      "status": "merged",
+      "revision": "396c73ea584c9abe6854a949b63bbc15d996ef34",
+      "tree": "cd5de753d6897c32ab6a861f64d4eef4bf3a7a52"
+    }
+  ],
+  "certified": [
+    "@integration",
+    "access",
+    "data",
+    "dependencies",
+    "injection",
+    "platform",
+    "secrets"
+  ],
+  "findings": {
+    "total": 49,
+    "bySeverity": {
+      "critical": 9,
+      "high": 16,
+      "medium": 15,
+      "low": 9,
+      "info": 0
+    },
+    "byConfidence": {
+      "confirmed": 48,
+      "likely": 1,
+      "possible": 0
+    }
+  },
+  "verifier": {
+    "exitCode": 0
+  },
+  "denials": 0,
+  "sessions": {
+    "program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672.jsonl",
+    "program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-~0040integration": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-~0040integration.jsonl",
+    "program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-access": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-access.jsonl",
+    "program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-data": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-data.jsonl",
+    "program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-dependencies": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-dependencies.jsonl",
+    "program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-injection": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-injection.jsonl",
+    "program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-platform": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-platform.jsonl",
+    "program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-secrets": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-secrets.jsonl"
+  },
+  "files": [
+    {
+      "path": "result.json",
+      "bytes": 166291,
+      "sha256": "da190e02a1a3f06654ef86e391a934c1897ae0337381c3550b328b940b625367"
+    },
+    {
+      "path": "SAFETY-REPORT.md",
+      "bytes": 45997,
+      "sha256": "6dbf3846c57e48aafa84018c3c24900554c995bd409e9cb4f09a82b6def95822"
+    },
+    {
+      "path": "findings.json",
+      "bytes": 75948,
+      "sha256": "e7cee551619c650052edee9137a1d5dcece17fc26fa158155d5f82aa0aee296c"
+    },
+    {
+      "path": "verifier.txt",
+      "bytes": 86,
+      "sha256": "72a90ce8ffe90468aac032053950eefd0b67b96d05013ff69c722d07032e4756"
+    },
+    {
+      "path": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672.jsonl",
+      "bytes": 26442,
+      "sha256": "c06896fbedab7411551651764296ff0e66f3fa88035bffea525930443f7124bd"
+    },
+    {
+      "path": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-~0040integration.jsonl",
+      "bytes": 969535,
+      "sha256": "5b0b757e177521d6f9decdaaaacf569a1121be22fd38a6e929a100668f7a32b7"
+    },
+    {
+      "path": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-access.jsonl",
+      "bytes": 424216,
+      "sha256": "22f5370f0dd4baa74705a4c47e34f905b1d77cc58cbdd5d46e774e43d3b3541a"
+    },
+    {
+      "path": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-data.jsonl",
+      "bytes": 505917,
+      "sha256": "69afa2659853d46bc018a6ee8b302be29f5e209a98527872780c2f435e4376f7"
+    },
+    {
+      "path": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-dependencies.jsonl",
+      "bytes": 448040,
+      "sha256": "93657f926c056a9085ebe3dad02a5185b1acc7dfd689c7e47a43ffdd4b72ce9c"
+    },
+    {
+      "path": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-injection.jsonl",
+      "bytes": 618583,
+      "sha256": "30eca1375b7f47ccdb277e99bd68a1ccdc5d8baaeec340456262cf09fe2996bd"
+    },
+    {
+      "path": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-platform.jsonl",
+      "bytes": 410834,
+      "sha256": "748413cba6810e16156c03bc9525a6b486b2f5c1282d853fabbb08e91b93fda8"
+    },
+    {
+      "path": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-secrets.jsonl",
+      "bytes": 520913,
+      "sha256": "e4c347e27d62a7b6f4fb4002703fb46371d77d7db3b310518a6ea9de707a77bd"
+    }
+  ],
+  "redactions": {
+    "rule": "Private key material and example cloud keys the departments read out of the target were replaced before the record was committed; the cited lines the examiner verified are untouched.",
+    "tool": "tools/redact-record.mjs",
+    "files": [
+      {
+        "file": "sessions/program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-secrets.jsonl",
+        "privateKeyBodies": 3,
+        "exampleAwsKeys": 1
+      }
+    ]
+  }
+}
