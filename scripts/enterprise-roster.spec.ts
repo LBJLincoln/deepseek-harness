@@ -133,7 +133,9 @@ describe('buildRoster', () => {
     expect(roster.evidence.sessions).toBe(recorded.reduce((sum, run) => sum + run.sessions.length, 0))
     expect(Object.values(roster.unattributed.reasons).reduce((sum, count) => sum + count, 0)).toBe(roster.unattributed.sessions)
     const occupied = roster.agents.filter(agent => agent.evidence.sessions > 0)
-    expect(roster.counts.occupied).toBe(occupied.length)
+    // A seat is occupied by a session or by a ledger line; the ledger's own test covers the lines.
+    expect(roster.counts.occupied).toBe(roster.agents.filter(agent => agent.evidence.sessions > 0 || agent.ledger.lines > 0).length)
+    expect(roster.counts.occupied).toBeGreaterThanOrEqual(occupied.length)
     for (const agent of roster.agents.filter(seat => seat.evidence.sessions === 0)) {
       expect(agent.evidence, `${agent.id} has no session but carries evidence`).toEqual({ sessions: 0, routesSeen: [] })
     }
