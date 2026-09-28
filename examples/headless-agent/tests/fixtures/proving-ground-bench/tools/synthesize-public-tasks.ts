@@ -27,10 +27,12 @@
  * source and its licence, and hands over the JSDoc and the signature; it never
  * reveals the tests.
  *
- * The factory runs every case against the reference first and drops the cases
- * the reference fails, which are the shim or the transform falling short of
- * that block; then per function it runs the remaining cases against the stub
- * and keeps the ones that fail, which are the cases that reach the function. A
+ * The factory runs every case against the reference twice and drops the cases
+ * the reference fails in either run, which are the shim or the transform
+ * falling short of that block, or a block whose verdict depends on the host's
+ * load (a real-timer debounce test), which must not decide a cell; then per
+ * function it runs the remaining cases against the stub and keeps the ones
+ * that fail, which are the cases that reach the function. A
  * function no case reaches yields no child. A child's tier is set by that
  * count (`--tier-bands`); a child keeps at most `--max-cases` of them, spread
  * evenly over the exercising cases in pooled order, because a module many
@@ -450,6 +452,18 @@ async function failingCases(cwd: string, cases: readonly TestCase[], options: Op
 }
 
 /**
+ * The cases the reference in `cwd` fails in either of two runs, in case order:
+ * the second run covers only the cases the first passed, so a deterministic
+ * failure costs one run and a load-dependent block is caught by the other.
+ */
+async function failingCasesTwice(cwd: string, cases: readonly TestCase[], options: Options): Promise<FailedCase[]> {
+  const first = await failingCases(cwd, cases, options)
+  const firstOrdinals = new Set(first.map(one => one.one.ordinal))
+  const second = await failingCases(cwd, cases.filter(one => !firstOrdinals.has(one.ordinal)), options)
+  return [...first, ...second].sort((left, right) => left.one.ordinal - right.one.ordinal)
+}
+
+/**
  * At most `limit` of `cases`, spread evenly over them in order: the first and
  * every `length / limit`-th after it, so the kept cases come from every test
  * that reaches the function rather than the first few files.
@@ -675,7 +689,7 @@ async function deriveSource(
     try {
       writeClosure(scratch, closure.files)
       if (shim) writeShim(scratch)
-      const failed = await failingCases(scratch, pooled, options)
+      const failed = await failingCasesTwice(scratch, pooled, options)
       const failedOrdinals = new Set(failed.map(one => one.one.ordinal))
       for (const one of failed) console.error(`drop case ${subject} "${one.one.title}": the reference fails it: ${one.failure}`)
       run.casesDroppedByReference += failed.length

@@ -663,7 +663,8 @@ function sum(xs) {
 export default sum;
 `,
       'src/index.ts': "export { greet, idle } from './greet'\nexport { default as sum } from './stats.js'\n",
-      'src/greet.test.ts': `import { describe, expect, it } from 'vitest'
+      'src/greet.test.ts': `import { existsSync, writeFileSync } from 'node:fs'
+import { describe, expect, it } from 'vitest'
 import { greet } from './index'
 
 describe('greet', () => {
@@ -675,6 +676,12 @@ describe('greet', () => {
   })
   it('never held', () => {
     expect(greet('x')).toBe('wrong')
+  })
+  it('holds once', () => {
+    // Passes the first time it runs in a directory and fails the second: the reference must pass a case twice.
+    if (existsSync('held-once')) throw new Error('second run')
+    writeFileSync('held-once', '')
+    expect(greet('a')).toBe('hello a')
   })
 })
 `,
@@ -726,6 +733,7 @@ describe("sum", () => {
     expect(result.stderr).toContain('drop source relicensed: licence file LICENSE digests to')
     expect(result.stderr).toContain('drop source unreachable: git fetch failed: fatal:')
     expect(result.stderr).toContain('drop case example/src/greet.ts "src/greet.test.ts › greet › never held": the reference fails it: AssertionError: expected "hello x" to be "wrong"')
+    expect(result.stderr).toContain('drop case example/src/greet.ts "src/greet.test.ts › greet › holds once": the reference fails it: Error: second run')
     expect(result.stderr).toContain('skip example--idle: no case exercises it')
     expect(result.stdout).toContain('source example: read, modules 3, tests 2 usable 2, candidates 3, written 2, admitted 2')
     expect(result.stdout).toContain('source relicensed: dropped (licence file LICENSE digests to')
@@ -744,7 +752,7 @@ describe("sum", () => {
     expect(census.sources.map(one => [one.name, one.status])).toEqual([['example', 'read'], ['relicensed', 'dropped'], ['unreachable', 'dropped']])
     expect(census.candidates).toBe(3)
     expect(census.skips).toEqual({ 'no JSDoc': 1, 'no case exercises it': 1, 'too short': 0 })
-    expect(census.casesDroppedByReference).toBe(1)
+    expect(census.casesDroppedByReference).toBe(2)
     expect(census.admittedByTier).toEqual({ '2': 2 })
 
     const greet = JSON.parse(readFileSync(join(out, 'example--greet', 'task.json'), 'utf8')) as {
@@ -770,7 +778,8 @@ describe("sum", () => {
     expect(existsSync(join(out, 'example--greet', 'src', 'index.js'))).toBe(false)
     const cases = JSON.parse(readFileSync(join(out, 'example--greet', 'reference', 'cases.json'), 'utf8')) as { id: string; title: string; stdin: string }[]
     expect(cases.map(one => one.title)).toEqual(['src/greet.test.ts › greet › greets by name', 'src/greet.test.ts › greet › keeps the case'])
-    expect(cases[0]?.stdin.startsWith(`import { expect, expectTypeOf, assertType } from "./${SHIM_FILE}";\nimport { greet } from "./src/greet.js";`)).toBe(true)
+    // A `node:` import stays as the test wrote it, ahead of the imports re-pointed at the workspace.
+    expect(cases[0]?.stdin.startsWith(`import { expect, expectTypeOf, assertType } from "./${SHIM_FILE}";\nimport { existsSync, writeFileSync } from 'node:fs';\nimport { greet } from "./src/greet.js";`)).toBe(true)
 
     const sum = JSON.parse(readFileSync(join(out, 'example--sum', 'task.json'), 'utf8')) as { immutable: string[]; public: { module: string; tests: string[] } }
     expect(sum.immutable).toEqual(['README.md', 'package.json', 'LICENSE'])
@@ -798,8 +807,8 @@ describe("sum", () => {
     const out = join(root, 'out')
     const dry = run(['--dry-run', '--sources', sources, '--cache-dir', join(root, 'cache'), '--out-dir', out], root)
     expect(dry.status, dry.stderr).toBe(0)
-    expect(dry.stdout).toContain('would consider example--greet (src/greet.ts, 1 test(s), 3 cases)')
-    expect(dry.stdout).toContain('would consider example--idle (src/greet.ts, 1 test(s), 3 cases)')
+    expect(dry.stdout).toContain('would consider example--greet (src/greet.ts, 1 test(s), 4 cases)')
+    expect(dry.stdout).toContain('would consider example--idle (src/greet.ts, 1 test(s), 4 cases)')
     expect(dry.stdout).toContain('would consider example--sum (src/stats.js, 1 test(s), 2 cases)')
     expect(dry.stdout).toContain('modules: 3, tests: 2, candidates: 3')
     expect(existsSync(out)).toBe(false)
