@@ -1,16 +1,16 @@
 /**
  * Daliesk command-deck mirror: the public read side of the feed.
  *
- * Serves the feed contract the deck reads — `GET /roster`, `GET /runs`,
+ * Serves the read side of the feed contract the deck reads — `GET /roster`, `GET /runs`,
  * `GET /programs`, `GET /safety/:id`, `GET /ops`, and the Server-Sent Events
  * streams `GET /runs/:id/events` and `GET /ops/events` — from the rows the
- * `ingest` function stores, and turns `POST /safety` into a request the
- * pushing container claims and answers with the run id it started. One event
- * stream stays open for at most STREAM_MS, under the runtime's wall-clock
- * limit; the browser's EventSource reconnects with the last row id it saw and
- * the stream resumes from there. `/ops/events` streams the rows stored under
- * the run id `ops`; a connection without a last id starts OPS_BACKLOG rows
- * before the newest, because that stream only grows.
+ * `ingest` function stores. It serves reads only: every other method answers
+ * 405, so nothing reachable without the ingest token can start work on the
+ * pushing machine. One event stream stays open for at most STREAM_MS, under
+ * the runtime's wall-clock limit; the browser's EventSource reconnects with
+ * the last row id it saw and the stream resumes from there. `/ops/events`
+ * streams the rows stored under the run id `ops`; a connection without a last
+ * id starts OPS_BACKLOG rows before the newest, because that stream only grows.
  */
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -18,14 +18,13 @@ const REST = `${SUPABASE_URL}/rest/v1`
 const AUTH = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` }
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Last-Event-ID',
 }
 const STREAM_MS = 140_000
 const POLL_MS = 500
 const PING_MS = 15_000
 const PAGE = 2000
-const REQUEST_WAIT_MS = 25_000
 const OPS_RUN = 'ops'
 const OPS_BACKLOG = 200
 
@@ -122,35 +121,9 @@ function streamEvents(runId: string, since: number): Response {
   })
 }
 
-async function startReview(req: Request): Promise<Response> {
-  let body: { target?: unknown; model?: unknown }
-  try {
-    body = await req.json() as { target?: unknown; model?: unknown }
-  } catch {
-    return json(400, { error: 'JSON body required' })
-  }
-  if (typeof body.target !== 'string' || body.target.length === 0) return json(400, { error: 'POST /safety requires a non-empty "target"' })
-  const model = typeof body.model === 'string' && body.model.length > 0 ? body.model : null
-  const created = await fetch(`${REST}/feed_requests`, {
-    method: 'POST',
-    headers: { ...AUTH, 'content-type': 'application/json', Prefer: 'return=representation' },
-    body: JSON.stringify({ target: body.target, model }),
-  })
-  if (!created.ok) return json(500, { error: `request not stored (${created.status})` })
-  const [row] = await created.json() as { id: number }[]
-  if (row === undefined) return json(500, { error: 'request not stored' })
-  const deadline = Date.now() + REQUEST_WAIT_MS
-  while (Date.now() < deadline) {
-    await sleep(1000)
-    const [state] = await restGet<{ run_id: string | null; error: string | null }[]>(`/feed_requests?id=eq.${row.id}&select=run_id,error`)
-    if (state?.run_id) return json(202, { id: state.run_id })
-    if (state?.error) return json(400, { error: state.error })
-  }
-  return json(504, { error: 'no harness claimed the request: the pushing container is not connected' })
-}
-
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
+  if (req.method !== 'GET') return json(405, { error: 'the relay serves reads only' })
   const url = new URL(req.url)
   const route = routeOf(url)
   try {
@@ -173,7 +146,6 @@ Deno.serve(async (req: Request) => {
       const since = Number(req.headers.get('last-event-id') ?? url.searchParams.get('since') ?? '0')
       return streamEvents(decodeURIComponent(events[1]), Number.isFinite(since) ? since : 0)
     }
-    if (req.method === 'POST' && route === '/safety') return await startReview(req)
     if (req.method === 'GET' && route === '/health') {
       const rows = await restGet<{ path: string; updated_at: string }[]>('/feed_json?select=path,updated_at&order=updated_at.desc&limit=1')
       return json(200, { ok: true, lastSnapshot: rows[0] ?? null })

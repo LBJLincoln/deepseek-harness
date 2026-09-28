@@ -49,6 +49,12 @@ describe('publicLine', () => {
     expect(publicLine(`hash ${'f'.repeat(64)}`)).toBe('hash …')
   })
 
+  it('masks every e-mail address and the shared transcript redaction\'s credential shapes', () => {
+    const line = publicLine('mail operator.name+ops@example.co.uk about sk-ant-api03-abcdefghijklmnopqrstuvwxyz and AKIAABCDEFGHIJKLMNOP')
+    expect(line).toBe('mail [REDACTED-EMAIL] about [REDACTED-ANTHROPIC-KEY] and [REDACTED-AWS-ACCESS-KEY]')
+    expect(publicLine('Commit as noreply@anthropic.com')).not.toContain('@')
+  })
+
   it('names a tool call by its description, else by the last segment of its target', () => {
     expect(describeToolCall('Bash', { command: 'rm -rf x', description: 'Run the tests' })).toBe('Bash: Run the tests')
     expect(describeToolCall('Edit', { file_path: '/home/user/repo/apps/deck/README.md' })).toBe('Edit README.md')
