@@ -29,7 +29,7 @@ function ticket(id: string, priority: number): Ticket {
     kind: 'chore',
     source: { path: 'tools/README.md', anchor: 'tools' },
     task: 'tools/README.md:1 states the task.',
-    scope: ['tools/', 'docs/tools.md'],
+    scope: ['tools/', 'tooling/extra.mjs'],
     acceptance: [{ id: 'runs', run: 'node tools/x.mjs' }],
     budget: { maxTotalTokens: 1000, maxWallMs: 1000 },
     priority,
@@ -93,7 +93,7 @@ describe('the standard a ticket compiles to', () => {
     const checks = ticketChecks(ticket('T-0007', 1), 'abc123')
     expect(checks.map(check => check.id)).toEqual(['runs', ENGINE_CHECKS.committed, ENGINE_CHECKS.scope, ENGINE_CHECKS.whitespace])
     expect(checks[1]?.run).toBe('test "$(git rev-parse HEAD)" != "$(git rev-parse abc123)"')
-    expect(checks[2]?.run).toBe('test -z "$(git diff --name-only abc123 HEAD -- . \':(exclude)tools/\' \':(exclude)docs/tools.md\')"')
+    expect(checks[2]?.run).toBe('test -z "$(git diff --name-only abc123 HEAD -- . \':(exclude)tools/\' \':(exclude)tooling/extra.mjs\')"')
     expect(checks[3]?.run).toBe('git diff --check abc123 HEAD')
     expect(ticketChecks(ticket('T-0007', 1), 'abc123', 'merged-').map(check => check.id)[0]).toBe('merged-runs')
     expect(departmentKey('T-0007')).toBe('t-0007')
