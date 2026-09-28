@@ -1,0 +1,129 @@
+{
+  "seat": "program-departments-workflow-coordinator",
+  "subsystem": "packages/workflow/",
+  "openInSubsystem": 0,
+  "department": {
+    "status": "merged",
+    "sessionId": "program-bc31d3e692c2ba1950ef2c528acf7a62f984b5ad174c9e05a820dd6c02372777-program-departments-workflow-coordinator",
+    "revision": "e5aeff68b8a779f7e0d5bc692231930bc58693a2",
+    "endedAt": "2026-09-28T18:19:36.556Z",
+    "tokens": 2249656,
+    "seconds": 231
+  },
+  "ran": true,
+  "outcome": "pass",
+  "admitted": [
+    "T-0039"
+  ],
+  "proposals": [
+    {
+      "id": "T-0038",
+      "title": "Fix ralph system-prompt guidance text to match README's quoted text",
+      "division": "program-departments",
+      "seat": "program-departments-workflow-coordinator",
+      "kind": "fix",
+      "source": {
+        "path": "packages/workflow/tool-ralph/README.md",
+        "anchor": "##### Ralph guidance"
+      },
+      "task": "packages/workflow/tool-ralph/README.md:38-48 presents a fenced 'Ralph guidance' block under '### System prompt' / '#### What the model sees' as the verbatim text the model receives, ending '...and plain subagents or workflowEngine for bounded delegation and fan-out.' The actual system-prompt section registered in packages/workflow/tool-ralph/src/index.ts:407-411 (the `ctx.systemPrompt.section({ name: 'tool:ralph', ... })` call) instead ends '...and plain subagents or workflows for bounded delegation and fan-out.' — 'workflowEngine' vs 'workflows'. No existing test in packages/workflow/tool-ralph/tests/tool-ralph.spec.ts pins this exact suffix (it only asserts substrings 'ONLY when the direct human explicitly asks' and 'worker reports, not independent evaluation' around line 381-382), so the drift is unguarded. Required behaviour: change the `text:` string literal in src/index.ts's `ctx.systemPrompt.section` call (around line 410) so it ends '...and plain subagents or workflowEngine for bounded delegation and fan-out.', matching the README's documented guidance verbatim; make no other change to the sentence or to any other section text. Do not touch the README (it already states the intended text), the DESCRIPTION constant, the RALPH_SCRIPT template, or any other package's guidance text.",
+      "scope": [
+        "packages/workflow/tool-ralph/"
+      ],
+      "acceptance": [
+        {
+          "id": "guidance-text-matches-readme",
+          "run": "grep -q 'plain subagents or workflowEngine for bounded delegation and fan-out' packages/workflow/tool-ralph/src/index.ts"
+        },
+        {
+          "id": "stale-guidance-text-removed",
+          "run": "! grep -q 'plain subagents or workflows for bounded delegation and fan-out' packages/workflow/tool-ralph/src/index.ts"
+        },
+        {
+          "id": "tool-ralph-coverage",
+          "run": "pnpm exec vitest run packages/workflow/tool-ralph/ --coverage --coverage.include='packages/workflow/tool-ralph/src/**/*.ts'"
+        },
+        {
+          "id": "typecheck",
+          "run": "pnpm run typecheck"
+        }
+      ],
+      "budget": {
+        "maxTotalTokens": 8000000,
+        "maxWallMs": 2700000
+      },
+      "priority": 3
+    }
+  ],
+  "admission": {
+    "verdicts": [
+      {
+        "index": 0,
+        "proposedId": "T-0038",
+        "title": "Fix ralph system-prompt guidance text to match README's quoted text",
+        "admitted": true,
+        "id": "T-0039",
+        "checks": [
+          {
+            "id": "guidance-text-matches-readme",
+            "run": "grep -q 'plain subagents or workflowEngine for bounded delegation and fan-out' packages/workflow/tool-ralph/src/index.ts",
+            "exitCode": 1,
+            "signal": null,
+            "timedOut": false,
+            "seconds": 0.1,
+            "output": "",
+            "dirtied": []
+          },
+          {
+            "id": "stale-guidance-text-removed",
+            "run": "! grep -q 'plain subagents or workflows for bounded delegation and fan-out' packages/workflow/tool-ralph/src/index.ts",
+            "exitCode": 1,
+            "signal": null,
+            "timedOut": false,
+            "seconds": 0.1,
+            "output": "",
+            "dirtied": []
+          }
+        ],
+        "ticket": {
+          "id": "T-0039",
+          "title": "Fix ralph system-prompt guidance text to match README's quoted text",
+          "division": "program-departments",
+          "seat": "program-departments-workflow-coordinator",
+          "kind": "fix",
+          "source": {
+            "path": "packages/workflow/tool-ralph/README.md",
+            "anchor": "##### Ralph guidance"
+          },
+          "task": "packages/workflow/tool-ralph/README.md:38-48 presents a fenced 'Ralph guidance' block under '### System prompt' / '#### What the model sees' as the verbatim text the model receives, ending '...and plain subagents or workflowEngine for bounded delegation and fan-out.' The actual system-prompt section registered in packages/workflow/tool-ralph/src/index.ts:407-411 (the `ctx.systemPrompt.section({ name: 'tool:ralph', ... })` call) instead ends '...and plain subagents or workflows for bounded delegation and fan-out.' — 'workflowEngine' vs 'workflows'. No existing test in packages/workflow/tool-ralph/tests/tool-ralph.spec.ts pins this exact suffix (it only asserts substrings 'ONLY when the direct human explicitly asks' and 'worker reports, not independent evaluation' around line 381-382), so the drift is unguarded. Required behaviour: change the `text:` string literal in src/index.ts's `ctx.systemPrompt.section` call (around line 410) so it ends '...and plain subagents or workflowEngine for bounded delegation and fan-out.', matching the README's documented guidance verbatim; make no other change to the sentence or to any other section text. Do not touch the README (it already states the intended text), the DESCRIPTION constant, the RALPH_SCRIPT template, or any other package's guidance text.",
+          "scope": [
+            "packages/workflow/tool-ralph/"
+          ],
+          "acceptance": [
+            {
+              "id": "guidance-text-matches-readme",
+              "run": "grep -q 'plain subagents or workflowEngine for bounded delegation and fan-out' packages/workflow/tool-ralph/src/index.ts"
+            },
+            {
+              "id": "stale-guidance-text-removed",
+              "run": "! grep -q 'plain subagents or workflows for bounded delegation and fan-out' packages/workflow/tool-ralph/src/index.ts"
+            },
+            {
+              "id": "tool-ralph-coverage",
+              "run": "pnpm exec vitest run packages/workflow/tool-ralph/ --coverage --coverage.include='packages/workflow/tool-ralph/src/**/*.ts'"
+            },
+            {
+              "id": "typecheck",
+              "run": "pnpm run typecheck"
+            }
+          ],
+          "budget": {
+            "maxTotalTokens": 8000000,
+            "maxWallMs": 2700000
+          },
+          "priority": 3
+        }
+      }
+    ]
+  }
+}

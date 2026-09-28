@@ -1,0 +1,111 @@
+{
+  "seat": "program-departments-jobs-coordinator",
+  "subsystem": "packages/jobs/",
+  "openInSubsystem": 0,
+  "department": {
+    "status": "merged",
+    "sessionId": "program-bc31d3e692c2ba1950ef2c528acf7a62f984b5ad174c9e05a820dd6c02372777-program-departments-jobs-coordinator",
+    "revision": "24541107f54dc80cc6c02ae6a3c2f8ccad83bb82",
+    "endedAt": "2026-09-28T18:15:40.878Z",
+    "tokens": 1150660,
+    "seconds": 180
+  },
+  "ran": true,
+  "outcome": "pass",
+  "admitted": [
+    "T-0038"
+  ],
+  "proposals": [
+    {
+      "id": "T-0038",
+      "title": "Remove duplicated JSDoc opener above JobRegistry.onJobsChanged",
+      "division": "program-departments",
+      "seat": "program-departments-jobs-coordinator",
+      "kind": "docs",
+      "source": {
+        "path": "packages/jobs/jobs/src/index.ts",
+        "anchor": "abstract onJobsChanged(listener: JobsChangedListener): () => void"
+      },
+      "task": "packages/jobs/jobs/src/index.ts:145-146 opens the JSDoc block for `JobRegistry.onJobsChanged` with two consecutive `/**` lines instead of one: line 145 is `  /**` and line 146 repeats `  /**` before the actual comment text starts on line 147 (`* Register an effect-scoped observer of visible-set changes.`). Every other abstract method in this file (e.g. `onJobDone` at lines 135-143, `attachController` at lines 169-176) opens its doc comment with exactly one `/**` line. The stray second `/**` is inert (TypeScript still parses the block because `/**` nested inside a block comment is just text), so it produces no compile or lint failure, but it is a leftover edit artifact that a documentation generator or a reader following this file as the authoritative JSDoc source (see docs/subsystems/jobs.md's stated sourcing from this file) would see as a formatting defect. Delete the duplicate `/**` line so the block opens once, matching the style of every other method in the file. Touch only that one line; do not reword the comment text or change any other method's documentation.",
+      "scope": [
+        "packages/jobs/jobs/"
+      ],
+      "acceptance": [
+        {
+          "id": "no-duplicate-jsdoc-opener",
+          "run": "! grep -Pzo '  /\\*\\*\\n  /\\*\\*\\n' packages/jobs/jobs/src/index.ts"
+        },
+        {
+          "id": "jobs-coverage",
+          "run": "pnpm exec vitest run packages/jobs/jobs/ --coverage --coverage.include='packages/jobs/jobs/src/**/*.ts'"
+        },
+        {
+          "id": "typecheck",
+          "run": "pnpm run typecheck"
+        }
+      ],
+      "budget": {
+        "maxTotalTokens": 8000000,
+        "maxWallMs": 2700000
+      },
+      "priority": 3
+    }
+  ],
+  "admission": {
+    "verdicts": [
+      {
+        "index": 0,
+        "proposedId": "T-0038",
+        "title": "Remove duplicated JSDoc opener above JobRegistry.onJobsChanged",
+        "admitted": true,
+        "id": "T-0038",
+        "checks": [
+          {
+            "id": "no-duplicate-jsdoc-opener",
+            "run": "! grep -Pzo '  /\\*\\*\\n  /\\*\\*\\n' packages/jobs/jobs/src/index.ts",
+            "exitCode": 1,
+            "signal": null,
+            "timedOut": false,
+            "seconds": 0.2,
+            "output": "  /**\n  /**\n\u0000",
+            "dirtied": []
+          }
+        ],
+        "ticket": {
+          "id": "T-0038",
+          "title": "Remove duplicated JSDoc opener above JobRegistry.onJobsChanged",
+          "division": "program-departments",
+          "seat": "program-departments-jobs-coordinator",
+          "kind": "docs",
+          "source": {
+            "path": "packages/jobs/jobs/src/index.ts",
+            "anchor": "abstract onJobsChanged(listener: JobsChangedListener): () => void"
+          },
+          "task": "packages/jobs/jobs/src/index.ts:145-146 opens the JSDoc block for `JobRegistry.onJobsChanged` with two consecutive `/**` lines instead of one: line 145 is `  /**` and line 146 repeats `  /**` before the actual comment text starts on line 147 (`* Register an effect-scoped observer of visible-set changes.`). Every other abstract method in this file (e.g. `onJobDone` at lines 135-143, `attachController` at lines 169-176) opens its doc comment with exactly one `/**` line. The stray second `/**` is inert (TypeScript still parses the block because `/**` nested inside a block comment is just text), so it produces no compile or lint failure, but it is a leftover edit artifact that a documentation generator or a reader following this file as the authoritative JSDoc source (see docs/subsystems/jobs.md's stated sourcing from this file) would see as a formatting defect. Delete the duplicate `/**` line so the block opens once, matching the style of every other method in the file. Touch only that one line; do not reword the comment text or change any other method's documentation.",
+          "scope": [
+            "packages/jobs/jobs/"
+          ],
+          "acceptance": [
+            {
+              "id": "no-duplicate-jsdoc-opener",
+              "run": "! grep -Pzo '  /\\*\\*\\n  /\\*\\*\\n' packages/jobs/jobs/src/index.ts"
+            },
+            {
+              "id": "jobs-coverage",
+              "run": "pnpm exec vitest run packages/jobs/jobs/ --coverage --coverage.include='packages/jobs/jobs/src/**/*.ts'"
+            },
+            {
+              "id": "typecheck",
+              "run": "pnpm run typecheck"
+            }
+          ],
+          "budget": {
+            "maxTotalTokens": 8000000,
+            "maxWallMs": 2700000
+          },
+          "priority": 3
+        }
+      }
+    ]
+  }
+}
