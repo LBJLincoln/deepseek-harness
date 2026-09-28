@@ -1,0 +1,24 @@
+{
+  "id": "T-0040",
+  "title": "Resolve cmd.exe and codex to absolute paths before the Codex provider spawns in the delegating workspace",
+  "division": "harness-core",
+  "seat": "harness-core-subagent-codex-steward",
+  "kind": "fix",
+  "source": {
+    "path": "packages/subagent/subagent-codex/README.md",
+    "anchor": "Production resolves `codex` from `PATH`"
+  },
+  "task": "Origin: the Code Safety division's triage of its 2026-09-28 review of this package (data/code-safety/targets/README.md:55, record data/code-safety/2026-09-28-dsh-self-review). No released finding names this defect; the triage found it while reading the code, so this ticket carries the evidence itself.\n\nProblem: `codexAppServerArgv` at packages/subagent/subagent-codex/src/run.ts:36-42 returns the bare program names `cmd.exe` and `codex` (`['cmd.exe', '/d', '/s', '/c', 'codex', 'app-server', '--stdio']` on win32, `['codex', ...]` elsewhere), and `startCodexRun` spawns it at packages/subagent/subagent-codex/src/run.ts:125-131 with `cwd: spec.cwd`, which `start` sets to the delegating session's workspace at packages/subagent/subagent-codex/src/index.ts:67-78. On Windows, libuv's `uv_spawn` passes that explicit cwd to `search_path`, which checks the cwd for a bare file name before any PATH directory (libuv src/win/process.c: \"If there's really only a filename, check the current directory for file, then search all path directories\"), and `cmd.exe` in turn looks for `codex` in its current directory before PATH. A workspace holding `cmd.exe`, or `codex.cmd`/`codex.bat`/`codex.exe`, therefore runs that file instead of the installed product whenever a session in it delegates to Codex — a cloned repository plants the executable (CWE-427). The README contract at packages/subagent/subagent-codex/README.md:30 (\"Production resolves `codex` from `PATH`\") holds on POSIX only. The sibling provider already resolves its product through the subprocess seam, which searches PATH only and returns an absolute path: packages/subagent/subagent-claude-code/src/index.ts:112-116.\n\nRequired: in `start` (packages/subagent/subagent-codex/src/index.ts), resolve `codex` with `this.ctx.subprocess.resolveExecutable('codex', this.config.env, request.signal)` and, on win32, `cmd.exe` the same way, before anything is spawned; carry the absolute paths in `CodexRunSpec`; make `codexAppServerArgv` take them so that no element of the argv that names a program is a bare file name, while every other element stays constant (no task or configuration text enters the argv). Update the existing argv test at packages/subagent/subagent-codex/tests/subagent-codex.spec.ts:263-274 to the new behavior, and add packages/subagent/subagent-codex/tests/executable-resolution.spec.ts asserting that (a) on win32 the argv's first element and its `codex` element are exactly the absolute paths passed in, (b) on POSIX the first element is the absolute path passed in, and (c) the provider's `start`, over a stub subprocess service that records calls, resolves through `resolveExecutable` before its first `spawn`. State in the README's configuration paragraph (and its Chinese counterpart) that `codex`, and on Windows `cmd.exe`, are resolved from PATH to absolute paths before the spawn, then re-record the pair with `pnpm run verify-translation-pairing --write packages/subagent/subagent-codex/README.md`.\n\nConstraints: do not change the JSON-RPC wire, the handshake, the approval answers, or packages/subprocess; keep the POSIX argv shape apart from the absolute path. A fix that also needs the ACP or SDK providers is out of scope here: stop and report instead.",
+  "scope": [
+    "packages/subagent/subagent-codex/"
+  ],
+  "acceptance": [
+    { "id": "resolution-spec", "run": "test -f packages/subagent/subagent-codex/tests/executable-resolution.spec.ts && pnpm exec vitest run packages/subagent/subagent-codex/tests/executable-resolution.spec.ts" },
+    { "id": "no-bare-codex", "run": "! grep -q \"'/c', 'codex'\" packages/subagent/subagent-codex/src/run.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/subagent/subagent-codex/ --coverage --coverage.include='packages/subagent/subagent-codex/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" },
+    { "id": "doc-sync", "run": "pnpm run doc-sync" }
+  ],
+  "budget": { "maxTotalTokens": 6000000, "maxWallMs": 2700000 },
+  "priority": 1
+}

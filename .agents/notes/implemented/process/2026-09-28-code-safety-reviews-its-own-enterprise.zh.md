@@ -18,7 +18,7 @@ Code Safety 部门占企业 147 个席位中的 43 个，而它此前运行过�
 - **召回率从 canary 读出。** [`seed-defects.mjs`](../../../../data/code-safety/tools/seed-defects.mjs) 可以向 TypeScript 植入：四个目录条目锚定在从外部进程线协议消息里读出的值上，或锚定在模块级常量上（日志注入、`eval`、`RegExp` 构造、带硬编码回退值的令牌），每一行植入代码都由 TypeScript 解析器检查为独立成句的一条语句；副本不带 `.git`，因此没有哪个部门能从 `git diff` 读到植入的行。按目标文件的 seed 植入了八个 canary，每类两个；整个运行期间，答案被压缩存放在 scratch 目录树之外。同一项工作还修正了 seeder 的答案：只要有一处后来才被接受的插入落在同一文件更靠上的位置，它就会给出站点的原始行号。
 - **运行采用交付的组合，只跑一次。** 在带种子的副本上执行 `pnpm run code-safety`，使用 Claude Code overlay、`sonnet`、六个默认部门，以及摘要为 `0ec2cc9b…` 的知识包（第三轮迭代保留的清单），从本分支一个干净的 HEAD 运行。[`record-run.mjs`](../../../../data/code-safety/tools/record-run.mjs) `--seeded` 像记录 NodeGoat 运行那样记录它，并把答案、seed manifest 与打分结果加进记录，与其余文件一起计算摘要。
 - **每条发现都对照钉住的修订版本处的代码分拣**为已确认、误报或 canary；分拣表在 targets README 里。
-- **每条被确认的发现成为一张工单**，采用 [`scripts/enterprise-tickets.ts`](../../../../scripts/enterprise-tickets.ts) 所校验的格式，归属于 `source` README 位于该文件所在包内的那位管理员，引用该发现的 `path:line`，范围限定在该包，并以管理员新增的一个聚焦 spec 作为验收——它复现缺陷，因此在修复落地之前一直失败——外加该包的覆盖率运行与类型检查。一个超出一张工单的修复，成为针对其第一步的工单，并在工单里写明。
+- **每条被确认的发现成为一张工单**——分拣在读代码时自己发现的缺陷也一样，标明它来自分拣而不是某条发现——采用 [`scripts/enterprise-tickets.ts`](../../../../scripts/enterprise-tickets.ts) 所校验的格式，归属于 `source` README 位于该文件所在包内的那位管理员，引用该发现的 `path:line`，范围限定在该包，并以管理员新增的一个聚焦 spec 作为验收——它复现缺陷，因此在修复落地之前一直失败——外加该包的覆盖率运行与类型检查。一个超出一张工单的修复，成为针对其第一步的工单，并在工单里写明。
 - **台账记录每个席位的职能。** `data/enterprise/ledger.jsonl` 为 [roster-evidence 归属规则](../../../../scripts/roster-evidence.ts)把本记录的会话归到的每个席位各写一条 `function` 记录：每个部门的 integrator 席位，以及 program lead。
 
 ## Alternatives considered
@@ -35,7 +35,7 @@ Code Safety 部门占企业 147 个席位中的 43 个，而它此前运行过�
 
 ## Consequences
 
-**部门读了自己企业交付的代码，并得到一个没有基准真值也站得住的读数。** 这次运行让六个部门与 integration 全部通过认证，审查器通过，1,390 秒内发布了 11 条发现。分拣没有确认其中任何一条：七条引用的是植入的代码行，四条陈述某个被精确钉住的依赖比 registry 上的最新版本旧，而没有任何安全公告针对这些被钉住的版本，仓库的 lockfile 又在切片之外。因此这个目标在这个修订版本上没有给队列增加工单——这是关于被静态阅读的 24 个文件的陈述，受报告所列「未覆盖」内容的限定，而不是证明这个切片没有缺陷的证书。
+**部门读了自己企业交付的代码，并得到一个没有基准真值也站得住的读数。** 这次运行让六个部门与 integration 全部通过认证，审查器通过，1,390 秒内发布了 11 条发现。分拣没有确认其中任何一条：七条引用的是植入的代码行，四条陈述某个被精确钉住的依赖比 registry 上的最新版本旧，而没有任何安全公告针对这些被钉住的版本，仓库的 lockfile 又在切片之外。为分拣而阅读代码时，发现了评审漏掉的东西：在 Windows 上，Codex provider 在委派会话的工作区里启动裸名称 `cmd.exe` 与 `codex`，Claude Code 的批处理垫片启动裸名称 `cmd.exe`，而 libuv 启动进程时会先在该目录里查找裸文件名，然后才查找 PATH（CWE-427）。这个缺陷就是本次评审交给队列的工作，即 [T-0040](../../../../data/enterprise/tickets/T-0040.json) 与 [T-0041](../../../../data/enterprise/tickets/T-0041.json)；它也是 canary 读数无法显示的一次真实漏报，因为没有哪个 canary 模拟这一类缺陷。
 
 **canary 让每一份发现列表更嘈杂，也让一个数字变得可读。** canary 发现绝不能变成工单，所以分拣首先剔除它们；十一条发现中有七条是 canary。作为交换，评审有了一个召回率读数：8 中 6，95% 区间 [0.409, 0.929]。
 
@@ -54,4 +54,4 @@ Code Safety 部门占企业 147 个席位中的 43 个，而它此前运行过�
 - `node data/code-safety/tools/record-run.mjs .code-safety/dsh-self-review 2026-09-28-dsh-self-review --composition examples/headless-agent/tests/fixtures/program-code-safety/overlays/claude-code.cordis.yml --seeded /home/user/enterprise-scratch/dsh-subagent-providers` 写出了记录：15 个文件、8 份会话日志、从 secrets 会话中脱敏了一个示例云密钥、知识摘要 `0ec2cc9b…`，以及 8 中 6 的 seeded 读数。
 - `node data/code-safety/tools/seeded-recall.mjs data/code-safety/2026-09-28-dsh-self-review data/code-safety/2026-09-28-dsh-self-review/seeded.ground-truth.json` 打印出 8 中 6、[0.409, 0.929]，漏掉的是 `SEED-006` 与 `SEED-007`。
 - `data/enterprise/ledger.jsonl` 中的七条 `function` 记录，写明的正是 `scripts/roster-evidence.ts` 的 `attributeRun` 为本记录的八个会话给出的席位，每条的结果都是 `pass`，并以记录中的一个路径作为证据。
-- `pnpm exec vitest run scripts/enterprise-tickets.spec.ts` 在未改动的队列上通过。
+- `pnpm exec vitest run scripts/enterprise-tickets.spec.ts` 在含有 T-0040 与 T-0041 的队列上通过；每张工单自己的检查（`resolution-spec`、`no-bare-codex`、`batch-shim-spec`、`no-bare-cmd`）在提交工单时所针对的树上失败，而它们所列的覆盖率运行在那里通过。

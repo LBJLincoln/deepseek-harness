@@ -1,0 +1,24 @@
+{
+  "id": "T-0041",
+  "title": "Spawn the Claude Code batch shim through an absolute cmd.exe, not a bare name searched in the workspace",
+  "division": "harness-core",
+  "seat": "harness-core-subagent-claude-code-steward",
+  "kind": "fix",
+  "source": {
+    "path": "packages/subagent/subagent-claude-code/src/process.ts",
+    "anchor": "The batch-shim path quotes only the resolved executable."
+  },
+  "task": "Origin: the Code Safety division's triage of its 2026-09-28 review of this package (data/code-safety/targets/README.md:55, record data/code-safety/2026-09-28-dsh-self-review). No released finding names this defect; the triage found it while reading the code, so this ticket carries the evidence itself.\n\nProblem: for a `.cmd` or `.bat` Claude Code executable on win32, `claudeSpawnSpec` at packages/subagent/subagent-claude-code/src/process.ts:59-65 builds `['cmd.exe', '/d', '/v:off', '/s', '/c', '%DSH_CLAUDE_CODE_EXECUTABLE%', ...]` and spawns it with `cwd: options.cwd` (packages/subagent/subagent-claude-code/src/process.ts:68), the delegating session's workspace (packages/subagent/subagent-claude-code/src/index.ts:120-125). The Claude Code path itself is absolute, resolved at packages/subagent/subagent-claude-code/src/index.ts:112-116, but `cmd.exe` is a bare name, and on Windows libuv's `uv_spawn` passes the explicit cwd to `search_path`, which checks that directory for a bare file name before any PATH directory (libuv src/win/process.c). A workspace holding `cmd.exe` therefore runs it in place of the system shell whenever a session in it delegates to Claude Code through a batch shim (CWE-427). An npm installation of Claude Code on Windows is `claude.cmd`, which takes exactly this path.\n\nRequired: in `start` (packages/subagent/subagent-claude-code/src/index.ts), on win32 also resolve `cmd.exe` with `this.ctx.subprocess.resolveExecutable('cmd.exe', this.config.env, request.signal)` before the query starts; carry the absolute path in `ClaudeCodeRunSpec` and pass it to `claudeSpawnSpec`, which uses it as the batch-shim argv's first element. Update the argv expectations at packages/subagent/subagent-claude-code/tests/subagent-claude-code.spec.ts:489-497 and packages/subagent/subagent-claude-code/tests/real-product.spec.ts:273, and add packages/subagent/subagent-claude-code/tests/batch-shim-executable.spec.ts asserting that for a `.cmd` and a `.bat` command on win32 the argv's first element is exactly the absolute path passed in, never the bare `cmd.exe`. Extend the README's Windows sentence at packages/subagent/subagent-claude-code/README.md:90 (and its Chinese counterpart) to say that `cmd.exe` is resolved from PATH to an absolute path too, then re-record the pair with `pnpm run verify-translation-pairing --write packages/subagent/subagent-claude-code/README.md`.\n\nConstraints: keep the `%DSH_CLAUDE_CODE_EXECUTABLE%` expansion and the `/d /v:off /s /c` flags as they are; do not change the SDK options, bridge mode, or packages/subprocess.",
+  "scope": [
+    "packages/subagent/subagent-claude-code/"
+  ],
+  "acceptance": [
+    { "id": "batch-shim-spec", "run": "test -f packages/subagent/subagent-claude-code/tests/batch-shim-executable.spec.ts && pnpm exec vitest run packages/subagent/subagent-claude-code/tests/batch-shim-executable.spec.ts" },
+    { "id": "no-bare-cmd", "run": "! grep -q \"\\['cmd.exe'\" packages/subagent/subagent-claude-code/src/process.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/subagent/subagent-claude-code/ --coverage --coverage.include='packages/subagent/subagent-claude-code/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" },
+    { "id": "doc-sync", "run": "pnpm run doc-sync" }
+  ],
+  "budget": { "maxTotalTokens": 6000000, "maxWallMs": 2700000 },
+  "priority": 2
+}
