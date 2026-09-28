@@ -1,21 +1,43 @@
 /**
- * How the Enterprise view states what the recorded sessions show of the roster:
- * which seats they occupied, which routes they ran on, and why the rest of the
- * sessions occupy no seat. Every figure here is read from the roster payload's
- * evidence, never from a seat's configured route.
+ * How the Enterprise view states what the records show of the roster: which
+ * seats a recorded deliverable occupied, which routes the sessions ran on, and
+ * why the rest of the sessions occupy no seat. Every figure here is read from
+ * the roster payload's evidence and ledger counts, never from a seat's
+ * configured route.
  */
 
 import type { Agent, Roster, UnattributedReason } from '@/deck/contract'
 
-/** What a seat no recorded session occupied is called, in the hover label and the panel. */
+/** What a seat no recorded deliverable occupied is called, in the hover label and the panel. */
 export const NEVER_RUN = 'defined, never run'
 
 /**
  * @param agent - One seat.
- * @returns Whether at least one recorded session occupied it.
+ * @returns Whether a recorded deliverable occupied it: an attributed session, or a ledger line naming its id.
  */
 export function isOccupied(agent: Agent): boolean {
-  return agent.evidence.sessions > 0
+  return agent.evidence.sessions > 0 || ledgerLines(agent) > 0
+}
+
+/**
+ * @param agent - One seat.
+ * @returns The ledger lines naming it; `0` for a feed that predates the ledger.
+ */
+export function ledgerLines(agent: Agent): number {
+  return agent.ledger?.lines ?? 0
+}
+
+/**
+ * The deliverables a seat's hover label and panel name, in one phrase.
+ * @param agent - One seat.
+ * @returns Such as `3 recorded sessions · 2 ledger lines`, or {@link NEVER_RUN}.
+ */
+export function deliverables(agent: Agent): string {
+  const parts: string[] = []
+  if (agent.evidence.sessions > 0) parts.push(`${agent.evidence.sessions} recorded sessions`)
+  const lines = ledgerLines(agent)
+  if (lines > 0) parts.push(`${lines} ledger ${lines === 1 ? 'line' : 'lines'}`)
+  return parts.length === 0 ? NEVER_RUN : parts.join(' · ')
 }
 
 /** One row of the routes legend. */

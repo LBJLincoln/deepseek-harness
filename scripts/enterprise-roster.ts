@@ -25,13 +25,20 @@
  * Each seat also carries {@link RosterAgentDefinition.evidence}: what the
  * committed records under `data/proving-ground` and `data/code-safety` show of
  * it, attributed by the rules `scripts/roster-evidence.ts` states, with the
- * sessions no rule places on a seat counted in {@link Roster.unattributed}.
- * {@link Roster.evidence} names the records the evidence was computed over, so
- * the file reproduces from exactly those records even after more are
- * committed. `status` here is always `"defined"` and `counts.active` is always
- * `0`: this file describes definitions and recorded evidence, never what is
- * running. Live status is computed by `scripts/harness-feed.ts`, which applies
- * the same attribution rules to every run it discovers.
+ * sessions no rule places on a seat counted in {@link Roster.unattributed};
+ * and {@link RosterAgentDefinition.ledger}: the ticket and function lines of
+ * `data/enterprise/ledger.jsonl` naming its id. {@link Roster.evidence} names
+ * the records the evidence was computed over and {@link Roster.ledger} how
+ * many ledger lines it read, so the file reproduces from exactly those inputs
+ * even after more are committed or appended.
+ *
+ * Occupancy follows the one rule in `scripts/enterprise-ledger.ts`: a seat is
+ * occupied when a recorded deliverable names it — an attributed session or a
+ * ledger line — and active when its newest deliverable falls in the 24 hours
+ * ending at {@link Roster.generatedAt}, which {@link Roster.activeWindow}
+ * states. `status` is `"active"` for exactly those seats and `"defined"` for
+ * every other. Live session status is computed by `scripts/harness-feed.ts`,
+ * which applies the same attribution rules to every run it discovers.
  *
  * @module enterprise-roster
  */
@@ -40,6 +47,16 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import {
+  activeWindow,
+  LEDGER_PATH,
+  ledgerBySeat,
+  occupancyOf,
+  readLedger,
+  type ActiveWindow,
+  type LedgerLine,
+  type SeatLedgerEvidence,
+} from './enterprise-ledger.ts'
 import {
   attributeRun,
   committedRecords,
@@ -91,14 +108,19 @@ export interface RosterAgentDefinition {
   tools: string[]
   /** Repository-relative path this entry derives from; always checked to exist on disk at generation time. */
   source: string
-  /** Always `"defined"` in the generated file; live status is computed by `harness-feed.ts`, never written here. */
-  status: 'defined'
+  /**
+   * `"active"` when the seat's newest deliverable falls inside {@link Roster.activeWindow},
+   * else `"defined"`; live session status is computed by `harness-feed.ts`, never written here.
+   */
+  status: 'defined' | 'active'
   /** What the records named by {@link Roster.evidence} show of this seat; zero sessions for a seat no recorded session occupied. */
   evidence: SeatEvidence
+  /** The ledger lines naming this seat's id, counted from the lines {@link Roster.ledger} covers. */
+  ledger: SeatLedgerEvidence
 }
 
 /** A seat as a division builder composes it, before {@link buildRoster} attaches its evidence. */
-type SeatDefinition = Omit<RosterAgentDefinition, 'evidence'>
+type SeatDefinition = Omit<RosterAgentDefinition, 'evidence' | 'ledger' | 'status'> & { status: 'defined' }
 
 /**
  * One relationship between two roster agents. `from` performs the relationship
@@ -132,11 +154,13 @@ export interface Roster {
   /** ISO timestamp of the moment the roster's content last changed; {@link generateRoster} keeps it while the content is unchanged. */
   generatedAt: string
   /**
-   * Aggregate counts: `defined` seats, `occupied` seats (at least one recorded
-   * session attributed), and `active` seats, always 0 here because this file
-   * never observes running sessions.
+   * Aggregate counts: `defined` seats, `occupied` seats (a recorded deliverable
+   * names them: an attributed session or a ledger line), and `active` seats
+   * (their newest deliverable falls inside {@link Roster.activeWindow}).
    */
   counts: { defined: number; occupied: number; active: number }
+  /** The 24 hours ending at {@link Roster.generatedAt}, inside which a deliverable makes its seat active. */
+  activeWindow: ActiveWindow
   /** Every division this roster composes agents from, in a fixed presentation order. */
   divisions: RosterDivisionSummary[]
   /** The 147 defined seats. */
@@ -147,6 +171,8 @@ export interface Roster {
   evidence: RosterEvidence
   /** The sessions in those records no attribution rule places on a seat, by reason. */
   unattributed: UnattributedSessions
+  /** The ledger the seats' lines were counted from: its path, the lines read, and the lines naming no roster seat. */
+  ledger: { path: string; lines: number; unseated: number }
 }
 
 /** The roster's fixed size: role x division x specialization composed over this repository's real sources. */
@@ -312,6 +338,8 @@ export interface BuildRosterOptions {
   generatedAt: string
   /** The recorded sessions to attribute to the seats, from `readRecordedSessions` in `scripts/roster-evidence.ts`. */
   recorded: readonly RunSessions[]
+  /** The ledger lines to count per seat, from `readLedger` in `scripts/enterprise-ledger.ts`. */
+  ledger: readonly LedgerLine[]
   /** Repository-relative path to this feature's Agent Note, cited as the code-safety program lead's source. */
   notePath?: string
 }
@@ -338,9 +366,12 @@ function readRosterFile(file: string): { content: string; generatedAt: string } 
  * Regenerate the roster file. `generatedAt` names the moment the roster's
  * content last changed: the roster is first built under the file's current
  * stamp, and when that reproduces the file byte for byte the file is left as
- * it is; otherwise the roster is rebuilt under `now()` and written.
+ * it is; otherwise the roster is rebuilt under `now()` and written. A new
+ * ledger line or record changes the content, so the seats' activity is
+ * measured afresh at each such change and stays as of `generatedAt` between them.
  * @param root - repository root.
  * @param recorded - the recorded sessions the seats' evidence is computed from; the CLI passes every committed record.
+ * @param ledger - the ledger lines counted per seat; the CLI passes every readable line of {@link LEDGER_PATH}.
  * @param now - the stamp a changed roster receives; the wall clock unless a test injects a fixed value.
  * @param file - the roster file to read and write; {@link ROSTER_PATH} under `root` unless overridden.
  * @returns the roster the file holds afterwards and whether the file changed.
@@ -348,13 +379,14 @@ function readRosterFile(file: string): { content: string; generatedAt: string } 
 export function generateRoster(
   root: string,
   recorded: readonly RunSessions[],
+  ledger: readonly LedgerLine[],
   now: () => string = () => new Date().toISOString(),
   file = join(root, ROSTER_PATH),
 ): { roster: Roster; changed: boolean } {
   const previous = readRosterFile(file)
-  const rebuilt = buildRoster(root, { generatedAt: previous?.generatedAt ?? EPOCH, recorded })
+  const rebuilt = buildRoster(root, { generatedAt: previous?.generatedAt ?? EPOCH, recorded, ledger })
   if (previous !== undefined && serializeRoster(rebuilt) === previous.content) return { roster: rebuilt, changed: false }
-  const roster = buildRoster(root, { generatedAt: now(), recorded })
+  const roster = buildRoster(root, { generatedAt: now(), recorded, ledger })
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, serializeRoster(roster))
   return { roster, changed: true }
@@ -948,15 +980,38 @@ export function buildRoster(root: string, options: BuildRosterOptions): Roster {
     seen.add(seat.id)
   }
   const summary = summarizeEvidence(options.recorded.map(run => ({ path: run.path, sessions: attributeRun(run, seats) })))
-  const agents: RosterAgentDefinition[] = seats.map(seat => ({ ...seat, evidence: evidenceFor(summary, seat.id) }))
+  const window = activeWindow(options.generatedAt)
+  const bySeat = ledgerBySeat(options.ledger)
+  const agents: RosterAgentDefinition[] = seats.map((seat) => {
+    const evidence = evidenceFor(summary, seat.id)
+    const ledger = bySeat.get(seat.id) ?? { lines: 0 }
+    const occupancy = occupancyOf(
+      {
+        id: seat.id,
+        division: seat.division,
+        sessions: evidence.sessions,
+        ...evidence.lastSeen === undefined ? {} : { lastSeen: evidence.lastSeen },
+      },
+      ledger,
+      window,
+    )
+    return { ...seat, status: occupancy.active ? 'active' : 'defined', evidence, ledger }
+  })
+  const unseated = options.ledger.filter(line => !seen.has(line.seat)).length
   return {
     generatedAt: options.generatedAt,
-    counts: { defined: ROSTER_AGENT_COUNT, occupied: summary.bySeat.size, active: 0 },
+    counts: {
+      defined: ROSTER_AGENT_COUNT,
+      occupied: agents.filter(agent => agent.evidence.sessions > 0 || agent.ledger.lines > 0).length,
+      active: agents.filter(agent => agent.status === 'active').length,
+    },
+    activeWindow: window,
     divisions: DIVISIONS,
     agents,
     edges: buildEdges(seats),
     evidence: summary.evidence,
     unattributed: summary.unattributed,
+    ledger: { path: LEDGER_PATH, lines: options.ledger.length, unseated },
   }
 }
 
@@ -974,10 +1029,14 @@ export function serializeRoster(roster: Roster): string {
 const isMain = process.argv[1] !== undefined && import.meta.url === `file://${resolve(process.argv[1])}`
 if (isMain) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-  const { roster, changed } = generateRoster(root, readRecordedSessions(root, committedRecords(root)))
+  const ledger = readLedger(join(root, LEDGER_PATH))
+  for (const skipped of ledger.skipped) console.warn(`enterprise-roster: ${LEDGER_PATH}:${skipped.line} skipped: ${skipped.reason}`)
+  const { roster, changed } = generateRoster(root, readRecordedSessions(root, committedRecords(root)), ledger.lines)
   console.log([
     `enterprise-roster: ${changed ? 'wrote' : 'kept'} ${roster.agents.length} seats in ${ROSTER_PATH} (generatedAt ${roster.generatedAt});`,
-    `${roster.counts.occupied} occupied by ${roster.evidence.sessions - roster.unattributed.sessions} of ${roster.evidence.sessions} sessions`,
-    `in ${roster.evidence.records.length} records, ${roster.unattributed.sessions} unattributed`,
+    `${roster.counts.occupied} occupied, ${roster.counts.active} active since ${roster.activeWindow.since};`,
+    `${roster.evidence.sessions - roster.unattributed.sessions} of ${roster.evidence.sessions} sessions on seats`,
+    `in ${roster.evidence.records.length} records, ${roster.unattributed.sessions} unattributed;`,
+    `${roster.ledger.lines} ledger lines, ${roster.ledger.unseated} naming no seat`,
   ].join(' '))
 }

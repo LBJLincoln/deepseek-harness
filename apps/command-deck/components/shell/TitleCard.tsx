@@ -87,7 +87,7 @@ function useCard(pathname: string): Card {
     title: 'Enterprise',
     lines: [
       `${roster.counts.defined} seats defined in ${spell(roster.divisions.length)} divisions`,
-      `${roster.counts.occupied} occupied by ${roster.evidence.sessions - roster.unattributed.sessions} recorded sessions`,
+      `${roster.counts.occupied} occupied by recorded deliverables · ${roster.counts.active} active today`,
     ],
   }
 }

@@ -23,7 +23,7 @@ import { divisionColor } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { createGlowMaterial } from '@/components/three/glow'
 import { decay, FLOW_WINDOW_MS, PULSE_WINDOW_MS, sinceLast } from './activity.ts'
-import { isOccupied, NEVER_RUN } from './evidence.ts'
+import { deliverables, isOccupied, NEVER_RUN } from './evidence.ts'
 import { stageClamped } from './labels.ts'
 import { buildIgnition, readIgnition } from './reveal.ts'
 import styles from './labels.module.css'
@@ -353,7 +353,7 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
             {hoveredAgent.name}
             <span className={styles.agentRole}>{hoveredAgent.role}</span>
             {isOccupied(hoveredAgent)
-              ? <span className={styles.agentEvidence}>{hoveredAgent.evidence.sessions} recorded sessions</span>
+              ? <span className={styles.agentEvidence}>{deliverables(hoveredAgent)}</span>
               : <span className={`${styles.agentEvidence} ${styles.agentNeverRun}`}>{NEVER_RUN}</span>}
           </div>
         </Html>

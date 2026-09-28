@@ -9,7 +9,7 @@
  * export.
  */
 
-import type { Comparison, ProgramRecord, Roster, Run, SafetyReview } from './contract.ts'
+import type { Comparison, EnterpriseReport, ProgramRecord, Roster, Run, SafetyReview } from './contract.ts'
 
 /** Whether the deck is reading a live feed or the committed fixtures. */
 type FeedMode = 'live' | 'replay'
@@ -174,6 +174,23 @@ export function getPrograms(source: FeedSource): Promise<ProgramRecord[]> {
  */
 export function getSafety(source: FeedSource, id: string): Promise<SafetyReview> {
   return readJson<SafetyReview>(source, `/safety/${encodeURIComponent(id)}`)
+}
+
+/**
+ * The published enterprise report, or `undefined` when none is bundled. The
+ * report is published from the committed roster and ledger, identical in live
+ * and replay, so it is always read from the committed fixtures, never from the feed.
+ * @returns The report, or `undefined` when the deck was built without one.
+ */
+export async function getEnterprise(): Promise<EnterpriseReport | undefined> {
+  try {
+    const response = await fetch(`${FIXTURE_BASE}/enterprise.json`, { cache: 'no-store' })
+    if (!response.ok) return undefined
+    return await response.json() as EnterpriseReport
+  } catch {
+    // No report bundled, or the fetch failed: the ledger tab says so.
+    return undefined
+  }
 }
 
 /**

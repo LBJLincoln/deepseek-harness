@@ -144,6 +144,8 @@
     "mock:llm": "node --import tsx packages/test-support/llm-mock-server/src/bin.ts",
     "dev:web": "tsx scripts/dev-web.ts --poll",
     "roster": "tsx scripts/enterprise-roster.ts",
+    "enterprise:functions": "NODE_USE_ENV_PROXY=1 tsx scripts/enterprise-functions.ts",
+    "enterprise:publish": "tsx scripts/enterprise-publish.ts",
     "feed": "tsx scripts/harness-feed.ts",
     "deck": "pnpm --dir apps/command-deck dev",
     "poc": "tsx scripts/poc-demo.ts",
@@ -151,6 +153,9 @@
   },
   "devDependencies": {
     "@agentclientprotocol/sdk": "0.25.1",
+    "@deepseek-ai/dsh-scorekeeper": "workspace:^",
+    "@deepseek-ai/dsh-session": "workspace:^",
+    "@deepseek-ai/dsh-session-stats": "workspace:^",
     "@deepseek-ai/dsh-tool-session-query": "workspace:^",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@testing-library/dom": "^10.4.1",

@@ -21,7 +21,8 @@ function useClaim(): string {
   const facts: string[] = []
   if (roster !== undefined) {
     facts.push(`${roster.counts.defined} seats defined`)
-    facts.push(`${roster.counts.occupied} occupied by recorded sessions`)
+    facts.push(`${roster.counts.occupied} occupied by recorded deliverables`)
+    facts.push(`${roster.counts.active} active today`)
   }
   if (runs.length > 0) facts.push(`${runs.length} runs`)
   return facts.join(' · ')

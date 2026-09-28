@@ -10,8 +10,8 @@
 'use client'
 
 import { create } from 'zustand'
-import { actorOf, type ProgramRecord, type Roster, type Run, type RunEvent, type SafetyReview } from './contract.ts'
-import { getPrograms, getRoster, getRuns, getSafety, resolveFeed, type FeedSource } from './feed.ts'
+import { actorOf, type EnterpriseReport, type ProgramRecord, type Roster, type Run, type RunEvent, type SafetyReview } from './contract.ts'
+import { getEnterprise, getPrograms, getRoster, getRuns, getSafety, resolveFeed, type FeedSource } from './feed.ts'
 import { subscribeRun, type StreamState } from './stream.ts'
 
 /** How many events one run keeps in memory; older frames fall off the head. */
@@ -74,6 +74,8 @@ export interface DeckState {
   programs: ProgramRecord[] | undefined
   /** Why the organisation of record could not be read; the Record panel shows it in place of the list. */
   programsError: string | undefined
+  /** The published enterprise report; `undefined` until it is read, or when none is bundled. */
+  enterprise: EnterpriseReport | undefined
   selectedRunId: string | undefined
   events: RunEvent[]
   safety: SafetyReview | undefined
@@ -165,6 +167,7 @@ export const useDeck = create<DeckState>((set, get) => ({
   runs: [],
   programs: undefined,
   programsError: undefined,
+  enterprise: undefined,
   selectedRunId: undefined,
   events: [],
   safety: undefined,
@@ -190,6 +193,7 @@ export const useDeck = create<DeckState>((set, get) => ({
     const source = await resolveFeed()
     set({ source })
     void loadPrograms(source, set)
+    void getEnterprise().then(enterprise => set({ enterprise }))
     try {
       const [roster, runs] = await Promise.all([getRoster(source), getRuns(source)])
       set({ roster, runs })

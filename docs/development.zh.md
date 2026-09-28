@@ -164,7 +164,7 @@ pnpm run demo:acp
 
 ### 企业花名册与 harness feed
 
-`pnpm run roster` 会确定性地从真实仓库来源重新生成 [`data/enterprise/roster.json`](../data/enterprise/README.md)——企业概念验证的 147 个席位定义，每个席位附带已提交会话记录给出的证据；每当某个被引用的来源发生移动或有记录被提交，就应重新生成并提交该文件。`pnpm run feed` 会提供重新计算了实时状态与证据的该花名册、`GET /programs` 上记录在案的组织，以及发现到的 proving-ground 与 code-safety 运行数据，一并通过 HTTP 与 Server-Sent Events 在 4711 端口上提供服务（`--port <n>` 可覆盖端口，`--fixtures <dir>` 可改为对一个固定目录提供服务，而非实时发现）。这两个命令都不需要 `DEEPSEEK_API_KEY`。花名册的推导方式与诚实原则参见 [`data/enterprise/README.md`](../data/enterprise/README.md)，接口约定参见 [`scripts/harness-feed.ts`](../scripts/harness-feed.ts)。
+`pnpm run roster` 会确定性地从真实仓库来源重新生成 [`data/enterprise/roster.json`](../data/enterprise/README.md)——企业概念验证的 147 个席位定义，每个席位附带已提交会话记录给出的证据；每当某个被引用的来源发生移动或有记录被提交，就应重新生成并提交该文件。`pnpm run feed` 会提供重新计算了实时状态与证据的该花名册、`GET /programs` 上记录在案的组织，以及发现到的 proving-ground 与 code-safety 运行数据，一并通过 HTTP 与 Server-Sent Events 在 4711 端口上提供服务（`--port <n>` 可覆盖端口，`--fixtures <dir>` 可改为对一个固定目录提供服务，而非实时发现）。`pnpm run enterprise:functions` 在已检出的提交上运行无工单事业部的职能并把它们追加到 [`data/enterprise/ledger.jsonl`](../data/enterprise/README.md#the-ledger)，`pnpm run enterprise:publish` 从花名册与台账重新生成指挥台的静态企业数据；每个班次之后按 `enterprise:functions`、`roster`、`enterprise:publish` 的顺序运行这三条命令。这些命令都不需要 `DEEPSEEK_API_KEY`。花名册的推导方式、诚实原则与在岗规则参见 [`data/enterprise/README.md`](../data/enterprise/README.md)，接口约定参见 [`scripts/harness-feed.ts`](../scripts/harness-feed.ts)。
 
 ### TODO 标记
 

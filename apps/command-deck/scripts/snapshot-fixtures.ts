@@ -1,13 +1,15 @@
 /**
  * Snapshot the committed replay fixtures under `public/fixtures/` from a running feed.
  *
- * Replay mode shows recorded reality, never invented data: the roster is the
- * feed's own `GET /roster`, the runs are committed records the feed discovers
- * under `data/code-safety/` and `data/proving-ground/`, the event streams are
- * their session logs folded by the feed, each review is the feed's
- * `GET /safety/:id` for the record, and the organisation of record is the
- * feed's `GET /programs`. Point the feed at the repository (the default
- * `pnpm run feed`), then run `pnpm --dir apps/command-deck fixtures`.
+ * Replay mode shows recorded reality, never invented data: the runs are
+ * committed records the feed discovers under `data/code-safety/` and
+ * `data/proving-ground/`, the event streams are their session logs folded by
+ * the feed, each review is the feed's `GET /safety/:id` for the record, and
+ * the organisation of record is the feed's `GET /programs`. Point the feed at
+ * the repository (the default `pnpm run feed`), then run
+ * `pnpm --dir apps/command-deck fixtures`. The roster fixture and
+ * `enterprise.json` are not snapshotted here: `pnpm run enterprise:publish`
+ * writes both from the generated roster and the ledger.
  *
  * Only committed record ids are eligible: a live `.code-safety/<id>` run is
  * refused, because its session logs are not redacted before they are recorded.
@@ -120,10 +122,9 @@ if (live !== undefined) throw new Error(`the feed reads the live run at ${live};
 
 rmSync(resolve(fixtures, 'events'), { recursive: true, force: true })
 rmSync(resolve(fixtures, 'safety'), { recursive: true, force: true })
-writeJson('roster.json', roster)
 writeJson('runs.json', runs)
 writeJson('programs.json', programs)
-console.log(`roster: ${roster.agents.length} seats, ${roster.counts.occupied} occupied, ${roster.edges.length} edges; runs: ${runs.length}`)
+console.log(`roster: ${roster.agents.length} seats over ${roster.evidence.records.length} records (published by pnpm run enterprise:publish, not written here); runs: ${runs.length}`)
 console.log(`record: ${programs.length} program runs; ${roster.unattributed.sessions} of ${roster.evidence.sessions} sessions unattributed`)
 
 for (const run of runs) {

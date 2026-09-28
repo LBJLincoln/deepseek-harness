@@ -926,9 +926,11 @@ export function computeLiveRoster(roster: Roster, discoveryRoot: string): LiveRo
     }
   }
   const summary = summarizeEvidence(runs)
+  // Live status is what the discovered sessions show; the file's `active`, measured
+  // against the ledger at generation time, is not carried over.
   const agents: LiveRosterAgent[] = roster.agents.map(agent => ({
     ...agent,
-    status: statusByAgent.get(agent.id) ?? agent.status,
+    status: statusByAgent.get(agent.id) ?? 'defined',
     evidence: evidenceFor(summary, agent.id),
   }))
   const active = agents.filter(agent => agent.status === 'active').length

@@ -45,6 +45,13 @@ export interface SeatEvidence {
   routesSeen: string[]
 }
 
+/** The ledger lines naming one seat's id: its tickets worked and functions performed. */
+export interface SeatLedger {
+  lines: number
+  /** When the newest of those lines is dated, as an ISO time. */
+  lastAt?: string
+}
+
 /** One defined seat in the enterprise. */
 export interface Agent {
   id: string
@@ -58,8 +65,11 @@ export interface Agent {
   skills: string[]
   tools: string[]
   source: string
+  /** `active` when the seat's newest deliverable falls inside the roster's window; the feed overlays live session status. */
   status: AgentStatus
   evidence: SeatEvidence
+  /** Absent from a feed built before the ledger existed, which the relay may still serve. */
+  ledger?: SeatLedger
 }
 
 /** A named cluster of agents; `purpose` is the one-line charter shown in 3D. */
@@ -89,11 +99,19 @@ export type UnattributedReason =
   | 'parent-not-recorded'
   | 'no-seat-evidence'
 
+/** The interval, both ends inclusive, inside which a deliverable makes its seat active. */
+export interface ActiveWindow {
+  since: string
+  until: string
+}
+
 /** `GET /roster` payload. */
 export interface Roster {
   generatedAt: string
-  /** Seats defined, seats at least one recorded session occupies, and seats a running session occupies now. */
+  /** Seats defined, seats a recorded deliverable occupies, and seats whose newest deliverable is inside `activeWindow`. */
   counts: { defined: number; occupied: number; active: number }
+  /** The 24 hours ending at `generatedAt`; absent from a feed built before the ledger existed. */
+  activeWindow?: ActiveWindow
   divisions: Division[]
   agents: Agent[]
   edges: RosterEdge[]
@@ -101,6 +119,78 @@ export interface Roster {
   evidence: { records: string[]; sessions: number; routes: Record<string, number> }
   /** Sessions no rule places on a seat, by reason; they are never lit on a seat. */
   unattributed: { sessions: number; reasons: Record<UnattributedReason, number> }
+  /** The ledger the seats' lines were counted from: its path, the lines read, and the lines naming no seat; absent as above. */
+  ledger?: { path: string; lines: number; unseated: number }
+}
+
+/** How a ticket stands: `queued` with no ledger line, else by its newest line. */
+export type TicketStatus = 'queued' | 'shipped' | 'rejected' | 'halted'
+
+/** One ticket as the enterprise report lists it. */
+export interface TicketSummary {
+  ticket: string
+  seat: string
+  division: string
+  status: TicketStatus
+  title?: string
+  at?: string
+  shift?: string
+  commit?: string
+  reason?: string
+}
+
+/** How a function ended: the gate or verdict itself, or a failure to obtain one. */
+export type FunctionOutcome = 'pass' | 'fail' | 'error'
+
+/** One seat performing its function on one commit, as the ledger records it. */
+export interface FunctionRun {
+  at: string
+  shift: string
+  seat: string
+  division: string
+  function: string
+  target: { commit: string; requested?: string }
+  outcome: FunctionOutcome
+  evidence: { path: string } | { url: string }
+  seconds: number
+}
+
+/** One CI verdict a judge recorded on a commit. */
+export interface CommitVerdict {
+  seat: string
+  function: string
+  outcome: FunctionOutcome
+  url: string
+  at: string
+}
+
+/** One shipped commit with the tickets it shipped and the verdicts recorded on it. */
+export interface ShippedCommit {
+  commit: string
+  at: string
+  tickets: string[]
+  seats: string[]
+  verdicts: CommitVerdict[]
+}
+
+/**
+ * `fixtures/enterprise.json`: the ledger's reading of the enterprise's current
+ * day, published by `pnpm run enterprise:publish` from the roster and the
+ * ledger. It is a static artifact, the same in live and replay, so the deck
+ * reads it from the committed fixtures in both modes.
+ */
+export interface EnterpriseReport {
+  /** The moment the report describes: the newer of the roster's stamp and the last ledger line. */
+  asOf: string
+  window: ActiveWindow
+  counts: Roster['counts']
+  divisions: { id: string; name: string; defined: number; occupied: number; active: number }[]
+  tickets: Record<TicketStatus, TicketSummary[]>
+  /** Function runs inside the window, newest first. */
+  functions: FunctionRun[]
+  /** The latest shipped commits, newest first. */
+  shipped: ShippedCommit[]
+  ledger: { lines: number; tickets: number; functions: number; skipped: number }
 }
 
 /** One entry of `GET /runs`. */
