@@ -46,5 +46,6 @@ pnpm run verify-translation-pairing --write data/transcripts/2026-09-06-build/RE
 | 目录 | 会话 | Transcript | 消息 | 时间跨度 |
 | --- | --- | --- | --- | --- |
 | [2026-09-06-build](2026-09-06-build/README.md) | `f53f80cc-1f77-5d02-a862-99d59ffabdce` | 1 个编排会话 + 71 个 subagent | 32,148 | 2026-08-29 至 2026-09-06 |
+| [2026-09-28-postreset](2026-09-28-postreset/README.md) | `f53f80cc-1f77-5d02-a862-99d59ffabdce` | 1 个编排会话（自其 2026-09-28T20:15Z 恢复边界起）+ 5 个 subagent | 见其 README | 2026-09-28，22:07Z 容器重置之后 |
 
 2026-09-06 构建是设计并落地改进接缝的那次会话：environments、runner、fleet、shifts、experiments、scorekeeper、observatory、program、trajectories、读屏障、验证仪器、盲评 judge、治理和 curator，以及 Village 与竞争基线研究。它的原始目录树取代了同日交付给操作者的两部分归档：该归档中的 transcript 都是这里文件的前缀，其溢出捕获就是 `tool-results/` 条目。

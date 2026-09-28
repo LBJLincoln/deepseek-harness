@@ -46,5 +46,6 @@ The collector handles a credential-shaped string one of three ways: `--accept-hi
 | Directory | Session | Transcripts | Messages | Span |
 | --- | --- | --- | --- | --- |
 | [2026-09-06-build](2026-09-06-build/README.md) | `f53f80cc-1f77-5d02-a862-99d59ffabdce` | 1 orchestrator + 71 subagents | 32,148 | 2026-08-29 to 2026-09-06 |
+| [2026-09-28-postreset](2026-09-28-postreset/README.md) | `f53f80cc-1f77-5d02-a862-99d59ffabdce` | 1 orchestrator (from its 2026-09-28T20:15Z restore boundary) + 5 subagents | see its README | 2026-09-28, after the 22:07Z container reset |
 
 The 2026-09-06 build is the session that designed and landed the improvement seam: environments, the runner, fleet, shifts, experiments, scorekeeper, observatory, program, trajectories, the read barrier, the validation instrument, the blind judge, governance, and the curator, together with the Village and competitive-baseline studies. Its raw tree supersedes the two-part archive delivered to the operator the same day: that archive's transcripts are prefixes of the files here, and its overflow captures are the `tool-results/` entries.

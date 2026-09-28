@@ -1,0 +1,89 @@
+{
+  "generatedAt": "2026-09-28T22:25:51.704Z",
+  "totals": {
+    "transcripts": 6,
+    "messages": 971,
+    "toolCallsByName": {
+      "Bash": 222,
+      "Read": 43,
+      "Edit": 35,
+      "TaskCreate": 13,
+      "TaskUpdate": 13,
+      "Write": 10,
+      "Agent": 7,
+      "ToolSearch": 5,
+      "mcp__github__actions_list": 4,
+      "mcp__github__get_job_logs": 3,
+      "Grep": 3,
+      "mcp__Claude_Code_Remote__get_session": 2,
+      "mcp__Claude_Code_Remote__get_trigger": 2,
+      "mcp__github__list_issues": 1,
+      "mcp__github__search_repositories": 1,
+      "mcp__Claude_Code_Remote__update_trigger": 1,
+      "ReadNotifications": 1,
+      "mcp__Claude_Code_Remote__list_triggers": 1,
+      "SendMessage": 1
+    },
+    "tokensByKind": {
+      "input": 1186,
+      "output": 435872,
+      "cacheRead": 138514358
+    },
+    "wallTimeMs": 7797029,
+    "wallTimeStart": "2026-09-28T20:15:54.024Z",
+    "wallTimeEnd": "2026-09-28T22:25:51.053Z"
+  },
+  "subagentDurations": {
+    "count": 5,
+    "minMs": 36405,
+    "maxMs": 917844,
+    "meanMs": 403694,
+    "medianMs": 101099,
+    "p10Ms": 36405,
+    "p25Ms": 65240,
+    "p75Ms": 897882,
+    "p90Ms": 917844,
+    "p95Ms": 917844,
+    "histogramByMinutes": [
+      {
+        "rangeMinutes": "0-1",
+        "count": 1
+      },
+      {
+        "rangeMinutes": "1-5",
+        "count": 2
+      },
+      {
+        "rangeMinutes": "5-15",
+        "count": 1
+      },
+      {
+        "rangeMinutes": "15-30",
+        "count": 1
+      },
+      {
+        "rangeMinutes": "30-60",
+        "count": 0
+      },
+      {
+        "rangeMinutes": "60-120",
+        "count": 0
+      },
+      {
+        "rangeMinutes": "120+",
+        "count": 0
+      }
+    ]
+  },
+  "sourceDataQuality": {
+    "subagentOutputFilesFound": 5,
+    "subagentTranscriptsIncluded": 5,
+    "subagentNonJsonlFilesExcluded": 0,
+    "subagentEmptyFilesExcluded": 0,
+    "subagentNonTranscriptJsonlFilesExcluded": 0,
+    "subagentExcludedFilesTotalBytes": 0,
+    "subagentTranscriptsBackedBySymlink": 0,
+    "subagentTranscriptsEndingMidAction": [],
+    "note": "Only subagents/ files whose every line parses as JSON and that carry at least one real user/assistant message were counted as transcripts; the rest are subagent descriptors or captured tool output. subagentTranscriptsBackedBySymlink counts transcript files that were symlinks into a live Claude Code project directory rather than frozen copies. subagentTranscriptsEndingMidAction lists agent ids whose last recorded line is a tool call with no accompanying text and no result - captured mid-action rather than at a natural stopping point. See README.md next to this file."
+  }
+}
