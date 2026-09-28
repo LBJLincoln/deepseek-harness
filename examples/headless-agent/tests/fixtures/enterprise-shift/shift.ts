@@ -82,7 +82,10 @@ export interface TicketLedgerLine {
 /** The status the ledger gives one ticket: closed by a shipped commit, closed by a rejection, or still open. */
 export type TicketStatus = 'shipped' | 'rejected' | 'open'
 
-/** How a shift chooses its tickets: the next `n` open ones by priority, or named ones. */
+/** The prefix of the reason a ticket line carries when the shift halted on the subscription's usage limit. */
+export const LIMIT_HALT_REASON = 'halted: limit'
+
+/** How a shift chooses its tickets: the next `n` open ones in queue order, or named ones. */
 export type TicketSelection = { readonly kind: 'next'; readonly count: number } | { readonly kind: 'tickets'; readonly ids: readonly string[] }
 
 /**
@@ -129,8 +132,42 @@ export function ticketStatuses(lines: readonly TicketLedgerLine[]): Map<string, 
 }
 
 /**
- * The tickets one shift takes: open ones by priority then id for `next`, the
- * named ones in the order named for `tickets`.
+ * The open tickets in the order `--next` takes them: fewest attempts first, so
+ * a ticket that failed waits until every untried ticket had its turn; then by
+ * priority; then each division in turn, so one division's backlog does not hold
+ * back another's tickets of the same priority; then by id. An attempt is a
+ * ledger line for the ticket whose reason does not start with
+ * {@link LIMIT_HALT_REASON}: a halt on the usage limit is not the ticket's failure.
+ * @param open - the open tickets.
+ * @param lines - the ledger so far.
+ * @returns the same tickets, in queue order.
+ */
+export function queueOrder(open: readonly Ticket[], lines: readonly TicketLedgerLine[]): Ticket[] {
+  const attempts = new Map<string, number>()
+  for (const line of lines) {
+    if (!line.reason.startsWith(LIMIT_HALT_REASON)) attempts.set(line.ticket, (attempts.get(line.ticket) ?? 0) + 1)
+  }
+  const tries = (ticket: Ticket): number => attempts.get(ticket.id) ?? 0
+  const byId = [...open].sort((left, right) => (left.id < right.id ? -1 : 1))
+  // A ticket's turn is its rank, by id, among its division's tickets of the same attempts and priority.
+  const ranks = new Map<string, number>()
+  const turn = new Map<string, number>()
+  for (const ticket of byId) {
+    const group = JSON.stringify([tries(ticket), ticket.priority, ticket.division])
+    const rank = ranks.get(group) ?? 0
+    ranks.set(group, rank + 1)
+    turn.set(ticket.id, rank)
+  }
+  return byId.sort((left, right) =>
+    tries(left) - tries(right)
+    || left.priority - right.priority
+    || (turn.get(left.id) ?? 0) - (turn.get(right.id) ?? 0)
+    || (left.id < right.id ? -1 : 1))
+}
+
+/**
+ * The tickets one shift takes: the first `n` open ones in {@link queueOrder}
+ * for `next`, the named ones in the order named for `tickets`.
  * @param tickets - the validated queue.
  * @param lines - the ledger so far.
  * @param selection - what the shift asked for.
@@ -143,9 +180,7 @@ export function selectTickets(tickets: readonly Ticket[], lines: readonly Ticket
   switch (selection.kind) {
     case 'next': {
       if (!Number.isInteger(selection.count) || selection.count < 1) throw new Error('--next takes a positive integer')
-      return [...open]
-        .sort((left, right) => left.priority - right.priority || (left.id < right.id ? -1 : 1))
-        .slice(0, selection.count)
+      return queueOrder(open, lines).slice(0, selection.count)
     }
     case 'tickets':
       return selection.ids.map((id) => {

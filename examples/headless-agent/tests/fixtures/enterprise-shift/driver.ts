@@ -53,6 +53,7 @@ import {
   departmentObjective,
   documentationCheck,
   LEDGER_PATH,
+  LIMIT_HALT_REASON,
   parseLedger,
   readQueue,
   readReviewVerdict,
@@ -681,7 +682,7 @@ if (prepared !== undefined) {
         if (run.outcome === 'certified') continue
         run.outcome = 'halted'
         run.integration = 'skipped'
-        run.reason = `halted: limit (${reset}; ${halt.failure.message})`
+        run.reason = `${LIMIT_HALT_REASON} (${reset}; ${halt.failure.message})`
       }
     }
 
@@ -704,7 +705,7 @@ if (prepared !== undefined) {
     for (const run of runs) {
       if (run.outcome === 'certified' && run.review.verdict === 'approve' && halt !== undefined) {
         run.integration = 'skipped'
-        run.reason = 'halted: limit; certified and approved before the halt but not assembled'
+        run.reason = `${LIMIT_HALT_REASON}; certified and approved before the halt but not assembled`
       }
     }
 

@@ -11,7 +11,9 @@ import {
   departmentKey,
   documentationCheck,
   ENGINE_CHECKS,
+  LIMIT_HALT_REASON,
   parseLedger,
+  queueOrder,
   readReviewVerdict,
   redactCredentials,
   selectTickets,
@@ -23,11 +25,11 @@ import {
 } from './fixtures/enterprise-shift/shift.ts'
 import type { Ticket, TicketLedgerLine } from './fixtures/enterprise-shift/shift.ts'
 
-function ticket(id: string, priority: number): Ticket {
+function ticket(id: string, priority: number, division = 'harness-core'): Ticket {
   return {
     id,
     title: `Ticket ${id}`,
-    division: 'harness-core',
+    division,
     seat: 'seed-tools-steward',
     kind: 'chore',
     source: { path: 'tools/README.md', anchor: 'tools' },
@@ -86,6 +88,32 @@ describe('ticket selection', () => {
     expect(selectTickets(queue, ledger, { kind: 'next', count: 2 }).map(entry => entry.id)).toEqual(['T-0003', 'T-0001'])
     expect(selectTickets(queue, ledger, { kind: 'next', count: 9 }).map(entry => entry.id)).toEqual(['T-0003', 'T-0001', 'T-0004'])
     expect(() => selectTickets(queue, ledger, { kind: 'next', count: 0 })).toThrow(/positive integer/)
+  })
+
+  it('puts a ticket an earlier shift attempted behind every untried one, whatever its priority', () => {
+    const failed = { ...line('T-0003', null, 'none'), reason: 'the department failed' }
+    expect(queueOrder(queue, [failed]).map(entry => entry.id)).toEqual(['T-0002', 'T-0001', 'T-0004', 'T-0003'])
+    const twice = { ...line('T-0002', null, 'none'), reason: 'checks failed' }
+    expect(queueOrder(queue, [failed, twice, twice]).map(entry => entry.id)).toEqual(['T-0001', 'T-0004', 'T-0003', 'T-0002'])
+  })
+
+  it('does not count a halt on the usage limit as an attempt', () => {
+    const halted = { ...line('T-0003', null, 'none'), reason: `${LIMIT_HALT_REASON} (resets at 2026-09-29T02:00:00Z; limit)` }
+    expect(queueOrder(queue, [halted, halted]).map(entry => entry.id)).toEqual(['T-0002', 'T-0003', 'T-0001', 'T-0004'])
+  })
+
+  it('gives each division its turn among tickets of the same priority', () => {
+    const mixed = [
+      ticket('T-0001', 1),
+      ticket('T-0002', 1),
+      ticket('T-0003', 1),
+      ticket('T-0004', 1, 'knowledge'),
+      ticket('T-0005', 1, 'governance'),
+      ticket('T-0006', 2, 'knowledge'),
+      ticket('T-0007', 1, 'knowledge'),
+    ]
+    expect(queueOrder(mixed, []).map(entry => entry.id)).toEqual(['T-0001', 'T-0004', 'T-0005', 'T-0002', 'T-0007', 'T-0003', 'T-0006'])
+    expect(selectTickets(mixed, [], { kind: 'next', count: 3 }).map(entry => entry.id)).toEqual(['T-0001', 'T-0004', 'T-0005'])
   })
 
   it('takes named tickets in the order named and refuses an unknown or closed one', () => {
