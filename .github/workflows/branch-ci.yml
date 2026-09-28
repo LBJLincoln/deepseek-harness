@@ -12,9 +12,12 @@ on:
     branches: [claude/coding-agent-harness-u9l4gt]
   workflow_dispatch:
 
+# A started run finishes; GitHub keeps only the newest pending run of the
+# group behind it. The enterprise cycle pushes several times an hour, and
+# cancelling the run in progress left no commit with a verdict.
 concurrency:
   group: branch-ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read

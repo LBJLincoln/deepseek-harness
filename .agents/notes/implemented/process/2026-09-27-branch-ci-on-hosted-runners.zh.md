@@ -10,7 +10,7 @@ Status: implemented
 
 ## Decision
 
-`.github/workflows/branch-ci.yml` 在托管的 `ubuntu-latest` runner 上，于开发分支的每次推送以及手动触发时，运行与企业 lane 相同的三组门禁（`check:ci:static`、`check:ci:coverage`、`check:ci:consumers`）。worker 数量按 runner 的四核配置：static 作业一次跑两个门禁；coverage 作业一次跑一个门禁、三个 vitest worker；consumers 作业一次只跑一个门禁，因为当另一个门禁的构建共享这些核心时浏览器套件会超时，并且它把 oxlint 限制为两个线程、publint 限制为两个并发包，并跳过 Node 兼容性的类型检查。每个 ref 一个并发组，取消被取代的运行。static 作业检出完整历史，因为归档门禁从检出中读取可信基线。每个作业都禁用遥测。`scripts/prepare-ci-bubblewrap.sh` 把 bubblewrap 包钉在 `noble-updates` 当前提供的版本（`0.9.0-1ubuntu0.3`）及其 SHA-256 上，这样沙箱 lane 保持可复现，未来的版本钉腐坏会在安装步骤中按名字失败，而不是悄悄改变被测的沙箱。
+`.github/workflows/branch-ci.yml` 在托管的 `ubuntu-latest` runner 上，于开发分支的每次推送以及手动触发时，运行与企业 lane 相同的三组门禁（`check:ci:static`、`check:ci:coverage`、`check:ci:consumers`）。worker 数量按 runner 的四核配置：static 作业一次跑两个门禁；coverage 作业一次跑一个门禁、三个 vitest worker；consumers 作业一次只跑一个门禁，因为当另一个门禁的构建共享这些核心时浏览器套件会超时，并且它把 oxlint 限制为两个线程、publint 限制为两个并发包，并跳过 Node 兼容性的类型检查。每个 ref 一个并发组，让已开始的运行跑完，只让最新的一次推送排在其后等待：企业周期每小时推送多次，而取消进行中运行的并发组曾让任何提交都得不到结论。static 作业检出完整历史，因为归档门禁从检出中读取可信基线。每个作业都禁用遥测。`scripts/prepare-ci-bubblewrap.sh` 把 bubblewrap 包钉在 `noble-updates` 当前提供的版本（`0.9.0-1ubuntu0.3`）及其 SHA-256 上，这样沙箱 lane 保持可复现，未来的版本钉腐坏会在安装步骤中按名字失败，而不是悄悄改变被测的沙箱。
 
 ## Alternatives considered
 
