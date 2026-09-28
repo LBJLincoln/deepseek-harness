@@ -19,6 +19,9 @@
  * `scripts/roster-evidence.ts` states, the same rules the committed roster's
  * evidence is computed with; a session no rule places is counted as
  * unattributed and its events carry no `agentId`.
+ * `GET /ops` answers the enterprise's operations snapshot
+ * (`scripts/enterprise-ops.ts`) and `GET /ops/events` streams its activity
+ * frames, each once, in the run event stream's frame format.
  * `--fixtures <dir>` substitutes a self-contained directory (mirroring the
  * same four-path layout) for the real discovery roots, which is what lets the
  * front end's own tests run against fixed data; it never substitutes for
@@ -37,6 +40,8 @@ import { basename, dirname, extname, join, relative, resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 
+import type { OpsSnapshot } from '../apps/command-deck/deck/contract.ts'
+import { cliInputs, collectOps, parseOpsArgs, type OpsState } from './enterprise-ops.ts'
 import { CODE_SAFETY_DEPARTMENTS, type Roster, type RosterAgentDefinition } from './enterprise-roster.ts'
 import {
   attributeRun,
@@ -1534,6 +1539,68 @@ export interface HarnessFeedOptions {
   fixturesDir?: string
   /** Fold every session file once as soon as the server exists, so the first `GET /roster` answers from the per-file cache. */
   warm?: boolean
+  /** The operations snapshot `GET /ops` answers; defaults to {@link liveOps} over this machine. */
+  ops?: () => Promise<OpsSnapshot>
+  /** How often `GET /ops/events` reads the snapshot for new frames; defaults to {@link OPS_EVENTS_POLL_MS}. */
+  opsPollMs?: number
+}
+
+/** How often `GET /ops/events` reads the snapshot for frames it has not sent. */
+const OPS_EVENTS_POLL_MS = 5_000
+
+/** How long one collected operations snapshot answers every request. */
+const OPS_CACHE_MS = 5_000
+
+/**
+ * The collector over this machine, shared by every request: one collection
+ * answers every request for {@link OPS_CACHE_MS}, and the collector's
+ * incremental state lives as long as the server.
+ * @returns A reader of the current snapshot.
+ */
+export function liveOps(): () => Promise<OpsSnapshot> {
+  const state: OpsState = { transcripts: {}, records: {} }
+  let cached: { at: number; snapshot: Promise<OpsSnapshot> } | undefined
+  return () => {
+    if (cached === undefined || Date.now() - cached.at > OPS_CACHE_MS) {
+      cached = { at: Date.now(), snapshot: collectOps(cliInputs({ ...parseOpsArgs([], process.env), producer: 'feed' }, state)) }
+    }
+    return cached.snapshot
+  }
+}
+
+/**
+ * Stream the operations snapshot's activity frames over Server-Sent Events:
+ * every frame of the current snapshot, then every frame a later snapshot adds,
+ * each (`sessionId`, `seq`) pair once, until the client disconnects.
+ * @param res - The open response.
+ * @param ops - The snapshot reader.
+ * @param pollMs - How often the snapshot is read again.
+ */
+function streamOpsEvents(res: ServerResponse, ops: () => Promise<OpsSnapshot>, pollMs: number): void {
+  res.writeHead(200, { ...CORS_HEADERS, 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', Connection: 'keep-alive' })
+  const sent = new Set<string>()
+  let id = 0
+  let closed = false
+  const pump = async (): Promise<void> => {
+    try {
+      const snapshot = await ops()
+      for (const frame of snapshot.activity) {
+        const key = `${frame.sessionId}\u0000${String(frame.seq)}`
+        if (closed || sent.has(key)) continue
+        sent.add(key)
+        id += 1
+        res.write(`id: ${id}\ndata: ${JSON.stringify(frame)}\n\n`)
+      }
+    } catch (error) {
+      if (!closed) res.write(`: operations snapshot failed: ${error instanceof Error ? error.message : String(error)}\n\n`)
+    }
+  }
+  void pump()
+  const timer = setInterval(() => { void pump() }, pollMs)
+  res.on('close', () => {
+    closed = true
+    clearInterval(timer)
+  })
 }
 
 /**
@@ -1545,6 +1612,7 @@ export interface HarnessFeedOptions {
 export function createHarnessFeedServer(options: HarnessFeedOptions): Server {
   const { root } = options
   const discoveryRoot = options.fixturesDir ?? root
+  const ops = options.ops ?? liveOps()
 
   const loadRoster = (): Roster => {
     const raw = readFileSync(join(root, 'data/enterprise/roster.json'), 'utf8')
@@ -1586,6 +1654,14 @@ export function createHarnessFeedServer(options: HarnessFeedOptions): Server {
     }
     if (req.method === 'GET' && pathname === '/programs') {
       sendJson(res, 200, buildPrograms(discoveryRoot, loadRoster()))
+      return
+    }
+    if (req.method === 'GET' && pathname === '/ops') {
+      sendJson(res, 200, await ops())
+      return
+    }
+    if (req.method === 'GET' && pathname === '/ops/events') {
+      streamOpsEvents(res, ops, options.opsPollMs ?? OPS_EVENTS_POLL_MS)
       return
     }
     const eventsMatch = /^\/runs\/([^/]+)\/events$/.exec(pathname)

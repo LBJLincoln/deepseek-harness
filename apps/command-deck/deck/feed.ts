@@ -33,7 +33,7 @@ export interface FeedSource {
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 
 /** Base URL of the committed fixtures, static files that mirror the feed's paths. */
-const FIXTURE_BASE = `${BASE_PATH}/fixtures`
+export const FIXTURE_BASE = `${BASE_PATH}/fixtures`
 
 /** Query parameter naming the feed for one browser tab: `?feed=https://feed.example`. */
 const FEED_PARAM = 'feed'
@@ -62,8 +62,11 @@ function feedOverride(): string | undefined {
   }
 }
 
-/** The feed named for this tab, else the configured feed URL, else the documented default. */
-function feedUrl(): string {
+/**
+ * The feed named for this tab, else the configured feed URL, else the documented default.
+ * @returns The feed's base URL, without a trailing slash.
+ */
+export function feedUrl(): string {
   const configured = feedOverride() ?? process.env.NEXT_PUBLIC_FEED_URL
   return (configured === undefined || configured === '' ? 'http://localhost:4711' : configured)
     .replace(/\/+$/, '')

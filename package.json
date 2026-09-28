@@ -145,7 +145,7 @@
     "dev:web": "tsx scripts/dev-web.ts --poll",
     "roster": "tsx scripts/enterprise-roster.ts",
     "enterprise:functions": "NODE_USE_ENV_PROXY=1 tsx scripts/enterprise-functions.ts",
-    "enterprise:publish": "tsx scripts/enterprise-publish.ts",
+    "enterprise:publish": "tsx scripts/enterprise-publish.ts && NODE_USE_ENV_PROXY=1 tsx scripts/enterprise-ops.ts --fixture",
     "enterprise:cycle-record": "tsx scripts/enterprise-cycle-record.ts",
     "enterprise:report": "NODE_USE_ENV_PROXY=1 tsx scripts/enterprise-report.ts",
     "enterprise:ops": "NODE_USE_ENV_PROXY=1 tsx scripts/enterprise-ops.ts",

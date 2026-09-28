@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { createHarnessFeedServer, foldSessionEvent, sessionFilesForRun } from './harness-feed.ts'
 import type { FeedEvent, LiveRoster, ProgramRecord, RunSummary, SafetyDetail } from './harness-feed.ts'
+import type { OpsSnapshot, RunEvent } from '../apps/command-deck/deck/contract.ts'
 
 const root = resolve(import.meta.dirname, '..')
 
@@ -782,5 +783,72 @@ describe('CORS and malformed input', () => {
     expect(run).toBeDefined()
     // Scoped to sessions/, so the stray files are never even opened.
     expect(sessionFilesForRun(dir, run!)).toEqual([join(runDir, 'sessions', 'environment.jsonl')])
+  })
+})
+
+describe('GET /ops and GET /ops/events', () => {
+  /** A snapshot carrying the given activity frames and nothing else. */
+  function snapshot(frames: RunEvent[]): OpsSnapshot {
+    return {
+      schema: 1,
+      generatedAt: '2026-09-28T22:40:00.000Z',
+      producer: 'feed',
+      window: { since: '2026-09-27T22:40:00.000Z', until: '2026-09-28T22:40:00.000Z' },
+      sources: [],
+      agents: [],
+      attention: [],
+      big: { seats: null, tickets: null, cycles: null, throughput: null, shipped: null, ci: null, host: null },
+      seats: null,
+      runs: [],
+      activity: frames,
+    }
+  }
+  const frame = (seq: number): RunEvent => ({ ts: 1_790_635_000_000 + seq, seq, sessionId: 'session:a', kind: 'tool', label: `call ${seq}` })
+
+  it('answers the snapshot and streams each activity frame once as later snapshots add frames', async () => {
+    const empty = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-ops-'))
+    cleanups.push(() => { rmSync(empty, { recursive: true, force: true }) })
+    let reads = 0
+    const ops = (): Promise<OpsSnapshot> => {
+      reads += 1
+      return Promise.resolve(snapshot(reads === 1 ? [frame(1), frame(2)] : [frame(1), frame(2), frame(3)]))
+    }
+    const server = createHarnessFeedServer({ root, fixturesDir: empty, ops, opsPollMs: 50 })
+    await new Promise<void>((resolvePromise) => { server.listen(0, '127.0.0.1', resolvePromise) })
+    cleanups.push(() => { server.close() })
+    const address = server.address()
+    if (address === null || typeof address === 'string') throw new Error('harness-feed test: server did not bind a TCP port')
+
+    const frames: RunEvent[] = []
+    await new Promise<void>((resolvePromise, reject) => {
+      const timer = setTimeout(() => { reject(new Error(`timed out with ${frames.length} frames`)) }, 4_000)
+      const req = httpGet(`http://127.0.0.1:${address.port}/ops/events`, (res) => {
+        res.setEncoding('utf8')
+        let buffer = ''
+        res.on('data', (chunk: string) => {
+          buffer += chunk
+          for (let end = buffer.indexOf('\n\n'); end !== -1; end = buffer.indexOf('\n\n')) {
+            const data = buffer.slice(0, end).split('\n').find(candidate => candidate.startsWith('data: '))
+            buffer = buffer.slice(end + 2)
+            if (data !== undefined) frames.push(JSON.parse(data.slice('data: '.length)) as RunEvent)
+          }
+          // Several more polls after the third frame, so a frame sent twice would arrive before the stream closes.
+          if (frames.length === 3) {
+            clearTimeout(timer)
+            setTimeout(() => {
+              req.destroy()
+              resolvePromise()
+            }, 300)
+          }
+        })
+      })
+      req.on('error', () => undefined)
+    })
+    expect(frames.map(entry => entry.seq)).toEqual([1, 2, 3])
+    expect(reads).toBeGreaterThan(3)
+
+    const { status, body } = await getJson(address.port, '/ops')
+    expect(status).toBe(200)
+    expect((body as OpsSnapshot).activity).toHaveLength(3)
   })
 })
