@@ -49,3 +49,4 @@ Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tes
 | `h3-baseline-sonnet-t5` | attempt cap: the baseline fleet arm | 5 | fleet `sonnet`, district `bench-h3` | 2 | base | `2026-09-19-bench-h3-baseline-sonnet-t5` |
 | `h4-craft-sonnet-t5` | knowledge: three craft skills mounted | 5 | fleet `sonnet`, district `bench-h4` | 2 | with-craft-skills | `2026-09-08-bench-h4-craft-skills-t5` |
 | `held-out-sonnet-all` | held-out reliability estimate | held-out | fleet `sonnet`, district `bench-held-out` | 3 | base | `2026-09-08-bench-held-out-sonnet-all` |
+| `public-smoke-sonnet` | the public-repository family's first fleet: one admitted child per pinned source, judged on the source's own held-back tests, on the middle model | 2-4 | fleet `sonnet`, district `bench-public` | 1 | with-public | `2026-09-27-bench-public-smoke-sonnet` (10 of 10, 8 at the first attempt) |

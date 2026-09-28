@@ -49,3 +49,4 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `h3-baseline-sonnet-t5` | 尝试上限：基线 fleet 臂 | 5 | fleet `sonnet`，district `bench-h3` | 2 | base | `2026-09-19-bench-h3-baseline-sonnet-t5` |
 | `h4-craft-sonnet-t5` | 知识：挂载三个工艺技能 | 5 | fleet `sonnet`，district `bench-h4` | 2 | with-craft-skills | `2026-09-08-bench-h4-craft-skills-t5` |
 | `held-out-sonnet-all` | 保留环境的可靠性估计 | held-out | fleet `sonnet`，district `bench-held-out` | 3 | base | `2026-09-08-bench-held-out-sonnet-all` |
+| `public-smoke-sonnet` | 公开仓库任务族的第一次舰队：每个钉住的来源各取一个已准入的子环境，依来源自己的隐藏测试评判，跑在中间模型上 | 2-4 | 舰队 `sonnet`，district `bench-public` | 1 | with-public | `2026-09-27-bench-public-smoke-sonnet`（10 of 10，其中 8 个在第一次尝试） |
