@@ -101,17 +101,18 @@ export function readQueue(root: string, policy: QueuePolicy): Ticket[] {
 }
 
 /**
- * Parse the ledger file's lines. A line that is not JSON or not a ticket line
- * is refused: the ledger is machine-written, so anything else in it is damage.
+ * Parse the ledger file's ticket lines. A line whose `type` is absent or
+ * `ticket` is a ticket line; a line of any other type — the enterprise
+ * functions' `function` lines share the file — is skipped. A line that is not
+ * JSON is refused: the ledger is machine-written, so it is damage.
  * @param text - the file's contents, possibly empty.
  * @returns the ticket lines in file order.
  */
 export function parseLedger(text: string): TicketLedgerLine[] {
-  return text.split('\n').filter(line => line.trim() !== '').map((line, index) => {
-    const parsed = JSON.parse(line) as { type?: unknown }
-    if (parsed.type !== 'ticket') throw new Error(`${LEDGER_PATH} line ${index + 1} is not a ticket line`)
-    return parsed as TicketLedgerLine
-  })
+  return text.split('\n')
+    .filter(line => line.trim() !== '')
+    .map(line => JSON.parse(line) as { type?: unknown })
+    .filter(parsed => parsed.type === undefined || parsed.type === 'ticket') as TicketLedgerLine[]
 }
 
 /**
@@ -364,8 +365,11 @@ export interface CommitTrailers {
 }
 
 /**
- * The message one shipped ticket commit carries.
+ * The message one shipped ticket commit carries. The commit is authored and
+ * committed as `Claude <noreply@anthropic.com>`, the repository's rule, so the
+ * enterprise is named in the body.
  * @param ticket - the ticket.
+ * @param shift - the shift that shipped it.
  * @param programId - the program whose department delivered it.
  * @param departmentSessionId - that department's session.
  * @param reviewSessionId - the review that approved it.
@@ -374,6 +378,7 @@ export interface CommitTrailers {
  */
 export function shippedCommitMessage(
   ticket: Ticket,
+  shift: string,
   programId: string,
   departmentSessionId: string,
   reviewSessionId: string,
@@ -382,6 +387,7 @@ export function shippedCommitMessage(
   return [
     `${ticket.id}: ${ticket.title}`,
     '',
+    `Shift: Daliesk shift ${shift}`,
     `Seat: ${ticket.seat} (${ticket.division})`,
     `Program: ${programId}`,
     `Department session: ${departmentSessionId}`,
@@ -405,7 +411,7 @@ export function shiftCommitMessage(shift: string, shipped: readonly string[], tr
   return [
     `chore(enterprise): shift ${shift}, ${summary}`,
     '',
-    `The ledger lines and the record under ${SHIFTS_DIR}/ of this shift.`,
+    `Daliesk shift ${shift}: its ledger lines and its record under ${SHIFTS_DIR}/.`,
     '',
     `Co-Authored-By: ${trailers.coAuthor}`,
     `Claude-Session: ${trailers.session}`,

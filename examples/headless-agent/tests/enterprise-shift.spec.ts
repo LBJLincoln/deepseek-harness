@@ -67,10 +67,14 @@ describe('ticket status from the ledger', () => {
     expect([...ticketStatuses(lines).entries()]).toEqual([['T-0001', 'shipped'], ['T-0002', 'rejected'], ['T-0003', 'open']])
   })
 
-  it('parses only ticket lines', () => {
+  it('reads ticket lines, counts a line without a type as one, and skips the functions\' lines in the same file', () => {
+    const functionLine = { type: 'function', at: '2026-09-28T00:00:00.000Z', shift: 'shift-1', seat: 's', division: 'd', function: 'f', target: 't', outcome: 'ok', evidence: 'e', seconds: 1 }
+    const untyped = { ...line('T-0002', 'b'.repeat(40), 'approve'), type: undefined }
+    const mixed = `${[line('T-0001', null, 'none'), functionLine, untyped].map(entry => JSON.stringify(entry)).join('\n')}\n`
+    expect(parseLedger(mixed).map(entry => entry.ticket)).toEqual(['T-0001', 'T-0002'])
+    expect([...ticketStatuses(parseLedger(mixed)).entries()]).toEqual([['T-0001', 'open'], ['T-0002', 'shipped']])
     expect(parseLedger('')).toEqual([])
-    expect(parseLedger(`${JSON.stringify(line('T-0001', null, 'none'))}\n`)).toHaveLength(1)
-    expect(() => parseLedger('{"type":"shift"}\n')).toThrow(/line 1 is not a ticket line/)
+    expect(() => parseLedger('not json\n')).toThrow()
   })
 })
 
@@ -125,14 +129,15 @@ describe('the reviewer verdict', () => {
 })
 
 describe('the shipped commit message', () => {
-  it('names the ticket, the seat, the program, both sessions, and ends with the trailers', () => {
-    const message = shippedCommitMessage(ticket('T-0001', 1), 'program-abc', 'program-abc-t-0001', 'review-t-0001-1', {
+  it('names the shift, the ticket, the seat, the program, both sessions, and ends with the trailers', () => {
+    const message = shippedCommitMessage(ticket('T-0001', 1), '184501-ab12', 'program-abc', 'program-abc-t-0001', 'review-t-0001-1', {
       coAuthor: 'Claude Code sonnet <noreply@anthropic.com>',
       session: 'https://claude.ai/code/session_x',
     })
     expect(message.split('\n')).toEqual([
       'T-0001: Ticket T-0001',
       '',
+      'Shift: Daliesk shift 184501-ab12',
       'Seat: seed-tools-steward (harness-core)',
       'Program: program-abc',
       'Department session: program-abc-t-0001',

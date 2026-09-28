@@ -181,7 +181,14 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(log.map(entry => entry.sha)).toEqual([observed.shiftCommit, shipped.shipped?.commit, base])
     const ticketCommit = log[1]?.message ?? ''
     expect(ticketCommit.split('\n')[0]).toBe('T-0001: Add the greeting tool')
+    expect(ticketCommit).toContain('Shift: Daliesk shift e2e-mixed')
     expect(ticketCommit).toContain('Seat: seed-tools-steward (harness-core)')
+    // Every commit the shift made, and the department's own, is authored and
+    // committed by the repository's rule; the enterprise is named in the body.
+    for (const sha of [observed.shiftCommit, shipped.shipped?.commit ?? '']) {
+      expect(git(remote, 'log', '-1', '--format=%an <%ae> %cn <%ce>', sha)).toBe('Claude <noreply@anthropic.com> Claude <noreply@anthropic.com>')
+    }
+    expect(log[0]?.message).toContain('Daliesk shift e2e-mixed')
     expect(ticketCommit).toContain(`Program: ${observed.programId}`)
     expect(ticketCommit).toContain(`Department session: ${shipped.department.sessionId ?? ''}`)
     expect(ticketCommit.split('\n').slice(-2)).toEqual(TRAILERS)
@@ -192,6 +199,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     // the department branch of the clone and never reaches the remote itself.
     const department = observed.report.goals.find(goal => goal.key === 't-0001')
     expect(git(remote, 'rev-parse', `${shipped.shipped?.commit ?? ''}^{tree}`)).toBe(git(observed.repo, 'rev-parse', `${department?.revision ?? ''}^{tree}`))
+    expect(git(observed.repo, 'log', '-1', '--format=%an <%ae>', department?.revision ?? '')).toBe('Claude <noreply@anthropic.com>')
     expect(spawnSync('git', ['cat-file', '-e', `${department?.revision ?? ''}^{commit}`], { cwd: remote, stdio: 'pipe' }).status).not.toBe(0)
     expect(git(remote, 'show', 'main:tools/greet.mjs')).toBe("console.log('hello')")
 

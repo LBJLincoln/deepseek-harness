@@ -210,11 +210,13 @@ function cloneTip(config: ShiftConfig): { repo: string; base: string } {
   mkdirSync(config.scratch, { recursive: true })
   const reference = config.reference === undefined ? [] : ['--reference-if-able', config.reference]
   execFileSync('git', ['clone', '--quiet', '--branch', config.branch, '--single-branch', ...reference, config.remote, repo], { stdio: ['ignore', 'pipe', 'pipe'] })
-  git(repo, 'config', 'user.name', 'Daliesk')
-  git(repo, 'config', 'user.email', 'noreply@anthropic.com')
-  // Every worktree shares this config: a department that pushes through
+  // Every commit of the clone — a department's, a squash, the shift's — is
+  // authored and committed as the repository's rule names; the enterprise is
+  // named in the message body. Every worktree shares this config: a department that pushes through
   // `origin` reaches nothing, and the shift pushes by the remote's own URL.
   git(repo, 'config', 'remote.origin.pushurl', 'no-push://a-department-does-not-push')
+  git(repo, 'config', 'user.name', 'Claude')
+  git(repo, 'config', 'user.email', 'noreply@anthropic.com')
   return { repo, base: git(repo, 'rev-parse', 'HEAD') }
 }
 
@@ -463,7 +465,14 @@ function approved(runs: readonly TicketRun[]): TicketRun[] {
  * still assemble.
  * @returns the head after the last assembled commit, which is `base` when none did.
  */
-function assemble(repo: string, base: string, runs: readonly TicketRun[], programId: string, trailers: CommitTrailers): string {
+function assemble(
+  repo: string,
+  base: string,
+  runs: readonly TicketRun[],
+  shift: string,
+  programId: string,
+  trailers: CommitTrailers,
+): string {
   git(repo, 'reset', '-q', '--hard', base)
   for (const run of runs) {
     if (run.revision === undefined || run.review.sessionId === null) continue
@@ -476,7 +485,7 @@ function assemble(repo: string, base: string, runs: readonly TicketRun[], progra
       continue
     }
     const message = join(repo, '.git', `enterprise-${run.key}.msg`)
-    writeFileSync(message, `${shippedCommitMessage(run.ticket, programId, run.sessionId ?? '', run.review.sessionId, trailers)}\n`)
+    writeFileSync(message, `${shippedCommitMessage(run.ticket, shift, programId, run.sessionId ?? '', run.review.sessionId, trailers)}\n`)
     // The engine's own commits bypass the clone's git hooks: the change was
     // certified by the ticket's acceptance and the hooks are the contributor's.
     git(repo, 'commit', '-q', '--no-verify', '-F', message)
@@ -705,7 +714,7 @@ if (prepared !== undefined) {
     const candidates = halt === undefined ? approved(runs) : []
     if (candidates.length > 0) {
       try {
-        head = assemble(repo, base, candidates, programId, trailers)
+        head = assemble(repo, base, candidates, config.shift, programId, trailers)
         const assembled = candidates.filter(run => run.commit !== null)
         if (report?.mergedRevision !== undefined && assembled.length === runs.length) {
           const [assembledTree, mergedTree] = [git(repo, 'rev-parse', 'HEAD^{tree}'), git(repo, 'rev-parse', `${report.mergedRevision}^{tree}`)]
