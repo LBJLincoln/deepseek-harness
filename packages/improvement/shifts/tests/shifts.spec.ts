@@ -17,7 +17,7 @@ import type { SessionHeader } from '@deepseek-ai/dsh-session'
 import JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import { CheckId } from '@deepseek-ai/dsh-verification'
 import ShiftService, { shiftDigest, ShiftError, shiftId } from '@deepseek-ai/dsh-shifts'
-import type { Config, ShiftDistrictConfig, ShiftEnd, ShiftPlan, ShiftSkipped, ShiftStart } from '@deepseek-ai/dsh-shifts'
+import type { Config, ShiftDistrictConfig, ShiftEnd, ShiftPlan, ShiftSkipped, ShiftSkipReason, ShiftStart } from '@deepseek-ai/dsh-shifts'
 import { cell, cellLog, DISTRICT, header, Log, plan, RESERVED, ROUND_TRIP, ROUTE, UNSATISFIABLE } from './log.ts'
 
 declare module '@deepseek-ai/dsh-environments/types' {
@@ -27,6 +27,18 @@ declare module '@deepseek-ai/dsh-environments/types' {
 }
 
 const HUGE_INTERVAL = 86_400_000
+/**
+ * The cadence a spec drives refusals at while it watches the ledger. Every
+ * refused slot publishes its own session — a log materialized behind several
+ * directory and file syncs — and at a millisecond cadence those writes queue
+ * ahead of the running slot's own record and of the listing a poll reads, so on
+ * a loaded host no slot session is listable for longer than a wait allows
+ * (README, Known Limitations). 25 ms keeps refusals arriving while the slot
+ * they land on is still open.
+ */
+const REFUSAL_CADENCE_MS = 25
+/** How long a spec waits for a refusal to reach the ledger on a host whose disk two coverage workers share. */
+const LEDGER_WAIT_MS = 20_000
 
 const roots: string[] = []
 const trees: Context[] = []
@@ -194,6 +206,24 @@ async function shiftSessionOf(ctx: Context): Promise<string> {
   const shifts = (await sessionIds(ctx)).filter(id => id.startsWith('shift-'))
   expect(shifts).toHaveLength(1)
   return shifts[0] as string
+}
+
+/**
+ * The reason each persisted slot session opens with: a refusal's reason, or
+ * `undefined` for a shift that ran or a session the driver is still writing.
+ * @param ctx - the tree whose persistence root holds the slot sessions.
+ * @returns one entry per persisted shift session, in listing order.
+ */
+async function skipReasons(ctx: Context): Promise<(ShiftSkipReason | undefined)[]> {
+  const shifts = (await sessionIds(ctx)).filter(id => id.startsWith('shift-'))
+  return Promise.all(shifts.map(async (id) => {
+    try {
+      return ((await ledgerOf(ctx, id))[0]?.data as ShiftSkipped | undefined)?.reason
+    } catch {
+      // A slot session the driver is still writing; the next poll reads it whole.
+      return undefined
+    }
+  }))
 }
 
 /**
@@ -491,15 +521,22 @@ describe('ShiftService refusals and disposal', () => {
     const gate = new Promise<void>((resolve) => {
       release = resolve
     })
-    const { ctx } = await harness({ districts: [district({ cadence: { intervalMs: 1 } })] })
+    const { ctx } = await harness({ districts: [district({ cadence: { intervalMs: REFUSAL_CADENCE_MS } })] })
     StubFleet.current.script = () => ({ certified: true, tokens: 1, before: () => gate })
     const started = ctx.shifts.start()
-    await vi.waitFor(async () => {
-      expect((await sessionIds(ctx)).filter(id => id.startsWith('shift-')).length).toBeGreaterThan(1)
-    })
-    const stopping = ctx.shifts.stop()
-    release()
-    await Promise.all([started, stopping])
+    try {
+      // The running slot's own record and the refusals publish in whatever order
+      // the host's I/O settles them: wait for the overlap refusal itself.
+      await vi.waitFor(async () => {
+        expect(await skipReasons(ctx)).toContain('overlap')
+      }, { timeout: LEDGER_WAIT_MS })
+    } finally {
+      // Stop before releasing the run, so the disarmed cadence opens no second
+      // shift once it settles; a failed wait still lets disposal finish.
+      const stopping = ctx.shifts.stop()
+      release()
+      await Promise.all([started, stopping])
+    }
 
     const entries = [...(await ledgers(ctx)).values()]
     const opened = entries.filter(events => events[0]?.type === 'shift/start')
@@ -510,7 +547,7 @@ describe('ShiftService refusals and disposal', () => {
       expect(events).toHaveLength(1)
       expect(events[0]?.data).toMatchObject({ reason: 'overlap' })
     }
-  })
+  }, 30_000)
 
   it('refuses a slot whose district already spent its window', async () => {
     const windowed = { windowMs: 3_600_000, maxTokens: 5 }
@@ -521,31 +558,18 @@ describe('ShiftService refusals and disposal', () => {
     await first.ctx.fiber.dispose()
 
     const second = await harness(
-      // A millisecond cadence floods the ledger with overlap refusals faster than
-      // the refusing slot's own record can flush; the cadence stays short enough
-      // to land overlaps during the slot's scan and long enough to let it finish.
-      { districts: [district({ cadence: { intervalMs: 25 }, spendWindow: windowed })] },
+      // Short enough to land overlaps during the first slot's scan of the
+      // persisted sessions, before it can refuse for the window.
+      { districts: [district({ cadence: { intervalMs: REFUSAL_CADENCE_MS }, spendWindow: windowed })] },
       { root: first.root },
     )
     await second.ctx.shifts.start()
-    // The first slot scans the persisted sessions before it can refuse for the
-    // window, and every slot arriving meanwhile is refused for the overlap, so a
-    // slot session may be mid-write whenever this polls: read each ledger
-    // tolerantly and wait for the spend-window refusal itself, however slow the
-    // host is, instead of stopping on a session count the overlap refusals reach
-    // first.
+    // Every slot arriving during that scan is refused for the overlap: wait for
+    // the spend-window refusal itself instead of stopping on a session count the
+    // overlap refusals reach first.
     await vi.waitFor(async () => {
-      const shifts = (await sessionIds(second.ctx)).filter(id => id.startsWith('shift-'))
-      const reasons = await Promise.all(shifts.map(async (id) => {
-        try {
-          return (((await ledgerOf(second.ctx, id))[0]?.data) as ShiftSkipped | undefined)?.reason
-        } catch {
-          // A slot session the driver is still writing; the next poll reads it whole.
-          return undefined
-        }
-      }))
-      expect(reasons).toContain('spend-window')
-    }, { timeout: 20_000 })
+      expect(await skipReasons(second.ctx)).toContain('spend-window')
+    }, { timeout: LEDGER_WAIT_MS })
     await second.ctx.shifts.stop()
 
     const refused = [...(await ledgers(second.ctx)).values()].filter(events => events[0]?.type === 'shift/skipped')
