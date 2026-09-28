@@ -127,11 +127,12 @@ export interface TranslationPairingManifest {
 const README_ARTIFACT = /(?:^|\/)readme(?:\.md|\.zh\.md|\.i18n\.yaml)$/i
 const ROOT_CONTRIBUTING_ARTIFACT = /^contributing(?:\.md|\.zh\.md|\.i18n\.yaml)$/i
 /**
- * The authored documents of `data/proving-ground/`, which sit directly in that
- * directory. Everything below it is a recorded run, a fold, or a dataset that
- * is never edited after the run, so the pattern stops at the first segment.
+ * The authored documents of `data/proving-ground/` and `data/transcripts/`,
+ * which sit directly in those directories. Everything below them is a recorded
+ * run, a fold, a transcript, or a dataset that is never edited after it is
+ * written, so the pattern stops at the first segment.
  */
-const PROVING_GROUND_ARTIFACT = /^data\/proving-ground\/[^/]+(?:\.md|\.zh\.md|\.i18n\.yaml)$/
+const DATA_RECORD_ARTIFACT = /^data\/(?:proving-ground|transcripts)\/[^/]+(?:\.md|\.zh\.md|\.i18n\.yaml)$/
 const NON_SOURCE_DIRECTORIES = new Set([
   'node_modules',
   'lib',
@@ -187,7 +188,7 @@ export function isTranslationScopeFile(file: string): boolean {
   return !file.startsWith('.agents/notes/archived/')
     && !isTranslationSourceExcluded(file) && (README_ARTIFACT.test(file)
     || ROOT_CONTRIBUTING_ARTIFACT.test(file)
-    || PROVING_GROUND_ARTIFACT.test(file)
+    || DATA_RECORD_ARTIFACT.test(file)
     || file.startsWith('.agents/notes/')
     || file.startsWith('docs/')
     || file.startsWith('python/'))

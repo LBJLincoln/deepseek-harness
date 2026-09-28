@@ -8,6 +8,7 @@
 
 ```
 data/transcripts/
+  LOSSES.md, LOSSES.zh.md             what the container resets erased, and what survived where
   tools/
     collect-claude-code-session.mjs   snapshot one live Claude Code session into <build>/raw/
     capture-live.mjs                  append what is new in every live transcript source to live/
@@ -59,7 +60,7 @@ ENTERPRISE_COMMIT_TRAILERS="$trailers" nohup setsid bash scripts/transcripts-cap
 node data/transcripts/tools/transcripts-to-dataset.mjs data/transcripts/live <out-dir> --session <session id>
 ```
 
-最后一条命令从一个 Claude Code 会话的实时块派生数据集。
+最后一条命令从一个 Claude Code 会话的实时块派生数据集。[LOSSES.md](LOSSES.md) 说明 2026-09-28 的容器重置在实时捕获出现之前抹去了什么，以及什么留存了下来。
 
 ## 这些数据是什么、不是什么
 

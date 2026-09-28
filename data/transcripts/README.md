@@ -8,6 +8,7 @@ Complete transcripts of the agent sessions that build this repository, kept in t
 
 ```
 data/transcripts/
+  LOSSES.md, LOSSES.zh.md             what the container resets erased, and what survived where
   tools/
     collect-claude-code-session.mjs   snapshot one live Claude Code session into <build>/raw/
     capture-live.mjs                  append what is new in every live transcript source to live/
@@ -59,7 +60,7 @@ ENTERPRISE_COMMIT_TRAILERS="$trailers" nohup setsid bash scripts/transcripts-cap
 node data/transcripts/tools/transcripts-to-dataset.mjs data/transcripts/live <out-dir> --session <session id>
 ```
 
-The last command derives a dataset from the live chunks of one Claude Code session.
+The last command derives a dataset from the live chunks of one Claude Code session. [LOSSES.md](LOSSES.md) states what the container resets of 2026-09-28 erased before the live capture existed, and what survived.
 
 ## What the data is and is not
 
