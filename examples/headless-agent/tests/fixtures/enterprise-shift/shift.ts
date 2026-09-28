@@ -173,11 +173,6 @@ export function departmentKey(ticketId: string): string {
   return ticketId.toLowerCase()
 }
 
-/** The ticket id a department key stands for. */
-export function ticketIdOf(key: string): string {
-  return key.toUpperCase()
-}
-
 /** Ids of the three checks the engine adds to every ticket's acceptance. */
 export const ENGINE_CHECKS = { committed: 'engine-committed', scope: 'engine-scope', whitespace: 'engine-whitespace' } as const
 
@@ -217,7 +212,7 @@ export function ticketChecks(ticket: Ticket, base: string, prefix = ''): Standar
 }
 
 /** The first line of a department's objective, by which a scripted route recognizes its ticket. */
-export function objectiveHeading(ticket: Ticket): string {
+function objectiveHeading(ticket: Ticket): string {
   return `Ticket ${ticket.id}: ${ticket.title}.`
 }
 
@@ -313,7 +308,7 @@ export function reviewEvidenceText(diff: string, commits: string, checks: readon
 }
 
 /** Keep the head of longer text inside the bound, marking what was dropped. */
-export function boundHead(text: string, maxChars: number): string {
+function boundHead(text: string, maxChars: number): string {
   return text.length <= maxChars ? text : `${text.slice(0, maxChars - 1)}…`
 }
 
@@ -392,7 +387,7 @@ export function shiftCommitMessage(shift: string, shipped: readonly string[], tr
 }
 
 /** Strings shaped like credentials, cut from every recorded byte. */
-export const CREDENTIAL_SHAPES = new RegExp([
+const CREDENTIAL_SHAPES = new RegExp([
   String.raw`\b(?:sk-[A-Za-z0-9_-]{8,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}`,
   String.raw`|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,})\b`,
   String.raw`|-----BEGIN [A-Z ]*PRIVATE KEY-----`,
