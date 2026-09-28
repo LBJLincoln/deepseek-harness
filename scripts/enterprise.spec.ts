@@ -23,6 +23,7 @@ describe('the shift command line', () => {
     expect(command).toMatchObject({ kind: 'shift', next: 2, tickets: undefined, implementer: 'route', push: true, branch: DEVELOPMENT_BRANCH, composition: REAL_COMPOSITION, scratch: '/tmp/x', keep: false })
     expect(parseCommand(['shift', '--tickets', 'T-0012,T-0019', '--implementer', 'subagent', '--model', 'opus']))
       .toMatchObject({ tickets: 'T-0012,T-0019', implementer: 'subagent', model: 'opus', push: false })
+    expect(parseCommand(['--', 'shift', '--next', '1'])).toMatchObject({ next: 1 })
   })
 
   it('refuses a missing or doubled selection, a bad count, and an unknown implementer or subcommand', () => {

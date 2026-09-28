@@ -57,7 +57,8 @@ shift runs one enterprise shift: it clones the tip of the development branch, wo
  * @throws on an unknown subcommand, an unknown option, or a selection that is not exactly one of `--next` and `--tickets`.
  */
 export function parseCommand(argv: readonly string[], env: NodeJS.ProcessEnv = process.env): ShiftCommand {
-  const [sub, ...rest] = argv
+  // `pnpm run enterprise -- shift …` forwards the `--` itself.
+  const [sub, ...rest] = argv[0] === '--' ? argv.slice(1) : argv
   if (sub === undefined || sub === '--help' || sub === '-h') throw new Error(USAGE)
   if (sub !== 'shift') throw new Error(`unknown subcommand '${sub}'; expected shift`)
   const { values } = parseArgs({
