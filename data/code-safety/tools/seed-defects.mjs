@@ -460,7 +460,7 @@ export function selectAndPlant(candidates, entries, seed, n, maxPerEntry = Infin
       acceptedLinesByFile.set(candidate.file, tentativeLines)
       siteByLineIndexByFile.set(candidate.file, siteByLineIndex)
       countByEntry.set(candidate.entryId, (countByEntry.get(candidate.entryId) ?? 0) + 1)
-      planted.push({ ...candidate, finalLine: finalLineByIndex.get(candidate.lineIndex) })
+      planted.push(candidate)
     } else {
       siteByLineIndex.delete(candidate.lineIndex)
       const reverted = applyInsertions(originalText, acceptedLines, siteByLineIndex, entryById, hexFor)
@@ -468,7 +468,10 @@ export function selectAndPlant(candidates, entries, seed, n, maxPerEntry = Infin
       rejectedByCheck += 1
     }
   }
-  return { planted, rejectedBySeparation, rejectedByCheck }
+  // A site's final line counts every insertion above it in its file, including
+  // those accepted after it, so it is read once the whole set is fixed.
+  const finalLineOf = site => site.lineIndex + 2 + acceptedLinesByFile.get(site.file).filter(line => line < site.lineIndex).length
+  return { planted: planted.map(site => ({ ...site, finalLine: finalLineOf(site) })), rejectedBySeparation, rejectedByCheck }
 }
 
 /**

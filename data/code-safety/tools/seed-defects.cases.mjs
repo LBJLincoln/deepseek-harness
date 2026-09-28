@@ -73,7 +73,7 @@ const cases = {
   'a seeded TypeScript copy plants every site, leaves out .git, and repeats under the same seed': () => {
     const { root, target } = makeTarget()
     try {
-      const plant = out => seedDefects({ targetDir: target, outDir: join(root, out), language: 'typescript', seed: 'cases', n: 2, cataloguePath: new URL('./seed-catalogue.json', import.meta.url).pathname, avoidPaths: [], maxPerEntry: 1 })
+      const plant = out => seedDefects({ targetDir: target, outDir: join(root, out), language: 'typescript', seed: 'a', n: 2, cataloguePath: new URL('./seed-catalogue.json', import.meta.url).pathname, avoidPaths: [], maxPerEntry: 1 })
       const first = plant('first')
       const second = plant('second')
       assert.equal(first.planted, 2)
@@ -81,9 +81,11 @@ const cases = {
       assert.equal(readFileSync(join(first.repoDir, 'src', 'thread.ts'), 'utf8'), readFileSync(join(second.repoDir, 'src', 'thread.ts'), 'utf8'))
       const truth = JSON.parse(readFileSync(first.groundTruthPath, 'utf8'))
       const lines = readFileSync(join(first.repoDir, 'src', 'thread.ts'), 'utf8').split('\n')
+      const original = WIRE.split('\n')
       for (const issue of truth.issues) {
         assert.equal(issue.file, 'src/thread.ts')
         assert.equal(checkTypeScript(lines.join('\n'), 'thread.ts', [issue.lines[0]]), true)
+        assert.equal(original.includes(lines[issue.lines[0] - 1]), false, `line ${issue.lines[0]} is an original line, not the planted one`)
       }
       assert.equal(readFileSync(join(target, 'src', 'thread.ts'), 'utf8'), WIRE)
     } finally {
