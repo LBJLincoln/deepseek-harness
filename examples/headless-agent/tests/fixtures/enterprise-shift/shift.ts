@@ -254,13 +254,13 @@ export const REVIEW_MARKER = 'You are the independent reviewer of one change to 
 export const REVIEW_INSTRUCTION = [
   `${REVIEW_MARKER} You did not make it and cannot reach the session that did: the next two messages are the whole record you have.`,
   '',
-  'The first is the ticket the implementer worked from. The second is the evidence: the diff the implementer committed and the output of every check the change was measured by.',
+  'The first is the ticket the implementer worked from. The second is the evidence: the diff the implementer committed, the messages of its commits, and the output of every check the change was measured by.',
   '',
   'Answer with this line first, then your reasons on the lines after it:',
   '',
   'verdict: approve',
   '',
-  'Use `approve` when the diff does what the ticket asks, stays inside the ticket\'s scope, and the checks passed. Use `reject` when it does not do what the ticket asks, changes more than the ticket asks, or the evidence cannot show that it does. Decide on what you were given; there is nothing further to ask for.',
+  'Use `approve` when the diff does what the ticket asks, stays inside the ticket\'s scope, and the checks passed. Use `reject` when it does not do what the ticket asks, changes more than the ticket asks, or the evidence cannot show that it does. The ticket describes the tree as intake saw it; the diff, the commit messages, and the check outputs are the current facts, so judge the diff against the ticket\'s problem and required behaviour rather than against a step the tree already satisfied. Decide on what you were given; there is nothing further to ask for.',
 ].join('\n')
 
 /**
@@ -288,18 +288,24 @@ export interface ReviewedCheck {
 }
 
 /**
- * The evidence as the reviewer reads it: the bounded diff, then every check
- * with its status and bounded output.
+ * The evidence as the reviewer reads it: the bounded diff, the bounded
+ * messages of the branch's commits, then every check with its status and
+ * bounded output. The commit messages are the implementer's own account of
+ * the change, committed with it; nothing of the implementer's session is here.
  * @param diff - `git diff <base> HEAD` of the department branch.
+ * @param commits - `git log <base>..HEAD` of the department branch, messages only.
  * @param checks - the department's certifying run.
- * @param maxChars - bound of the diff and of each check's evidence.
+ * @param maxChars - bound of the diff, of the commit messages, and of each check's evidence.
  * @returns the third message of the review.
  */
-export function reviewEvidenceText(diff: string, checks: readonly ReviewedCheck[], maxChars: number): string {
+export function reviewEvidenceText(diff: string, commits: string, checks: readonly ReviewedCheck[], maxChars: number): string {
   return [
     '<diff>',
     boundHead(diff, maxChars),
     '</diff>',
+    '<commits>',
+    boundHead(commits, maxChars),
+    '</commits>',
     '<checks>',
     ...checks.map(check => `- ${check.id}: ${check.status}\n${boundHead(check.evidence, maxChars)}`),
     '</checks>',

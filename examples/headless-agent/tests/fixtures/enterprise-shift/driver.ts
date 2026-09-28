@@ -312,33 +312,41 @@ function spanSeconds(events: readonly SessionEvent[]): number {
 
 /**
  * Review one certified department in a session that never saw it: a fresh id,
- * no parent, no seed, the reviewing preset, and a derived history of the
- * standing instruction, the ticket, and the evidence.
+ * no parent, no seed, the reviewing preset, no tool at all, an empty working
+ * directory of its own, and a derived history of the standing instruction,
+ * the ticket, and the evidence. The deployment's tools are global rows, so
+ * the reviewer's scope restricts them all away: a reviewer with a shell could
+ * read the department's worktree, which is exactly what it must not reach.
+ * @param reviewRoot - the directory the reviewer's empty working directories are made under.
  */
 async function review(
   ctx: Awaited<ReturnType<typeof boot>>,
   run: TicketRun,
   diff: string,
-  cwd: string,
+  commits: string,
+  reviewRoot: string,
 ): Promise<{ verdict: 'approve' | 'reject'; sessionId: string; rationale: string; tokens: number; seconds: number }> {
   const agents = ctx.get('agents')
   const presets = ctx.get('agentPresets')
   const model = ctx.get('agentDefaultModel')?.currentSelection()
   if (agents === undefined || presets === undefined || model === undefined) throw new Error('enterprise-shift driver requires the agents, presets and default-model services')
   const sessionId = SessionId(`review-${run.key}-${randomBytes(4).toString('hex')}`)
+  const cwd = join(reviewRoot, sessionId)
+  mkdirSync(cwd, { recursive: true })
   const handle = await agents.create({
     sessionId,
     meta: { cwd },
     agentOptions: { provider: model.provider, model: model.model },
     setup: async (agentCtx) => {
       await presets.mount(agentCtx, REVIEW_PRESET)
+      agentCtx.tools.restrict({ allow: [] })
     },
   })
   try {
     const message = (text: string) => createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'plugin', plugin: 'enterprise-shift' } })
     handle.agent.inject(message(REVIEW_INSTRUCTION))
     handle.agent.inject(message(reviewTicketText(run.ticket)))
-    handle.agent.followup(message(reviewEvidenceText(diff, run.reviewed, REVIEW_TEXT_MAX_CHARS)))
+    handle.agent.followup(message(reviewEvidenceText(diff, commits, run.reviewed, REVIEW_TEXT_MAX_CHARS)))
     await handle.agent.whenIdle()
     const events = handle.agent.session.events
     const { verdict, rationale } = readReviewVerdict(lastAnswer(events), RATIONALE_MAX_CHARS)
@@ -461,7 +469,9 @@ function assemble(repo: string, base: string, runs: readonly TicketRun[], progra
     }
     const message = join(repo, '.git', `enterprise-${run.key}.msg`)
     writeFileSync(message, `${shippedCommitMessage(run.ticket, programId, run.sessionId ?? '', run.review.sessionId, trailers)}\n`)
-    git(repo, 'commit', '-q', '-F', message)
+    // The engine's own commits bypass the clone's git hooks: the change was
+    // certified by the ticket's acceptance and the hooks are the contributor's.
+    git(repo, 'commit', '-q', '--no-verify', '-F', message)
     run.commit = git(repo, 'rev-parse', 'HEAD')
     run.integration = 'merged'
     run.reason = 'approved and assembled'
@@ -654,7 +664,8 @@ if (prepared !== undefined) {
       if (run.outcome !== 'certified' || run.revision === undefined || halt !== undefined) continue
       try {
         const diff = git(repo, 'diff', base, run.revision)
-        const reviewed = await review(ctx, run, diff, config.scratch)
+        const commits = git(repo, 'log', '--format=%H%n%B', `${base}..${run.revision}`)
+        const reviewed = await review(ctx, run, diff, commits, join(config.scratch, 'review'))
         run.review = { verdict: reviewed.verdict, sessionId: reviewed.sessionId, rationale: reviewed.rationale }
         run.tokens += reviewed.tokens
         run.seconds += reviewed.seconds
@@ -677,17 +688,28 @@ if (prepared !== undefined) {
     // then every shipped ticket's acceptance over the assembled tree.
     const candidates = halt === undefined ? approved(runs) : []
     if (candidates.length > 0) {
-      head = assemble(repo, base, candidates, programId, trailers)
-      const assembled = candidates.filter(run => run.commit !== null)
-      if (report?.mergedRevision !== undefined && assembled.length === runs.length) {
-        const [assembledTree, mergedTree] = [git(repo, 'rev-parse', 'HEAD^{tree}'), git(repo, 'rev-parse', `${report.mergedRevision}^{tree}`)]
-        if (assembledTree !== mergedTree) {
-          head = unship(repo, base, candidates, 'digest-mismatch', `the assembled tree ${assembledTree} is not the program's certified merged tree ${mergedTree}`)
+      try {
+        head = assemble(repo, base, candidates, programId, trailers)
+        const assembled = candidates.filter(run => run.commit !== null)
+        if (report?.mergedRevision !== undefined && assembled.length === runs.length) {
+          const [assembledTree, mergedTree] = [git(repo, 'rev-parse', 'HEAD^{tree}'), git(repo, 'rev-parse', `${report.mergedRevision}^{tree}`)]
+          if (assembledTree !== mergedTree) {
+            head = unship(repo, base, candidates, 'digest-mismatch', `the assembled tree ${assembledTree} is not the program's certified merged tree ${mergedTree}`)
+          }
         }
-      }
-      if (head !== base) {
-        const failed = recertify(repo, candidates)
-        if (failed !== undefined) head = unship(repo, base, candidates, 'checks-failed', `acceptance failed over the assembled tree: ${failed}`)
+        if (head !== base) {
+          const failed = recertify(repo, candidates)
+          if (failed !== undefined) head = unship(repo, base, candidates, 'checks-failed', `acceptance failed over the assembled tree: ${failed}`)
+        }
+      } catch (error: unknown) {
+        // A git or install failure mid-assembly ships nothing and is recorded
+        // on every candidate; the checkout is returned to the base.
+        tryGit(repo, 'merge', '--abort')
+        head = unship(repo, base, candidates, 'not-shipped', `the assembly failed: ${describeError(error)}`)
+        for (const run of candidates) {
+          if (run.integration !== 'not-shipped') run.integration = 'not-shipped'
+          if (run.reason.startsWith('approve')) run.reason = `the assembly failed: ${describeError(error)}`
+        }
       }
     }
   } finally {
@@ -750,42 +772,52 @@ const finalize = async (assembledHead: string, shippedBase: string): Promise<str
   git(repo, 'add', '-A', '--', 'data/enterprise')
   const message = join(repo, '.git', 'enterprise-shift.msg')
   writeFileSync(message, `${shiftCommitMessage(config.shift, runs.filter(run => run.commit !== null).map(run => run.ticket.id), trailers)}\n`)
-  git(repo, 'commit', '-q', '-F', message)
+  git(repo, 'commit', '-q', '--no-verify', '-F', message)
   return git(repo, 'rev-parse', 'HEAD')
 }
 
 let shippedBase = base
-let shiftCommit = await finalize(head, shippedBase)
-if (config.push) {
-  for (let round = 1; round <= PUSH_ROUNDS && pushed === null; round += 1) {
-    git(repo, 'fetch', '--quiet', 'origin', config.branch)
-    const tip = git(repo, 'rev-parse', 'FETCH_HEAD')
-    if (tip !== shippedBase) {
-      // The tip moved: rebase the assembled commits alone onto it, recertify
-      // them there, and rewrite the ledger around their new hashes.
-      if (head === shippedBase) {
-        git(repo, 'reset', '-q', '--hard', tip)
-        head = tip
-      } else {
-        git(repo, 'reset', '-q', '--hard', head)
-        const rebased = tryGit(repo, 'rebase', tip)
-        if (!rebased.ok) {
-          tryGit(repo, 'rebase', '--abort')
-          head = unship(repo, tip, runs, 'not-shipped', `the tip moved to ${tip} and the rebase conflicted: ${rebased.output.slice(-500)}`)
+let shiftCommit = ''
+// A finalize or push that throws leaves the clone in place with the work and
+// prints what happened, so the next shift and its operator can read it.
+try {
+  shiftCommit = await finalize(head, shippedBase)
+  if (config.push) {
+    for (let round = 1; round <= PUSH_ROUNDS && pushed === null; round += 1) {
+      git(repo, 'fetch', '--quiet', 'origin', config.branch)
+      const tip = git(repo, 'rev-parse', 'FETCH_HEAD')
+      if (tip !== shippedBase) {
+        // The tip moved: rebase the assembled commits alone onto it, recertify
+        // them there, and rewrite the ledger around their new hashes.
+        if (head === shippedBase) {
+          git(repo, 'reset', '-q', '--hard', tip)
+          head = tip
         } else {
-          head = git(repo, 'rev-parse', 'HEAD')
-          rereadCommits(repo, tip, runs)
-          const failed = recertify(repo, runs)
-          if (failed !== undefined) head = unship(repo, tip, runs, 'checks-failed', `the tip moved to ${tip}; acceptance failed over the rebased tree: ${failed}`)
+          git(repo, 'reset', '-q', '--hard', head)
+          const rebased = tryGit(repo, 'rebase', tip)
+          if (!rebased.ok) {
+            tryGit(repo, 'rebase', '--abort')
+            head = unship(repo, tip, runs, 'not-shipped', `the tip moved to ${tip} and the rebase conflicted: ${rebased.output.slice(-500)}`)
+          } else {
+            head = git(repo, 'rev-parse', 'HEAD')
+            rereadCommits(repo, tip, runs)
+            const failed = recertify(repo, runs)
+            if (failed !== undefined) head = unship(repo, tip, runs, 'checks-failed', `the tip moved to ${tip}; acceptance failed over the rebased tree: ${failed}`)
+          }
         }
+        shippedBase = tip
+        shiftCommit = await finalize(head, shippedBase)
       }
-      shippedBase = tip
-      shiftCommit = await finalize(head, shippedBase)
+      const push = tryGit(repo, 'push', '--quiet', config.remote, `HEAD:refs/heads/${config.branch}`)
+      if (push.ok) pushed = { commit: shiftCommit, rounds: round }
+      else shipReason = `push round ${round} refused: ${push.output.slice(-500)}`
     }
-    const push = tryGit(repo, 'push', '--quiet', config.remote, `HEAD:refs/heads/${config.branch}`)
-    if (push.ok) pushed = { commit: shiftCommit, rounds: round }
-    else shipReason = `push round ${round} refused: ${push.output.slice(-500)}`
   }
+} catch (error: unknown) {
+  const reason = `the shift could not finalize or push: ${describeError(error)}`
+  process.stdout.write(`${JSON.stringify({ type: 'result', shift: config.shift, error: reason, repo, tickets: runs.map(run => ledgerLine(run, startedAt.toISOString(), config.shift, programId, config.implementer, modelName)) })}\n`)
+  process.stderr.write(`enterprise-shift: ${reason}; the clone is kept at ${repo}\n`)
+  process.exit(1)
 }
 process.stdout.write(`${JSON.stringify({
   type: 'result',

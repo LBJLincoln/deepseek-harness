@@ -211,6 +211,24 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     const manifest = JSON.parse(git(remote, 'show', `main:${observed.record}/manifest.json`)) as { files: { path: string }[]; base: string }
     expect(manifest.base).toBe(base)
     expect(manifest.files.map(file => file.path)).toEqual(expect.arrayContaining(['result.json', `sessions/${observed.programId}.jsonl`]))
+
+    // The reviewer saw no tool, called none, and read the diff, the commit
+    // messages and the checks from its own three messages; its session names
+    // no parent and its working directory holds nothing.
+    const reviewLog = git(remote, 'show', `main:${observed.record}/sessions/${shipped.review.sessionId ?? ''}.jsonl`)
+      .split('\n').filter(line => line !== '').map(line => JSON.parse(line) as { type: string; data: Record<string, unknown> })
+    const header = reviewLog.find(event => event.type === 'request/header')
+    expect(header, 'the reviewer made no request').toBeDefined()
+    expect(header?.data['tools']).toBeUndefined()
+    const reviewMessages = reviewLog.filter(event => event.type === 'assistant/message')
+    expect(reviewMessages).toHaveLength(1)
+    const blocks = (reviewMessages[0]?.data['message'] as { content: { type: string }[] }).content
+    expect(blocks.map(block => block.type)).toEqual(['text'])
+    const userTexts = reviewLog.filter(event => event.type === 'user/message')
+      .map(event => JSON.stringify(event.data))
+    expect(userTexts.some(text => text.includes('<commits>') && text.includes('T-0001: the scripted department delivers'))).toBe(true)
+    const session = reviewLog.find(event => event.type === 'session')?.data as { parentSessionId?: string; cwd?: string } | undefined
+    expect(session?.parentSessionId).toBeUndefined()
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
 
   it('does not ship a certified ticket the reviewer rejects, and closes it in the ledger', async () => {
