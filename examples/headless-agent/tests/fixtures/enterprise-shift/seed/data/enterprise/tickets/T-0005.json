@@ -1,0 +1,13 @@
+{
+  "id": "T-0005",
+  "title": "Add the echo tool",
+  "division": "harness-core",
+  "seat": "seed-tools-steward",
+  "kind": "feature",
+  "source": { "path": "tools/README.md", "anchor": "echo.mjs` prints `echo` and exits 0." },
+  "task": "tools/README.md:9 promises `echo.mjs` prints `echo` and exits 0. Add the file under tools/ so that the command exits 0; change nothing else.",
+  "scope": ["tools/"],
+  "acceptance": [{ "id": "echoes", "run": "node tools/echo.mjs | grep -qx echo" }],
+  "budget": { "maxTotalTokens": 100000, "maxWallMs": 600000 },
+  "priority": 3
+}

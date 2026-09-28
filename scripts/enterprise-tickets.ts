@@ -24,9 +24,29 @@ const ID_PATTERN = /^T-\d{4}$/
 const CHECK_ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/
 /** The task text cites its evidence at least once as `path:line`. */
 const EVIDENCE_PATTERN = /[\w./-]+\.(?:ts|tsx|md|json|ya?ml|mjs):\d+/
-const TYPECHECK_RUN = 'pnpm run typecheck'
-const COVERAGE_FLAG = '--coverage'
 const LOWEST_PRIORITY = 3
+
+/**
+ * The acceptance commands one queue requires of every ticket, beside the
+ * ticket's own. The schema, the seat, the source, the scope, and the check
+ * format hold for every repository the shift engine runs over; which commands
+ * a queue mandates is that queue's policy.
+ */
+export interface QueuePolicy {
+  /** Command lines every ticket's acceptance must include verbatim. */
+  readonly requiredRuns: readonly string[]
+  /** Fragments at least one acceptance command must contain, each with the rule it stands for. */
+  readonly requiredFragments: readonly { readonly fragment: string; readonly rule: string }[]
+}
+
+/** This repository's queue: every ticket runs the typecheck and the package's per-file coverage. */
+export const HARNESS_QUEUE_POLICY: QueuePolicy = {
+  requiredRuns: ['pnpm run typecheck'],
+  requiredFragments: [{ fragment: '--coverage', rule: "the package's per-file coverage run" }],
+}
+
+/** A queue that mandates nothing beyond the ticket's own checks, for a repository without this one's gates. */
+export const OPEN_QUEUE_POLICY: QueuePolicy = { requiredRuns: [], requiredFragments: [] }
 
 /** One queue file as read from disk, before validation. */
 export interface LoadedTicket {
@@ -106,7 +126,7 @@ function validateScope(scope: unknown, root: string): string[] {
   return errors
 }
 
-function validateAcceptance(acceptance: unknown): string[] {
+function validateAcceptance(acceptance: unknown, policy: QueuePolicy): string[] {
   if (!Array.isArray(acceptance) || acceptance.length === 0) return ['acceptance must be a non-empty array']
   const errors: string[] = []
   const ids = new Set<string>()
@@ -124,8 +144,12 @@ function validateAcceptance(acceptance: unknown): string[] {
     if (!isNonEmptyString(run) || run.includes('\n')) errors.push(`acceptance[${index}].run must be one non-empty command line`)
     else runs.push(run)
   })
-  if (!runs.includes(TYPECHECK_RUN)) errors.push(`acceptance must include "${TYPECHECK_RUN}"`)
-  if (!runs.some(run => run.includes(COVERAGE_FLAG))) errors.push("acceptance must include the package's per-file coverage run")
+  for (const required of policy.requiredRuns) {
+    if (!runs.includes(required)) errors.push(`acceptance must include "${required}"`)
+  }
+  for (const { fragment, rule } of policy.requiredFragments) {
+    if (!runs.some(run => run.includes(fragment))) errors.push(`acceptance must include ${rule}`)
+  }
   return errors
 }
 
@@ -139,7 +163,7 @@ function validateBudget(budget: unknown): string[] {
   return errors
 }
 
-function validateTicket(loaded: LoadedTicket, roster: Roster, root: string): string[] {
+function validateTicket(loaded: LoadedTicket, roster: Roster, root: string, policy: QueuePolicy): string[] {
   const { file, value } = loaded
   if (value instanceof Error) return [`not valid JSON: ${value.message}`]
   if (!isRecord(value)) return ['a ticket must be a JSON object']
@@ -158,7 +182,7 @@ function validateTicket(loaded: LoadedTicket, roster: Roster, root: string): str
   if (!isNonEmptyString(task)) errors.push('task must be a non-empty string')
   else if (!EVIDENCE_PATTERN.test(task)) errors.push('task must cite its evidence as path:line at least once')
   errors.push(...validateScope(scope, root))
-  errors.push(...validateAcceptance(acceptance))
+  errors.push(...validateAcceptance(acceptance, policy))
   errors.push(...validateBudget(budget))
   if (!Number.isInteger(priority) || (priority as number) < 1 || (priority as number) > LOWEST_PRIORITY) {
     errors.push(`priority must be an integer from 1 to ${LOWEST_PRIORITY}`)
@@ -171,13 +195,19 @@ function validateTicket(loaded: LoadedTicket, roster: Roster, root: string): str
  * @param loaded - the queue files.
  * @param roster - the committed roster, for divisions and seats.
  * @param root - repository root, for source and scope existence checks.
+ * @param policy - the acceptance commands this queue mandates; this repository's by default.
  * @returns every violation as `<file>: <message>`; empty when the queue is valid.
  */
-export function validateTickets(loaded: readonly LoadedTicket[], roster: Roster, root: string): string[] {
+export function validateTickets(
+  loaded: readonly LoadedTicket[],
+  roster: Roster,
+  root: string,
+  policy: QueuePolicy = HARNESS_QUEUE_POLICY,
+): string[] {
   const errors: string[] = []
   const ids: string[] = []
   for (const ticket of loaded) {
-    for (const message of validateTicket(ticket, roster, root)) errors.push(`${ticket.file}: ${message}`)
+    for (const message of validateTicket(ticket, roster, root, policy)) errors.push(`${ticket.file}: ${message}`)
     if (isRecord(ticket.value) && typeof ticket.value['id'] === 'string') ids.push(ticket.value['id'])
   }
   const sorted = [...ids].sort()

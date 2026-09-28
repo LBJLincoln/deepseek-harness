@@ -1,0 +1,13 @@
+{
+  "id": "T-0003",
+  "title": "Add the farewell tool",
+  "division": "harness-core",
+  "seat": "seed-tools-steward",
+  "kind": "feature",
+  "source": { "path": "tools/README.md", "anchor": "bye.mjs` prints `bye` and exits 0." },
+  "task": "tools/README.md:7 promises `bye.mjs` prints `bye` and exits 0. Add the file under tools/ so that the command exits 0; change nothing else.",
+  "scope": ["tools/"],
+  "acceptance": [{ "id": "says-bye", "run": "node tools/bye.mjs | grep -qx bye" }],
+  "budget": { "maxTotalTokens": 100000, "maxWallMs": 600000 },
+  "priority": 2
+}

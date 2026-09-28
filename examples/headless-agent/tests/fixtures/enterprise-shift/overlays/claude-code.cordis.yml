@@ -1,0 +1,55 @@
+# The enterprise shift with the operator's own Claude Code installation as the
+# route every department and reviewer is driven through: the real shift, and
+# the only file that differs from the keyless composition beside it.
+#
+# `DSH_ENTERPRISE_MODEL` names the product model (`sonnet` when unset); the
+# subagent seam and its Claude Code provider are composed so that
+# `--implementer subagent` can delegate each department to the product itself.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      # The scripted adapter is the keyless half's whole reason to exist; a real
+      # shift composes no mock route at all.
+      - id: enterprise-llm
+        disabled: true
+      - insert:
+          - id: llm-claude-code
+            name: '@deepseek-ai/dsh-llm-claude-code'
+            config:
+              provider: claude-code
+              models:
+                - id: sonnet
+                  name: Claude Code sonnet
+                  productModel: sonnet
+                  contextWindow: 200000
+                - id: opus
+                  name: Claude Code opus
+                  productModel: opus
+                  contextWindow: 200000
+                - id: haiku
+                  name: Claude Code haiku
+                  productModel: haiku
+                  contextWindow: 200000
+              effort: high
+          - id: subagent
+            name: '@deepseek-ai/dsh-subagent'
+          # A `-p` child is denied everything it would have asked for, so what
+          # an unattended department may do without a prompt is stated here:
+          # file edits, and the git commands a certificate requires of it.
+          - id: subagent-claude-code
+            name: '@deepseek-ai/dsh-subagent-claude-code'
+            config:
+              permissionMode: acceptEdits
+              allowedTools:
+                - 'Bash(git add:*)'
+                - 'Bash(git commit:*)'
+                - 'Bash(git status:*)'
+                - 'Bash(git diff:*)'
+                - 'Bash(pnpm run:*)'
+                - 'Bash(pnpm exec:*)'
+      - id: agent-default-model
+        config:
+          provider: claude-code
+          model: !!js process.env.DSH_ENTERPRISE_MODEL ?? 'sonnet'

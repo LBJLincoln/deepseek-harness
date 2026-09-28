@@ -1,0 +1,17 @@
+# The reviewer of one shift: the blind judge's arrangement over a ticket. It
+# composes one row and no tool, so the reviewer answers from the three messages
+# the driver puts in its session — the instruction, the ticket, and the diff
+# with the check outputs — and `role: judge` in `preset.yml` makes the read
+# barrier deny it every directory and every tool authority the deployment
+# registers globally. `complete: true` makes this persona the whole system
+# prompt; `includeRuntimeContext: false` drops the workspace lines, which
+# describe a directory the reviewer is not asked about.
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: >-
+      You are the independent reviewer of one change. You did not make it and
+      cannot reach the session that did: this conversation is the entire
+      record available to you, and there is nothing further to consult.
+    complete: true
+    includeRuntimeContext: false
