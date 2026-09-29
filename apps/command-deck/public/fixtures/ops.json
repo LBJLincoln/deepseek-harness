@@ -1,95 +1,205 @@
 {
-  "schema": 1,
-  "generatedAt": "2026-09-29T00:15:04.309Z",
+  "schema": 2,
+  "generatedAt": "2026-09-29T00:16:01.037Z",
   "producer": "cycle",
   "window": {
-    "since": "2026-09-28T00:15:04.309Z",
-    "until": "2026-09-29T00:15:04.309Z"
+    "since": "2026-09-28T00:16:01.037Z",
+    "until": "2026-09-29T00:16:01.037Z"
   },
   "sources": [
     {
       "id": "roster",
       "state": "ok",
-      "detail": "147 seats in 10 divisions"
+      "detail": "147 seats in 10 divisions",
+      "asOf": "2026-09-28T20:06:11.397Z"
     },
     {
       "id": "ledger",
       "state": "ok",
-      "detail": "63 lines"
+      "detail": "41 lines",
+      "asOf": "2026-09-28T23:59:04.791Z"
     },
     {
       "id": "tickets",
       "state": "ok",
-      "detail": "41 tickets in the queue"
+      "detail": "41 tickets in the queue",
+      "asOf": "2026-09-28T23:59:04.791Z"
     },
     {
       "id": "cycle-logs",
       "state": "ok",
-      "detail": "2 cycle logs in /home/user/enterprise-cycles"
+      "detail": "3 cycle logs in /home/user/enterprise-cycles",
+      "asOf": "2026-09-29T00:16:01.037Z"
     },
     {
       "id": "cycle-history",
       "state": "ok",
-      "detail": "2 cycles committed to the branch and 0 cycle records in the window"
+      "detail": "2 cycles committed to the branch and 0 cycle records in the window",
+      "asOf": "2026-09-28T23:59:04.791Z"
     },
     {
       "id": "scheduler",
       "state": "ok",
-      "detail": "scheduler runs (pid 1481)"
+      "detail": "scheduler runs (pid 1481)",
+      "asOf": "2026-09-29T00:16:01.037Z"
     },
     {
       "id": "shifts",
       "state": "ok",
-      "detail": "0 scratch runs; 0 sessions, 0 working"
+      "detail": "1 scratch run, shift 001527-881f running; 123 sessions, 4 working",
+      "asOf": "2026-09-29T00:16:01.037Z"
     },
     {
       "id": "department-transcripts",
       "state": "ok",
-      "detail": "no working department to match a transcript to"
+      "detail": "no working department to match a transcript to",
+      "asOf": "2026-09-29T00:16:01.037Z"
     },
     {
       "id": "operator-agents",
       "state": "ok",
-      "detail": "9 transcripts touched in the window, 9 working"
+      "detail": "9 transcripts touched in the window, 8 working",
+      "asOf": "2026-09-29T00:16:01.037Z"
     },
     {
       "id": "bench",
       "state": "ok",
-      "detail": "no bench loop runs; 0 live runs, 16 cells, 3 records in the window"
+      "detail": "no bench loop runs; 0 live runs, 16 cells, 3 records in the window",
+      "asOf": "2026-09-29T00:16:01.037Z"
     },
     {
       "id": "ci",
       "state": "ok",
-      "detail": "42 Branch CI runs read 0 s ago"
+      "detail": "45 Branch CI runs read 0 s ago",
+      "asOf": "2026-09-29T00:16:01.037Z"
     },
     {
       "id": "host",
       "state": "ok",
-      "detail": "1 filesystem"
+      "detail": "1 filesystem",
+      "asOf": "2026-09-29T00:16:01.037Z"
     },
     {
       "id": "requests",
       "state": "ok",
-      "detail": "0 owner requests, 0 open"
+      "detail": "0 owner requests, 0 open",
+      "asOf": "2026-09-28T23:59:04.791Z"
+    }
+  ],
+  "heartbeats": [
+    {
+      "id": "scheduler",
+      "label": "Cycle scheduler",
+      "state": "alive",
+      "lastRunAt": "2026-09-29T00:15:17.000Z",
+      "everySeconds": 7200,
+      "detail": "pid 1481; last ran 44 s ago"
+    },
+    {
+      "id": "transcript-capture",
+      "label": "Transcript capture",
+      "state": "alive",
+      "lastRunAt": "2026-09-28T23:58:02.000Z",
+      "everySeconds": 300,
+      "detail": "pid 5289; last ran 18 minutes ago"
+    },
+    {
+      "id": "ops-loop",
+      "label": "Operations loop",
+      "state": "alive",
+      "lastRunAt": "2026-09-29T00:15:50.379Z",
+      "everySeconds": 15,
+      "detail": "pid 8833; last ran 11 s ago"
     }
   ],
   "agents": [
     {
-      "id": "operator:f53f80cc",
-      "kind": "operator-agent",
-      "label": "operator session",
-      "doing": "Bash: Regenerate roster and deck data, commit, and push from the cycle worktree",
-      "startedAt": "2026-09-28T20:15:54.024Z",
-      "lastEventAt": "2026-09-29T00:14:50.815Z",
-      "tokens": 85778316,
-      "run": "operator",
+      "id": "cycle:cycle-20260929T001517Z",
+      "kind": "cycle-step",
+      "label": "cycle-20260929T001517Z · shift",
+      "doing": "running the cycle's shift step",
+      "startedAt": "2026-09-29T00:15:25.000Z",
+      "lastEventAt": "2026-09-29T00:15:27.107Z",
+      "run": "cycle-20260929T001517Z",
       "evidence": {
-        "label": "f53f80cc-1f77-5d02-a862-99d59ffabdce.jsonl transcript",
-        "path": "~/.claude/projects/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce.jsonl"
+        "label": "cycle-20260929T001517Z.log",
+        "path": "/home/user/enterprise-cycles/cycle-20260929T001517Z.log"
       },
-      "elapsedSeconds": 14350,
-      "idleSeconds": 13,
+      "elapsedSeconds": 36,
+      "idleSeconds": 34,
       "state": "working"
+    },
+    {
+      "id": "session:program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-@integration",
+      "kind": "department",
+      "label": "integration",
+      "doing": "bash: Apply corrections and re-verify",
+      "startedAt": "2026-09-08T11:47:50.751Z",
+      "lastEventAt": "2026-09-08T11:51:56.735Z",
+      "tokens": 273274,
+      "run": "shift 001527-881f",
+      "evidence": {
+        "label": "shift 001527-881f session log",
+        "path": "/tmp/dsh-enterprise/001527-881f/repo/data/proving-ground/2026-09-08-self-assessment-program-artefacts/sessions-superseded/integration-first-attempt.jsonl"
+      },
+      "elapsedSeconds": 1772890,
+      "idleSeconds": 1772644,
+      "state": "stuck"
+    },
+    {
+      "id": "session:program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows",
+      "kind": "department",
+      "label": "readme-rows",
+      "doing": "bash: Run the five required diff checks against real README rows",
+      "startedAt": "2026-09-27T16:19:22.763Z",
+      "lastEventAt": "2026-09-27T16:27:06.521Z",
+      "tokens": 2004416,
+      "run": "shift 001527-881f",
+      "evidence": {
+        "label": "shift 001527-881f session log",
+        "path": "/tmp/dsh-enterprise/001527-881f/repo/data/proving-ground/2026-09-27-readme-rows-program/sessions/program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows.jsonl"
+      },
+      "elapsedSeconds": 114998,
+      "idleSeconds": 114535,
+      "state": "stuck"
+    },
+    {
+      "id": "session:program-594b8ae96b47dfea924657c121d292a82564b4a387d9ae88c6e5a614f6e493fa-t-0001",
+      "kind": "department",
+      "label": "T-0001 · Agent Steward",
+      "seat": "harness-core-agent-steward",
+      "division": "harness-core",
+      "doing": "answering a failed acceptance check",
+      "startedAt": "2026-09-28T22:16:47.702Z",
+      "lastEventAt": "2026-09-28T22:31:52.196Z",
+      "tokens": 321460,
+      "run": "shift 001527-881f",
+      "evidence": {
+        "label": "shift 001527-881f session log",
+        "path": "/tmp/dsh-enterprise/001527-881f/repo/data/enterprise/shifts/2026-09-28-221520-e979/sessions/program-594b8ae96b47dfea924657c121d292a82564b4a387d9ae88c6e5a614f6e493fa-t-0001.jsonl"
+      },
+      "elapsedSeconds": 7153,
+      "idleSeconds": 6249,
+      "state": "stuck"
+    },
+    {
+      "id": "session:program-594b8ae96b47dfea924657c121d292a82564b4a387d9ae88c6e5a614f6e493fa-t-0022",
+      "kind": "department",
+      "label": "T-0022 · Dsh Doc Site Sync Skill Keeper",
+      "seat": "knowledge-dsh-doc-site-sync-skill-keeper",
+      "division": "knowledge",
+      "doing": "answering a failed acceptance check",
+      "startedAt": "2026-09-28T22:31:52.200Z",
+      "lastEventAt": "2026-09-28T22:53:56.384Z",
+      "tokens": 312323,
+      "run": "shift 001527-881f",
+      "evidence": {
+        "label": "shift 001527-881f session log",
+        "path": "/tmp/dsh-enterprise/001527-881f/repo/data/enterprise/shifts/2026-09-28-221520-e979/sessions/program-594b8ae96b47dfea924657c121d292a82564b4a387d9ae88c6e5a614f6e493fa-t-0022.jsonl"
+      },
+      "elapsedSeconds": 6249,
+      "idleSeconds": 4925,
+      "state": "stuck"
     },
     {
       "id": "operator:a30e0edc1751ce8aa",
@@ -104,8 +214,8 @@
         "label": "agent-a30e0edc1751ce8aa.jsonl transcript",
         "path": "~/.claude/projects/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/subagents/agent-a30e0edc1751ce8aa.jsonl"
       },
-      "elapsedSeconds": 7475,
-      "idleSeconds": 325,
+      "elapsedSeconds": 7531,
+      "idleSeconds": 382,
       "state": "working"
     },
     {
@@ -121,8 +231,8 @@
         "label": "agent-a3f1f43dd7e8b6763.jsonl transcript",
         "path": "~/.claude/projects/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/subagents/agent-a3f1f43dd7e8b6763.jsonl"
       },
-      "elapsedSeconds": 7453,
-      "idleSeconds": 24,
+      "elapsedSeconds": 7509,
+      "idleSeconds": 81,
       "state": "working"
     },
     {
@@ -138,24 +248,24 @@
         "label": "agent-a7a1c9d6c4bca406c.jsonl transcript",
         "path": "~/.claude/projects/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/subagents/agent-a7a1c9d6c4bca406c.jsonl"
       },
-      "elapsedSeconds": 6656,
-      "idleSeconds": 2946,
+      "elapsedSeconds": 6713,
+      "idleSeconds": 3002,
       "state": "stuck"
     },
     {
       "id": "operator:a966039ce0c503b27",
       "kind": "operator-agent",
       "label": "Live Operations Center for all agents",
-      "doing": "Bash: Find lastStart and newestStart uses",
+      "doing": "Bash: Regenerate the ops fixture and scan it for secrets",
       "startedAt": "2026-09-28T22:24:44.201Z",
-      "lastEventAt": "2026-09-29T00:15:03.471Z",
-      "tokens": 179792984,
+      "lastEventAt": "2026-09-29T00:16:00.347Z",
+      "tokens": 182646827,
       "run": "operator",
       "evidence": {
         "label": "agent-a966039ce0c503b27.jsonl transcript",
         "path": "~/.claude/projects/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/subagents/agent-a966039ce0c503b27.jsonl"
       },
-      "elapsedSeconds": 6620,
+      "elapsedSeconds": 6677,
       "idleSeconds": 1,
       "state": "working"
     },
@@ -163,51 +273,51 @@
       "id": "operator:a9624e9f526b3413c",
       "kind": "operator-agent",
       "label": "Client-grade executive briefing",
-      "doing": "Read charts.tsx",
+      "doing": "Bash: Check typecheck coverage for app tests and jsdom types",
       "startedAt": "2026-09-28T22:25:12.301Z",
-      "lastEventAt": "2026-09-29T00:14:45.391Z",
-      "tokens": 141315554,
+      "lastEventAt": "2026-09-29T00:15:30.175Z",
+      "tokens": 141699094,
       "run": "operator",
       "evidence": {
         "label": "agent-a9624e9f526b3413c.jsonl transcript",
         "path": "~/.claude/projects/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/subagents/agent-a9624e9f526b3413c.jsonl"
       },
-      "elapsedSeconds": 6592,
-      "idleSeconds": 19,
+      "elapsedSeconds": 6649,
+      "idleSeconds": 31,
       "state": "working"
     },
     {
       "id": "operator:aa4f8edcfed57abd6",
       "kind": "operator-agent",
       "label": "Fix the shift engine's failure modes",
-      "doing": "Bash: Apply the note edits and re-record pairs",
+      "doing": "Bash: Check whether a certifying run was recorded",
       "startedAt": "2026-09-28T23:09:11.891Z",
-      "lastEventAt": "2026-09-29T00:14:28.411Z",
-      "tokens": 85794023,
+      "lastEventAt": "2026-09-29T00:16:03.943Z",
+      "tokens": 90873643,
       "run": "operator",
       "evidence": {
         "label": "agent-aa4f8edcfed57abd6.jsonl transcript",
         "path": "~/.claude/projects/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/subagents/agent-aa4f8edcfed57abd6.jsonl"
       },
-      "elapsedSeconds": 3952,
-      "idleSeconds": 36,
+      "elapsedSeconds": 4009,
+      "idleSeconds": 0,
       "state": "working"
     },
     {
       "id": "operator:aef358a328bc41e90",
       "kind": "operator-agent",
       "label": "Privacy: mask PII in published transcripts",
-      "doing": "Bash: Push slice 1 (pre-push typecheck runs)",
+      "doing": "Bash: Rebase and push slice 1 without rerunning typecheck",
       "startedAt": "2026-09-28T23:49:14.194Z",
-      "lastEventAt": "2026-09-29T00:11:56.271Z",
-      "tokens": 5768445,
+      "lastEventAt": "2026-09-29T00:16:05.071Z",
+      "tokens": 6345156,
       "run": "operator",
       "evidence": {
         "label": "agent-aef358a328bc41e90.jsonl transcript",
         "path": "~/.claude/projects/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/subagents/agent-aef358a328bc41e90.jsonl"
       },
-      "elapsedSeconds": 1550,
-      "idleSeconds": 188,
+      "elapsedSeconds": 1607,
+      "idleSeconds": 0,
       "state": "working"
     },
     {
@@ -223,27 +333,12 @@
         "label": "agent-aaff35fcea3072153.jsonl transcript",
         "path": "~/.claude/projects/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/subagents/agent-aaff35fcea3072153.jsonl"
       },
-      "elapsedSeconds": 1530,
-      "idleSeconds": 148,
+      "elapsedSeconds": 1587,
+      "idleSeconds": 205,
       "state": "working"
     }
   ],
   "attention": [
-    {
-      "id": "cycle-refused:cycle-20260929T001300Z.log",
-      "kind": "cycle-step-failed",
-      "severity": "high",
-      "title": "The cycle of 00:13Z refused to run",
-      "detail": "enterprise-cycle: the checkout has uncommitted changes.",
-      "at": "2026-09-29T00:13:00.000Z",
-      "evidence": [
-        {
-          "label": "cycle-20260929T001300Z.log",
-          "path": "/home/user/enterprise-cycles/cycle-20260929T001300Z.log"
-        }
-      ],
-      "next": "Commit or discard the uncommitted changes in the cycle checkout; the next slot then runs."
-    },
     {
       "id": "cycle-step:cycle-20260928T221301Z:push",
       "kind": "cycle-step-failed",
@@ -257,8 +352,8 @@
           "path": "/home/user/enterprise-cycles/cycle-20260928T221300Z.log"
         },
         {
-          "label": "commit 74cae2486",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/74cae2486399019cc9ec7d6d523c121027560e19"
+          "label": "commit c81168966",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/c81168966a9567918f4bca196c3edaeaaa548410"
         }
       ],
       "next": "The cycle's commit is local only: push it by hand from the cycle checkout."
@@ -294,7 +389,7 @@
       "id": "stuck:operator:a7a1c9d6c4bca406c",
       "kind": "agent-stuck",
       "severity": "high",
-      "title": "Durable live transcript capture silent for 49 minutes",
+      "title": "Durable live transcript capture silent for 50 minutes",
       "detail": "Its newest event: Bash: Derive a dataset from real live chunks; check loop alive.",
       "at": "2026-09-28T23:25:58.703Z",
       "evidence": [
@@ -318,11 +413,86 @@
           "path": "/home/user/enterprise-cycles/cycle-20260928T221300Z.log"
         },
         {
-          "label": "commit 74cae2486",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/74cae2486399019cc9ec7d6d523c121027560e19"
+          "label": "commit c81168966",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/c81168966a9567918f4bca196c3edaeaaa548410"
         }
       ],
       "next": "Read the shift's run.log under /tmp/dsh-enterprise/<shift>/ and its record under data/enterprise/shifts/."
+    },
+    {
+      "id": "stuck:session:program-594b8ae96b47dfea924657c121d292a82564b4a387d9ae88c6e5a614f6e493fa-t-0022",
+      "kind": "agent-stuck",
+      "severity": "high",
+      "title": "T-0022 · Dsh Doc Site Sync Skill Keeper silent for 82 minutes",
+      "detail": "Its newest event: answering a failed acceptance check.",
+      "at": "2026-09-28T22:53:56.384Z",
+      "evidence": [
+        {
+          "label": "shift 001527-881f session log",
+          "path": "/tmp/dsh-enterprise/001527-881f/repo/data/enterprise/shifts/2026-09-28-221520-e979/sessions/program-594b8ae96b47dfea924657c121d292a82564b4a387d9ae88c6e5a614f6e493fa-t-0022.jsonl"
+        }
+      ],
+      "next": "Read its newest session events; the ticket budget ends it at 45 minutes of wall time, and a later shift works the ticket again."
+    },
+    {
+      "id": "stuck:session:program-594b8ae96b47dfea924657c121d292a82564b4a387d9ae88c6e5a614f6e493fa-t-0001",
+      "kind": "agent-stuck",
+      "severity": "high",
+      "title": "T-0001 · Agent Steward silent for 104 minutes",
+      "detail": "Its newest event: answering a failed acceptance check.",
+      "at": "2026-09-28T22:31:52.196Z",
+      "evidence": [
+        {
+          "label": "shift 001527-881f session log",
+          "path": "/tmp/dsh-enterprise/001527-881f/repo/data/enterprise/shifts/2026-09-28-221520-e979/sessions/program-594b8ae96b47dfea924657c121d292a82564b4a387d9ae88c6e5a614f6e493fa-t-0001.jsonl"
+        }
+      ],
+      "next": "Read its newest session events; the ticket budget ends it at 45 minutes of wall time, and a later shift works the ticket again."
+    },
+    {
+      "id": "stuck:session:program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows",
+      "kind": "agent-stuck",
+      "severity": "high",
+      "title": "readme-rows silent for 31.8 hours",
+      "detail": "Its newest event: bash: Run the five required diff checks against real README rows.",
+      "at": "2026-09-27T16:27:06.521Z",
+      "evidence": [
+        {
+          "label": "shift 001527-881f session log",
+          "path": "/tmp/dsh-enterprise/001527-881f/repo/data/proving-ground/2026-09-27-readme-rows-program/sessions/program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows.jsonl"
+        }
+      ],
+      "next": "Read its newest session events; the ticket budget ends it at 45 minutes of wall time, and a later shift works the ticket again."
+    },
+    {
+      "id": "stuck:session:program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-@integration",
+      "kind": "agent-stuck",
+      "severity": "high",
+      "title": "integration silent for 492.4 hours",
+      "detail": "Its newest event: bash: Apply corrections and re-verify.",
+      "at": "2026-09-08T11:51:56.735Z",
+      "evidence": [
+        {
+          "label": "shift 001527-881f session log",
+          "path": "/tmp/dsh-enterprise/001527-881f/repo/data/proving-ground/2026-09-08-self-assessment-program-artefacts/sessions-superseded/integration-first-attempt.jsonl"
+        }
+      ],
+      "next": "Read its newest session events; the ticket budget ends it at 45 minutes of wall time, and a later shift works the ticket again."
+    },
+    {
+      "id": "shift-failed:221520-e979",
+      "kind": "shift-failed",
+      "severity": "medium",
+      "title": "Shift 221520-e979 shipped nothing",
+      "detail": "T-0001: no certificate after 3 rounds; T-0022: no certificate after 3 rounds.",
+      "at": "2026-09-28T22:53:59.804Z",
+      "evidence": [
+        {
+          "label": "data/enterprise/shifts/2026-09-28-221520-e979/result.json",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/shifts/2026-09-28-221520-e979/result.json"
+        }
+      ],
+      "next": "Read the shift record's result.json and its session logs; each ticket the ledger halted or rejected is listed on its own."
     },
     {
       "id": "ticket:T-0001:halted",
@@ -366,17 +536,17 @@
   "big": {
     "seats": {
       "defined": 147,
-      "occupied": 47,
-      "activeToday": 39,
-      "workingNow": 0,
+      "occupied": 45,
+      "activeToday": 37,
+      "workingNow": 2,
       "divisions": [
         {
           "id": "harness-core",
           "name": "Harness Core",
           "defined": 24,
-          "occupied": 3,
-          "activeToday": 3,
-          "workingNow": 0
+          "occupied": 2,
+          "activeToday": 2,
+          "workingNow": 1
         },
         {
           "id": "proving-ground",
@@ -430,9 +600,9 @@
           "id": "knowledge",
           "name": "Knowledge",
           "defined": 11,
-          "occupied": 1,
-          "activeToday": 1,
-          "workingNow": 0
+          "occupied": 0,
+          "activeToday": 0,
+          "workingNow": 1
         },
         {
           "id": "governance",
@@ -459,8 +629,9 @@
       "rejected": 0
     },
     "cycles": {
-      "last24h": 2,
-      "lastStartedAt": "2026-09-28T22:13:00.000Z",
+      "last24h": 3,
+      "lastStartedAt": "2026-09-29T00:15:17.000Z",
+      "running": "cycle-20260929T001517Z",
       "nextAt": "2026-09-29T02:13:00.000Z"
     },
     "throughput": {
@@ -599,7 +770,7 @@
           "rejected": 0,
           "halted": 0,
           "functions": 29,
-          "runs": 32
+          "runs": 39
         },
         {
           "hour": "2026-09-28T18:00:00.000Z",
@@ -638,28 +809,28 @@
           "shipped": 0,
           "rejected": 0,
           "halted": 2,
-          "functions": 1,
-          "runs": 27
+          "functions": 0,
+          "runs": 20
         },
         {
           "hour": "2026-09-28T23:00:00.000Z",
           "shipped": 0,
           "rejected": 0,
           "halted": 0,
-          "functions": 16,
-          "runs": 24
+          "functions": 0,
+          "runs": 13
         },
         {
           "hour": "2026-09-29T00:00:00.000Z",
           "shipped": 0,
           "rejected": 0,
           "halted": 0,
-          "functions": 5,
+          "functions": 0,
           "runs": 7
         }
       ],
       "shippedPerHour": 0.08,
-      "deliverablesPerHour": 2.54
+      "deliverablesPerHour": 1.63
     },
     "shipped": [
       {
@@ -711,11 +882,11 @@
       "disks": [
         {
           "mount": "/",
-          "usedPct": 79.8
+          "usedPct": 76
         }
       ],
-      "memoryAvailablePct": 63.7,
-      "swapUsedPct": 14
+      "memoryAvailablePct": 79.5,
+      "swapUsedPct": 2.8
     }
   },
   "seats": [
@@ -723,8 +894,8 @@
       "id": "harness-core-agent-steward",
       "name": "Agent Steward",
       "division": "harness-core",
-      "occupied": true,
-      "activeToday": true
+      "occupied": false,
+      "activeToday": false
     },
     {
       "id": "harness-core-agent-default-model-steward",
@@ -1591,8 +1762,8 @@
       "id": "knowledge-dsh-doc-site-sync-skill-keeper",
       "name": "Dsh Doc Site Sync Skill Keeper",
       "division": "knowledge",
-      "occupied": true,
-      "activeToday": true
+      "occupied": false,
+      "activeToday": false
     },
     {
       "id": "knowledge-dsh-doc-standards-skill-keeper",
@@ -1751,6 +1922,20 @@
   ],
   "runs": [
     {
+      "id": "session:program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-@integration",
+      "kind": "department",
+      "label": "integration",
+      "startedAt": "2026-09-08T11:47:50.751Z",
+      "outcome": "running"
+    },
+    {
+      "id": "session:program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows",
+      "kind": "department",
+      "label": "readme-rows",
+      "startedAt": "2026-09-27T16:19:22.763Z",
+      "outcome": "running"
+    },
+    {
       "id": "bench:2026-09-27-bench-e13-probe-review-sonnet-t5t6",
       "kind": "bench-cell",
       "label": "2026-09-27-bench-e13-probe-review-sonnet-t5t6",
@@ -1764,6 +1949,38 @@
       "label": "2026-09-27-bench-e12-self-review-sonnet-t5t6-2",
       "startedAt": "2026-09-27T23:59:03.231Z",
       "endedAt": "2026-09-28T02:34:47.346Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-data",
+      "kind": "department",
+      "label": "data",
+      "startedAt": "2026-09-28T00:12:10.134Z",
+      "endedAt": "2026-09-28T00:17:23.534Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-dependencies",
+      "kind": "department",
+      "label": "dependencies",
+      "startedAt": "2026-09-28T00:13:51.506Z",
+      "endedAt": "2026-09-28T00:23:30.607Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-platform",
+      "kind": "department",
+      "label": "platform",
+      "startedAt": "2026-09-28T00:13:55.301Z",
+      "endedAt": "2026-09-28T00:19:17.989Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-4b9874c397f12ea5608efab69ddec460cfc94c863c0226b995797a6fcef8e672-@integration",
+      "kind": "department",
+      "label": "integration",
+      "startedAt": "2026-09-28T00:23:31.722Z",
+      "endedAt": "2026-09-28T00:33:26.234Z",
       "outcome": "ok"
     },
     {
@@ -1847,6 +2064,22 @@
       "outcome": "ok"
     },
     {
+      "id": "session:program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-injection",
+      "kind": "department",
+      "label": "injection",
+      "startedAt": "2026-09-28T17:23:54.960Z",
+      "endedAt": "2026-09-28T17:31:30.040Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets",
+      "kind": "department",
+      "label": "secrets",
+      "startedAt": "2026-09-28T17:23:54.966Z",
+      "endedAt": "2026-09-28T17:29:42.666Z",
+      "outcome": "ok"
+    },
+    {
       "id": "ledger:9",
       "kind": "reviewer",
       "label": "review · Injection Integrator",
@@ -1867,6 +2100,14 @@
       "outcome": "ok"
     },
     {
+      "id": "session:program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-access",
+      "kind": "department",
+      "label": "access",
+      "startedAt": "2026-09-28T17:23:55.314Z",
+      "endedAt": "2026-09-28T17:30:27.624Z",
+      "outcome": "ok"
+    },
+    {
       "id": "ledger:8",
       "kind": "reviewer",
       "label": "review · Access Integrator",
@@ -1874,6 +2115,14 @@
       "division": "code-safety",
       "startedAt": "2026-09-28T17:23:55.624Z",
       "endedAt": "2026-09-28T17:30:27.624Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-data",
+      "kind": "department",
+      "label": "data",
+      "startedAt": "2026-09-28T17:29:42.792Z",
+      "endedAt": "2026-09-28T17:40:42.858Z",
       "outcome": "ok"
     },
     {
@@ -1897,12 +2146,28 @@
       "outcome": "ok"
     },
     {
+      "id": "session:program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-dependencies",
+      "kind": "department",
+      "label": "dependencies",
+      "startedAt": "2026-09-28T17:30:27.808Z",
+      "endedAt": "2026-09-28T17:40:44.471Z",
+      "outcome": "ok"
+    },
+    {
       "id": "ledger:12",
       "kind": "reviewer",
       "label": "review · Platform Integrator",
       "seat": "code-safety-platform-integrator",
       "division": "code-safety",
       "startedAt": "2026-09-28T17:31:30.151Z",
+      "endedAt": "2026-09-28T17:41:36.151Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-platform",
+      "kind": "department",
+      "label": "platform",
+      "startedAt": "2026-09-28T17:31:30.163Z",
       "endedAt": "2026-09-28T17:41:36.151Z",
       "outcome": "ok"
     },
@@ -1964,6 +2229,14 @@
       "division": "judging",
       "startedAt": "2026-09-28T17:38:51.000Z",
       "endedAt": "2026-09-28T17:50:15.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-@integration",
+      "kind": "department",
+      "label": "integration",
+      "startedAt": "2026-09-28T17:41:37.718Z",
+      "endedAt": "2026-09-28T17:47:04.138Z",
       "outcome": "ok"
     },
     {
@@ -2245,7 +2518,8 @@
       "kind": "operator-agent",
       "label": "operator session",
       "startedAt": "2026-09-28T20:15:54.024Z",
-      "outcome": "running"
+      "endedAt": "2026-09-29T00:15:54.227Z",
+      "outcome": "ok"
     },
     {
       "id": "operator:a30e0edc1751ce8aa",
@@ -2300,8 +2574,7 @@
       "seat": "harness-core-agent-steward",
       "division": "harness-core",
       "startedAt": "2026-09-28T22:16:47.702Z",
-      "endedAt": "2026-09-28T22:31:52.196Z",
-      "outcome": "unknown"
+      "outcome": "running"
     },
     {
       "id": "operator:a7a1c9d6c4bca406c",
@@ -2331,68 +2604,7 @@
       "seat": "knowledge-dsh-doc-site-sync-skill-keeper",
       "division": "knowledge",
       "startedAt": "2026-09-28T22:31:52.200Z",
-      "endedAt": "2026-09-28T22:53:56.384Z",
-      "outcome": "unknown"
-    },
-    {
-      "id": "ledger:44",
-      "kind": "function-gate",
-      "label": "ci-coverage · Ci Coverage Judge",
-      "seat": "judging-ci-coverage",
-      "division": "judging",
-      "startedAt": "2026-09-28T22:53:01.000Z",
-      "endedAt": "2026-09-28T23:04:00.000Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:42",
-      "kind": "function-gate",
-      "label": "ci-static · Ci Static Judge",
-      "seat": "judging-ci-static",
-      "division": "judging",
-      "startedAt": "2026-09-28T22:53:02.000Z",
-      "endedAt": "2026-09-28T22:56:30.000Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:46",
-      "kind": "function-gate",
-      "label": "ci-consumers · Ci Consumers Judge",
-      "seat": "judging-ci-consumers",
-      "division": "judging",
-      "startedAt": "2026-09-28T22:53:02.000Z",
-      "endedAt": "2026-09-28T23:08:22.000Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:47",
-      "kind": "function-gate",
-      "label": "ci-lint-contracts-ready · Ci Lint Contracts Ready Judge",
-      "seat": "judging-ci-lint-contracts-ready",
-      "division": "judging",
-      "startedAt": "2026-09-28T22:53:02.000Z",
-      "endedAt": "2026-09-28T23:08:22.000Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:48",
-      "kind": "function-gate",
-      "label": "ci-snapshot · Ci Snapshot Judge",
-      "seat": "judging-ci-snapshot",
-      "division": "judging",
-      "startedAt": "2026-09-28T22:53:02.000Z",
-      "endedAt": "2026-09-28T23:08:22.000Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:49",
-      "kind": "function-gate",
-      "label": "ci-artifacts · Ci Artifacts Judge",
-      "seat": "judging-ci-artifacts",
-      "division": "judging",
-      "startedAt": "2026-09-28T22:53:02.000Z",
-      "endedAt": "2026-09-28T23:08:22.000Z",
-      "outcome": "ok"
+      "outcome": "running"
     },
     {
       "id": "cycle:cycle-20260928T221301Z:pull-after-shift",
@@ -2408,16 +2620,6 @@
       "label": "20260928T221301Z functions",
       "startedAt": "2026-09-28T22:55:05.000Z",
       "endedAt": "2026-09-29T00:10:26.000Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:43",
-      "kind": "function-gate",
-      "label": "verify-agent-note-classification · Agent Note Classification Verifier",
-      "seat": "verification-verify-agent-note-classification",
-      "division": "verification",
-      "startedAt": "2026-09-28T22:55:08.150Z",
-      "endedAt": "2026-09-28T23:00:07.350Z",
       "outcome": "ok"
     },
     {
@@ -2485,16 +2687,6 @@
       "outcome": "ok"
     },
     {
-      "id": "ledger:45",
-      "kind": "function-gate",
-      "label": "verify-agent-note-format · Agent Note Format Verifier",
-      "seat": "verification-verify-agent-note-format",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:00:07.334Z",
-      "endedAt": "2026-09-28T23:05:38.134Z",
-      "outcome": "ok"
-    },
-    {
       "id": "bench:h3-baseline-sonnet-t5-20260928T225704Z:environment-994de242-7e5c-4080-8fed-6d18e2b6cb24",
       "kind": "bench-cell",
       "label": "h3-baseline-sonnet-t5 · cell 994de242",
@@ -2559,16 +2751,6 @@
       "outcome": "ok"
     },
     {
-      "id": "ledger:50",
-      "kind": "function-gate",
-      "label": "verify-archived-agent-notes · Archived Agent Notes Verifier",
-      "seat": "verification-verify-archived-agent-notes",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:05:38.173Z",
-      "endedAt": "2026-09-28T23:08:47.973Z",
-      "outcome": "ok"
-    },
-    {
       "id": "bench:h3-baseline-sonnet-t5-20260928T225704Z:environment-db5dbbe1-7df9-45a5-bbf5-40cbfbc1bb98",
       "kind": "bench-cell",
       "label": "h3-baseline-sonnet-t5 · cell db5dbbe1",
@@ -2577,71 +2759,11 @@
       "outcome": "ok"
     },
     {
-      "id": "ledger:51",
-      "kind": "function-gate",
-      "label": "verify-client-domain-graph · Client Domain Graph Verifier",
-      "seat": "verification-verify-client-domain-graph",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:08:47.997Z",
-      "endedAt": "2026-09-28T23:15:33.097Z",
-      "outcome": "failed"
-    },
-    {
       "id": "operator:aa4f8edcfed57abd6",
       "kind": "operator-agent",
       "label": "Fix the shift engine's failure modes",
       "startedAt": "2026-09-28T23:09:11.891Z",
       "outcome": "running"
-    },
-    {
-      "id": "ledger:52",
-      "kind": "function-gate",
-      "label": "verify-config-source-ownership · Config Source Ownership Verifier",
-      "seat": "verification-verify-config-source-ownership",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:15:33.129Z",
-      "endedAt": "2026-09-28T23:21:44.429Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:53",
-      "kind": "function-gate",
-      "label": "verify-cordis-config · Cordis Config Verifier",
-      "seat": "verification-verify-cordis-config",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:21:44.384Z",
-      "endedAt": "2026-09-28T23:25:50.684Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:54",
-      "kind": "function-gate",
-      "label": "verify-doc-budgets · Doc Budgets Verifier",
-      "seat": "verification-verify-doc-budgets",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:25:50.732Z",
-      "endedAt": "2026-09-28T23:29:42.332Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:55",
-      "kind": "function-gate",
-      "label": "verify-doc-refs · Doc Refs Verifier",
-      "seat": "verification-verify-doc-refs",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:29:42.380Z",
-      "endedAt": "2026-09-28T23:37:55.980Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:56",
-      "kind": "function-gate",
-      "label": "verify-doc-site-fragments · Doc Site Fragments Verifier",
-      "seat": "verification-verify-doc-site-fragments",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:37:55.957Z",
-      "endedAt": "2026-09-28T23:50:50.657Z",
-      "outcome": "ok"
     },
     {
       "id": "operator:aef358a328bc41e90",
@@ -2656,76 +2778,6 @@
       "label": "Make Branch CI green and verdicts attach",
       "startedAt": "2026-09-28T23:49:34.485Z",
       "outcome": "running"
-    },
-    {
-      "id": "ledger:57",
-      "kind": "function-gate",
-      "label": "verify-dsh-package-licenses · Dsh Package Licenses Verifier",
-      "seat": "verification-verify-dsh-package-licenses",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:50:50.694Z",
-      "endedAt": "2026-09-28T23:56:27.994Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:58",
-      "kind": "function-gate",
-      "label": "verify-export-jsdoc · Export Jsdoc Verifier",
-      "seat": "verification-verify-export-jsdoc",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:56:27.965Z",
-      "endedAt": "2026-09-28T23:59:05.065Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:59",
-      "kind": "function-gate",
-      "label": "verify-md-links · Md Links Verifier",
-      "seat": "verification-verify-md-links",
-      "division": "verification",
-      "startedAt": "2026-09-28T23:59:05.029Z",
-      "endedAt": "2026-09-29T00:01:17.629Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:60",
-      "kind": "function-gate",
-      "label": "verify-md-wrap · Md Wrap Verifier",
-      "seat": "verification-verify-md-wrap",
-      "division": "verification",
-      "startedAt": "2026-09-29T00:01:17.644Z",
-      "endedAt": "2026-09-29T00:05:58.344Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:61",
-      "kind": "function-gate",
-      "label": "verify-mermaid · Mermaid Verifier",
-      "seat": "verification-verify-mermaid",
-      "division": "verification",
-      "startedAt": "2026-09-29T00:05:58.323Z",
-      "endedAt": "2026-09-29T00:10:17.623Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:62",
-      "kind": "function-gate",
-      "label": "session-stats · Session Stats Observer",
-      "seat": "observatory-session-stats-observer",
-      "division": "observatory",
-      "startedAt": "2026-09-29T00:10:20.534Z",
-      "endedAt": "2026-09-29T00:10:25.534Z",
-      "outcome": "ok"
-    },
-    {
-      "id": "ledger:63",
-      "kind": "function-gate",
-      "label": "scoreboard · Usage Scorekeeper",
-      "seat": "curation-data-scorekeeper",
-      "division": "curation-data",
-      "startedAt": "2026-09-29T00:10:20.558Z",
-      "endedAt": "2026-09-29T00:10:25.558Z",
-      "outcome": "ok"
     },
     {
       "id": "cycle:cycle-20260928T221301Z:roster",
@@ -2750,80 +2802,40 @@
       "startedAt": "2026-09-29T00:10:32.000Z",
       "endedAt": "2026-09-29T00:11:04.000Z",
       "outcome": "failed"
+    },
+    {
+      "id": "cycle:cycle-20260929T001517Z:pull",
+      "kind": "cycle-step",
+      "label": "20260929T001517Z pull",
+      "startedAt": "2026-09-29T00:15:17.000Z",
+      "endedAt": "2026-09-29T00:15:18.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T001517Z:intake",
+      "kind": "cycle-step",
+      "label": "20260929T001517Z intake",
+      "startedAt": "2026-09-29T00:15:18.000Z",
+      "endedAt": "2026-09-29T00:15:21.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T001517Z:intake-push",
+      "kind": "cycle-step",
+      "label": "20260929T001517Z intake-push",
+      "startedAt": "2026-09-29T00:15:21.000Z",
+      "endedAt": "2026-09-29T00:15:25.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T001517Z:shift",
+      "kind": "cycle-step",
+      "label": "20260929T001517Z shift",
+      "startedAt": "2026-09-29T00:15:25.000Z",
+      "outcome": "running"
     }
   ],
   "activity": [
-    {
-      "ts": 1790640326289,
-      "seq": 1142,
-      "kind": "tool",
-      "label": "Edit contract.ts",
-      "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640329087,
-      "seq": 1144,
-      "kind": "tool",
-      "label": "Edit contract.ts",
-      "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640331836,
-      "seq": 1146,
-      "kind": "tool",
-      "label": "Edit contract.ts",
-      "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640333831,
-      "seq": 1148,
-      "kind": "tool",
-      "label": "Edit contract.ts",
-      "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640340163,
-      "seq": 1154,
-      "kind": "tool",
-      "label": "Edit DayPanel.tsx",
-      "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640345220,
-      "seq": 1156,
-      "kind": "tool",
-      "label": "Edit DayPanel.tsx",
-      "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640349115,
-      "seq": 1158,
-      "kind": "tool",
-      "label": "Edit DayPanel.tsx",
-      "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640354281,
-      "seq": 1160,
-      "kind": "tool",
-      "label": "Edit DayPanel.tsx",
-      "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640357840,
-      "seq": 1162,
-      "kind": "tool",
-      "label": "Edit DayPanel.tsx",
-      "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640358344,
-      "seq": 60,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-md-wrap",
-      "kind": "certificate",
-      "label": "verify-md-wrap pass"
-    },
     {
       "ts": 1790640364900,
       "seq": 1167,
@@ -3014,48 +3026,6 @@
       "sessionId": "operator:a30e0edc1751ce8aa"
     },
     {
-      "ts": 1790640460397,
-      "seq": 966,
-      "kind": "tool",
-      "label": "Bash: Save the real department's committed diff as evidence",
-      "sessionId": "operator:aa4f8edcfed57abd6"
-    },
-    {
-      "ts": 1790640468283,
-      "seq": 970,
-      "kind": "tool",
-      "label": "Bash: Read the department's own gate results and final answer",
-      "sessionId": "operator:aa4f8edcfed57abd6"
-    },
-    {
-      "ts": 1790640477850,
-      "seq": 974,
-      "kind": "tool",
-      "label": "SendMessage",
-      "sessionId": "operator:aa4f8edcfed57abd6"
-    },
-    {
-      "ts": 1790640480039,
-      "seq": 977,
-      "kind": "tool",
-      "label": "Bash: Wait until 00:10Z for a reply",
-      "sessionId": "operator:aa4f8edcfed57abd6"
-    },
-    {
-      "ts": 1790640482168,
-      "seq": 1263,
-      "kind": "tool",
-      "label": "SendMessage",
-      "sessionId": "operator:f53f80cc"
-    },
-    {
-      "ts": 1790640497147,
-      "seq": 1639,
-      "kind": "tool",
-      "label": "Bash: Typecheck and run the builder spec",
-      "sessionId": "operator:a9624e9f526b3413c"
-    },
-    {
       "ts": 1790640506454,
       "seq": 1224,
       "kind": "tool",
@@ -3077,25 +3047,11 @@
       "sessionId": "operator:a30e0edc1751ce8aa"
     },
     {
-      "ts": 1790640513693,
-      "seq": 1848,
-      "kind": "tool",
-      "label": "Bash: Read OpsStage imports and Swimlanes header",
-      "sessionId": "operator:a966039ce0c503b27"
-    },
-    {
       "ts": 1790640514229,
       "seq": 1231,
       "kind": "tool",
       "label": "Edit enterprise-publish.ts",
       "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640516071,
-      "seq": 1852,
-      "kind": "tool",
-      "label": "Bash: Read isOpsSnapshot end and formatAge",
-      "sessionId": "operator:a966039ce0c503b27"
     },
     {
       "ts": 1790640517481,
@@ -3161,13 +3117,6 @@
       "sessionId": "operator:a30e0edc1751ce8aa"
     },
     {
-      "ts": 1790640568405,
-      "seq": 1857,
-      "kind": "tool",
-      "label": "Write patch33.py",
-      "sessionId": "operator:a966039ce0c503b27"
-    },
-    {
       "ts": 1790640569145,
       "seq": 1256,
       "kind": "tool",
@@ -3175,25 +3124,11 @@
       "sessionId": "operator:a30e0edc1751ce8aa"
     },
     {
-      "ts": 1790640570439,
-      "seq": 1859,
-      "kind": "tool",
-      "label": "Bash: Apply the deck patch and check collector tests",
-      "sessionId": "operator:a966039ce0c503b27"
-    },
-    {
       "ts": 1790640571352,
       "seq": 1259,
       "kind": "tool",
       "label": "Bash: Show others' changes to my cycle files",
       "sessionId": "operator:a30e0edc1751ce8aa"
-    },
-    {
-      "ts": 1790640573435,
-      "seq": 1863,
-      "kind": "tool",
-      "label": "Bash: Check status dot tone rules",
-      "sessionId": "operator:a966039ce0c503b27"
     },
     {
       "ts": 1790640578971,
@@ -3210,46 +3145,11 @@
       "sessionId": "operator:a9624e9f526b3413c"
     },
     {
-      "ts": 1790640581785,
-      "seq": 1867,
-      "kind": "tool",
-      "label": "Bash: Update deck tests for schema 2 and panel ages",
-      "sessionId": "operator:a966039ce0c503b27"
-    },
-    {
       "ts": 1790640582568,
       "seq": 1661,
       "kind": "tool",
       "label": "Bash: Apply summary refinements and render the Chinese side",
       "sessionId": "operator:a9624e9f526b3413c"
-    },
-    {
-      "ts": 1790640586259,
-      "seq": 1871,
-      "kind": "tool",
-      "label": "Bash: Check deck scripts and collector test status",
-      "sessionId": "operator:a966039ce0c503b27"
-    },
-    {
-      "ts": 1790640588550,
-      "seq": 1874,
-      "kind": "tool",
-      "label": "Bash: Find how deck tests and types are run",
-      "sessionId": "operator:a966039ce0c503b27"
-    },
-    {
-      "ts": 1790640593585,
-      "seq": 1879,
-      "kind": "tool",
-      "label": "Bash: Run deck tests and deck typecheck under the heavy lock",
-      "sessionId": "operator:a966039ce0c503b27"
-    },
-    {
-      "ts": 1790640596982,
-      "seq": 1884,
-      "kind": "tool",
-      "label": "Bash: Read the deck README's Operations section",
-      "sessionId": "operator:a966039ce0c503b27"
     },
     {
       "ts": 1790640602615,
@@ -3280,13 +3180,6 @@
       "sessionId": "operator:a966039ce0c503b27"
     },
     {
-      "ts": 1790640607007,
-      "seq": 982,
-      "kind": "tool",
-      "label": "Write watch-t0001.py",
-      "sessionId": "operator:aa4f8edcfed57abd6"
-    },
-    {
       "ts": 1790640609142,
       "seq": 1669,
       "kind": "tool",
@@ -3294,26 +3187,11 @@
       "sessionId": "operator:a9624e9f526b3413c"
     },
     {
-      "ts": 1790640610871,
-      "seq": 984,
-      "kind": "tool",
-      "label": "Monitor: T-0001 certifying run, disk under 4 GB, or a new cycle shift clone",
-      "sessionId": "operator:aa4f8edcfed57abd6"
-    },
-    {
       "ts": 1790640615778,
       "seq": 1674,
       "kind": "tool",
       "label": "Bash: Locate zh tier sentence",
       "sessionId": "operator:a9624e9f526b3413c"
-    },
-    {
-      "ts": 1790640617623,
-      "seq": 61,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-mermaid",
-      "kind": "certificate",
-      "label": "verify-mermaid pass"
     },
     {
       "ts": 1790640621148,
@@ -3344,34 +3222,11 @@
       "sessionId": "operator:a966039ce0c503b27"
     },
     {
-      "ts": 1790640625534,
-      "seq": 62,
-      "sessionId": "ledger",
-      "agentId": "observatory-session-stats-observer",
-      "kind": "certificate",
-      "label": "session-stats pass"
-    },
-    {
-      "ts": 1790640625558,
-      "seq": 63,
-      "sessionId": "ledger",
-      "agentId": "curation-data-scorekeeper",
-      "kind": "certificate",
-      "label": "scoreboard pass"
-    },
-    {
       "ts": 1790640626000,
       "seq": 6,
       "sessionId": "cycle:cycle-20260928T221301Z",
       "kind": "step",
       "label": "functions exit=0"
-    },
-    {
-      "ts": 1790640627543,
-      "seq": 988,
-      "kind": "tool",
-      "label": "Bash: Check the signoff note and human principal uses",
-      "sessionId": "operator:aa4f8edcfed57abd6"
     },
     {
       "ts": 1790640628281,
@@ -4109,39 +3964,11 @@
       "sessionId": "operator:a9624e9f526b3413c"
     },
     {
-      "ts": 1790640855848,
-      "seq": 1276,
-      "kind": "tool",
-      "label": "ReadNotifications",
-      "sessionId": "operator:f53f80cc"
-    },
-    {
-      "ts": 1790640858520,
-      "seq": 1282,
-      "kind": "tool",
-      "label": "Bash: Watchdog steps 0-2: container state and both loops",
-      "sessionId": "operator:f53f80cc"
-    },
-    {
-      "ts": 1790640860267,
-      "seq": 1284,
-      "kind": "tool",
-      "label": "Bash: Watchdog steps 4-5: cycle status and loop logs",
-      "sessionId": "operator:f53f80cc"
-    },
-    {
       "ts": 1790640865168,
       "seq": 1125,
       "kind": "tool",
       "label": "Write edit_note_signoff.py",
       "sessionId": "operator:aa4f8edcfed57abd6"
-    },
-    {
-      "ts": 1790640867116,
-      "seq": 1288,
-      "kind": "tool",
-      "label": "Bash: Inspect the cycle worktree's rebase conflict",
-      "sessionId": "operator:f53f80cc"
     },
     {
       "ts": 1790640868390,
@@ -4193,13 +4020,6 @@
       "sessionId": "operator:a3f1f43dd7e8b6763"
     },
     {
-      "ts": 1790640881820,
-      "seq": 1294,
-      "kind": "tool",
-      "label": "Bash: Merge both sides' ledger lines in time order and finish the rebase",
-      "sessionId": "operator:f53f80cc"
-    },
-    {
       "ts": 1790640884455,
       "seq": 1790,
       "kind": "tool",
@@ -4221,13 +4041,6 @@
       "sessionId": "operator:a966039ce0c503b27"
     },
     {
-      "ts": 1790640890743,
-      "seq": 1302,
-      "kind": "tool",
-      "label": "Bash: Regenerate roster and deck data, commit, and push from the cycle worktree",
-      "sessionId": "operator:f53f80cc"
-    },
-    {
       "ts": 1790640892572,
       "seq": 1996,
       "kind": "tool",
@@ -4247,6 +4060,188 @@
       "kind": "tool",
       "label": "Bash: Find lastStart and newestStart uses",
       "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640905250,
+      "seq": 2009,
+      "kind": "tool",
+      "label": "Bash: View CycleReading and return block",
+      "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640912661,
+      "seq": 2013,
+      "kind": "tool",
+      "label": "Bash: Use the scheduler's newest slot for its heartbeat",
+      "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640918000,
+      "seq": 1,
+      "sessionId": "cycle:cycle-20260929T001517Z",
+      "kind": "step",
+      "label": "pull exit=0"
+    },
+    {
+      "ts": 1790640919332,
+      "seq": 1132,
+      "kind": "tool",
+      "label": "Bash: Remove change narration from the note",
+      "sessionId": "operator:aa4f8edcfed57abd6"
+    },
+    {
+      "ts": 1790640921000,
+      "seq": 2,
+      "sessionId": "cycle:cycle-20260929T001517Z",
+      "kind": "step",
+      "label": "intake exit=0"
+    },
+    {
+      "ts": 1790640925000,
+      "seq": 3,
+      "sessionId": "cycle:cycle-20260929T001517Z",
+      "kind": "step",
+      "label": "intake-push exit=0"
+    },
+    {
+      "ts": 1790640926263,
+      "seq": 1137,
+      "kind": "tool",
+      "label": "Bash: Read intake spec imports and e2e result checks",
+      "sessionId": "operator:aa4f8edcfed57abd6"
+    },
+    {
+      "ts": 1790640926427,
+      "seq": 2018,
+      "kind": "tool",
+      "label": "Bash: Check test progress and lock queue length",
+      "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640929696,
+      "seq": 1797,
+      "kind": "tool",
+      "label": "Bash: Check typecheck coverage for app tests and jsdom types",
+      "sessionId": "operator:a9624e9f526b3413c"
+    },
+    {
+      "ts": 1790640932295,
+      "seq": 2022,
+      "kind": "tool",
+      "label": "Bash: Run the three focused spec files",
+      "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640934454,
+      "seq": 1141,
+      "kind": "tool",
+      "label": "Bash: Add intake decision assertions to spec and e2e",
+      "sessionId": "operator:aa4f8edcfed57abd6"
+    },
+    {
+      "ts": 1790640937740,
+      "seq": 1147,
+      "kind": "tool",
+      "label": "Bash: Confirm my T-0001 run's processes",
+      "sessionId": "operator:aa4f8edcfed57abd6"
+    },
+    {
+      "ts": 1790640939351,
+      "seq": 1150,
+      "kind": "tool",
+      "label": "Bash: List the driver's live children before stopping it",
+      "sessionId": "operator:aa4f8edcfed57abd6"
+    },
+    {
+      "ts": 1790640941322,
+      "seq": 1153,
+      "kind": "tool",
+      "label": "Bash: Identify the check process group under the driver",
+      "sessionId": "operator:aa4f8edcfed57abd6"
+    },
+    {
+      "ts": 1790640946256,
+      "seq": 1157,
+      "kind": "tool",
+      "label": "Bash: Stop my T-0001 run and its running check",
+      "sessionId": "operator:aa4f8edcfed57abd6"
+    },
+    {
+      "ts": 1790640946803,
+      "seq": 2027,
+      "kind": "tool",
+      "label": "Bash: Review build, feed and screenshot scripts",
+      "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640949346,
+      "seq": 2031,
+      "kind": "tool",
+      "label": "ToolSearch",
+      "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640950413,
+      "seq": 2035,
+      "kind": "tool",
+      "label": "TaskStop",
+      "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640953109,
+      "seq": 2038,
+      "kind": "tool",
+      "label": "Bash: Restart the local feed with the new collector",
+      "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640953442,
+      "seq": 1161,
+      "kind": "tool",
+      "label": "Bash: Keep the session logs and delete the T-0001 clone",
+      "sessionId": "operator:aa4f8edcfed57abd6"
+    },
+    {
+      "ts": 1790640955026,
+      "seq": 222,
+      "kind": "tool",
+      "label": "Bash: Check what new remote commits changed",
+      "sessionId": "operator:aef358a328bc41e90"
+    },
+    {
+      "ts": 1790640956704,
+      "seq": 2042,
+      "kind": "tool",
+      "label": "Bash: Show the fixture script",
+      "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640958256,
+      "seq": 226,
+      "kind": "tool",
+      "label": "Bash: List non-data files changed upstream",
+      "sessionId": "operator:aef358a328bc41e90"
+    },
+    {
+      "ts": 1790640960324,
+      "seq": 2045,
+      "kind": "tool",
+      "label": "Bash: Regenerate the ops fixture and scan it for secrets",
+      "sessionId": "operator:a966039ce0c503b27"
+    },
+    {
+      "ts": 1790640961928,
+      "seq": 232,
+      "kind": "tool",
+      "label": "Bash: Rebase and push slice 1 without rerunning typecheck",
+      "sessionId": "operator:aef358a328bc41e90"
+    },
+    {
+      "ts": 1790640963660,
+      "seq": 1165,
+      "kind": "tool",
+      "label": "Bash: Check whether a certifying run was recorded",
+      "sessionId": "operator:aa4f8edcfed57abd6"
     }
   ]
 }

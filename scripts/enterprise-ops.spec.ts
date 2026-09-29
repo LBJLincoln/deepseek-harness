@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -13,6 +13,7 @@ import {
   emptyTranscript,
   foldHarnessSession,
   foldTranscript,
+  newestCapture,
   parseCiJobs,
   parseCiRuns,
   parseCycleLog,
@@ -124,6 +125,16 @@ describe('cycle logs', () => {
     expect([...cyclesFromHistory(history)]).toEqual([
       ['cycle-20260928T221301Z', { first: '2026-09-28T22:15:19.000Z', last: '2026-09-28T22:40:00.000Z', commit: TIP }],
     ])
+  })
+
+  it('finds the transcript capture\'s newest round in the branch history', () => {
+    const history = [
+      `${TIP}\t2026-09-28T22:38:40Z\tchore(transcripts): live capture 2026-09-28T22:38:02Z`,
+      `${TIP}\t2026-09-28T22:44:00Z\tchore(transcripts): live capture unstamped`,
+      `${SHIPPED}\t2026-09-28T22:33:02Z\tchore(transcripts): live capture 2026-09-28T22:33:02Z`,
+    ].join('\n')
+    expect(newestCapture(history)).toBe(at('2026-09-28T22:44:00Z'))
+    expect(newestCapture(`${TIP}\t2026-09-28T22:38:40Z\tchore(enterprise): cycle-20260928T221301Z intake`)).toBeUndefined()
   })
 })
 
@@ -275,6 +286,8 @@ describe('collectOps', () => {
       previous: null,
     }))
     write(join(root, 'data/enterprise/requests/dark-deck.md'), '# Show the deck in dark mode\n\nPlease.\n')
+    write(join(root, '.git/FETCH_HEAD'), '')
+    utimesSync(join(root, '.git/FETCH_HEAD'), new Date('2026-09-28T22:36:00Z'), new Date('2026-09-28T22:36:00Z'))
     for (const id of ['T-0001', 'T-0002', 'T-0003', 'T-0004', 'T-0005']) {
       write(join(root, `data/enterprise/tickets/${id}.json`), JSON.stringify({ id, title: `Ticket ${id}`, seat: 'harness-core-agent-steward', division: 'harness-core' }))
     }
@@ -314,6 +327,7 @@ describe('collectOps', () => {
     const processes: ProcessInfo[] = [
       { pid: 10, ppid: 1, cmdline: 'bash scripts/enterprise-scheduler.sh', startedAt: at('2026-09-28T20:00:00Z') },
       { pid: 11, ppid: 10, cmdline: 'bash scripts/enterprise-cycle.sh', startedAt: at('2026-09-28T22:13:00Z') },
+      { pid: 12, ppid: 1, cmdline: 'bash scripts/transcripts-capture.sh', startedAt: at('2026-09-28T20:00:00Z') },
     ]
     const runs = {
       workflow_runs: [
@@ -335,6 +349,8 @@ describe('collectOps', () => {
       branch: 'claude/coding-agent-harness-u9l4gt',
       stuckMs: 20 * 60_000,
       staleMs: 2.5 * 3_600_000,
+      abandonMs: 30 * 60_000,
+      opsLoopState: join(base, 'ops-live-state.json'),
       ciMaxAgeMs: 120_000,
       state: { transcripts: {}, records: {} },
       github: async path => (path.includes('/jobs') ? jobs : runs),
@@ -342,13 +358,16 @@ describe('collectOps', () => {
       alive: pid => pid === 4242,
       memory: () => ({ availablePct: 7.5, swapUsedPct: 10 }),
       disks: () => [{ mount: '/', usedPct: 91.2, freeBytes: 5 * 1_073_741_824 }],
-      git: args => (args[0] === 'rev-list' ? `${TIP}\n` : `${TIP}\t2026-09-28T22:15:19Z\tchore(enterprise): cycle-20260928T221301Z intake\n`),
+      git: args => (args[0] === 'rev-list' ? `${TIP}\n` : args[0] === 'rev-parse' ? '.git/FETCH_HEAD\n' : [
+        `${TIP}\t2026-09-28T22:38:40Z\tchore(transcripts): live capture 2026-09-28T22:38:02Z`,
+        `${TIP}\t2026-09-28T22:15:19Z\tchore(enterprise): cycle-20260928T221301Z intake`,
+      ].join('\n')),
     }
   }
 
   it('lists every agent working now with its kind, seat, activity and tokens', async () => {
     const snapshot = await collectOps(machine())
-    expect(snapshot.schema).toBe(1)
+    expect(snapshot.schema).toBe(2)
     expect(snapshot.agents.map(agent => [agent.kind, agent.label, agent.state])).toEqual([
       ['cycle-step', 'cycle-20260928T221301Z · shift', 'working'],
       ['department', 'T-0004 · Agent Steward', 'working'],
@@ -369,6 +388,7 @@ describe('collectOps', () => {
       ['high', 'ci-red'],
       ['high', 'agent-stuck'],
       ['high', 'cycle-step-failed'],
+      ['medium', 'heartbeat-down'],
       ['medium', 'owner-request'],
       ['medium', 'ticket-halted'],
       ['low', 'ticket-rejected'],
@@ -399,6 +419,10 @@ describe('collectOps', () => {
     expect(snapshot.big.throughput?.shippedPerHour).toBe(0.04)
     expect(snapshot.sources.find(source => source.id === 'ledger')?.detail).toBe('4 lines, 1 unreadable and skipped')
     expect(snapshot.sources.find(source => source.id === 'requests')?.detail).toBe('1 owner request, 1 open')
+    // Each source dates its facts: the checkout's newest fetch, the roster's own time, the Branch CI read, the collection.
+    expect(Object.fromEntries(snapshot.sources.map(source => [source.id, source.asOf]))).toMatchObject({
+      roster: '2026-09-28T22:36:00.000Z', ledger: '2026-09-28T22:36:00.000Z', requests: '2026-09-28T22:36:00.000Z', ci: NOW.toISOString(), shifts: NOW.toISOString(),
+    })
     expect(snapshot.runs.map(run => run.id)).toEqual(expect.arrayContaining(['cycle:cycle-20260928T221301Z:intake-push', `session:${PROGRAM}-t-0004`, 'operator:abc123']))
   })
 
@@ -424,6 +448,13 @@ describe('collectOps', () => {
     expect(snapshot.big).toEqual({ seats: null, tickets: null, cycles: null, throughput: null, shipped: null, ci: null, host: null })
     expect(snapshot.agents).toEqual([])
     expect(snapshot.attention).toEqual([])
+    expect(snapshot.sources.every(source => source.asOf === undefined)).toBe(true)
+    // A checkout that cannot be dated leaves its files' facts undated rather than dated now.
+    const undated = await collectOps({ ...machine(), git: () => undefined })
+    expect(undated.sources.find(source => source.id === 'ledger')).toEqual({ id: 'ledger', state: 'ok', detail: '4 lines, 1 unreadable and skipped' })
+    expect(snapshot.heartbeats.map(beat => [beat.id, beat.state, beat.lastRunAt])).toEqual([
+      ['scheduler', 'unknown', undefined], ['transcript-capture', 'unknown', undefined], ['ops-loop', 'unknown', undefined],
+    ])
   })
 
   it('keeps the last Branch CI reading when a later read fails, and says so', async () => {
@@ -448,6 +479,52 @@ describe('collectOps', () => {
     expect(snapshot.agents.some(agent => agent.kind === 'cycle-step')).toBe(false)
   })
 
+  it('beats each background loop\'s heart from its process and its newest run', async () => {
+    const snapshot = await collectOps(machine())
+    expect(snapshot.heartbeats.map(beat => [beat.id, beat.state, beat.lastRunAt])).toEqual([
+      ['scheduler', 'alive', '2026-09-28T22:13:00.000Z'],
+      ['transcript-capture', 'alive', '2026-09-28T22:38:02.000Z'],
+      ['ops-loop', 'down', undefined],
+    ])
+    expect(snapshot.attention.find(item => item.kind === 'heartbeat-down')).toMatchObject({ id: 'heartbeat:ops-loop', severity: 'medium', title: 'The operations loop is not running' })
+    const inputs = machine()
+    const loop: ProcessInfo = { pid: 13, ppid: 1, cmdline: 'bash scripts/enterprise-ops-live.sh', startedAt: at('2026-09-28T22:00:00Z') }
+    // The capture is late only against what the checkout could see: its newest fetch is 27 minutes after the newest capture.
+    utimesSync(join(inputs.root, '.git/FETCH_HEAD'), new Date('2026-09-28T23:05:00Z'), new Date('2026-09-28T23:05:00Z'))
+    const live = await collectOps({ ...inputs, producer: 'loop', intervalSeconds: 15, processes: () => [...inputs.processes() ?? [], loop], now: new Date('2026-09-28T23:10:00.000Z') })
+    expect(live.heartbeats.map(beat => [beat.id, beat.state])).toEqual([['scheduler', 'alive'], ['transcript-capture', 'late'], ['ops-loop', 'alive']])
+    expect(live.heartbeats[2]).toMatchObject({ lastRunAt: '2026-09-28T23:10:00.000Z', everySeconds: 15 })
+    expect(live.attention.find(item => item.kind === 'heartbeat-down')).toMatchObject({ id: 'heartbeat:transcript-capture', severity: 'low' })
+  })
+
+  it('flags halted, failed and abandoned shifts from their records and scratch runs', async () => {
+    const inputs = machine()
+    const record = (name: string, result: Record<string, unknown>): void => {
+      write(join(inputs.root, `data/enterprise/shifts/${name}/result.json`), JSON.stringify({ type: 'result', shift: name.slice(-11), ...result }))
+      write(join(inputs.root, `data/enterprise/shifts/${name}/manifest.json`), JSON.stringify({ endedAt: result.endedAt }))
+    }
+    const ticket = (id: string, shipped: boolean, reason: string): Record<string, unknown> => ({ type: 'ticket', ticket: id, shipped: shipped ? { commit: SHIPPED } : null, reason })
+    record('2026-09-28-120000-0001', { startedAt: '2026-09-28T12:00:00Z', endedAt: '2026-09-28T12:40:00Z', report: { outcome: 'failed' }, halt: null, tickets: [ticket('T-0009', false, 'no certificate')] })
+    record('2026-09-28-140000-0002', { startedAt: '2026-09-28T14:00:00Z', endedAt: '2026-09-28T14:40:00Z', report: { outcome: 'released' }, halt: null, tickets: [ticket('T-0010', true, 'approved and assembled')] })
+    record('2026-09-28-160000-0003', { startedAt: '2026-09-28T16:00:00Z', endedAt: '2026-09-28T16:30:00Z', report: { outcome: 'halted' }, halt: { kind: 'limit', resetsAt: '2026-09-28T21:00:00Z' }, tickets: [ticket('T-0011', false, 'halted: limit')] })
+    record('2026-09-28-180000-0004', { startedAt: '2026-09-28T18:00:00Z', endedAt: '2026-09-28T18:20:00Z', report: null, halt: null, reason: 'the driver crashed in the assembly', tickets: ['T-0012'] })
+    const abandoned = join(inputs.scratch, '200000-abcd')
+    write(join(abandoned, 'run.log'), 'enterprise: shift 200000-abcd\n')
+    for (const path of [join(abandoned, 'run.log'), abandoned]) utimesSync(path, new Date('2026-09-28T21:00:00Z'), new Date('2026-09-28T21:00:00Z'))
+    const snapshot = await collectOps(inputs)
+    const shifts = snapshot.attention.filter(item => item.kind.startsWith('shift-'))
+    expect(shifts.map(item => [item.severity, item.kind, item.title])).toEqual([
+      ['high', 'shift-abandoned', 'Shift 200000-abcd was abandoned'],
+      ['high', 'shift-halted', 'Shift 160000-0003 halted at its usage limit'],
+      ['medium', 'shift-failed', 'Shift 180000-0004 shipped nothing'],
+    ])
+    expect(shifts[1]?.next).toBe('Its tickets stay open; the first cycle after 2026-09-28T21:00:00Z takes them again.')
+    expect(shifts[2]?.detail).toBe('the driver crashed in the assembly.')
+    expect(shifts[2]?.evidence[0]?.url).toBe('https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/shifts/2026-09-28-180000-0004/result.json')
+    // The live shift holds the lock, so it is not abandoned.
+    expect(shifts.some(item => item.id === 'shift-abandoned:221520-e979')).toBe(false)
+  })
+
   it('keeps the transcript and record reads it can reuse in its state', async () => {
     const inputs = machine()
     const state: OpsState = inputs.state
@@ -462,7 +539,7 @@ describe('parseOpsArgs', () => {
   it('defaults the producer from the output and refuses a bad number', () => {
     expect(parseOpsArgs(['--fixture'], {}).producer).toBe('cycle')
     expect(parseOpsArgs(['--push', '--interval', '15'], {}).producer).toBe('loop')
-    expect(parseOpsArgs([], { ENTERPRISE_CYCLE_LOGS: '/logs' })).toMatchObject({ producer: 'cli', cyclesDir: '/logs', stuckMinutes: 20, staleHours: 2.5, ci: true })
+    expect(parseOpsArgs([], { ENTERPRISE_CYCLE_LOGS: '/logs' })).toMatchObject({ producer: 'cli', cyclesDir: '/logs', stuckMinutes: 20, staleHours: 2.5, abandonMinutes: 30, ci: true })
     expect(() => parseOpsArgs(['--stuck-minutes', '0'], {})).toThrow('--stuck-minutes must be a positive number')
     expect(() => parseOpsArgs(['--bogus'], {})).toThrow()
   })

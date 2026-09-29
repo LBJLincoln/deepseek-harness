@@ -38,6 +38,7 @@ import {
   type OpsAgentKind,
   type OpsAttention,
   type OpsBigPicture,
+  type OpsHeartbeat,
   type OpsHour,
   type OpsLink,
   type OpsRun,
@@ -66,6 +67,7 @@ import {
   parseJsonl,
   parseMeminfo,
   parseSchedulerLog,
+  newestCapture,
   publicLine,
   readFrom,
   readProcesses,
@@ -165,6 +167,10 @@ export interface OpsInputs {
   stuckMs: number
   /** No cycle started for this long marks the scheduler stale. */
   staleMs: number
+  /** A shift's scratch run with no process and no record, silent for this long, is abandoned. */
+  abandonMs: number
+  /** The state file the operations loop rewrites on every tick, whose age is the loop's newest run. */
+  opsLoopState: string
   /** Branch CI is re-read when the cached read is older than this. */
   ciMaxAgeMs: number
   state: OpsState
@@ -267,6 +273,8 @@ interface RosterSeat {
 }
 
 interface RosterRead {
+  /** When the roster was computed, epoch milliseconds, when it says. */
+  generatedAt?: number
   divisions: { id: string; name: string }[]
   seats: Map<string, RosterSeat>
 }
@@ -293,7 +301,8 @@ function readRoster(root: string): RosterRead | undefined {
       occupied: (typeof evidence.sessions === 'number' && evidence.sessions > 0) || (typeof ledger.lines === 'number' && ledger.lines > 0),
     })
   }
-  return { divisions, seats }
+  const generatedAt = msOf(raw.generatedAt)
+  return { ...generatedAt === undefined ? {} : { generatedAt }, divisions, seats }
 }
 
 /** One readable ledger line with its line number in the file. */
@@ -383,8 +392,19 @@ class Collection {
     return this.now - WINDOW_MS
   }
 
+  /** Record a source read live: its facts describe the collection's own time. */
   ok(id: OpsSourceId, detail: string): void {
-    this.sources.set(id, { id, state: 'ok', detail })
+    this.dated(id, detail, this.now)
+  }
+
+  /**
+   * Record a source whose facts describe an earlier moment.
+   * @param id - The source.
+   * @param detail - What was read.
+   * @param asOf - That moment, epoch milliseconds; `undefined` when it cannot be told.
+   */
+  dated(id: OpsSourceId, detail: string, asOf: number | undefined): void {
+    this.sources.set(id, { id, state: 'ok', detail, ...asOf === undefined ? {} : { asOf: iso(asOf) } })
   }
 
   unknown(id: OpsSourceId, detail: string): void {
@@ -436,21 +456,24 @@ class Collection {
 export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
   const c = new Collection(inputs)
   const processes = inputs.processes()
+  const checkoutAt = checkoutTime(inputs)
 
   const roster = readRoster(inputs.root)
   if (roster === undefined) c.unknown('roster', 'data/enterprise/roster.json could not be read')
-  else c.ok('roster', `${roster.seats.size} seats in ${roster.divisions.length} divisions`)
+  else c.dated('roster', `${roster.seats.size} seats in ${roster.divisions.length} divisions`, roster.generatedAt ?? checkoutAt)
 
   const ledger = readLedgerNumbered(inputs.root)
   if (ledger === undefined) c.unknown('ledger', 'data/enterprise/ledger.jsonl could not be read')
-  else c.ok('ledger', `${ledger.lines.length} lines${ledger.skipped === 0 ? '' : `, ${ledger.skipped} unreadable and skipped`}`)
+  else c.dated('ledger', `${ledger.lines.length} lines${ledger.skipped === 0 ? '' : `, ${ledger.skipped} unreadable and skipped`}`, checkoutAt)
 
   const tickets = readTickets(inputs.root)
   if (tickets === undefined) c.unknown('tickets', 'data/enterprise/tickets/ could not be read')
-  else c.ok('tickets', `${tickets.size} tickets in the queue`)
+  else c.dated('tickets', `${tickets.size} tickets in the queue`, checkoutAt)
 
-  const cycles = collectCycles(c, processes)
-  collectScratch(c, roster, tickets, ledger, cycles)
+  const history = inputs.git(['log', `--since=${iso(c.since)}`, '--format=%H%x09%cI%x09%s', 'HEAD'])
+  const cycles = collectCycles(c, processes, history, checkoutAt)
+  const scratchRuns = collectScratch(c, roster, tickets, ledger, cycles)
+  collectShiftRecords(c, scratchRuns)
   collectRecords(c, roster, tickets, ledger)
   collectOperatorAgents(c)
   collectBench(c, processes)
@@ -458,7 +481,8 @@ export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
   collectLedgerRuns(c, roster, ledger)
   const ci = await collectCi(c, ledger)
   const host = collectHost(c)
-  collectRequests(c)
+  collectRequests(c, checkoutAt)
+  const heartbeats = collectHeartbeats(c, processes, history, cycles, checkoutAt)
   flagTickets(c, ledger, tickets)
   settleCycleAgent(c)
   flagStuck(c)
@@ -481,6 +505,7 @@ export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
     ...inputs.intervalSeconds === undefined ? {} : { intervalSeconds: inputs.intervalSeconds },
     window: { since: iso(c.since), until: inputs.now.toISOString() },
     sources: SOURCE_ORDER.map(id => c.sources.get(id) ?? { id, state: 'unknown', detail: 'not read' }),
+    heartbeats,
     agents: c.agents.sort((a, b) => a.kind.localeCompare(b.kind) || a.startedAt.localeCompare(b.startedAt)),
     attention: rankAttention(c.attention),
     big,
@@ -501,6 +526,18 @@ const SOURCE_ORDER: readonly OpsSourceId[] = [
   'roster', 'ledger', 'tickets', 'cycle-logs', 'cycle-history', 'scheduler', 'shifts',
   'department-transcripts', 'operator-agents', 'bench', 'ci', 'host', 'requests',
 ]
+
+/**
+ * When the checkout's branch files were current: its newest fetch of the
+ * branch (the mtime of `FETCH_HEAD`), else its HEAD commit's time.
+ * @param inputs - The checkout and its git.
+ * @returns Epoch milliseconds, or `undefined` when git cannot say.
+ */
+function checkoutTime(inputs: OpsInputs): number | undefined {
+  const fetchHead = inputs.git(['rev-parse', '--git-path', 'FETCH_HEAD'])?.trim()
+  const fetched = fetchHead === undefined || fetchHead === '' ? undefined : mtimeOf(resolve(inputs.root, fetchHead))
+  return fetched ?? msOf(inputs.git(['log', '-1', '--format=%cI', 'HEAD'])?.trim())
+}
 
 /**
  * Rank the attention queue: worst severity first, then newest first, a
@@ -525,6 +562,12 @@ interface CycleReading {
   summary: OpsBigPicture['cycles']
   /** The running cycle's log, when one runs. */
   running?: CycleLog
+  /** The newest cycle start any source records, epoch milliseconds. */
+  lastStart?: number
+  /** The scheduler's newest slot: the newest cycle start or cycle log, a refused cycle's included. */
+  lastTick?: number
+  /** The scheduler's process, when the process table shows one. */
+  scheduler?: ProcessInfo
 }
 
 /** Whether a process runs a given script. */
@@ -532,7 +575,12 @@ function runs(entry: ProcessInfo, script: string): boolean {
   return entry.cmdline.includes(script)
 }
 
-function collectCycles(c: Collection, processes: ProcessInfo[] | undefined): CycleReading {
+function collectCycles(
+  c: Collection,
+  processes: ProcessInfo[] | undefined,
+  history: string | undefined,
+  checkoutAt: number | undefined,
+): CycleReading {
   const { cyclesDir } = c.inputs
   const names = listDir(cyclesDir)
   const logs: CycleLog[] = []
@@ -547,14 +595,13 @@ function collectCycles(c: Collection, processes: ProcessInfo[] | undefined): Cyc
     c.ok('cycle-logs', `${logs.length} cycle ${logs.length === 1 ? 'log' : 'logs'} in ${cyclesDir}`)
   }
 
-  const history = c.inputs.git(['log', `--since=${iso(c.since)}`, '--format=%H%x09%cI%x09%s', 'HEAD'])
   const committed = history === undefined ? undefined : cyclesFromHistory(history)
   const { records, unreadable } = readCycleRecords(c.inputs.root)
   const recorded = records.filter(record => Date.parse(record.endedAt) >= c.since)
   if (committed === undefined) c.unknown('cycle-history', 'git log could not be read in the checkout')
   else {
     const skipped = unreadable.length === 0 ? '' : `, ${unreadable.length} unreadable ${unreadable.length === 1 ? 'record' : 'records'} skipped`
-    c.ok('cycle-history', `${committed.size} cycles committed to the branch and ${recorded.length} cycle records in the window${skipped}`)
+    c.dated('cycle-history', `${committed.size} cycles committed to the branch and ${recorded.length} cycle records in the window${skipped}`, checkoutAt)
   }
 
   const cycleProcess = processes?.find(entry => runs(entry, 'scripts/enterprise-cycle.sh'))
@@ -690,6 +737,9 @@ function collectCycles(c: Collection, processes: ProcessInfo[] | undefined): Cyc
 
   return {
     ...running === undefined ? {} : { running },
+    ...Number.isFinite(lastStart) ? { lastStart } : {},
+    ...Number.isFinite(Math.max(lastStart, newestStart)) ? { lastTick: Math.max(lastStart, newestStart) } : {},
+    ...schedulerProcess === undefined ? {} : { scheduler: schedulerProcess },
     summary: !known ? null : {
       last24h: inWindow.length,
       ...Number.isFinite(lastStart) ? { lastStartedAt: iso(lastStart) } : {},
@@ -823,13 +873,13 @@ function collectScratch(
   tickets: Map<string, TicketFile> | undefined,
   ledger: { lines: NumberedLine[] } | undefined,
   cycles: CycleReading,
-): void {
+): ScratchRun[] {
   const { scratch } = c.inputs
   const names = listDir(scratch)
   if (names === undefined) {
     c.unknown('shifts', `${scratch} is absent: no shift or intake has run since the machine started`)
     c.unknown('department-transcripts', 'no scratch runs to match transcripts to')
-    return
+    return []
   }
   const lock = readJson(join(scratch, 'shift.lock'))
   const holder = isRecord(lock) && typeof lock.pid === 'number' && typeof lock.shift === 'string' && c.inputs.alive(lock.pid) ? lock.shift : undefined
@@ -885,6 +935,7 @@ function collectScratch(
   }
   c.ok('shifts', `${runsHere.length} scratch ${runsHere.length === 1 ? 'run' : 'runs'}${holder === undefined ? '' : `, shift ${holder} running`}; ${sessions} sessions, ${working} working`)
   if (!c.sources.has('department-transcripts')) c.ok('department-transcripts', 'no working department to match a transcript to')
+  return runsHere
 }
 
 /** Review verdicts by review session id, from the ledger's ticket lines. */
@@ -1256,7 +1307,7 @@ async function collectCi(c: Collection, ledger: { lines: NumberedLine[] } | unde
   const read = state.ci
   if (read === undefined) return undefined
   const age = Math.round((c.now - read.fetchedAt) / 1000)
-  c.ok('ci', `${read.runs.length} Branch CI runs read ${age} s ago${read.error === undefined || (read.errorAt ?? 0) < read.fetchedAt ? '' : `; the newest read failed: ${publicLine(read.error, 80)}`}`)
+  c.dated('ci', `${read.runs.length} Branch CI runs read ${age} s ago${read.error === undefined || (read.errorAt ?? 0) < read.fetchedAt ? '' : `; the newest read failed: ${publicLine(read.error, 80)}`}`, read.fetchedAt)
 
   const latest = read.runs.find(run => run.status === 'completed' && run.conclusion !== 'cancelled' && run.conclusion !== 'skipped')
   const running = read.runs.find(run => run.status !== 'completed')
@@ -1404,7 +1455,7 @@ const REQUEST_ATTENTION: Partial<Record<RequestState, { severity: Severity; next
   halted: { severity: 'medium', next: 'Its ticket stays open and a later shift works it again; read the shift record for why it halted.' },
 }
 
-function collectRequests(c: Collection): void {
+function collectRequests(c: Collection, checkoutAt: number | undefined): void {
   if (listDir(join(c.inputs.root, 'data/enterprise/requests')) === undefined) {
     c.unknown('requests', 'data/enterprise/requests/ is absent in this checkout')
     return
@@ -1435,7 +1486,247 @@ function collectRequests(c: Collection): void {
       next: attention.next,
     })
   }
-  c.ok('requests', `${statuses.length} owner ${statuses.length === 1 ? 'request' : 'requests'}, ${open} open`)
+  c.dated('requests', `${statuses.length} owner ${statuses.length === 1 ? 'request' : 'requests'}, ${open} open`, checkoutAt)
+}
+
+// ---------------------------------------------------------------------------
+// Shift records: halted, failed and abandoned shifts
+// ---------------------------------------------------------------------------
+
+/** What the attention queue needs from one committed shift record. */
+interface ShiftRecord {
+  /** The record's directory under `data/enterprise/shifts/`. */
+  name: string
+  shift: string
+  startedAt: number
+  endedAt: number
+  shipped: number
+  /** `limit` and when it resets, when a route limit halted the shift. */
+  halt?: { kind: string; resetsAt?: string }
+  /** Why each ticket did not ship, or the record's own reason when the shift crashed before its report. */
+  reasons: string[]
+}
+
+/**
+ * @param dir - One record's directory.
+ * @param name - Its name.
+ * @returns The record, or `undefined` when its result cannot be read.
+ */
+function readShiftRecord(dir: string, name: string): ShiftRecord | undefined {
+  const result = readJson(join(dir, 'result.json'))
+  const manifest = readJson(join(dir, 'manifest.json'))
+  if (!isRecord(result)) return undefined
+  const startedAt = msOf(result.startedAt)
+  const endedAt = msOf(isRecord(manifest) ? manifest.endedAt : undefined) ?? msOf(result.endedAt) ?? startedAt
+  if (startedAt === undefined || endedAt === undefined) return undefined
+  const tickets = Array.isArray(result.tickets) ? result.tickets.filter(isRecord) : []
+  const halt = isRecord(result.halt) ? result.halt : undefined
+  const reasons = tickets.flatMap(ticket => (ticket.shipped === null || ticket.shipped === undefined) && typeof ticket.ticket === 'string'
+    ? [`${ticket.ticket}: ${typeof ticket.reason === 'string' ? ticket.reason : 'no reason recorded'}`]
+    : [])
+  return {
+    name,
+    shift: typeof result.shift === 'string' ? result.shift : name.slice(-11),
+    startedAt,
+    endedAt,
+    shipped: tickets.filter(ticket => isRecord(ticket.shipped)).length,
+    ...halt === undefined ? {} : { halt: { kind: String(halt.kind), ...typeof halt.resetsAt === 'string' ? { resetsAt: halt.resetsAt } : {} } },
+    reasons: result.report === null || result.report === undefined
+      ? typeof result.reason === 'string' ? [result.reason] : reasons
+      : reasons,
+  }
+}
+
+/**
+ * Flag the shifts that did not deliver: every committed shift record in the
+ * window newer than the newest shift that shipped (halted at a route limit,
+ * or shipping nothing), and every shift whose scratch run no process holds,
+ * that left no record, and has been silent past the abandon threshold.
+ * @param c - The collection.
+ * @param scratchRuns - The scratch runs {@link collectScratch} read.
+ */
+function collectShiftRecords(c: Collection, scratchRuns: readonly ScratchRun[]): void {
+  const dir = join(c.inputs.root, 'data/enterprise/shifts')
+  const names = listDir(dir) ?? []
+  const records = names
+    .filter(name => /^\d{4}-\d{2}-\d{2}-\d{6}-[0-9a-f]{4}$/.test(name))
+    .flatMap(name => readShiftRecord(join(dir, name), name) ?? [])
+    .filter(record => record.endedAt >= c.since)
+    .sort((a, b) => a.startedAt - b.startedAt)
+  const lastShipped = records.findLastIndex(record => record.shipped > 0)
+  for (const record of records.slice(lastShipped + 1)) {
+    const evidence = [blobLink(c.inputs.branch, `data/enterprise/shifts/${record.name}/result.json`)]
+    const why = publicLine(record.reasons.join('; ') || 'the record states no reason', 220)
+    if (record.halt !== undefined) {
+      const reset = record.halt.resetsAt === undefined ? 'no reset stated' : `resets at ${record.halt.resetsAt}`
+      c.flag({
+        id: `shift-halted:${record.shift}`,
+        kind: 'shift-halted',
+        severity: 'high',
+        title: `Shift ${record.shift} halted at its ${record.halt.kind === 'limit' ? 'usage limit' : record.halt.kind}`,
+        detail: `The route refused further turns (${reset}); ${record.shipped} shipped. ${why}.`,
+        at: iso(record.endedAt),
+        evidence,
+        next: record.halt.resetsAt === undefined
+          ? 'Its tickets stay open; check the route\'s limit before the next cycle takes them again.'
+          : `Its tickets stay open; the first cycle after ${record.halt.resetsAt} takes them again.`,
+      })
+    } else {
+      c.flag({
+        id: `shift-failed:${record.shift}`,
+        kind: 'shift-failed',
+        severity: 'medium',
+        title: `Shift ${record.shift} shipped nothing`,
+        detail: `${why}.`,
+        at: iso(record.endedAt),
+        evidence,
+        next: 'Read the shift record\'s result.json and its session logs; each ticket the ledger halted or rejected is listed on its own.',
+      })
+    }
+  }
+  for (const run of scratchRuns) {
+    if (run.live || run.intake || names.some(name => name.endsWith(`-${run.id}`))) continue
+    const last = Math.max(mtimeOf(run.dir) ?? 0, mtimeOf(join(run.dir, 'run.log')) ?? 0)
+    if (last < c.since || c.now - last < c.inputs.abandonMs) continue
+    c.flag({
+      id: `shift-abandoned:${run.id}`,
+      kind: 'shift-abandoned',
+      severity: 'high',
+      title: `Shift ${run.id} was abandoned`,
+      detail: `No process holds it, no shift record reached the branch, and its scratch run has been silent for ${hoursSince(c.now, last)}: the shift stopped before it recorded (a crash, a reset or a stop by hand).`,
+      at: iso(last),
+      evidence: [{ label: `shift ${run.id} scratch run`, path: homePath(run.dir) }],
+      next: `Read ${homePath(join(run.dir, 'run.log'))} for its last lines; its tickets stay open and the next shift takes them again.`,
+    })
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Heartbeats: the scheduler, the transcript capture, the operations loop
+// ---------------------------------------------------------------------------
+
+/** How often the transcript capture runs by default (`TRANSCRIPTS_CAPTURE_MINUTES`). */
+const CAPTURE_EVERY_SECONDS = 300
+
+/** How to start each loop, as the attention queue states it. */
+const LOOP_START: Record<'transcript-capture' | 'ops-loop', string> = {
+  'transcript-capture': 'From its own worktree of the branch: nohup setsid bash scripts/transcripts-capture.sh >> /home/user/enterprise-cycles/transcripts-capture.log 2>&1 < /dev/null & (data/transcripts/README.md).',
+  'ops-loop': 'From its own worktree of the branch: setsid nohup bash scripts/enterprise-ops-live.sh >> /home/user/enterprise-cycles/ops-live.log 2>&1 < /dev/null & (apps/command-deck/mirror/README.md).',
+}
+
+/** What one loop's heartbeat is read from. */
+interface BeatReading {
+  id: OpsHeartbeat['id']
+  label: string
+  /** Its process, when the process table shows one. */
+  running: ProcessInfo | undefined
+  /** Its newest run, epoch milliseconds, when a record of one was read. */
+  lastRun: number | undefined
+  everySeconds: number
+  /** How long after `measuredAt` the newest run may be before the loop is late. */
+  allowanceMs: number
+  /**
+   * When lateness is measured: the collection for a record read live, the
+   * checkout's newest fetch for a run the branch history records, since the
+   * checkout cannot see a run pushed after it.
+   */
+  measuredAt: number
+}
+
+/**
+ * How long ago something happened, in seconds, minutes or hours.
+ * @param now - The collection's time.
+ * @param then - The moment.
+ * @returns `12 s`, `16 minutes` or `2.0 hours`.
+ */
+function ago(now: number, then: number): string {
+  const seconds = Math.max(0, Math.round((now - then) / 1000))
+  return seconds < 90 ? `${seconds} s` : hoursSince(now, then)
+}
+
+/**
+ * One loop's heartbeat from its process and its newest run: alive while the
+ * process runs and the newest run is inside the allowance, late past it.
+ * @param c - The collection.
+ * @param processesRead - Whether the process table was read.
+ * @param beat - The loop's process and newest run.
+ * @returns The heartbeat.
+ */
+function heartbeat(c: Collection, processesRead: boolean, beat: BeatReading): OpsHeartbeat {
+  const { lastRun, running } = beat
+  const when = lastRun === undefined ? 'no run recorded in the window' : `last ran ${ago(c.now, lastRun)} ago`
+  const state: OpsHeartbeat['state'] = !processesRead ? 'unknown'
+    : running === undefined ? 'down'
+      : lastRun !== undefined && beat.measuredAt - lastRun <= beat.allowanceMs ? 'alive' : 'late'
+  const detail = state === 'unknown' ? `the process table could not be read; ${when}`
+    : state === 'down' ? `no process runs; ${when}`
+      : `pid ${running?.pid ?? '?'}; ${when}`
+  return {
+    id: beat.id,
+    label: beat.label,
+    state,
+    ...lastRun === undefined ? {} : { lastRunAt: iso(lastRun) },
+    everySeconds: beat.everySeconds,
+    detail,
+  }
+}
+
+/**
+ * The heartbeats of the loops the enterprise runs on, and an attention item
+ * for a transcript capture or an operations loop that is down or late (the
+ * scheduler's own items cover it).
+ * @returns The scheduler's, the transcript capture's and the operations loop's heartbeats.
+ */
+function collectHeartbeats(
+  c: Collection,
+  processes: ProcessInfo[] | undefined,
+  history: string | undefined,
+  cycles: CycleReading,
+  checkoutAt: number | undefined,
+): OpsHeartbeat[] {
+  const read = processes !== undefined
+  const find = (script: string): ProcessInfo | undefined => processes?.find(entry => runs(entry, script))
+  const opsEvery = c.inputs.producer === 'loop' ? c.inputs.intervalSeconds ?? 15 : 15
+  const beats = [
+    heartbeat(c, read, {
+      id: 'scheduler', label: 'Cycle scheduler', running: cycles.scheduler, lastRun: cycles.lastTick, everySeconds: 7200, allowanceMs: c.inputs.staleMs, measuredAt: c.now,
+    }),
+    heartbeat(c, read, {
+      id: 'transcript-capture',
+      label: 'Transcript capture',
+      running: find('scripts/transcripts-capture.sh'),
+      lastRun: history === undefined ? undefined : newestCapture(history),
+      everySeconds: CAPTURE_EVERY_SECONDS,
+      allowanceMs: 3 * CAPTURE_EVERY_SECONDS * 1000,
+      measuredAt: checkoutAt ?? c.now,
+    }),
+    heartbeat(c, read, {
+      id: 'ops-loop',
+      label: 'Operations loop',
+      running: find('enterprise-ops-live.sh'),
+      lastRun: c.inputs.producer === 'loop' ? c.now : mtimeOf(c.inputs.opsLoopState),
+      everySeconds: opsEvery,
+      allowanceMs: Math.max(3 * opsEvery * 1000, 120_000),
+      measuredAt: c.now,
+    }),
+  ]
+  for (const beat of beats) {
+    if (beat.id === 'scheduler' || (beat.state !== 'down' && beat.state !== 'late')) continue
+    const loop = beat.id === 'transcript-capture' ? 'transcript-capture' : 'ops-loop'
+    c.flag({
+      id: `heartbeat:${beat.id}`,
+      kind: 'heartbeat-down',
+      severity: beat.state === 'down' ? 'medium' : 'low',
+      title: `The ${beat.label.toLowerCase()} is ${beat.state === 'down' ? 'not running' : 'late'}`,
+      detail: beat.id === 'transcript-capture'
+        ? `${beat.detail}. A container reset erases every transcript written since the newest capture.`
+        : `${beat.detail}. The public deck shows the operations snapshot as a replay until the loop pushes again.`,
+      ...beat.lastRunAt === undefined ? {} : { at: beat.lastRunAt },
+      evidence: [],
+      next: beat.state === 'down' ? LOOP_START[loop] : 'Read the loop\'s log in /home/user/enterprise-cycles/ for its newest failure.',
+    })
+  }
+  return beats
 }
 
 // ---------------------------------------------------------------------------
@@ -1669,6 +1960,7 @@ export interface OpsCli {
   branch: string
   stuckMinutes: number
   staleHours: number
+  abandonMinutes: number
   ciMaxAgeSeconds: number
 }
 
@@ -1699,6 +1991,7 @@ export function parseOpsArgs(argv: readonly string[], env: NodeJS.ProcessEnv): O
       branch: { type: 'string' },
       'stuck-minutes': { type: 'string' },
       'stale-hours': { type: 'string' },
+      'abandon-minutes': { type: 'string' },
       'ci-max-age': { type: 'string' },
     },
     allowPositionals: false,
@@ -1731,6 +2024,7 @@ export function parseOpsArgs(argv: readonly string[], env: NodeJS.ProcessEnv): O
     branch: values.branch ?? env.ENTERPRISE_BRANCH ?? OPS_BRANCH,
     stuckMinutes: positive('stuck-minutes', values['stuck-minutes'], 20),
     staleHours: positive('stale-hours', values['stale-hours'], 2.5),
+    abandonMinutes: positive('abandon-minutes', values['abandon-minutes'], 30),
     ciMaxAgeSeconds: positive('ci-max-age', values['ci-max-age'], 120),
   }
 }
@@ -1794,6 +2088,9 @@ export function cliInputs(cli: OpsCli, state: OpsState): OpsInputs {
     branch: cli.branch,
     stuckMs: cli.stuckMinutes * 60_000,
     staleMs: cli.staleHours * 3_600_000,
+    abandonMs: cli.abandonMinutes * 60_000,
+    // The path scripts/enterprise-ops-live.sh passes as --state.
+    opsLoopState: join(tmpdir(), 'enterprise-ops-live-state.json'),
     ciMaxAgeMs: cli.ciMaxAgeSeconds * 1000,
     state,
     ...cli.ci ? { github: githubJson() } : {},

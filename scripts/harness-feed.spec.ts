@@ -790,11 +790,12 @@ describe('GET /ops and GET /ops/events', () => {
   /** A snapshot carrying the given activity frames and nothing else. */
   function snapshot(frames: RunEvent[]): OpsSnapshot {
     return {
-      schema: 1,
+      schema: 2,
       generatedAt: '2026-09-28T22:40:00.000Z',
       producer: 'feed',
       window: { since: '2026-09-27T22:40:00.000Z', until: '2026-09-28T22:40:00.000Z' },
       sources: [],
+      heartbeats: [],
       agents: [],
       attention: [],
       big: { seats: null, tickets: null, cycles: null, throughput: null, shipped: null, ci: null, host: null },

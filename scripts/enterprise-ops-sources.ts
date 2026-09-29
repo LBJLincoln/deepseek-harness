@@ -547,6 +547,24 @@ export function cyclesFromHistory(log: string): Map<string, { first: string; las
   return cycles
 }
 
+/**
+ * The transcript capture's newest round the branch history names: each round
+ * commits `chore(transcripts): live capture <UTC stamp>`.
+ * @param log - `git log --format=%H%x09%cI%x09%s` output.
+ * @returns The newest capture's stamp, else its commit time, epoch milliseconds; `undefined` when no capture is named.
+ */
+export function newestCapture(log: string): number | undefined {
+  let newest: number | undefined
+  for (const line of log.split('\n')) {
+    const [, at, subject] = line.split('\t')
+    const stamp = /^chore\(transcripts\): live capture (\S+)/.exec(subject ?? '')?.[1]
+    if (stamp === undefined) continue
+    const ms = msOf(stamp) ?? msOf(at)
+    if (ms !== undefined && (newest === undefined || ms > newest)) newest = ms
+  }
+  return newest
+}
+
 // ---------------------------------------------------------------------------
 // Branch CI (GitHub REST)
 // ---------------------------------------------------------------------------

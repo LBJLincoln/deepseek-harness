@@ -547,7 +547,7 @@ export const SEVERITY_ORDER: readonly Severity[] = ['critical', 'high', 'medium'
 // ---------------------------------------------------------------------------
 
 /** The version of {@link OpsSnapshot} a producer writes; a reader refuses any other. */
-export const OPS_SCHEMA = 1
+export const OPS_SCHEMA = 2
 
 /**
  * What kind of work one agent on the operations snapshot does: a step of the
@@ -622,6 +622,10 @@ export type OpsAttentionKind =
   | 'scheduler-stale'
   | 'scheduler-down'
   | 'agent-stuck'
+  | 'shift-halted'
+  | 'shift-failed'
+  | 'shift-abandoned'
+  | 'heartbeat-down'
   | 'disk-pressure'
   | 'memory-pressure'
   | 'owner-request'
@@ -677,6 +681,34 @@ export type OpsSourceId =
 export interface OpsSource {
   id: OpsSourceId
   state: 'ok' | 'unknown'
+  detail: string
+  /**
+   * The moment the source's facts describe, present when it was read: the
+   * collection for a source read live (processes, logs, transcripts, the
+   * host); the checkout's newest fetch of the branch for the files the branch
+   * carries (the ledger, the queue, the records); the roster's own
+   * `generatedAt`; the cached read of Branch CI.
+   */
+  asOf?: string
+}
+
+/** The background loops the enterprise runs on. */
+export type OpsHeartbeatId = 'scheduler' | 'transcript-capture' | 'ops-loop'
+
+/**
+ * Whether one background loop is alive: `alive` while its process runs and
+ * its newest run is inside the loop's allowance, `late` while the process
+ * runs but its newest run is older, `down` when no process runs, and
+ * `unknown` when the process table could not be read.
+ */
+export interface OpsHeartbeat {
+  id: OpsHeartbeatId
+  label: string
+  state: 'alive' | 'late' | 'down' | 'unknown'
+  /** The loop's newest run, when a record of one was read. */
+  lastRunAt?: string
+  /** How often the loop runs, in seconds. */
+  everySeconds: number
   detail: string
 }
 
@@ -762,6 +794,8 @@ export interface OpsSnapshot {
   intervalSeconds?: number
   window: ActiveWindow
   sources: OpsSource[]
+  /** The scheduler, the transcript capture and the operations loop, in that order. */
+  heartbeats: OpsHeartbeat[]
   agents: OpsAgent[]
   /** Worst first, then newest first. */
   attention: OpsAttention[]
