@@ -13,10 +13,10 @@
  */
 
 import { closeSync, openSync, readdirSync, readFileSync, readSync, statfsSync, statSync } from 'node:fs'
-import { basename, dirname, join, resolve } from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { basename, join } from 'node:path'
 
 import type { EventKind } from '../apps/command-deck/deck/contract.ts'
+import { SECRET_PATTERN_NAMES, redactText } from '../data/transcripts/tools/secret-patterns.mjs'
 import type { SessionLine } from './session-records.ts'
 
 // ---------------------------------------------------------------------------
@@ -41,27 +41,11 @@ const SECRET_PATTERNS: readonly RegExp[] = [
   /[A-Za-z0-9+/_-]{32,}={0,2}/g,
 ]
 
-/** The credential redaction the transcript archive and the live capture share, as this module calls it. */
-interface SharedRedaction {
-  SECRET_PATTERN_NAMES: Set<string>
-  redactText: (text: string, redact: Set<string>) => { text: string }
-}
-
-/**
- * The shared redaction, `data/transcripts/tools/secret-patterns.mjs`, loaded
- * once: a snapshot is published, so the collector refuses to load without it.
- */
-const SHARED: SharedRedaction = await import(
-  pathToFileURL(resolve(dirname(fileURLToPath(import.meta.url)), '../data/transcripts/tools/secret-patterns.mjs')).href,
-) as SharedRedaction
-
-/** An e-mail address; none reaches a published snapshot. */
-const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g
-
 /**
  * One line of text safe to publish: whitespace collapsed, every credential
- * shape of the shared transcript redaction replaced by its marker, e-mail
- * addresses replaced by `[REDACTED-EMAIL]`, this module's wider shapes by `…`,
+ * shape and e-mail address of the shared transcript redaction
+ * (`data/transcripts/tools/secret-patterns.mjs`) replaced by its marker, this
+ * module's wider shapes by `…`,
  * absolute paths under a home or temporary directory cut to their last
  * segment, and the result cut to `max` characters.
  * @param text - Any text an agent logged.
@@ -69,7 +53,7 @@ const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}
  * @returns The line.
  */
 export function publicLine(text: string, max = DOING_MAX): string {
-  let line = SHARED.redactText(text, SHARED.SECRET_PATTERN_NAMES).text.replaceAll(EMAIL, '[REDACTED-EMAIL]')
+  let line = redactText(text, SECRET_PATTERN_NAMES).text
   line = line.replaceAll(/\s+/g, ' ').trim()
   line = line.replaceAll(/(?:\/(?:home|root|tmp|Users)\/)[^\s'"`)]+/g, path => basename(path))
   for (const pattern of SECRET_PATTERNS) line = line.replaceAll(pattern, (match, name: unknown) => (typeof name === 'string' && match.includes('=') ? `${name}=…` : '…'))

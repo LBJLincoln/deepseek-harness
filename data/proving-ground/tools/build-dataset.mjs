@@ -45,6 +45,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join, relative, resolve } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { SECRET_PATTERNS } from '../../transcripts/tools/secret-patterns.mjs'
 import { armOf } from './summarize-run.mjs'
 
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
@@ -69,20 +70,11 @@ const UNSTATED_STOP = '(unstated)'
 const PURPOSES = ['delivery', 'training', 'evaluation']
 
 /**
- * Credential-shaped text, copied from
- * `data/transcripts/tools/collect-claude-code-session.mjs`, which owns the list
- * and does not export it. Keep the two in step.
+ * The credential shapes of the shared data/transcripts/tools/secret-patterns.mjs.
+ * Its `email` pattern is left to the mailbox rule below, which also refuses
+ * no stand-in address a parser environment feeds its tests.
  */
-const SECRET_PATTERNS = [
-  { name: 'anthropic-key', re: /sk-ant-[A-Za-z0-9_-]{20,}/g },
-  { name: 'openrouter-key', re: /\bsk-or-v1-[A-Za-z0-9]{20,}/g },
-  { name: 'openai-style-key', re: /\bsk-(?:proj-)?[A-Za-z0-9]{20,}/g },
-  { name: 'github-token', re: /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|\bgithub_pat_[A-Za-z0-9_]{20,}/g },
-  { name: 'aws-access-key', re: /\bAKIA[0-9A-Z]{16}\b/g },
-  { name: 'slack-token', re: /\bxox[abprs]-[A-Za-z0-9-]{10,}/g },
-  { name: 'private-key', re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/g },
-  { name: 'bearer-token', re: /\bBearer [A-Za-z0-9._~+/=-]{20,}/g },
-]
+const CREDENTIAL_PATTERNS = SECRET_PATTERNS.filter(pattern => pattern.kind === 'credential')
 
 /** An address with its mail domain captured, because the domain decides whether the match is a mailbox. */
 const EMAIL_RE = /\b[A-Za-z0-9._%+'-]+@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)\b/g
@@ -213,7 +205,7 @@ function scanTrajectory(record, trajectory, hits) {
     hits.push({ record, id: trajectory.id, path, pattern, digest: sha256(match[0]), excerpt: redactedExcerpt(text, match.index, match[0].length) })
   }
   for (const { path, text } of strings(trajectory, 'trajectory')) {
-    for (const { name, re } of SECRET_PATTERNS) {
+    for (const { name, re } of CREDENTIAL_PATTERNS) {
       for (const match of text.matchAll(re)) found(path, name, text, match)
     }
     for (const match of text.matchAll(EMAIL_RE)) {
