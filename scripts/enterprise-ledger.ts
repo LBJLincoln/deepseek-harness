@@ -14,6 +14,12 @@
  * reader relies on and reports the rest by line number, and never throws on a
  * torn or foreign line.
  *
+ * **Append-only.** A commit may only add lines at the end, and every commit a
+ * line names ({@link commitReferences}) must be an ancestor of the commit that
+ * added it; `scripts/verify-enterprise-ledger.ts` checks both over a commit
+ * range. A line written after the fact, for a run whose own writer never
+ * recorded it, carries {@link RecordedAfter} fields.
+ *
  * **Occupancy.** A seat is occupied only by a recorded deliverable: a ticket
  * line or a function line naming the seat's id exactly, or a recorded session
  * `scripts/roster-evidence.ts` attributes to it. A seat is active when its
@@ -56,8 +62,24 @@ export interface TicketReviewer {
   verdict: string
 }
 
+/**
+ * The two fields of a line written after the fact, present together or not at
+ * all. On such a line `at` is when the recorded event happened, or the
+ * earliest moment the evidence establishes it, and `recordedAt`, never earlier
+ * than `at`, is when the line was written.
+ */
+export interface RecordedAfter {
+  /**
+   * Who wrote the line, from a closed set. `supervisor`: the session that
+   * operates the enterprise, recording a run whose writer was destroyed or
+   * crashed before it wrote its own line, from evidence on the branch.
+   */
+  recordedBy?: 'supervisor'
+  recordedAt?: string
+}
+
 /** A ticket line: one worked ticket, as the engine records it. */
-export interface TicketLine {
+export interface TicketLine extends RecordedAfter {
   type: 'ticket'
   /** ISO time the line was recorded. */
   at: string
@@ -92,7 +114,7 @@ export type FunctionOutcome = 'pass' | 'fail' | 'error'
 type FunctionEvidence = { path: string } | { url: string }
 
 /** A function line: one seat performing its function on one commit. */
-export interface FunctionLine {
+export interface FunctionLine extends RecordedAfter {
   type: 'function'
   /** ISO time of the deliverable: when the gate ran, or when the CI verdict was rendered. */
   at: string
@@ -154,18 +176,41 @@ function isoTime(value: unknown): string | undefined {
   return Number.isFinite(ms) ? new Date(ms).toISOString() : undefined
 }
 
+const RECORDERS: ReadonlySet<string> = new Set<NonNullable<RecordedAfter['recordedBy']>>(['supervisor'])
+
 /**
- * The common fields both line types require.
+ * The after-the-fact fields of a line, both or neither.
+ * @param raw - the decoded line.
+ * @param at - the line's normalised `at`.
+ * @returns the fields (empty for a line recorded by its own writer), or the reason they are invalid.
+ */
+function recordedAfter(raw: Record<string, unknown>, at: string): RecordedAfter | string {
+  if (raw.recordedBy === undefined && raw.recordedAt === undefined) return {}
+  const recordedBy = optionalString(raw.recordedBy)
+  if (recordedBy === undefined || !RECORDERS.has(recordedBy)) return `"recordedBy" is not one of ${[...RECORDERS].join(', ')}`
+  const recordedAt = isoTime(raw.recordedAt)
+  if (recordedAt === undefined) return 'no parseable "recordedAt" beside "recordedBy"'
+  if (Date.parse(recordedAt) < Date.parse(at)) return '"recordedAt" precedes "at"'
+  return { recordedBy: recordedBy as NonNullable<RecordedAfter['recordedBy']>, recordedAt }
+}
+
+/** The fields both line types share. */
+type CommonFields = { at: string; shift: string; seat: string; division: string } & RecordedAfter
+
+/**
+ * The common fields both line types require, and the after-the-fact pair both allow.
  * @returns the fields, or the reason the line lacks one.
  */
-function commonFields(raw: Record<string, unknown>): { at: string; shift: string; seat: string; division: string } | string {
+function commonFields(raw: Record<string, unknown>): CommonFields | string {
   const at = isoTime(raw.at)
   if (at === undefined) return 'no parseable "at"'
   const seat = optionalString(raw.seat)
   if (seat === undefined || seat === '') return 'no "seat"'
   const division = optionalString(raw.division)
   if (division === undefined || division === '') return 'no "division"'
-  return { at, shift: optionalString(raw.shift) ?? '', seat, division }
+  const recorded = recordedAfter(raw, at)
+  if (typeof recorded === 'string') return recorded
+  return { at, shift: optionalString(raw.shift) ?? '', seat, division, ...recorded }
 }
 
 function parseChecks(value: unknown): TicketCheck[] {
@@ -268,6 +313,28 @@ export function parseLedgerLine(raw: unknown): LedgerLine | string {
   if (raw.type === 'function') return parseFunctionLine(raw)
   if (raw.type === undefined || raw.type === 'ticket') return parseTicketLine(raw)
   return `unknown line type ${JSON.stringify(raw.type)}`
+}
+
+/** One commit a ledger line names, and the field that names it. */
+export interface CommitReference {
+  field: 'shipped.commit' | 'target.commit' | 'target.requested' | 'target.via'
+  commit: string
+}
+
+/**
+ * Every commit a line names: a ticket line's shipped commit, a function line's
+ * covered commit and the commits its evidence was requested for or read
+ * through. The append-only gate requires each to exist and be an ancestor of
+ * the commit that added the line.
+ * @param line - one parsed line.
+ * @returns the references, in field order.
+ */
+export function commitReferences(line: LedgerLine): CommitReference[] {
+  if (line.type === 'ticket') return line.shipped === null ? [] : [{ field: 'shipped.commit', commit: line.shipped.commit }]
+  const references: CommitReference[] = [{ field: 'target.commit', commit: line.target.commit }]
+  if (line.target.requested !== undefined) references.push({ field: 'target.requested', commit: line.target.requested })
+  if (line.target.via !== undefined) references.push({ field: 'target.via', commit: line.target.via })
+  return references
 }
 
 /**

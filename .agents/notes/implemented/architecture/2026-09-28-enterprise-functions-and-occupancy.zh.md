@@ -10,7 +10,7 @@ Status: implemented
 
 ## Decision
 
-**一份台账，两种行类型。** `data/enterprise/ledger.jsonl` 是组织的记录，只追加、从不改写。引擎为每张处理过的工单追加一条*工单行*（`type: "ticket"`，或根本没有 `type`），带部门结果、验收检查、评审结论、整合结果以及已交付的提交或 `null`；`scripts/enterprise-functions.ts` 为每个在某个提交上执行了职能的席位追加一条*职能行*（`type: "function"`），带职能名称、目标提交、`pass` | `fail` | `error`、作为它写出的仓库路径或它读取的 URL 的证据，以及耗时。`scripts/enterprise-ledger.ts` 拥有这两种类型：它把该文件当作它本来就是的持久边界来读取，保留每一条带有读取方所依赖字段的行并按行号报告其余的行，并从工单行推出工单状态——有提交即 `shipped`，有失败的检查或非批准的结论即 `rejected`，其余为 `halted`，没有行即 `queued`。
+**一份台账，两种行类型。** `data/enterprise/ledger.jsonl` 是组织的记录，在[台账关卡](../process/2026-09-29-tamper-evident-enterprise-ledger.md)之下只可追加。引擎为每张处理过的工单追加一条*工单行*（`type: "ticket"`，或根本没有 `type`），带部门结果、验收检查、评审结论、整合结果以及已交付的提交或 `null`；`scripts/enterprise-functions.ts` 为每个在某个提交上执行了职能的席位追加一条*职能行*（`type: "function"`），带职能名称、目标提交、`pass` | `fail` | `error`、作为它写出的仓库路径或它读取的 URL 的证据，以及耗时。`scripts/enterprise-ledger.ts` 拥有这两种类型：它把该文件当作它本来就是的持久边界来读取，保留每一条带有读取方所依赖字段的行并按行号报告其余的行，并从工单行推出工单状态——有提交即 `shipped`，有失败的检查或非批准的结论即 `rejected`，其余为 `halted`，没有行即 `queued`。
 
 **在岗规则只计交付物，不计其他。** 一个席位只能被一条已记录的交付物占据：一条精确指名其 id 的台账行，或一个由 `scripts/roster-evidence.ts` 归属给它的已记录会话。当席位的最新交付物——按 `at` 计的行、按其记录最新日志时间计的会话——落在计算在岗时刻之前的 24 小时内时，该席位为活跃。`scripts/enterprise-ledger.ts` 中的 `occupancyOf` 是唯一的实现；花名册生成器、职能运行器的遥测快照与指挥台发布的报告都调用它。生成的花名册在每个席位的会话 `evidence` 旁带有 `ledger: { lines, lastAt? }`，顶层的 `ledger` 指明文件、读取的行数与未指向任何席位的行数，`activeWindow`（以 `generatedAt` 结束的 24 小时），按规则计得的 `counts.occupied` 与 `counts.active`，以及恰好为活跃席位设置的 `status: "active"`。时间窗按 `generatedAt` 而非读取时刻度量，因此该文件是一份写明时刻的快照，在未变的输入上逐字节复现；每一条新行或新记录都会重新盖章并重新度量时间窗。feed 的 `GET /roster` 保留自己的含义——状态与 `counts.active` 只来自被发现的会话，没有会话占据的席位无论文件怎么写都读作 `"defined"`——因为 feed 是实时视图，文件才是记录。
 

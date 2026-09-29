@@ -77,6 +77,12 @@ describe('gate graph validation', () => {
     await expect(runGates(subject, subject.length, execute)).resolves.toHaveLength(subject.length)
   })
 
+  it('keeps the enterprise ledger\'s append-only gate in the static lane', () => {
+    const ids = withPnpmEntrypoint(() => gatesForMode('ci-static').map(subject => subject.id))
+
+    expect(ids).toContain('enterprise-ledger')
+  })
+
   it('keeps the public repository link policy in the documentation gate', () => {
     const ids = withPnpmEntrypoint(() => gatesForMode('doc-sync').map(subject => subject.id))
 

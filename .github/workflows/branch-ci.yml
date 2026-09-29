@@ -51,7 +51,8 @@ jobs:
     env:
       DSH_GATE_CONCURRENCY: '2'
     steps:
-      # Full history: the archive gate reads the trusted base from the checkout.
+      # Full history: the archive gate and the ledger gate read their trusted
+      # base from the checkout.
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
@@ -83,8 +84,17 @@ jobs:
       - name: Install (immutable)
         run: pnpm install --frozen-lockfile
 
+      # The ledger gate checks the pushed range, from the tip before this push.
+      # A manual run has no such tip and a push that created the branch names
+      # all zeros; the gate then checks only that the head's ledger parses.
       - name: Run static gates
-        run: pnpm run check:ci:static
+        env:
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          if [[ -n "$PUSH_BEFORE" && ! "$PUSH_BEFORE" =~ ^0+$ ]]; then
+            export DSH_LEDGER_BASE_REF="$PUSH_BEFORE"
+          fi
+          pnpm run check:ci:static
 
   coverage:
     runs-on: ubuntu-latest

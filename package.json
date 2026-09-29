@@ -144,6 +144,7 @@
     "mock:llm": "node --import tsx packages/test-support/llm-mock-server/src/bin.ts",
     "dev:web": "tsx scripts/dev-web.ts --poll",
     "roster": "tsx scripts/enterprise-roster.ts",
+    "verify-enterprise-ledger": "tsx scripts/verify-enterprise-ledger.ts",
     "enterprise:functions": "NODE_USE_ENV_PROXY=1 tsx scripts/enterprise-functions.ts",
     "enterprise:publish": "NODE_USE_ENV_PROXY=1 tsx scripts/enterprise-publish.ts && NODE_USE_ENV_PROXY=1 tsx scripts/enterprise-ops.ts --fixture && pnpm run -s enterprise:briefing",
     "enterprise:briefing": "NODE_USE_ENV_PROXY=1 tsx scripts/enterprise-briefing.ts",

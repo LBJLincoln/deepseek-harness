@@ -14,6 +14,7 @@ import { ticketAcceptanceRefusal } from '../../../../../scripts/enterprise-accep
 import { scrubbedEnvironment } from '../../../../../scripts/enterprise-intake-admission.ts'
 import { ROSTER_PATH } from '../../../../../scripts/enterprise-roster.ts'
 import type { Roster } from '../../../../../scripts/enterprise-roster.ts'
+import type { RecordedAfter } from '../../../../../scripts/enterprise-ledger.ts'
 import { loadTickets, validateTickets } from '../../../../../scripts/enterprise-tickets.ts'
 import type { QueuePolicy } from '../../../../../scripts/enterprise-tickets.ts'
 
@@ -76,9 +77,11 @@ export type IntegrationOutcome =
 /**
  * One line of `data/enterprise/ledger.jsonl`: one ticket's passage through one
  * shift. The field set is shared with the enterprise functions that read the
- * ledger, so it changes only together with them.
+ * ledger, so it changes only together with them. The engine never writes the
+ * {@link RecordedAfter} fields; a line written after the fact for a shift that
+ * never wrote its own carries them.
  */
-export interface TicketLedgerLine {
+export interface TicketLedgerLine extends Readonly<RecordedAfter> {
   readonly type: 'ticket'
   /** ISO-8601 instant the line was written. */
   readonly at: string
@@ -249,14 +252,24 @@ export function parseLedger(text: string): TicketLedgerLine[] {
 }
 
 /**
- * The status of every ticket the ledger names, from each ticket's latest line.
+ * The status of every ticket the ledger names, from each ticket's latest line:
+ * the last in file order, except that a line written after the fact (one with
+ * `recordedAt`) is latest only when its `at` is not earlier than the line it
+ * would replace, so recording an old shift never reopens or recloses a ticket
+ * a later shift settled.
  * @param lines - the ledger in file order.
  * @returns ticket id to status; a ticket with no line is absent, which is `open`.
  */
 export function ticketStatuses(lines: readonly TicketLedgerLine[]): Map<string, TicketStatus> {
-  const statuses = new Map<string, TicketStatus>()
+  const latest = new Map<string, TicketLedgerLine>()
   for (const line of lines) {
-    statuses.set(line.ticket, line.shipped !== null ? 'shipped' : line.review.verdict === 'reject' ? 'rejected' : 'open')
+    const current = latest.get(line.ticket)
+    if (current !== undefined && line.recordedAt !== undefined && Date.parse(line.at) < Date.parse(current.at)) continue
+    latest.set(line.ticket, line)
+  }
+  const statuses = new Map<string, TicketStatus>()
+  for (const [ticket, line] of latest) {
+    statuses.set(ticket, line.shipped !== null ? 'shipped' : line.review.verdict === 'reject' ? 'rejected' : 'open')
   }
   return statuses
 }

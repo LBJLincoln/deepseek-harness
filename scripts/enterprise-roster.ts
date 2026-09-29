@@ -309,14 +309,21 @@ function packageLeaves(root: string, group: string): string[] {
 }
 
 /**
- * Real `verify-*.ts` gate scripts (excluding their `.spec.ts` tests), sorted
- * for deterministic iteration.
+ * The `verify-*.ts` scripts no verifier seat takes. The ledger's append-only
+ * gate checks a commit range from a base the push names, not the tree of one
+ * commit, so it is not a function a seat performs on the commit it covers.
+ */
+const UNSEATED_VERIFY_SCRIPTS: ReadonlySet<string> = new Set(['verify-enterprise-ledger.ts'])
+
+/**
+ * Real `verify-*.ts` gate scripts (excluding their `.spec.ts` tests and
+ * {@link UNSEATED_VERIFY_SCRIPTS}), sorted for deterministic iteration.
  * @param root - repository root.
  * @returns sorted script filenames under `scripts/`.
  */
 function verifyScripts(root: string): string[] {
   return readdirSync(join(root, 'scripts'))
-    .filter(name => name.startsWith('verify-') && name.endsWith('.ts') && !name.endsWith('.spec.ts'))
+    .filter(name => name.startsWith('verify-') && name.endsWith('.ts') && !name.endsWith('.spec.ts') && !UNSEATED_VERIFY_SCRIPTS.has(name))
     .sort()
 }
 

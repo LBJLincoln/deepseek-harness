@@ -7,6 +7,7 @@ import {
   ACTIVE_WINDOW_MS,
   activeWindow,
   appendLedger,
+  commitReferences,
   countWork,
   ledgerBySeat,
   occupancyByDivision,
@@ -90,9 +91,32 @@ describe('parseLedgerLine', () => {
     expect(parseLedgerLine({ ...GATE, type: 'note' })).toBe('unknown line type "note"')
   })
 
+  it('keeps a line written after the fact with its recorder and recording time, both or neither', () => {
+    const after = { ...SHIPPED, shipped: null, recordedBy: 'supervisor' as const, recordedAt: '2026-09-29T10:00:00.000Z' }
+    expect(parseLedgerLine(after)).toEqual(after)
+    expect(parseLedgerLine({ ...GATE, recordedBy: 'supervisor', recordedAt: '2026-09-29T10:00:00Z' })).toEqual({ ...GATE, recordedBy: 'supervisor', recordedAt: '2026-09-29T10:00:00.000Z' })
+    expect(parseLedgerLine({ ...after, recordedBy: 'operator' })).toBe('"recordedBy" is not one of supervisor')
+    expect(parseLedgerLine({ ...after, recordedBy: undefined })).toBe('"recordedBy" is not one of supervisor')
+    expect(parseLedgerLine({ ...after, recordedAt: undefined })).toBe('no parseable "recordedAt" beside "recordedBy"')
+    expect(parseLedgerLine({ ...after, recordedAt: '2026-09-28T11:59:59.000Z' })).toBe('"recordedAt" precedes "at"')
+  })
+
   it('keeps only the checks that state an id and a boolean', () => {
     const line = parseLedgerLine({ ...SHIPPED, checks: [{ id: 'a', ok: false }, { id: 'b' }, 'c', null] })
     expect(typeof line === 'string' ? line : line.type === 'ticket' ? line.checks : []).toEqual([{ id: 'a', ok: false }])
+  })
+})
+
+describe('commitReferences', () => {
+  it('names a ticket line\'s shipped commit and every commit a function line\'s target names', () => {
+    expect(commitReferences(SHIPPED)).toEqual([{ field: 'shipped.commit', commit: 'abc123' }])
+    expect(commitReferences({ ...SHIPPED, shipped: null })).toEqual([])
+    expect(commitReferences(GATE)).toEqual([{ field: 'target.commit', commit: 'abc123' }])
+    expect(commitReferences({ ...GATE, target: { commit: 'a', requested: 'b', via: 'c' } })).toEqual([
+      { field: 'target.commit', commit: 'a' },
+      { field: 'target.requested', commit: 'b' },
+      { field: 'target.via', commit: 'c' },
+    ])
   })
 })
 

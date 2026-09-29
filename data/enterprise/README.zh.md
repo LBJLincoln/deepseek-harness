@@ -38,10 +38,24 @@
 
 ## 台账
 
-`ledger.jsonl` 只追加、从不改写，每行一个 JSON 对象。两种行类型共用它；没有 `type` 的行按工单行读取，缺少读取方所依赖字段（`at`、`seat`、`division`，以及该类型自身的必填字段）的行会被跳过并按行号报告，而不是被猜测。
+`ledger.jsonl` 只可追加，每行一个 JSON 对象。两种行类型共用它；没有 `type` 的行按工单行读取，缺少读取方所依赖字段（`at`、`seat`、`division`，以及该类型自身的必填字段）的行会被跳过并按行号报告，而不是被猜测。
 
 - **工单行**是一个班次中处理过的一张工单，由[引擎](#shifts)（`pnpm run enterprise -- shift`）追加：`{ "type": "ticket", "at", "shift", "ticket", "seat", "division", "programId", "implementer", "model", "department": { "outcome", "sessionId" }, "checks": [{ "id", "ok" }], "review": { "verdict", "sessionId" }, "reviewer"?: { "sessionId", "route", "model", "verdict" }, "integration": { "outcome" }, "shipped": { "commit" } | null, "reason", "tokens", "seconds" }`。`department.outcome` 取 `certified`、`failed`、`blocked`、`abandoned`、`pending` 或 `halted`；`review.verdict` 取 `approve`、`reject` 或 `none`；`reviewer` 出现在引擎开始记录它之后每条由评审作出裁定的行上，写明评审员的会话、它运行所在的路由与模型及其结论；`integration.outcome` 取 `merged`、`skipped`、`conflict`、`checks-failed`、`digest-mismatch` 或 `not-shipped`；`shipped.commit` 是分支上承载该工单修改的提交。工单的状态取其最近一行：`shipped` 指 `shipped` 指明了一个提交，`rejected` 指评审结论为 `reject`，其余为 `halted`——验收失败的部门、集成无法组装的修改，或被路由用量上限停下的班次（原因写作 `halted: limit (resets at <instant>)`）——没有任何行的工单为 `queued`。工单一旦为 `shipped` 或 `rejected` 即告关闭；`halted` 的工单保持开放，由后续班次再次处理。
 - **职能行**是一个席位在一个提交上执行其职能，由 `pnpm run enterprise:functions` 追加：`{ "type": "function", "at", "shift", "seat", "division", "function", "target": { "commit", "via"?, "requested"? }, "outcome": "pass" | "fail" | "error", "evidence": { "path" } | { "url" }, "seconds" }`。`at` 是交付物自身的时间——关卡结束之时，或 CI 裁决作出之时——`outcome` 是关卡或裁决的结果，`error` 表示未能取得裁决，`evidence` 是席位写出的输出，或它读取裁决的页面。
+
+**只可追加。** 一个提交只能在文件末尾添加行；合并提交按顺序保留每个父提交的全部行，正如 `.gitattributes` 中的 `merge=union` 驱动合并两个写入方的追加。一行所指明的每个提交（工单行的 `shipped.commit`；职能行的 `target.commit`、`target.requested` 与 `target.via`）都必须是完整的提交 ID，并且是添加该行的提交的祖先，因此没有任何一行会引用分支上不存在的工作。写入方若在推送前变基，须围绕新的哈希改写自己尚未推送的行，[引擎](#shifts)即是如此；恢复某个克隆中未推送的提交时也必须这样做，或者合并那段历史，使其各行所指明的每个提交都留在分支上。[`scripts/verify-enterprise-ledger.ts`](../../scripts/verify-enterprise-ledger.ts) 检查这两条规则：`pnpm run verify-enterprise-ledger -- --base <rev> [--head <rev>]` 遍历 `base..head` 中每个改动该文件的提交，遇到以下情形即失败：在末尾之前插入、删除或改动的行，丢弃了某个父提交之行的合并，无法解析的新增行，以及缩写的、不存在的或不在添加提交祖先链上的引用；若头提交已不包含基准提交，则按分支被改写判为失败。Branch CI 的静态通道以推送的 `github.event.before` 为基准，对每次推送运行它。手动运行或创建分支的推送没有基准，此时该关卡只检查每一行都能解析。GitHub 对该工作流只保留最新一次待运行的任务，因此运行被取代的推送没有属于自己的检查；以任一时间段的起点为 `--base` 运行一次，即可覆盖整段。
+
+**事后写入的行。** 若某次运行的写入方在写下自己的行之前被销毁或崩溃，就由一条事后写入的行来记录它；这样的行带有 `"recordedBy"` 与 `"recordedAt"`，二者同时出现或同时缺省。`recordedBy` 取自一个封闭集合，目前只有 `supervisor`：运营该企业的会话，它只依据分支上的证据写这样的行，并在 `reason` 中引用该证据。在这样的行上，`at` 是事件发生的时间，或证据所能确立的最早时刻；`recordedAt` 是写下该行的时间，不早于 `at`。它让 `checks` 保持为空，并省略 `model`、`tokens` 与 `seconds`，这些本应由该次运行自己的行从其会话中取得。它和任何一行一样计入队列顺序中的尝试次数；引擎按 `at` 把它放进其工单的各行之中，因此补记一个旧班次，绝不会重新打开或重新关闭一张已由更晚的行定论的工单。目前有四条，于 2026-09-29 写入：班次 `171951-516d` 的 T-0012（评审通过，随后驱动程序在组装中崩溃）与 T-0019（被其评审拒绝），依据该班次位于 [`shifts/2026-09-28-171951-516d/`](shifts/2026-09-28-171951-516d/result.json) 的部分记录；以及班次 `201448-94fd` 的 T-0001 与 T-0005，它们在 2026-09-28 的容器重置销毁该班次时被放弃，依据[转录损失](../transcripts/LOSSES.md)与恢复后的编排器日志。
+
+**关卡出现之前的改写。** 在 2026-09-28T00:40Z 至 2026-09-29T10:00Z 之间（`--base 6fb91bb11`），该关卡发现五个并非只做追加的提交，均早于关卡本身，另有 57 条新增行指明了分支上不存在的提交。自该文件在 `52c56001d` 中创建以来，没有任何一行被删除，有一行被改动：
+
+- `d46e02bd9` 把首次职能运行的 28 行（时间为 00:52Z 至 17:50Z）插入到班次 `182951-78a6` 于 19:04Z 写下的两条工单行之前。其中六行的 `target.requested` 为 `3ed95172e`，即一次仅含评判的重跑所基于的检出的提交，仓库中并不包含该提交。
+- `d1aec806b` 按时间顺序把首次受理的两条职能行插入到同样那两条工单行之前。两行的 `target.commit` 都是 `4a1f22151`，即受理所在检出当时的提交，仓库中并不包含该提交。
+- `1f669dbf9` 按时间顺序把代码安全自审的七条职能行插入到更早的职能行之间。
+- `8a4dd9c02` 从一个推送失败的检出中恢复了四个周期的记录，并按时间顺序把它们的 70 条职能行合入该文件。其中 02:13Z、04:13Z 与 06:13Z 三个周期的 48 行，以该检出自己的提交 `73a7727b5`、`2231af791` 与 `e1678940d` 作为 `target.commit`，而这些提交从未被推送。
+- `7bd419444` 追加了班次 `001527-881f` 的 T-0007 行，其中指明的是 `3d5210654`，即推送把它变基为 `cba8e4682` 之前该克隆中的提交（作者、日期、提交说明与补丁均相同）；随后 `dae1babd0` 就地改动该行，改为指明 `cba8e4682`。
+
+自 `dae1babd0` 起，对该文件的每个提交都只追加能够解析、且只指明其祖先链上提交的行。
 
 ## 班次
 

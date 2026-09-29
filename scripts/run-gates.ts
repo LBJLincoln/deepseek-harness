@@ -370,6 +370,8 @@ function ciStaticGates(options: { ownsBuild: boolean }): Gate[] {
     }),
     pnpmScript('module-graph', 'verify-module-graph', { label: 'module graph' }),
     pnpmScript('knip', 'knip'),
+    // Branch CI names the pushed range's base in DSH_LEDGER_BASE_REF; without it the gate checks only that the head's lines parse.
+    pnpmScript('enterprise-ledger', 'verify-enterprise-ledger', { label: 'enterprise ledger append-only' }),
   ]
 }
 

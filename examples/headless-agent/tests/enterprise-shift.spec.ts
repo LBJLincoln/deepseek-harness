@@ -91,6 +91,22 @@ describe('ticket status from the ledger', () => {
     expect([...ticketStatuses(lines).entries()]).toEqual([['T-0001', 'shipped'], ['T-0002', 'rejected'], ['T-0003', 'open']])
   })
 
+  it('places a line written after the fact by its time, so an older shift recorded late settles nothing a later line settled', () => {
+    const late = (entry: TicketLedgerLine): TicketLedgerLine => ({ ...entry, recordedBy: 'supervisor', recordedAt: '2026-09-29T10:00:00.000Z' })
+    const shipped = line('T-0001', 'a'.repeat(40), 'approve', '2026-09-28T19:00:00.000Z')
+    const halted = line('T-0002', null, 'none', '2026-09-28T22:00:00.000Z')
+    const lines = [
+      shipped,
+      halted,
+      late(line('T-0001', null, 'reject', '2026-09-28T18:00:00.000Z')),
+      late(line('T-0002', null, 'reject', '2026-09-28T21:00:00.000Z')),
+      late(line('T-0003', null, 'none', '2026-09-28T20:00:00.000Z')),
+      late(line('T-0002', null, 'reject', '2026-09-28T22:00:00.000Z')),
+    ]
+    expect([...ticketStatuses(lines).entries()]).toEqual([['T-0001', 'shipped'], ['T-0002', 'rejected'], ['T-0003', 'open']])
+    expect([...ticketStatuses(lines.slice(0, 5)).entries()]).toEqual([['T-0001', 'shipped'], ['T-0002', 'open'], ['T-0003', 'open']])
+  })
+
   it('reads ticket lines, counts a line without a type as one, and skips the functions\' lines in the same file', () => {
     const functionLine = { type: 'function', at: '2026-09-28T00:00:00.000Z', shift: 'shift-1', seat: 's', division: 'd', function: 'f', target: 't', outcome: 'ok', evidence: 'e', seconds: 1 }
     const untyped = { ...line('T-0002', 'b'.repeat(40), 'approve'), type: undefined }
