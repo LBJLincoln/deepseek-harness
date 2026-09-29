@@ -30,6 +30,7 @@ import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@deepseek-ai/dsh-l
 import { SCRIPTED_REPORTER } from './fixtures/enterprise-shift/enterprise-llm.ts'
 import { parseLedger, parseShiftStarts, ticketStatuses } from './fixtures/enterprise-shift/shift.ts'
 import type { ShiftStartLine, TicketLedgerLine } from './fixtures/enterprise-shift/shift.ts'
+import { repositoryGit, verifyLedgerHistory } from '../../../scripts/verify-enterprise-ledger.ts'
 
 const fixtureDir = fileURLToPath(new URL('./fixtures/enterprise-shift/', import.meta.url))
 const seedDir = join(fixtureDir, 'seed')
@@ -214,6 +215,17 @@ function remoteLedger(remote: string): TicketLedgerLine[] {
   return parseLedger(git(remote, 'show', 'main:data/enterprise/ledger.jsonl'))
 }
 
+/**
+ * The append-only gate's violations over every push the remote's `main` took
+ * since `base`, one per string, after checking that some of those pushes
+ * changed the ledger.
+ */
+function ledgerViolations(remote: string, base: string): string[] {
+  const verified = verifyLedgerHistory(repositoryGit(remote), base, 'main')
+  expect(verified.commits.length).toBeGreaterThan(0)
+  return verified.violations.map(violation => `${violation.commit} ${violation.kind}: ${violation.detail}`)
+}
+
 /** The line of one ticket in a result. */
 function lineOf(observed: ShiftResult, ticket: string): TicketLedgerLine & { rationale: string } {
   const line = observed.tickets.find(candidate => candidate.ticket === ticket)
@@ -355,6 +367,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
       ['T-0006', 'e2e-mixed', null],
     ])
     expect([...ticketStatuses(ledger).entries()]).toEqual([['T-0001', 'shipped'], ['T-0002', 'open'], ['T-0004', 'open'], ['T-0006', 'open']])
+    expect(ledgerViolations(remote, base)).toEqual([])
     const files = git(remote, 'ls-tree', '-r', '--name-only', 'main', observed.record).split('\n')
     expect(files).toContain(`${observed.record}/result.json`)
     expect(files).toContain(`${observed.record}/manifest.json`)
@@ -442,6 +455,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(ledger.map(entry => [entry.ticket, entry.shift, entry.department.outcome])).toEqual([['T-0002', 'e2e-crashed', 'abandoned'], ['T-0003', 'e2e-reject', 'certified']])
     expect(ledger[0]?.reason.startsWith(`abandoned: container reset: shift e2e-crashed started at ${crashed.at} on a-container-since-reset over ${base}`)).toBe(true)
     expect([...ticketStatuses(ledger).entries()]).toEqual([['T-0002', 'open'], ['T-0003', 'rejected']])
+    expect(ledgerViolations(remote, base)).toEqual([])
     expect(remoteStarts(remote).map(start => start.shift)).toEqual(['e2e-crashed', 'e2e-running', 'e2e-reject'])
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
 
@@ -482,6 +496,8 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(log[4]?.sha).toBe(base)
     expect(observed.base).toBe(log[2]?.sha)
     expect(git(remote, 'show', 'main:tools/echo.mjs')).toBe("console.log('echo')")
+    // The shipped commit the ledger names is the rebased one, on the branch that carries the line.
+    expect(ledgerViolations(remote, base)).toEqual([])
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
 
   it('refuses a shift whose every ticket carries a disallowed acceptance command, runs no department, and pushes the reason', async () => {
@@ -495,6 +511,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(observed.pushed).toEqual({ commit: observed.shiftCommit, rounds: 1 })
     expect(remoteLog(remote).map(entry => entry.sha)).toEqual([observed.shiftCommit, observed.base, base])
     expect(remoteLedger(remote).map(entry => [entry.ticket, entry.department.outcome, entry.reason])).toEqual([['T-0006', 'blocked', REFUSED_PUSH]])
+    expect(ledgerViolations(remote, base)).toEqual([])
     expect(git(remote, 'for-each-ref', '--format=%(refname)')).toBe('refs/heads/main')
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
 
