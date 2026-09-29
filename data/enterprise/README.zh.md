@@ -35,7 +35,7 @@
 `ledger.jsonl` 只追加、从不改写，每行一个 JSON 对象。两种行类型共用它；没有 `type` 的行按工单行读取，缺少读取方所依赖字段（`at`、`seat`、`division`，以及该类型自身的必填字段）的行会被跳过并按行号报告，而不是被猜测。
 
 - **工单行**是一个班次中处理过的一张工单，由[引擎](#shifts)（`pnpm run enterprise -- shift`）追加：`{ "type": "ticket", "at", "shift", "ticket", "seat", "division", "programId", "implementer", "model", "department": { "outcome", "sessionId" }, "checks": [{ "id", "ok" }], "review": { "verdict", "sessionId" }, "integration": { "outcome" }, "shipped": { "commit" } | null, "reason", "tokens", "seconds" }`。`department.outcome` 取 `certified`、`failed`、`blocked`、`abandoned`、`pending` 或 `halted`；`review.verdict` 取 `approve`、`reject` 或 `none`；`integration.outcome` 取 `merged`、`skipped`、`conflict`、`checks-failed`、`digest-mismatch` 或 `not-shipped`；`shipped.commit` 是分支上承载该工单修改的提交。工单的状态取其最近一行：`shipped` 指 `shipped` 指明了一个提交，`rejected` 指评审结论为 `reject`，其余为 `halted`——验收失败的部门、集成无法组装的修改，或被路由用量上限停下的班次（原因写作 `halted: limit (resets at <instant>)`）——没有任何行的工单为 `queued`。工单一旦为 `shipped` 或 `rejected` 即告关闭；`halted` 的工单保持开放，由后续班次再次处理。
-- **职能行**是一个席位在一个提交上执行其职能，由 `pnpm run enterprise:functions` 追加：`{ "type": "function", "at", "shift", "seat", "division", "function", "target": { "commit", "requested"? }, "outcome": "pass" | "fail" | "error", "evidence": { "path" } | { "url" }, "seconds" }`。`at` 是交付物自身的时间——关卡结束之时，或 CI 裁决作出之时——`outcome` 是关卡或裁决的结果，`error` 表示未能取得裁决，`evidence` 是席位写出的输出，或它读取裁决的页面。
+- **职能行**是一个席位在一个提交上执行其职能，由 `pnpm run enterprise:functions` 追加：`{ "type": "function", "at", "shift", "seat", "division", "function", "target": { "commit", "via"?, "requested"? }, "outcome": "pass" | "fail" | "error", "evidence": { "path" } | { "url" }, "seconds" }`。`at` 是交付物自身的时间——关卡结束之时，或 CI 裁决作出之时——`outcome` 是关卡或裁决的结果，`error` 表示未能取得裁决，`evidence` 是席位写出的输出，或它读取裁决的页面。
 
 ## 班次
 
@@ -50,7 +50,7 @@
 | 事业部 | 运行什么 | 证据 |
 |---|---|---|
 | 验证 | 14 个验证员席位逐一运行其 `source` 所指的根包脚本（`scripts/verify-md-links.ts` 运行 `pnpm run verify-md-links`）；没有构建就无从判断的关卡运行先构建再验证的脚本，一如 CI 的 static lane（`verify-doc-site-fragments` 运行 `pnpm run docs:build:mpa`）；根 `package.json` 中没有的脚本会在记录任何东西之前让运行失败。`pass` 为退出码 0，`fail` 为其他任何退出码，`error` 为启动失败或超时（除非 `--gate-timeout-ms` 另有规定，否则为 15 分钟）。 | `functions/<shift>/<seat>.log`：命令、提交、结果，以及去除了终端样式与行尾空白的关卡输出的最后 12 KB。 |
-| 裁决 | 该提交的 Branch CI 运行（`LBJLincoln/deepseek-harness`，`branch-ci.yml`，通过 GitHub 的 REST API 无凭据读取；环境指定了代理时经由 `HTTPS_PROXY` 所指的代理——Node 的 `fetch` 只在 `NODE_USE_ENV_PROXY=1` 下遵守它，包脚本设置了该变量，绕过代理的读取会让裁判带着这一提示空缺；在该变量下启动的每个 Node 进程都会打印一条 `UNDICI-EHPA` 实验性警告，各关卡则不带该变量运行）：其各条 lane 作出过裁决的最新已完成运行，因此被后一次推送取消的运行会被跳过；该提交没有时，取分支上最新的此类运行，此时其提交写入 `target.commit`，被请求的提交写入 `target.requested`。每个 job 映射到其日志开头所报关卡模式的席位（`run-gates: ci-static running …`）；job 的 `success` 为 `pass`，`failure` 为 `fail`，其他任何结论为 `error`。job 日志按名称显示出的关卡组映射到该组的席位：`ci-lint-contracts-ready` 来自 `lint and duplication` 关卡，`ci-snapshot` 来自 `build` 与 `test:snapshot`，`ci-artifacts` 来自 `build`、`publint`、`node-next types`、`built package invariants` 与 `built-bin smoke`；每组在所有关卡通过时为 `pass`，有一个失败时为 `fail`，有一个因依赖失败而被跳过时为 `error`，日志未把它们全部显示出来时则不写行。台账中已有的同一席位、同一 job 的裁决不会再次追加，因此该命令可以安全地重复。 | GitHub 上该 job 的页面，作为 `evidence.url`；`at` 是该 job 的完成时间。 |
+| 裁决 | 该提交的 Branch CI 运行（`LBJLincoln/deepseek-harness`，`branch-ci.yml`，通过 GitHub 的 REST API 无凭据读取；环境指定了代理时经由 `HTTPS_PROXY` 所指的代理——Node 的 `fetch` 只在 `NODE_USE_ENV_PROXY=1` 下遵守它，包脚本设置了该变量，绕过代理的读取会让裁判带着这一提示空缺；在该变量下启动的每个 Node 进程都会打印一条 `UNDICI-EHPA` 实验性警告，各关卡则不带该变量运行）：其各条 lane 作出过裁决的最新已完成运行，因此在排队等待时被后一次推送取代的运行会被跳过；该提交没有时，取之后第一个 head 包含该提交的此类运行（GitHub 对两者的比较答为 `ahead` 或 `identical`），其 head 写入 `target.via`，分支上的运行从最新的开始比较，直到某次运行的 head 比该提交更旧为止；仍没有这样的运行时，取分支上最新的此类运行，这是对另一个提交的裁决，此时其提交写入 `target.commit`，被请求的提交写入 `target.requested`。每个 job 映射到其日志开头所报关卡模式的席位（`run-gates: ci-static running …`）；job 的 `success` 为 `pass`，`failure` 为 `fail`，其他任何结论为 `error`。job 日志按名称显示出的关卡组映射到该组的席位：`ci-lint-contracts-ready` 来自 `lint and duplication` 关卡，`ci-snapshot` 来自 `build` 与 `test:snapshot`，`ci-artifacts` 来自 `build`、`publint`、`node-next types`、`built package invariants` 与 `built-bin smoke`；每组在所有关卡通过时为 `pass`，有一个失败时为 `fail`，有一个因依赖失败而被跳过时为 `error`，日志未把它们全部显示出来时则不写行。台账中已有的同一席位、同一 job 的裁决不会再次追加，因此该命令可以安全地重复。 | GitHub 上该 job 的页面，作为 `evidence.url`；`at` 是该 job 的完成时间。 |
 | 观象台 | 会话统计观察员把其所属包真实的 `sessionStats` 投影单元（`@deepseek-ai/dsh-session-stats`）折叠在已提交记录以及 `shifts/` 下任何班次记录的每个会话上，并发布 [`telemetry.json`](#telemetry-and-scoreboard)。 | `telemetry.json`。 |
 | 策展与数据 | 记分员把 `@deepseek-ai/dsh-scorekeeper` 的 `foldSessionFacts` 与 `foldScoreboard` 折叠在同一批会话上，并刷新 [`scoreboard.json`](#telemetry-and-scoreboard)。 | `scoreboard.json`。 |
 
@@ -143,9 +143,11 @@ pnpm run enterprise:publish     # the deck's fixtures from the roster and the le
 
 - 时间窗内开始的周期：由记录统计数量、干净与失败的周期，以及每个步骤在多少个周期中失败；每条记录是否到达了远程分支，以下一条记录的陈述为准；没有记录的周期由指名它的提交计数，并标注为只在 git 历史中可见、结果未知；
 - 时间窗内工单行按状态与按事业部的计数，以及已交付的不同工单及其提交；
-- 每个已交付提交的 Branch CI 裁决：以该提交本身为 head 的运行；否则是在该提交之后创建、且在检出历史中 head 包含它的第一个已完成运行，并说明是哪一种；否则为 `no run`；
+- 每个已交付提交的 Branch CI 裁决：以该提交本身为 head 的运行中有一个作出过裁决或仍在排队、运行时，取这些运行；否则是在该提交之后创建、作出过裁决、且在检出历史中 head 包含它的第一个运行，并说明是哪一种，同时列出该提交自身被后一次推送取代的运行；否则为 `no run`；
 - 各事业部定义、在岗与活跃的席位数，来自在时间窗结束时刻、以不晚于该时刻的台账行与已记录会话运行的花名册生成器；
 - 时间窗内职能行按事业部与结果的计数；
 - 工单行陈述的 token 数与秒数、职能行的秒数，以及已记录周期的实际耗时。
 
 数据未显示的内容都列在 Unknown 下，而不是推断：只在 git 历史中可见的周期、无法读取的记录或台账行、API 无法给出或其运行 head 不在检出中的裁决、没有 token 数的工单行，以及尚无后续记录陈述其推送的记录。
+
+`pnpm run enterprise:verdicts`（[`scripts/enterprise-verdicts.ts`](../../scripts/enterprise-verdicts.ts)）以 Markdown 表格打印台账工单行交付过的每个提交，范围从台账的第一行到当前时刻，列出它承载的工单、它的裁决、依据（`exact`、`later`、`none` 或 `unknown`）、那是哪一次运行，以及该运行的页面，每一项都按报告的方式作答。

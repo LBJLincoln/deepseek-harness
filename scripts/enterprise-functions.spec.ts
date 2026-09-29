@@ -94,8 +94,10 @@ const CONSUMER_GATES = ['build', 'Node compatibility', 'publint', 'built package
 /**
  * A reader over one recorded Branch CI run: the commit's own run when `headSha`
  * matches, else the branch's newest; three jobs whose logs are the real lanes'.
+ * `compared` is GitHub's comparison of the asked-for commit with the run's
+ * head, `behind` (an older head) unless a test states another.
  */
-function recordedGithub(headSha: string, requests: string[] = []): GitHubReader {
+function recordedGithub(headSha: string, requests: string[] = [], compared = 'behind'): GitHubReader {
   const run = { id: RUN_ID, head_sha: headSha, conclusion: 'failure', html_url: `https://github.com/${CI_REPOSITORY}/actions/runs/${RUN_ID}` }
   return {
     json: (path) => {
@@ -104,6 +106,7 @@ function recordedGithub(headSha: string, requests: string[] = []): GitHubReader 
         return Promise.resolve({ workflow_runs: path.includes(`head_sha=${headSha}`) ? [run] : [] })
       }
       if (path.includes('/workflows/branch-ci.yml/runs?branch=')) return Promise.resolve({ workflow_runs: [run] })
+      if (path === `/repos/${CI_REPOSITORY}/compare/${COMMIT}...${headSha}`) return Promise.resolve({ status: compared })
       if (path === `/repos/${CI_REPOSITORY}/actions/runs/${RUN_ID}/jobs?per_page=100`) {
         return Promise.resolve({
           jobs: JOBS.map(job => ({
@@ -256,12 +259,49 @@ describe('runFunctions', () => {
     expect(requests.some(path => path.includes('runs?branch='))).toBe(false)
   })
 
-  it('falls back to the branch\'s newest completed run and names its commit in the target', async () => {
+  it('falls back to the branch\'s newest completed run, whose head is older, and names its commit and the asked-for one', async () => {
     const opts = options({ github: recordedGithub(OLDER), divisions: new Set(['judging']) })
     const report = await runFunctions(opts)
     expect(report.ciRun?.commit).toBe(OLDER)
     expect(report.lines.length).toBeGreaterThan(0)
     for (const line of report.lines) expect(line.target).toEqual({ commit: OLDER, requested: COMMIT })
+  })
+
+  it('reads the first later run whose head contains a commit its own superseded run left unjudged, and names that head', async () => {
+    const later = 'a9e2968fe0000000000000000000000000000000'
+    const newest = 'c132ccfcb0000000000000000000000000000000'
+    const requests: string[] = []
+    const recorded = recordedGithub(later, requests)
+    const runOn = (id: number, head: string, conclusion: string): Record<string, unknown> =>
+      ({ id, head_sha: head, conclusion, html_url: `https://github.com/${CI_REPOSITORY}/actions/runs/${id}` })
+    // Newest first, as the API lists them: a cancelled run is never compared,
+    // and the scan stops at the first head older than the commit.
+    const branch = [runOn(RUN_ID + 3, newest, 'success'), runOn(RUN_ID + 2, 'cancelled-head', 'cancelled'), runOn(RUN_ID, later, 'failure'), runOn(RUN_ID - 1, OLDER, 'success'), runOn(RUN_ID - 2, 'never-compared', 'success')]
+    const compared: Record<string, string> = { [newest]: 'ahead', [later]: 'ahead', [OLDER]: 'behind' }
+    const github: GitHubReader = {
+      json: async (path) => {
+        if (path.includes('runs?head_sha=')) {
+          requests.push(path)
+          return { workflow_runs: [runOn(RUN_ID + 1, COMMIT, 'cancelled')] }
+        }
+        if (path.includes('runs?branch=')) {
+          requests.push(path)
+          return { workflow_runs: branch }
+        }
+        const head = path.split('...')[1]
+        if (path.startsWith(`/repos/${CI_REPOSITORY}/compare/${COMMIT}...`) && head !== undefined && head in compared) {
+          requests.push(path)
+          return { status: compared[head] }
+        }
+        return recorded.json(path)
+      },
+      text: recorded.text,
+    }
+    const report = await runFunctions(options({ github, divisions: new Set(['judging']) }))
+    expect(report.ciRun).toEqual({ id: RUN_ID, commit: later, url: `https://github.com/${CI_REPOSITORY}/actions/runs/${RUN_ID}` })
+    expect(report.lines).toHaveLength(6)
+    for (const line of report.lines) expect(line.target).toEqual({ commit: COMMIT, via: later })
+    expect(requests.filter(path => path.includes('/compare/')).map(path => path.split('...')[1])).toEqual([newest, later, OLDER])
   })
 
   it('leaves every judge vacant, saying why, when the branch has no completed run', async () => {

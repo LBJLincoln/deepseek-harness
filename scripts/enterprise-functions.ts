@@ -12,9 +12,12 @@
  *   environment names one — Node's `fetch` honours it only under
  *   `NODE_USE_ENV_PROXY=1`, which the package script sets): a job maps to the seat of the gate mode its log
  *   opens with, and a gate group a job's log shows by name
- *   ({@link GATE_GROUPS}) to that group's seat. When the commit has no
- *   completed run, the newest completed run on the branch is read and its
- *   commit named in `target.commit`, the asked-for commit in `target.requested`.
+ *   ({@link GATE_GROUPS}) to that group's seat. When no run of the commit
+ *   rendered a verdict (it has none, or a newer push superseded it), the first
+ *   later run that did whose head contains the commit is read, and its head is
+ *   named in `target.via`; when no such run exists yet, the branch's newest
+ *   run that did is read, its commit named in `target.commit` and the
+ *   asked-for commit in `target.requested`.
  * - **Observatory**: the session-stats observer folds its package's real
  *   `sessionStats` projection unit over the recorded sessions of the last 24
  *   hours and publishes the enterprise's telemetry snapshot,
@@ -171,7 +174,7 @@ export interface FunctionsOptions {
   /** The commit the functions cover: the checked-out one. */
   commit: string
   shift: string
-  /** The branch whose newest completed Branch CI run stands in when the commit has none. */
+  /** The branch whose Branch CI runs stand in when no run of the commit rendered a verdict. */
   branch: string
   now: () => Date
   runGate: GateRunner
@@ -503,25 +506,64 @@ function secondsBetween(from: string | null, to: string | null): number {
 }
 
 /**
- * Select the Branch CI run the judges read: the commit's newest run that
- * rendered a verdict, else the branch's newest such run. A cancelled run (a
- * newer push cancels the one in progress) rendered none and is passed over.
- * @param options - the run options.
- * @returns the run and whether it is the asked-for commit's, or `undefined` when the branch has no ruled run.
+ * How GitHub compares a commit with a run's head: `ahead` and `identical` mean
+ * the head's history contains the commit, `behind` that the head is an
+ * ancestor of it, and `diverged` that neither contains the other.
+ * @param github - the API reader.
+ * @param commit - the commit asked about.
+ * @param head - the run's head.
+ * @returns the comparison's `status`, or `unknown` when the answer states none.
  */
-async function selectCiRun(options: FunctionsOptions): Promise<{ run: CiRun; ownCommit: boolean } | undefined> {
+async function comparison(github: GitHubReader, commit: string, head: string): Promise<string> {
+  const body = await github.json(`/repos/${CI_REPOSITORY}/compare/${commit}...${head}`)
+  return isRecord(body) && typeof body.status === 'string' ? body.status : 'unknown'
+}
+
+/**
+ * Select the Branch CI run the judges read. A cancelled run (a newer push
+ * supersedes a run still waiting for its turn) rendered no verdict and is
+ * passed over.
+ *
+ * - `exact`: the commit's newest run that rendered a verdict;
+ * - `later`: else the first later run that did whose head's history contains
+ *   the commit, so the verdict covers it through that head;
+ * - `branch`: else the branch's newest run that did, a verdict on another
+ *   commit that does not cover the asked-for one.
+ *
+ * The branch's runs are compared newest first, and the scan stops at the first
+ * head older than the commit: the branch only moves forward, so every run
+ * listed after that one is older too.
+ * @param options - the run options.
+ * @returns the run and how it relates to the commit, or `undefined` when the branch has no ruled run.
+ */
+async function selectCiRun(options: FunctionsOptions): Promise<{ run: CiRun; basis: 'exact' | 'later' | 'branch' } | undefined> {
   const base = `/repos/${CI_REPOSITORY}/actions/workflows/${CI_WORKFLOW}/runs`
   const own = readRuns(await options.github.json(`${base}?head_sha=${options.commit}&status=completed&per_page=10`)).find(ruled)
-  if (own !== undefined) return { run: own, ownCommit: true }
-  const branch = readRuns(await options.github.json(`${base}?branch=${encodeURIComponent(options.branch)}&status=completed&per_page=10`)).find(ruled)
-  return branch === undefined ? undefined : { run: branch, ownCommit: false }
+  if (own !== undefined) return { run: own, basis: 'exact' }
+  const branch = readRuns(await options.github.json(`${base}?branch=${encodeURIComponent(options.branch)}&status=completed&per_page=100`)).filter(ruled)
+  let later: CiRun | undefined
+  for (const run of branch) {
+    const status = await comparison(options.github, options.commit, run.head_sha)
+    if (status === 'behind') break
+    if (status === 'ahead' || status === 'identical') later = run
+  }
+  if (later !== undefined) return { run: later, basis: 'later' }
+  const newest = branch[0]
+  return newest === undefined ? undefined : { run: newest, basis: 'branch' }
+}
+
+/** The ledger target of a verdict read from `run`, labelled with how the run relates to the asked-for commit. */
+function judgedTarget(commit: string, run: CiRun, basis: 'exact' | 'later' | 'branch'): FunctionLine['target'] {
+  if (basis === 'exact') return { commit: run.head_sha }
+  if (basis === 'later') return { commit, via: run.head_sha }
+  return { commit: run.head_sha, requested: commit }
 }
 
 async function runJudging(options: FunctionsOptions, existing: readonly LedgerLine[]): Promise<{ lines: FunctionLine[]; ciRun?: FunctionsReport['ciRun'] }> {
   const selected = await selectCiRun(options)
   if (selected === undefined) return { lines: [] }
-  const { run, ownCommit } = selected
-  const target = ownCommit ? { commit: run.head_sha } : { commit: run.head_sha, requested: options.commit }
+  const { run, basis } = selected
+  const target = judgedTarget(options.commit, run, basis)
   const judges = new Map(seatsOf(options.roster, 'judging').map(seat => [seat.specialization ?? '', seat]))
   const recorded = new Set(existing.flatMap(line =>
     line.type === 'function' && 'url' in line.evidence ? [`${line.seat} ${line.evidence.url}`] : []))

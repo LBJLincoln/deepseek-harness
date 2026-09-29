@@ -69,6 +69,13 @@ describe('parseLedgerLine', () => {
     expect(parseLedgerLine({ ...GATE, at: '2026-09-28T17:00:00Z' })).toEqual(GATE)
   })
 
+  it('keeps the later head a verdict was read through, and the commit asked for when the verdict covers another', () => {
+    const through = { ...GATE, target: { commit: 'abc123', via: 'def456' } }
+    const other = { ...GATE, target: { commit: 'def456', requested: 'abc123' } }
+    expect(parseLedgerLine(through)).toEqual(through)
+    expect(parseLedgerLine(other)).toEqual(other)
+  })
+
   it('names what a line lacks instead of guessing', () => {
     expect(parseLedgerLine('text')).toBe('not a JSON object')
     expect(parseLedgerLine({ ...SHIPPED, at: 'yesterday' })).toBe('no parseable "at"')

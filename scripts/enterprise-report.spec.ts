@@ -121,7 +121,7 @@ const COMMIT_TIMES: Record<string, string> = {
 }
 
 /** Which run heads contain which shipped commit; a pair not listed is not contained, and a head named `absent` is not in the checkout. */
-const CONTAINS = new Set([`${LATER} ${sha('d')}`])
+const CONTAINS = new Set([`${LATER} ${sha('b')}`, `${LATER} ${sha('d')}`])
 
 const repository: ReportRepository = {
   head: () => HEAD,
@@ -134,7 +134,10 @@ function run(id: number, head: string, createdAt: string, conclusion: string | n
   return { id, head_sha: head, status, conclusion, html_url: `https://github.com/LBJLincoln/deepseek-harness/actions/runs/${id}`, created_at: createdAt }
 }
 
-/** A recorded Branch CI API: two runs on the exact commit, then the branch's completed runs. */
+/**
+ * A recorded Branch CI API: two runs on the exact commit, one on `LATER` that a
+ * newer push superseded before it ran, then the branch's completed runs.
+ */
 function github(calls: string[]): GitHubReader {
   return {
     json: async (path) => {
@@ -142,12 +145,14 @@ function github(calls: string[]): GitHubReader {
       if (path.includes(`head_sha=${EXACT}`)) {
         return { workflow_runs: [run(11, EXACT, '2026-09-28T20:31:00Z', 'success'), run(12, EXACT, '2026-09-28T20:40:00Z', null, 'in_progress')] }
       }
+      if (path.includes(`head_sha=${LATER}`)) return { workflow_runs: [run(19, LATER, '2026-09-28T22:40:00Z', 'cancelled')] }
       if (path.includes('head_sha=')) return { workflow_runs: [] }
       return {
         workflow_runs: [
           run(24, sha('e'), '2026-09-28T23:50:00Z', 'success'),
           run(23, sha('9'), '2026-09-28T23:45:00Z', 'success'),
           run(22, sha('d'), '2026-09-28T22:50:00Z', 'failure'),
+          run(25, sha('b'), '2026-09-28T22:47:00Z', 'cancelled'),
           run(21, sha('c'), '2026-09-28T22:45:00Z', 'success'),
           run(20, sha('0'), '2026-09-28T19:00:00Z', 'success'),
         ],
@@ -220,8 +225,12 @@ describe('enterpriseReport', () => {
     const byCommit = new Map((await report()).commits.map(entry => [entry.commit, entry]))
     expect(byCommit.get(EXACT)).toMatchObject({ tickets: ['T-0050'], verdict: 'success', ci: { basis: 'exact' } })
     expect(byCommit.get(EXACT)?.ci).toMatchObject({ runs: [{ id: 12, status: 'in_progress' }, { id: 11, conclusion: 'success' }] })
-    expect(byCommit.get(LATER)).toMatchObject({ verdict: 'failure', ci: { basis: 'later', run: { id: 22, headSha: sha('d') } } })
-    expect(byCommit.get(NONE)).toMatchObject({ verdict: 'no run', ci: { basis: 'none' } })
+    // Its own run was superseded, and the cancelled run on a head containing it rendered no verdict either.
+    expect(byCommit.get(LATER)).toMatchObject({
+      verdict: 'failure',
+      ci: { basis: 'later', run: { id: 22, headSha: sha('d') }, superseded: [{ id: 19, conclusion: 'cancelled' }] },
+    })
+    expect(byCommit.get(NONE)).toMatchObject({ verdict: 'no run', ci: { basis: 'none', superseded: [] } })
     expect(byCommit.get(MISSING)).toMatchObject({ verdict: 'unknown', ci: { basis: 'unknown' } })
     expect(calls.filter(path => path.includes('branch=')).length).toBe(1)
   })
@@ -264,7 +273,7 @@ describe('enterpriseReport', () => {
     expect(renderReport(await report())).toBe(markdown)
     expect(markdown).toContain('3 cycles started in the window: 2 recorded (1 clean, 1 failed), 1 seen only in git history.')
     expect(markdown).toContain(`| cycle-20260928T201148Z | git history only | unknown | — | — | — | \`${sha('6').slice(0, 10)}\` intake | — |`)
-    expect(markdown).toContain(`| \`${LATER.slice(0, 10)}\` | T-0051 | failure | no run on this exact commit; the first later completed run whose head contains it is 22 on ${sha('d').slice(0, 10)} |`)
+    expect(markdown).toContain(`| \`${LATER.slice(0, 10)}\` | T-0051 | failure | run 19 (cancelled) on this exact commit rendered no verdict; the first later completed run whose head contains it is 22 on ${sha('d').slice(0, 10)} |`)
     expect(markdown).toContain('- 1 ticket line states no token count; the token total leaves it out')
     expect(markdown.endsWith('\n') && !markdown.endsWith('\n\n')).toBe(true)
   })

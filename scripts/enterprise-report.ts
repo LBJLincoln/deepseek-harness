@@ -94,14 +94,17 @@ export interface CiRunRef {
 
 /**
  * A shipped commit's Branch CI answer: the runs whose head is that exact
- * commit (`exact`), else the first completed run created after the commit
- * whose head contains it (`later`), else no run at all (`none`), or `unknown`
- * with the reason no answer could be read.
+ * commit (`exact`) when one of them rendered a verdict or is still queued or
+ * running; else the first run created after the commit that rendered a verdict
+ * (`success` or `failure`) and whose head contains it (`later`); else no such
+ * run (`none`); or `unknown` with the reason no answer could be read. A run
+ * cancelled while it waited behind a newer push rendered none, so `later` and
+ * `none` list the commit's own runs that ended that way as `superseded`.
  */
 export type CiAnswer =
   | { basis: 'exact'; runs: CiRunRef[] }
-  | { basis: 'later'; run: CiRunRef }
-  | { basis: 'none' }
+  | { basis: 'later'; run: CiRunRef; superseded: CiRunRef[] }
+  | { basis: 'none'; superseded: CiRunRef[] }
   | { basis: 'unknown'; reason: string }
 
 /** One shipped commit with the tickets it carries and its Branch CI answer. */
@@ -251,14 +254,19 @@ function newestRunFirst(left: CiRunRef, right: CiRunRef): number {
   return ms(right.createdAt) - ms(left.createdAt) || right.id - left.id
 }
 
+/** A completed run whose lanes rendered a verdict; a cancelled run rendered none. */
+function rendered(run: CiRunRef): boolean {
+  return run.status === 'completed' && (run.conclusion === 'success' || run.conclusion === 'failure')
+}
+
 /**
  * The phrase a Branch CI answer reads as.
  * @param ci - the answer.
- * @returns the newest completed exact run's conclusion (or `in progress`), the later run's conclusion, `no run`, or `unknown`.
+ * @returns the newest exact run's verdict (or `in progress`), the later run's conclusion, `no run`, or `unknown`.
  */
 function verdictOf(ci: CiAnswer): string {
   switch (ci.basis) {
-    case 'exact': return ci.runs.find(run => run.status === 'completed')?.conclusion ?? 'in progress'
+    case 'exact': return ci.runs.find(rendered)?.conclusion ?? 'in progress'
     case 'later': return ci.run.conclusion ?? 'unknown'
     case 'none': return 'no run'
     case 'unknown': return 'unknown'
@@ -289,19 +297,21 @@ async function ciAnswers(commits: readonly string[], sources: ReportSources): Pr
   }
   for (const commit of commits) {
     try {
-      const exact = readRuns(await sources.github.json(`${base}?head_sha=${commit}&per_page=100`)).filter(run => run.headSha === commit)
-      if (exact.length > 0) {
-        answers.set(commit, { basis: 'exact', runs: exact.sort(newestRunFirst) })
+      const exact = readRuns(await sources.github.json(`${base}?head_sha=${commit}&per_page=100`)).filter(run => run.headSha === commit).sort(newestRunFirst)
+      if (exact.some(run => run.status !== 'completed' || rendered(run))) {
+        answers.set(commit, { basis: 'exact', runs: exact })
         continue
       }
       const time = times.get(commit)
       if (time === undefined) {
-        answers.set(commit, { basis: 'unknown', reason: `no run names ${commit} as its head, and the checkout lacks the commit, so no later run can be matched to it` })
+        answers.set(commit, { basis: 'unknown', reason: `no run on ${commit} rendered a verdict, and the checkout lacks the commit, so no later run can be matched to it` })
         continue
       }
       branchRuns ??= await listBranchRuns()
-      const later = branchRuns.filter(run => ms(run.createdAt) >= ms(time)).sort((left, right) => -newestRunFirst(left, right))
-      let answer: CiAnswer = { basis: 'none' }
+      const later = branchRuns
+        .filter(run => rendered(run) && ms(run.createdAt) >= ms(time))
+        .sort((left, right) => -newestRunFirst(left, right))
+      let answer: CiAnswer = { basis: 'none', superseded: exact }
       for (const run of later) {
         const contained = sources.repository.contains(commit, run.headSha)
         if (contained === undefined) {
@@ -309,7 +319,7 @@ async function ciAnswers(commits: readonly string[], sources: ReportSources): Pr
           break
         }
         if (contained) {
-          answer = { basis: 'later', run }
+          answer = { basis: 'later', run, superseded: exact }
           break
         }
       }
@@ -322,11 +332,28 @@ async function ciAnswers(commits: readonly string[], sources: ReportSources): Pr
   return answers
 }
 
-function describeCi(commit: string, ci: CiAnswer): string {
+/**
+ * What became of a commit's own runs when none rendered a verdict.
+ * @param superseded - the commit's runs that ended without one.
+ * @param where - how the clause names the commit.
+ * @returns the clause.
+ */
+function ownRuns(superseded: readonly CiRunRef[], where: string): string {
+  if (superseded.length === 0) return `no run on ${where}`
+  return `${superseded.length === 1 ? 'run' : 'runs'} ${superseded.map(run => `${run.id} (${run.conclusion ?? run.status})`).join(', ')} on ${where} rendered no verdict`
+}
+
+/**
+ * Which run a Branch CI answer rests on, in words.
+ * @param commit - the shipped commit.
+ * @param ci - its answer.
+ * @returns the clause the report's table cites.
+ */
+export function describeCi(commit: string, ci: CiAnswer): string {
   switch (ci.basis) {
     case 'exact': return `${ci.runs.length === 1 ? 'run' : 'runs'} ${ci.runs.map(run => `${run.id} (${run.conclusion ?? run.status})`).join(', ')} on this exact commit`
-    case 'later': return `no run on this exact commit; the first later completed run whose head contains it is ${ci.run.id} on ${ci.run.headSha.slice(0, 10)}`
-    case 'none': return `no run on ${commit.slice(0, 10)} and no later completed run whose head contains it`
+    case 'later': return `${ownRuns(ci.superseded, 'this exact commit')}; the first later completed run whose head contains it is ${ci.run.id} on ${ci.run.headSha.slice(0, 10)}`
+    case 'none': return `${ownRuns(ci.superseded, commit.slice(0, 10))} and no later completed run whose head contains it`
     case 'unknown': return ci.reason
     default: return assertNever(ci)
   }

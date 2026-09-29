@@ -84,8 +84,13 @@ export interface FunctionLine {
   division: string
   /** What the seat did, such as `verify-md-links` or `ci-static`. */
   function: string
-  /** The commit the function covered; `requested` names the commit asked for when the evidence covers another. */
-  target: { commit: string; requested?: string }
+  /**
+   * The commit the function covered. `via` names the later head the evidence
+   * was read from when the commit's own CI run rendered no verdict and that
+   * head's history contains the commit; `requested` names the commit asked for
+   * when the evidence covers another commit, which the verdict does not cover.
+   */
+  target: { commit: string; requested?: string; via?: string }
   outcome: FunctionOutcome
   evidence: FunctionEvidence
   seconds: number
@@ -211,11 +216,12 @@ function parseFunctionLine(raw: Record<string, unknown>): FunctionLine | string 
     : undefined
   if (evidence === undefined) return 'no "evidence.path" or "evidence.url"'
   const requested = isRecord(raw.target) ? optionalString(raw.target.requested) : undefined
+  const via = isRecord(raw.target) ? optionalString(raw.target.via) : undefined
   return {
     type: 'function',
     ...common,
     function: fn,
-    target: requested === undefined ? { commit } : { commit, requested },
+    target: { commit, ...requested === undefined ? {} : { requested }, ...via === undefined ? {} : { via } },
     outcome: outcome as FunctionOutcome,
     evidence,
     seconds: optionalNumber(raw.seconds) ?? 0,
