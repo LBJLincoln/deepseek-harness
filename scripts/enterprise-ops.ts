@@ -2458,13 +2458,15 @@ function openingClause(reason: string | undefined): string {
 function flagTickets(c: Collection, ledger: { lines: NumberedLine[] } | undefined, tickets: Map<string, TicketFile> | undefined): void {
   if (ledger === undefined) return
   const halts = new Map<string, number>()
-  // Tickets one of whose halts ran a department session, which left a report to read.
-  const reported = new Set<string>()
+  // Per ticket, the shifts whose halt ran a department session, which left a report to read.
+  const reported = new Map<string, Set<string>>()
   const causes = new Map<string, Set<string>>()
   for (const { entry } of ledger.lines) {
     if (entry.type !== 'ticket' || ticketStatus(entry) !== 'halted') continue
     halts.set(entry.ticket, (halts.get(entry.ticket) ?? 0) + 1)
-    if (entry.department?.sessionId !== undefined) reported.add(entry.ticket)
+    if (entry.department?.sessionId !== undefined) {
+      reported.set(entry.ticket, (reported.get(entry.ticket) ?? new Set<string>()).add(entry.shift))
+    }
     causes.set(entry.ticket, (causes.get(entry.ticket) ?? new Set<string>()).add(openingClause(entry.reason)))
   }
   for (const { standing, line } of standingsOf(ledger.lines).values()) {
@@ -2475,7 +2477,8 @@ function flagTickets(c: Collection, ledger: { lines: NumberedLine[] } | undefine
     const limit = /limit \(resets at ([^)]+)\)/.exec(entry.reason ?? '')?.[1]
     const haltCount = status === 'halted' ? halts.get(entry.ticket) ?? 0 : 0
     // Repeated halts need a person only when a department ran and left a report; halts before any model ran do not.
-    const repeated = haltCount >= 2 && reported.has(entry.ticket)
+    const reports = [...reported.get(entry.ticket) ?? []]
+    const repeated = haltCount >= 2 && reports.length > 0
     c.flag({
       id: `ticket:${entry.ticket}:${status}`,
       kind: status === 'halted' ? 'ticket-halted' : 'ticket-rejected',
@@ -2492,7 +2495,7 @@ function flagTickets(c: Collection, ledger: { lines: NumberedLine[] } | undefine
         : limit !== undefined
           ? `The route's usage limit stopped it; a shift after ${limit} works it again.`
           : repeated
-            ? `It halted in ${String(haltCount)} shifts; read the department reports in those shift records before a shift takes it again.`
+            ? `It halted in ${String(haltCount)} shifts; read the department ${reports.length === 1 ? 'report' : 'reports'} in the record of shift ${reports.join(' and ')} before a shift takes it again.`
             : haltCount >= 2
               ? `It halted in ${String(haltCount)} shifts before any department ran (${[...causes.get(entry.ticket) ?? []].join('; ')}); it stays open and a later shift works it again.`
               : 'Nothing to do: it stays open and a later shift works it again.',

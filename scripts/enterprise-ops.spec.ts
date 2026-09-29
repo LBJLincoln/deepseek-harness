@@ -537,7 +537,7 @@ describe('collectOps', () => {
     expect(snapshot.attention.find(item => item.kind === 'ticket-halted')).toMatchObject({
       severity: 'medium',
       title: 'T-0003 halted in shift 020000-aaaa',
-      next: 'It halted in 2 shifts; read the department reports in those shift records before a shift takes it again.',
+      next: 'It halted in 2 shifts; read the department report in the record of shift 020000-aaaa before a shift takes it again.',
     })
   })
 
