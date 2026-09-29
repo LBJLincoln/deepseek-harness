@@ -23,7 +23,7 @@
  */
 
 import { spawn, spawnSync } from 'node:child_process'
-import { randomBytes } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import { appendFileSync, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, relative, resolve } from 'node:path'
@@ -404,6 +404,22 @@ export interface DriverResult {
   readonly routeLimit?: DriverRouteLimit
 }
 
+/** The id every intake decision names as its principal. */
+export const INTAKE_PRINCIPAL_ID = 'daliesk-enterprise-intake'
+
+/**
+ * The two decisions one intake run records in place of a signature: the freeze
+ * of its program spec and the release of what it admitted, both decided by the
+ * intake itself, because no person reviews an unattended intake.
+ * @param id - the intake run's id.
+ * @param planSha256 - lowercase SHA-256 hex of the plan the program was built from.
+ * @returns the spec-freeze and the release decision, each naming the machine principal and the run.
+ */
+export function intakeDecisions(id: string, planSha256: string): { transition: 'spec-freeze' | 'release'; principal: { kind: 'machine'; id: string; decidedBy: string }; artefactSha256: string }[] {
+  const principal = { kind: 'machine' as const, id: INTAKE_PRINCIPAL_ID, decidedBy: `the enterprise intake, run ${id}` }
+  return (['spec-freeze', 'release'] as const).map(transition => ({ transition, principal, artefactSha256: planSha256 }))
+}
+
 /** What the function line of one coordinator states, and why. */
 export type FunctionOutcome = 'pass' | 'fail' | 'error'
 
@@ -722,6 +738,7 @@ export async function runIntake(options: IntakeOptions): Promise<number> {
       mergedRevision: result.report.mergedRevision ?? null,
     },
     ...limit === undefined ? {} : { routeLimit: routeLimitRecord(limit) },
+    decisions: intakeDecisions(id, createHash('sha256').update(readFileSync(join(run, 'plan.json'))).digest('hex')),
     coordinators: records.map(entry => ({
       seat: entry.seat,
       subsystem: entry.subsystem,

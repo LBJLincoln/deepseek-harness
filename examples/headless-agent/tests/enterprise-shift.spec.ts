@@ -15,6 +15,8 @@ import {
   departmentObjective,
   documentationCheck,
   ENGINE_CHECKS,
+  ENGINE_PRINCIPAL_ID,
+  engineDecisions,
   LIMIT_HALT_REASON,
   parseLedger,
   queueOrder,
@@ -231,6 +233,17 @@ describe('the shipped commit message', () => {
       '',
       'Co-Authored-By: Claude Code sonnet <noreply@anthropic.com>',
       'Claude-Session: https://claude.ai/code/session_x',
+    ])
+  })
+})
+
+describe('the decisions no person made', () => {
+  it('records the spec freeze and the release as the engine\'s, naming the shift, never a person', () => {
+    const digest = 'a'.repeat(64)
+    const principal = { kind: 'machine', id: ENGINE_PRINCIPAL_ID, decidedBy: 'the enterprise-shift engine, shift 184501-ab12' }
+    expect(engineDecisions('184501-ab12', digest)).toEqual([
+      { transition: 'spec-freeze', principal, artefactSha256: digest },
+      { transition: 'release', principal, artefactSha256: digest },
     ])
   })
 })

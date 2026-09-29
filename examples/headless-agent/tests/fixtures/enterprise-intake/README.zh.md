@@ -38,7 +38,7 @@
 
 | 文件 | 内容 |
 |---|---|
-| `result.json` | 目标提交、开放工单数、结果（`nothing-needed`、`ran`、`route-limit`）、program 的 id 与结果、每位协调人的状态、token、秒数、被接纳的编号与拒绝、路由上限，以及各会话 id |
+| `result.json` | 目标提交、开放工单数、结果（`nothing-needed`、`ran`、`route-limit`）、program 的 id 与结果、无人作出的 `decisions`（规格冻结与发布，各自点名机器主体 `daliesk-enterprise-intake` 与 `decidedBy: "the enterprise intake, run <id>"`，覆盖计划的 SHA-256）、每位协调人的状态、token、秒数、被接纳的编号与拒绝、路由上限，以及各会话 id |
 | `<seat>.json` | 一位协调人的部门、它提交的拟议工单，以及每条结论连同运行过的自有检查、其退出码与输出尾部 |
 | `sessions/<session id>.jsonl` | program 的每份会话日志：台账、各部门、整合 |
 

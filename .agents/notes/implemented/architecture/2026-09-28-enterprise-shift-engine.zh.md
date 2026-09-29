@@ -22,6 +22,8 @@ Status: implemented
 
 **生成文件属于每张工单的 scope。** 队列策略的 `generatedPaths` 点名本仓库的生成器写出、其文档关卡对照源码校验的文件——`pnpm run doc-sync` 检查的各 `gen-*` 脚本的输出、`verify-type-equiv` 比对其 `type-equiv` 粘贴块的子系统页面，以及它们的中文侧与配对记录——`engine-scope` 在工单自身的 scope 之外也排除它们，因为让某个目录过期的包源码修改必须在该目录所在之处重新生成它，而没有哪张工单能事先知道那是哪个目录。目标写明这一点，也写明怎么做：运行 `doc-sync` 点名的生成器并提交它写出的内容，在两侧更新漂移的 `type-equiv` 块，重新记录两侧有改动的每个配对。评审员读到的工单带同一份清单，其指令把它算作 scope 之内。这份清单属于策略而非生成器：`doc-sync` 仍然逐字节对照生成器校验每个生成文件，因此手工编辑生成区域会使它失败，而在这类页面其他位置的手工编辑则出现在评审员阅读的 diff 里。一项 spec 保证清单中的每个 pathspec 都匹配某个已跟踪的文件。
 
+**引擎作出决定之处不声称任何人。** 无人值守的班次没有人工发布关卡：程序打开前没有人阅读它的规格，推送前也没有人阅读它的装配结果。因此程序以 `requireSignoff: false` 组合，不经 `dsh-signoff` 记录任何东西——按契约，它的记录是一个人的签名，其[治理参考](../../../../docs/subsystems/governance.md)也说作出决定的规则"不是签名"——而 `result.json` 携带 `decisions`：规格冻结与发布，各自点名机器主体 `{ kind: 'machine', id: 'daliesk-enterprise-shift', decidedBy: 'the enterprise-shift engine, shift <id>' }`，覆盖所选工单的 SHA-256。同一周期无人值守运行的受理以同样方式在 `daliesk-enterprise-intake` 名下记录它的两个决定。以人类 `enterprise-operator` 名义的签名会点名一个什么也没决定的人；人所评审的是事后的分支，文档也如此说明。
+
 **台账即状态，记录即证据。** `data/enterprise/ledger.jsonl` 每班次每工单新增一行，字段集与读取它的企业职能共用（`type, at, shift, ticket, seat, division, programId, implementer, model, department, checks, review, integration, shipped, reason, tokens, seconds`）；工单在已发运或已驳回的行上关闭，在其他任何行上保持开放。`--next <n>` 按队列顺序取开放工单：尝试次数最少者优先，原因以 `halted: limit` 开头的行不算一次尝试；其次按优先级；再在尝试次数与优先级相同的工单之间让各部门轮流；最后按 id。因此失败过的工单要等每张未尝试的工单都轮到之后才会再被选中，一个部门的积压也不会挡住另一个部门同优先级的工单。引擎的读取器把没有 `type` 的行当作工单行，并跳过其他任何类型，因为企业职能把它们的 `function` 行写进同一个文件。`data/enterprise/shifts/<UTC 日期>-<班次 id>/` 存放 `result.json`、`manifest.json` 与班次的每份会话日志，形似凭据的字符串已剪除并计数。两者都在装配的提交之后提交，在同一次推送中传播，因此什么也没发运的班次仍然汇报到下一个班次读取的地方。
 
 **路由上限依据接缝的码停机。** 驱动监听第一个失败携带 `QUOTA` 的 `turn/end`——接缝赋予路由用量上限通知的码，重置时间作为 `providerRetryAfterMs`（[上限之墙](2026-09-27-route-limit-halts-the-run.md)）——在一个微任务里以 `route-limit` 阻塞该部门的目标——阻塞是对正在发布该事件的会话的又一次追加——于是程序在没有验证运行的情况下结束该次尝试，让之后的每个部门在第一个被拒的回合上阻塞，不评审不装配任何东西，把 `halted: limit (resets at <instant>)` 写进每张未完成工单的行，推送台账，以 3 退出。
@@ -45,6 +47,8 @@ Status: implemented
 **新增 `USAGE_LIMIT` 结果或对通知文本做字符串匹配。** 接缝把通知连同重置时间一次性分类为 `QUOTA`；停机读的是这个码与这个延迟，从不读文本。
 
 **用 `ctx.judge.audit` 评审。** 前文已述：评审官按设计复制工作区并隐去 diff；评审员保留评审官的独立性构造，同时阅读 diff。
+
+**经由 `dsh-signoff` 以机器身份签署。** `signoff/recorded` 中的 `kind: 'machine'` 主体会在程序会话里留下一条记录，但它会推翻该包"只有人才签署"的契约，而且每个 `requireSignoff` 关卡都必须分辨机器的记录与人的记录才能仍是人工关卡。班次自己的记录改为持有这些机器决定，程序也不组合一个无人能诚实满足的关卡。
 
 **提高执行器的默认超时。** `dsh-bash-local` 的 `timeoutMs` 是所组合 shell 运行的每条命令的默认值，部门自己的 `bash` 调用也包括在内，因此在那里设定检查时限，会让部门回合里一条挂起的命令跑满整个墙钟预算。程序自己的 `checkTimeoutMs` 恰好约束程序作为检查运行的那些命令。
 
@@ -70,7 +74,7 @@ Harness Core 包管家的工单由一条命令处理：`pnpm run enterprise -- s
 
 ## Verification
 
-- `pnpm exec vitest run --config vitest.e2e.config.ts examples/headless-agent/tests/enterprise-shift.e2e.ts` 针对播种的裸远端跑四个班次，每个克隆都带一个拒绝一切推送的 pre-push 钩子——测试以一次运行它的推送展示这一点——每个班次都在一把自己的重型锁下运行，`T-0001` 播种的重型检查只在该锁被持有时通过：`T-0001,T-0002,T-0004`（一张发运且提交信息与署名行齐全，一张验收失败，一张在 `engine-scope` 上失败；远端携带工单提交、班次提交、台账与记录）、`T-0003`（已认证、被驳回、已关闭）、`T-0005`（顶端移动、变基、重新认证、发运）以及两张工单上的 `QUOTA` 停机（两者都在第一个回合阻塞、`halted` 行、退出码 3）。
+- `pnpm exec vitest run --config vitest.e2e.config.ts examples/headless-agent/tests/enterprise-shift.e2e.ts` 针对播种的裸远端跑四个班次，每个克隆都带一个拒绝一切推送的 pre-push 钩子——测试以一次运行它的推送展示这一点——每个班次都在一把自己的重型锁下运行，`T-0001` 播种的重型检查只在该锁被持有时通过；第一个班次的程序会话不带 `signoff/recorded`，其记录点名两个决定的机器主体：`T-0001,T-0002,T-0004`（一张发运且提交信息与署名行齐全，一张验收失败，一张在 `engine-scope` 上失败；远端携带工单提交、班次提交、台账与记录）、`T-0003`（已认证、被驳回、已关闭）、`T-0005`（顶端移动、变基、重新认证、发运）以及两张工单上的 `QUOTA` 停机（两者都在第一个回合阻塞、`halted` 行、退出码 3）。
 - `pnpm exec vitest run examples/headless-agent/tests/enterprise-shift.spec.ts scripts/enterprise.spec.ts scripts/enterprise-tickets.spec.ts` 钉住从台账选择工单、带重型锁与生成路径的编译检查、目标与评审员读到的工单、结论行、提交信息、剪除、命令行、锁与清扫、队列策略参数，以及每个生成 pathspec 都匹配某个已跟踪的文件。
 - `pnpm exec vitest run packages/improvement/program/` 钉住每项检查与门禁都在 `checkTimeoutMs` 下运行、每条 `git` 命令都在执行器默认值下运行；`pnpm exec vitest run scripts/enterprise-cycle-record.spec.ts` 让周期脚本越过一个拒绝一切推送的 pre-push 钩子运行，并检查班次收到了重型锁。
 - `pnpm run typecheck`、`pnpm run lint`、`pnpm run knip` 与 `pnpm run doc-sync` 覆盖夹具、脚本、README 对与本 note。

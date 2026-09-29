@@ -45,7 +45,6 @@ import type {} from '@deepseek-ai/dsh-read-barrier'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
-import type {} from '@deepseek-ai/dsh-signoff'
 import type { CheckId, StandardCheck } from '@deepseek-ai/dsh-verification/types'
 import { HARNESS_QUEUE_POLICY, OPEN_QUEUE_POLICY } from '../../../../../scripts/enterprise-tickets.ts'
 import type { QueuePolicy } from '../../../../../scripts/enterprise-tickets.ts'
@@ -56,6 +55,7 @@ import {
   departmentKey,
   departmentObjective,
   documentationCheck,
+  engineDecisions,
   LEDGER_PATH,
   LIMIT_HALT_REASON,
   parseLedger,
@@ -243,7 +243,7 @@ function seatName(repo: string, seat: string): string {
   return roster.agents.find(agent => agent.id === seat)?.name ?? seat
 }
 
-/** The artefact the shift's two signatures attest: the selected tickets, verbatim. */
+/** The artefact the engine's two decisions cover: the selected tickets, verbatim. */
 function artefactOf(tickets: readonly Ticket[]): string {
   return createHash('sha256').update(JSON.stringify(tickets)).digest('hex')
 }
@@ -270,7 +270,6 @@ function programSpec(
   return {
     objective: `enterprise shift over ${tickets.map(ticket => ticket.id).join(', ')}`,
     baseRevision: base,
-    signoff: { artefactSha256: artefactOf(tickets) },
     implementer: implementer === 'route' ? { kind: 'route' } : { kind: 'subagent', provider: SUBAGENT_PROVIDER, label: 'enterprise department' },
     goals: tickets.map(ticket => ({
       key: departmentKey(ticket.id),
@@ -298,29 +297,6 @@ function prepareWorktrees(repo: string, programId: string, keys: readonly string
     const workspace = join(repo, programId, key)
     git(repo, 'worktree', 'add', '-B', `program/${programId}/${key}`, workspace, base)
     installOffline(workspace)
-  }
-}
-
-/** Record the spec-freeze and release signatures on the program session before `start` opens it. */
-async function sign(ctx: Awaited<ReturnType<typeof boot>>, spec: ProgramSpec, artefact: string, cwd: string): Promise<void> {
-  const sessionId = SessionId(programIdFor(programSpecDigest(resolveProgramSpec(spec))))
-  const signoffs = ctx.get('signoffs')
-  const agents = ctx.get('agents')
-  const model = ctx.get('agentDefaultModel')?.currentSelection()
-  if (signoffs === undefined || agents === undefined || model === undefined) throw new Error('enterprise-shift driver requires the signoffs, agents and default-model services')
-  const handle = await agents.create({ sessionId, meta: { cwd }, agentOptions: { provider: model.provider, model: model.model } })
-  try {
-    for (const transition of ['spec-freeze', 'release'] as const) {
-      signoffs.record(handle.agent, {
-        transition,
-        principal: { kind: 'human', id: 'enterprise-operator', displayName: 'enterprise operator' },
-        artefactSha256: artefact,
-        evidence: [{ kind: 'spec', ref: 'the frozen shift program over the selected tickets' }],
-      })
-    }
-    await ctx.sessions.flush(handle.agent.session)
-  } finally {
-    await handle.dispose()
   }
 }
 
@@ -692,7 +668,6 @@ if (prepared !== undefined) {
     }, { global: true })
 
     try {
-      await sign(ctx, spec, artefactOf(selected), repo)
       report = await programs.start(spec)
       for (const run of runs) {
         const goal = report.goals.find(candidate => candidate.key === run.key)
@@ -773,6 +748,9 @@ if (prepared !== undefined) {
 // rebased onto it and recertified before the ledger is rewritten around their
 // new hashes; a rebase that conflicts ships nothing and still records why.
 const recordName = shiftRecordName(startedAt, config.shift)
+// No person reviews an unattended shift, so its spec freeze and its release are
+// the engine's own decisions, recorded as such rather than signed in anyone's name.
+const decisions = engineDecisions(config.shift, artefactOf(selected))
 const recordDir = join(repo, SHIFTS_DIR, recordName)
 const composition = relative(fileURLToPath(new URL('../../../../..', import.meta.url)), configPath)
 const finalize = async (assembledHead: string, shippedBase: string): Promise<string> => {
@@ -797,6 +775,7 @@ const finalize = async (assembledHead: string, shippedBase: string): Promise<str
     programId,
     report: report ?? null,
     halt: halt ?? null,
+    decisions,
     tickets: runs.map(run => ({
       ...ledgerLine(run, at, config.shift, programId, config.implementer, modelName),
       rationale: run.review.rationale,
@@ -885,6 +864,7 @@ process.stdout.write(`${JSON.stringify({
   model: modelName,
   report: report ?? null,
   halt: halt ?? null,
+  decisions,
   tickets: runs.map(run => ({
     ...ledgerLine(run, startedAt.toISOString(), config.shift, programId, config.implementer, modelName),
     rationale: run.review.rationale,

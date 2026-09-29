@@ -66,6 +66,10 @@ interface IntakeResult {
   readonly open: number
   readonly minOpen: number
   readonly program?: { readonly outcome: string | null }
+  readonly decisions?: readonly {
+    readonly transition: string
+    readonly principal: { readonly kind: string; readonly id: string; readonly decidedBy: string }
+  }[]
   readonly routeLimit?: { readonly message: string; readonly resetsAtIso?: string }
   readonly coordinators?: readonly {
     readonly seat: string
@@ -210,6 +214,12 @@ describe('the coordinators\' intake through a real cordis.yml', () => {
     expect(run.stdout).toContain(`${ALPHA} (0 open), ${BETA} (1 open)`)
     const result = readJson(join(run.repo, summary.record, 'result.json')) as IntakeResult
     expect(result.program?.outcome).toBe('released')
+    // No person signed the unattended intake: its two decisions name the machine principal and the run.
+    expect(result.decisions?.map(decision => [decision.transition, decision.principal.kind, decision.principal.id])).toEqual([
+      ['spec-freeze', 'machine', 'daliesk-enterprise-intake'],
+      ['release', 'machine', 'daliesk-enterprise-intake'],
+    ])
+    expect(result.decisions?.[0]?.principal.decidedBy).toMatch(/^the enterprise intake, run /)
     expect(result.coordinators?.map(entry => [entry.seat, entry.openInSubsystem, entry.status, entry.outcome, entry.admitted])).toEqual([
       [ALPHA, 0, 'merged', 'pass', ['T-0002']],
       [BETA, 1, 'merged', 'pass', ['T-0003']],

@@ -508,6 +508,43 @@ export function shiftCommitMessage(shift: string, shipped: readonly string[], tr
   ].join('\n')
 }
 
+/**
+ * The engine as the principal of a decision an unattended shift makes itself.
+ * It is not a signature: `@deepseek-ai/dsh-signoff` records only a person's,
+ * and no person reviews an unattended shift's spec or release.
+ */
+interface MachinePrincipal {
+  readonly kind: 'machine'
+  /** The deciding engine. */
+  readonly id: string
+  /** The engine and the shift that decided, for a reader of the record. */
+  readonly decidedBy: string
+}
+
+/** One decision the shift made without a person: freezing its program spec, or releasing what it assembled. */
+export interface EngineDecision {
+  readonly transition: 'spec-freeze' | 'release'
+  readonly principal: MachinePrincipal
+  /** Lowercase SHA-256 hex of the selected tickets, the artefact both decisions cover. */
+  readonly artefactSha256: string
+}
+
+/** The id every engine decision names as its principal. */
+export const ENGINE_PRINCIPAL_ID = 'daliesk-enterprise-shift'
+
+/**
+ * The two decisions one shift records in place of a signature: the spec
+ * freeze before its program opens and the release of whatever it pushes, both
+ * decided by the engine for this shift.
+ * @param shift - the shift id.
+ * @param artefactSha256 - the digest of the selected tickets.
+ * @returns the spec-freeze and the release decision.
+ */
+export function engineDecisions(shift: string, artefactSha256: string): EngineDecision[] {
+  const principal: MachinePrincipal = { kind: 'machine', id: ENGINE_PRINCIPAL_ID, decidedBy: `the enterprise-shift engine, shift ${shift}` }
+  return (['spec-freeze', 'release'] as const).map(transition => ({ transition, principal, artefactSha256 }))
+}
+
 /** Strings shaped like credentials, cut from every recorded byte. */
 const CREDENTIAL_SHAPES = new RegExp([
   String.raw`\b(?:sk-[A-Za-z0-9_-]{8,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}`,

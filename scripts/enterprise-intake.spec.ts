@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 
 import type { Coordinator, Queue, Ticket } from './enterprise-intake-admission.ts'
 import {
+  INTAKE_PRINCIPAL_ID,
+  intakeDecisions,
   admissionCommand,
   coordinatorObjective,
   functionLine,
@@ -189,5 +191,15 @@ describe('the ledger', () => {
 
   it('names an intake by its start time and a random suffix', () => {
     expect(intakeId(new Date('2026-09-28T17:20:05.123Z'))).toMatch(/^172005-[0-9a-f]{4}$/)
+  })
+})
+
+describe('the decisions no person made', () => {
+  it('records the spec freeze and the release as the intake\'s own, naming the run', () => {
+    const principal = { kind: 'machine', id: INTAKE_PRINCIPAL_ID, decidedBy: 'the enterprise intake, run ab12cd' }
+    expect(intakeDecisions('ab12cd', 'f'.repeat(64))).toEqual([
+      { transition: 'spec-freeze', principal, artefactSha256: 'f'.repeat(64) },
+      { transition: 'release', principal, artefactSha256: 'f'.repeat(64) },
+    ])
   })
 })

@@ -51,6 +51,7 @@ interface ShiftResult {
   programId: string
   report: { outcome?: string; mergedRevision?: string; goals: { key: string; status: string; revision?: string }[] }
   halt: { kind: string; resetsAt: string | null; failure: { code: string } } | null
+  decisions: { transition: string; principal: { kind: string; id: string; decidedBy: string }; artefactSha256: string }[]
   tickets: (TicketLedgerLine & { rationale: string })[]
   shiftCommit: string
   pushed: { commit: string; rounds: number } | null
@@ -246,6 +247,17 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(files).toContain(`${observed.record}/manifest.json`)
     expect(files).toContain(`${observed.record}/sessions/${observed.programId}.jsonl`)
     expect(files).toContain(`${observed.record}/sessions/${shipped.review.sessionId ?? ''}.jsonl`)
+    // No person signed anything: the program session carries no signature, and
+    // the record names the engine as the machine principal of both decisions.
+    const programLog = git(remote, 'show', `main:${observed.record}/sessions/${observed.programId}.jsonl`)
+    expect(programLog).not.toContain('signoff/recorded')
+    const recorded = JSON.parse(git(remote, 'show', `main:${observed.record}/result.json`)) as { decisions: ShiftResult['decisions'] }
+    expect(recorded.decisions).toEqual(observed.decisions)
+    expect(observed.decisions.map(decision => [decision.transition, decision.principal])).toEqual(['spec-freeze', 'release'].map(transition => [
+      transition,
+      { kind: 'machine', id: 'daliesk-enterprise-shift', decidedBy: 'the enterprise-shift engine, shift e2e-mixed' },
+    ]))
+    expect(JSON.stringify(recorded)).not.toContain('"human"')
     const manifest = JSON.parse(git(remote, 'show', `main:${observed.record}/manifest.json`)) as { files: { path: string }[]; base: string }
     expect(manifest.base).toBe(base)
     expect(manifest.files.map(file => file.path)).toEqual(expect.arrayContaining(['result.json', `sessions/${observed.programId}.jsonl`]))

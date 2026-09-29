@@ -38,7 +38,7 @@ Every intake writes `data/enterprise/intake/<UTC date>-<hhmmss>-<suffix>/`:
 
 | File | What it holds |
 |---|---|
-| `result.json` | The target commit, the open count, the outcome (`nothing-needed`, `ran`, `route-limit`), the program's id and outcome, per coordinator its status, tokens, seconds, admitted ids and refusals, the route limit, and the session ids |
+| `result.json` | The target commit, the open count, the outcome (`nothing-needed`, `ran`, `route-limit`), the program's id and outcome, the `decisions` no person made (the spec freeze and the release, each naming the machine principal `daliesk-enterprise-intake` and `decidedBy: "the enterprise intake, run <id>"`, over the plan's SHA-256), per coordinator its status, tokens, seconds, admitted ids and refusals, the route limit, and the session ids |
 | `<seat>.json` | One coordinator's department, the proposals it committed, and every verdict with the checks of its own that ran, their exit codes and their output tails |
 | `sessions/<session id>.jsonl` | Every session log of the program: the ledger, each department, the integration |
 

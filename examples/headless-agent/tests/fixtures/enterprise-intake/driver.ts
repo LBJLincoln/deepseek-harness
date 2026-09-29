@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /**
  * Driver of the intake program: read the plan `scripts/enterprise-intake.ts`
- * wrote, turn it into a program spec with one department per coordinator,
- * record the two signatures, run the program over the clone the intake
- * prepared, and print one result line: the report, every member session's
+ * wrote, turn it into a program spec with one department per coordinator, run
+ * the program over the clone the intake prepared without a human release gate
+ * (no person signs an unattended intake; the wrapper records the spec freeze
+ * and the release as the intake's own decisions), and print one result line:
+ * the report, every member session's
  * spend and span, and the route limit that stopped the run, if one did.
  *
  * The same driver serves the keyless composition beside it and the Claude Code
@@ -11,7 +13,6 @@
  * driven on and the caps the composition's budget policy states.
  */
 
-import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -21,12 +22,9 @@ import type {} from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
 import { foldBudgetSpend } from '@deepseek-ai/dsh-budget-policy'
 import { QUOTA_EXCEEDED_CODE } from '@deepseek-ai/dsh-llm'
-import { programIdFor, programSpecDigest, resolveProgramSpec } from '@deepseek-ai/dsh-program'
 import type { ProgramGoalBudget, ProgramReport, ProgramSpec } from '@deepseek-ai/dsh-program'
-import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
-import type {} from '@deepseek-ai/dsh-signoff'
 import type { CheckId } from '@deepseek-ai/dsh-verification/types'
 import { ROUTE_LIMIT_BLOCK } from './route-wall.ts'
 
@@ -68,25 +66,21 @@ const configPath = process.argv[2]
 if (configPath === undefined) throw new Error('intake driver requires a config path')
 
 /**
- * The clone the intake prepared, which the program delivers into.
- * @returns its path.
+ * Refuse to start without the clone the intake prepared, which the program,
+ * composed with it as `workspaceRoot`, delivers into.
  */
-function preparedRepository(): string {
+function requirePreparedRepository(): void {
   const path = process.env['DSH_TEST_PROGRAM_REPO']
   if (path === undefined || !existsSync(join(path, '.git'))) {
     throw new Error('intake driver requires DSH_TEST_PROGRAM_REPO naming the clone the intake prepared')
   }
-  return path
 }
 
-const repository = preparedRepository()
+requirePreparedRepository()
 const planPath = process.env['DSH_INTAKE_PLAN']
 if (planPath === undefined) throw new Error('intake driver requires DSH_INTAKE_PLAN')
 const planBytes = readFileSync(planPath)
 const plan = JSON.parse(planBytes.toString('utf8')) as IntakePlan
-
-/** The artefact both signatures attest: the plan the program was built from. */
-const ARTEFACT = createHash('sha256').update(planBytes).digest('hex')
 
 // The roster's root has to be absolute, so the presets beside this file are exported by path.
 process.env['DSH_TEST_PROGRAM_PRESETS'] = fileURLToPath(new URL('presets', import.meta.url))
@@ -130,7 +124,6 @@ function programSpec(budget: ProgramGoalBudget): ProgramSpec {
   return {
     objective: plan.objective,
     baseRevision: plan.baseRevision,
-    signoff: { artefactSha256: ARTEFACT },
     goals: plan.departments.map(department => ({
       key: department.key,
       objective: department.objective,
@@ -141,41 +134,6 @@ function programSpec(budget: ProgramGoalBudget): ProgramSpec {
       checks: department.checks.map(check => ({ id: check.id as CheckId, outcome: check.outcome, run: check.run })),
     })),
     integration: { checks: [], gates: [...plan.gates] },
-  }
-}
-
-/**
- * Record the spec-freeze and release signatures on the program session before
- * it opens, as the intake's operator. A session that already carries them is
- * left alone, so a resumed run signs nothing twice.
- * @param ctx - the booted application.
- * @param spec - the spec whose digest names the program session.
- */
-async function sign(ctx: Awaited<ReturnType<typeof boot>>, spec: ProgramSpec): Promise<void> {
-  const sessionId = SessionId(programIdFor(programSpecDigest(resolveProgramSpec(spec))))
-  const signoffs = ctx.get('signoffs')
-  const agents = ctx.get('agents')
-  if (signoffs === undefined || agents === undefined) throw new Error('intake driver requires the signoffs and agents services')
-  if ((await ctx.get('sessionPersistence')?.list() ?? []).some(stored => stored.id === sessionId)) return
-  const model = ctx.get('agentDefaultModel')?.currentSelection()
-  if (model === undefined) throw new Error('intake driver requires the default-model service')
-  const handle = await agents.create({
-    sessionId,
-    meta: { cwd: repository },
-    agentOptions: { provider: model.provider, model: model.model },
-  })
-  try {
-    for (const transition of ['spec-freeze', 'release'] as const) {
-      signoffs.record(handle.agent, {
-        transition,
-        principal: { kind: 'human', id: 'enterprise-intake-operator', displayName: 'enterprise intake operator' },
-        artefactSha256: ARTEFACT,
-        evidence: [{ kind: 'spec', ref: 'the frozen intake program spec over the intake plan' }],
-      })
-    }
-    await ctx.sessions.flush(handle.agent.session)
-  } finally {
-    await handle.dispose()
   }
 }
 
@@ -244,7 +202,6 @@ try {
     throw new Error('intake driver requires the programs, session persistence and default-model services')
   }
   const spec = programSpec(departmentBudget(ctx))
-  await sign(ctx, spec)
   const report = await programs.start(spec)
   const observed = await readMembers(persistence, report, route)
   process.stdout.write(`${JSON.stringify({ type: 'result', report, ...observed })}\n`)
