@@ -6,6 +6,7 @@
  * through.
  */
 
+import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import type { CheckId } from '@deepseek-ai/dsh-verification/types'
 import { HARNESS_QUEUE_POLICY, OPEN_QUEUE_POLICY } from '../../../scripts/enterprise-tickets.ts'
@@ -24,6 +25,7 @@ import {
   parseShiftStarts,
   queueOrder,
   readReviewVerdict,
+  recordLeaks,
   redactCredentials,
   reviewTicketText,
   selectTickets,
@@ -313,11 +315,19 @@ describe('the decisions no person made', () => {
 })
 
 describe('the record', () => {
-  it('cuts credential-shaped strings and counts them', () => {
-    const { text, redacted } = redactCredentials('token sk-abcdefghijklmnop and AKIAABCDEFGHIJKLMNOP plus ghp_abcdefghijklmnopqrstuvwxyz1234 and plain words')
-    expect(text).toBe('token [redacted] and [redacted] plus [redacted] and plain words')
-    expect(redacted).toBe(3)
+  it('masks credential- and personal-data-shaped strings with the shared patterns, then the shapes they do not name, and counts them', () => {
+    const input = 'token sk-abcdefghijklmnop and AKIAABCDEFGHIJKLMNOP plus ghp_abcdefghijklmnopqrstuvwxyz1234, mail owner@example.com, plain words'
+    const { text, redacted } = redactCredentials(input)
+    expect(text).toBe('token [redacted] and [REDACTED-AWS-ACCESS-KEY] plus [REDACTED-GITHUB-TOKEN], mail [REDACTED-EMAIL], plain words')
+    expect(redacted).toBe(4)
     expect(redactCredentials('nothing here').redacted).toBe(0)
+  })
+
+  it('finds on re-scan only what the masking left, by file, line, shape and digest', () => {
+    const leaked = 'AKIAABCDEFGHIJKLMNOP'
+    const files = [{ path: 'result.json', text: redactCredentials(`{"key": "${leaked}"}`).text }, { path: 'sessions/x.jsonl', text: `clean\nkey ${leaked}\n` }]
+    expect(recordLeaks(files)).toEqual([{ file: 'sessions/x.jsonl', line: 2, pattern: 'aws-access-key', digest: createHash('sha256').update(leaked).digest('hex') }])
+    expect(recordLeaks([files[0] ?? { path: '', text: '' }])).toEqual([])
   })
 
   it('names the shift by its UTC start', () => {

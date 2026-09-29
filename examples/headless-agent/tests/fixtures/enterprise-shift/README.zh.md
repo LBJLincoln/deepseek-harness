@@ -19,7 +19,7 @@
 
 `data/enterprise/ledger.jsonl` 每班次每工单新增一行：`{ type: "ticket", at, shift, ticket, seat, division, programId, implementer, model, department: { outcome, sessionId }, checks: [{ id, ok }], review: { verdict, sessionId }, integration: { outcome }, shipped: { commit } | null, reason, tokens, seconds }`。`department.outcome` 取 `certified`、`failed`、`blocked`、`abandoned`、`pending` 或 `halted`；`review.verdict` 取 `approve`、`reject` 或 `none`；`integration.outcome` 取 `merged`、`skipped`、`conflict`、`checks-failed`、`digest-mismatch` 或 `not-shipped`。工单最近一行为已发运或已驳回即告关闭；其余任何一行都让它留给后续班次。引擎只读工单行：没有 `type` 的行算作工单行，其他任何 `type` 的行——企业职能的 `function` 行与之共用这个文件——都被跳过。
 
-`data/enterprise/shifts/<UTC 日期>-<班次 id>/` 存放 `result.json`（班次、程序报告、`decisions`——规格冻结与发布，各自点名机器主体 `daliesk-enterprise-shift` 与 `decidedBy: "the enterprise-shift engine, shift <id>"`，覆盖所选工单的 SHA-256——每张工单的台账行连同评审员的理由、停机信息）、`manifest.json`（基准、分支、组合、每个文件的 SHA-256）以及班次每个会话的 `sessions/<会话 id>.jsonl`——程序台账、每个部门、每次评审、整合。写入记录的每个字节都会剪除形似凭据的字符串，并在 `result.json` 中计数。
+`data/enterprise/shifts/<UTC 日期>-<班次 id>/` 存放 `result.json`（班次、程序报告、`decisions`——规格冻结与发布，各自点名机器主体 `daliesk-enterprise-shift` 与 `decidedBy: "the enterprise-shift engine, shift <id>"`，覆盖所选工单的 SHA-256——每张工单的台账行连同评审员的理由、停机信息）、`manifest.json`（基准、分支、组合、每个文件的 SHA-256）以及班次每个会话的 `sessions/<会话 id>.jsonl`——程序台账、每个部门、每次评审、整合。写入记录的每个字节都先用本仓库所有发布智能体文本的工具共用的模式（[`data/transcripts/tools/secret-patterns.mjs`](../../../../../data/transcripts/tools/secret-patterns.mjs)）遮蔽，电子邮件地址包括在内，每个匹配变为其 `[REDACTED-<PATTERN>]` 标记，然后再遮蔽这些模式未点名的凭据形状，其中包括 JSON web token；`result.json` 统计遮蔽次数。在暂存 `data/enterprise/` 下的任何东西之前，已写出的记录会再用共用模式扫描一遍：任何残存的匹配都会让班次什么也不提交、什么也不推送、保留克隆，按文件、行、模式与摘要（从不按其文本）点名每个匹配，并以 1 退出。
 
 ## 两份组合
 

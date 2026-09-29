@@ -54,9 +54,12 @@ function bash(id: string, command: string, description: string): Step {
   return { id, name: 'bash', args: { command, description } }
 }
 
-/** The commit that delivers a department's files, naming its ticket. */
+/** The address every scripted commit credits, which the shift's record must mask. */
+export const SCRIPTED_REPORTER = 'owner@example.test'
+
+/** The commit that delivers a department's files, naming its ticket and crediting a reporter by e-mail. */
 function commit(ticket: string): Step {
-  return bash('commit', `git add -A && git commit -q -m '${ticket}: the scripted department delivers'`, `Commit the work of ${ticket}.`)
+  return bash('commit', `git add -A && git commit -q -m '${ticket}: the scripted department delivers' -m 'Reported-by: ${SCRIPTED_REPORTER}'`, `Commit the work of ${ticket}.`)
 }
 
 /**

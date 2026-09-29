@@ -24,6 +24,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterAll, describe, expect, it } from 'vitest'
 import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
+import { SCRIPTED_REPORTER } from './fixtures/enterprise-shift/enterprise-llm.ts'
 import { parseLedger, parseShiftStarts, ticketStatuses } from './fixtures/enterprise-shift/shift.ts'
 import type { ShiftStartLine, TicketLedgerLine } from './fixtures/enterprise-shift/shift.ts'
 
@@ -282,6 +283,12 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
       { kind: 'machine', id: 'daliesk-enterprise-shift', decidedBy: 'the enterprise-shift engine, shift e2e-mixed' },
     ]))
     expect(JSON.stringify(recorded)).not.toContain('"human"')
+    // Every recorded byte went through the shared masking: the reporter's
+    // address the departments' commits credit reached the reviewer's evidence
+    // and the department's log, and the record holds only its marker.
+    const recordText = files.filter(file => file !== '').map(file => git(remote, 'show', `main:${file}`)).join('\n')
+    expect(recordText).not.toContain(SCRIPTED_REPORTER)
+    expect(git(remote, 'show', `main:${observed.record}/sessions/${shipped.review.sessionId ?? ''}.jsonl`)).toContain('Reported-by: [REDACTED-EMAIL]')
     const manifest = JSON.parse(git(remote, 'show', `main:${observed.record}/manifest.json`)) as { files: { path: string }[]; base: string }
     expect(manifest.base).toBe(observed.base)
     expect(manifest.files.map(file => file.path)).toEqual(expect.arrayContaining(['result.json', `sessions/${observed.programId}.jsonl`]))

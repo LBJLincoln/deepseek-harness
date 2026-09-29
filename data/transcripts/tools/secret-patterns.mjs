@@ -2,9 +2,10 @@
 // that publishes transcripts or agent text: the transcript collector
 // (collect-claude-code-session.mjs), the live capture (capture-live.mjs), the
 // intake admission (scripts/enterprise-intake-admission.ts), the bench
-// preflight (data/proving-ground/tools/preflight.mjs), and the code-safety
-// record (data/code-safety/tools/record-run.mjs). They recognise the same
-// shapes and mask them the same way. Node built-ins only.
+// preflight (data/proving-ground/tools/preflight.mjs), the code-safety
+// record (data/code-safety/tools/record-run.mjs), and the enterprise shift's
+// record (examples/headless-agent/tests/fixtures/enterprise-shift/shift.ts).
+// They recognise the same shapes and mask them the same way. Node built-ins only.
 
 import { createHash } from 'node:crypto'
 

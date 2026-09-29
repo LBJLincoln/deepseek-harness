@@ -41,7 +41,7 @@
 
 一个班次是 [enterprise-shift 引擎](../../examples/headless-agent/tests/fixtures/enterprise-shift/README.md)的一次运行（`pnpm run enterprise -- shift --next <n> --push`）：它克隆开发分支的顶端，让选中的未关闭工单在各自的工作树里经由程序工作流完成，由一位独立评审员对每个已认证的修改作出裁定，把获批的修改装配为每张工单一次提交，重新认证，再连同班次自己的提交一起快进推送到分支。那次提交携带班次的台账行与记录，因此分支是班次唯一的汇报之处。无人值守的班次与受理没有人工发布关卡：没有人评审它们发运的内容，它们的程序不带 `requireSignoff` 运行，它们的记录把规格冻结与发布写作机器主体（`daliesk-enterprise-shift`、`daliesk-enterprise-intake`）的决定，其 `decidedBy` 写明引擎以及班次或受理运行；人所评审的是事后的分支。
 
-`shifts/<UTC 日期>-<班次 id>/` 是班次的记录：`result.json`（班次、程序报告、引擎的 `decisions`、每张工单的台账行连同评审员的理由、停机信息）、`manifest.json`（基准修订、分支、组合、每个文件的 SHA-256）以及班次运行的每个会话的 `sessions/<会话 id>.jsonl`——程序台账、每个部门、每次评审、整合——其中形似凭据的字符串已剪除并计数。记录由运行它的班次写入，此后不再改写。`shift-starts.jsonl` 每个班次一条开始行，`{ type: "shift-start", at, shift, tickets, base, host, pid, implementer }`，班次在任何部门运行前推送它；其班次没有留下任何工单行的开始行意味着被容器重置截断，下一个班次会以一条计为一次尝试的 `abandoned: container reset` 工单行关闭它的每张工单。该文件只追加，并按行并集合并。
+`shifts/<UTC 日期>-<班次 id>/` 是班次的记录：`result.json`（班次、程序报告、引擎的 `decisions`、每张工单的台账行连同评审员的理由、停机信息）、`manifest.json`（基准修订、分支、组合、每个文件的 SHA-256）以及班次运行的每个会话的 `sessions/<会话 id>.jsonl`——程序台账、每个部门、每次评审、整合——其中形似凭据与个人数据的字符串（包括电子邮件地址）已由 `data/transcripts/tools/secret-patterns.mjs` 的共用模式遮蔽并计数；重新扫描后仍有匹配的记录永远不会被提交。记录由运行它的班次写入，此后不再改写。`shift-starts.jsonl` 每个班次一条开始行，`{ type: "shift-start", at, shift, tickets, base, host, pid, implementer }`，班次在任何部门运行前推送它；其班次没有留下任何工单行的开始行意味着被容器重置截断，下一个班次会以一条计为一次尝试的 `abandoned: container reset` 工单行关闭它的每张工单。该文件只追加，并按行并集合并。
 
 ## 职能
 

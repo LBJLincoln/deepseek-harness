@@ -64,6 +64,7 @@ import {
   parseShiftStarts,
   readQueue,
   readReviewVerdict,
+  recordLeaks,
   redactCredentials,
   REVIEW_INSTRUCTION,
   reviewEvidenceText,
@@ -462,7 +463,7 @@ async function foldDepartment(persistence: SessionPersistence, run: TicketRun, g
   run.seconds = spanSeconds(events)
 }
 
-/** Every persisted session log, as `<session id>.jsonl` bodies, credential-shaped strings cut. */
+/** Every persisted session log, as `<session id>.jsonl` bodies, credential- and personal-data-shaped strings masked. */
 function sessionLogs(root: string): { name: string; text: string; redacted: number }[] {
   if (!existsSync(root)) return []
   const logs: { name: string; text: string; redacted: number }[] = []
@@ -886,6 +887,14 @@ const finalize = async (assembledHead: string, shippedBase: string): Promise<str
     files,
   }
   await writeFile(join(recordDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)
+  // Nothing of the record is committed, let alone pushed, while the shared
+  // patterns still find a match in it; the throw keeps the clone for its operator.
+  const leaks = recordLeaks(['manifest.json', 'result.json', ...logs.map(log => `sessions/${log.name}`)]
+    .map(path => ({ path, text: readFileSync(join(recordDir, path), 'utf8') })))
+  if (leaks.length > 0) {
+    throw new Error(`the record's re-scan found ${String(leaks.length)} secret-shaped string(s) the masking left, so nothing is committed or pushed: ${
+      leaks.map(leak => `${leak.file}:${String(leak.line)} ${leak.pattern} sha256 ${leak.digest.slice(0, 12)}`).join(', ')}`)
+  }
   git(repo, 'add', '-A', '--', 'data/enterprise')
   const message = join(repo, '.git', 'enterprise-shift.msg')
   writeFileSync(message, `${shiftCommitMessage(config.shift, runs.filter(run => run.commit !== null).map(run => run.ticket.id), trailers)}\n`)

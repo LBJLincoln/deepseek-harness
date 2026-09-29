@@ -9,6 +9,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { CheckId, StandardCheck } from '@deepseek-ai/dsh-verification/types'
+import { redactText, scanSecrets, SECRET_PATTERN_NAMES } from '../../../../../data/transcripts/tools/secret-patterns.mjs'
 import { ROSTER_PATH } from '../../../../../scripts/enterprise-roster.ts'
 import type { Roster } from '../../../../../scripts/enterprise-roster.ts'
 import { loadTickets, validateTickets } from '../../../../../scripts/enterprise-tickets.ts'
@@ -656,7 +657,7 @@ export function engineDecisions(shift: string, artefactSha256: string): EngineDe
   return (['spec-freeze', 'release'] as const).map(transition => ({ transition, principal, artefactSha256 }))
 }
 
-/** Strings shaped like credentials, cut from every recorded byte. */
+/** Credential shapes the shared patterns do not name, a JSON web token among them, cut after them. */
 const CREDENTIAL_SHAPES = new RegExp([
   String.raw`\b(?:sk-[A-Za-z0-9_-]{8,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}`,
   String.raw`|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,})\b`,
@@ -664,17 +665,43 @@ const CREDENTIAL_SHAPES = new RegExp([
 ].join(''), 'g')
 
 /**
- * Cut credential-shaped strings out of text bound for a committed record.
+ * Mask credential- and personal-data-shaped strings, e-mail addresses
+ * included, in text bound for a committed record: first with the patterns
+ * every publisher of agent text in this repository shares
+ * (`data/transcripts/tools/secret-patterns.mjs`, each match becoming its
+ * `[REDACTED-<PATTERN>]` marker), then with the shapes they do not name.
  * @param text - the text to record.
- * @returns the text with each match replaced, and how many were cut.
+ * @returns the text with each match replaced, and how many were masked.
  */
 export function redactCredentials(text: string): { text: string; redacted: number } {
-  let redacted = 0
-  const cut = text.replace(CREDENTIAL_SHAPES, () => {
+  const shared = redactText(text, SECRET_PATTERN_NAMES)
+  let redacted = Object.values(shared.counts).reduce((sum, count) => sum + count, 0)
+  const cut = shared.text.replace(CREDENTIAL_SHAPES, () => {
     redacted += 1
     return '[redacted]'
   })
   return { text: cut, redacted }
+}
+
+/** One string a re-scan of a written record still found: where and which shape, by digest, never the text itself. */
+export interface RecordLeak {
+  readonly file: string
+  readonly line: number
+  readonly pattern: string
+  readonly digest: string
+}
+
+/**
+ * Re-scan a written record with the shared patterns. Everything the record
+ * holds went through {@link redactCredentials}, so a match here is a shape the
+ * masking missed or a file written without it, and the record must not leave
+ * the clone.
+ * @param files - every file of the record, as its path within the record and its text.
+ * @returns every surviving match; empty for a clean record.
+ */
+export function recordLeaks(files: readonly { readonly path: string; readonly text: string }[]): RecordLeak[] {
+  return files.flatMap(file => scanSecrets(file.path, file.text)
+    .map(hit => ({ file: file.path, line: hit.line, pattern: hit.pattern, digest: hit.digest })))
 }
 
 /**
