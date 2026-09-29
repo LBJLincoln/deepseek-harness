@@ -285,11 +285,11 @@ describe('formatTicket', () => {
 })
 
 describe('credential handling', () => {
-  it('masks credential-shaped strings and keeps JSON parseable', () => {
+  it('masks credential-shaped strings and e-mail addresses and keeps JSON parseable', () => {
     const key = `sk-ant-${'A1b2C3d4E5'.repeat(3)}`
-    const { text, hits } = maskCredentials(JSON.stringify({ output: `token ${key} and ghp_${'x'.repeat(36)}` }))
-    expect(JSON.parse(text)).toEqual({ output: 'token [masked:anthropic-key] and [masked:github-token]' })
-    expect(hits).toEqual({ 'anthropic-key': 1, 'github-token': 1 })
+    const { text, hits } = maskCredentials(JSON.stringify({ output: `token ${key} and ghp_${'x'.repeat(36)}\nby jane.doe@mailhost.org` }))
+    expect(JSON.parse(text)).toEqual({ output: 'token [REDACTED-ANTHROPIC-KEY] and [REDACTED-GITHUB-TOKEN]\nby [REDACTED-EMAIL]' })
+    expect(hits).toEqual({ 'anthropic-key': 1, 'github-token': 1, email: 1 })
   })
 
   it('hands an acceptance command no variable whose name marks a credential, and no git config set', () => {

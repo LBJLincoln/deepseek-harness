@@ -19,12 +19,17 @@
 // The record directory is written once; an existing target is refused so a
 // recorded run is never rewritten in place. A run whose program did not release
 // is recorded exactly as it ended — what a failed run exposed is the reason to
-// keep it.
+// keep it. Before the files are digested, redact-record.mjs replaces key
+// material, every e-mail address becomes `[REDACTED-EMAIL]` (the shared
+// data/transcripts/tools/secret-patterns.mjs, counted per file under the
+// manifest's `personalData`), and a file still carrying a live credential shape
+// of the operator's environment refuses the record.
 
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
+import { PERSONAL_PATTERN_NAMES, redactText, scanSecrets, sha256 } from '../../transcripts/tools/secret-patterns.mjs'
 import { REDACTION_RULE, redactRecordFiles } from './redact-record.mjs'
 import { score } from './seeded-recall.mjs'
 
@@ -60,34 +65,44 @@ function parseArgs(argv) {
 }
 
 /**
- * @param {Buffer | string} content bytes to digest
- * @returns {string} lowercase hex SHA-256
+ * The secret-patterns.mjs credential shapes a record may never carry: the live
+ * keys of the operator's environment. Redaction handles key material and
+ * personal data; these refuse the record outright. A reviewed target may hold
+ * cloud keys, private keys and bearer tokens on purpose, so those shapes are
+ * not refused.
  */
-function sha256(content) {
-  return createHash('sha256').update(content).digest('hex')
-}
-
-/** Credential shapes a record may never carry; redaction handles key material, these refuse the record outright. */
-const CREDENTIAL_PATTERNS = [
-  { name: 'openrouter-key', re: /\bsk-or-v1-[A-Za-z0-9]{20,}/ },
-  { name: 'anthropic-key', re: /\bsk-ant-[A-Za-z0-9_-]{20,}/ },
-  { name: 'github-token', re: /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}/ },
-  { name: 'github-fine-grained-token', re: /\bgithub_pat_[A-Za-z0-9_]{20,}/ },
-  { name: 'slack-token', re: /\bxox[baprs]-[A-Za-z0-9-]{10,}/ },
-]
+const REFUSED_PATTERNS = new Set(['anthropic-key', 'openrouter-key', 'github-token', 'huggingface-token', 'e2b-key', 'slack-token'])
 
 /**
- * Refuses a record that carries a credential-shaped string after redaction.
+ * Refuses a record that carries a refused credential shape after redaction.
  * @param {string} target the record directory
  * @param {string[]} relativePaths the record's files
  */
 function refuseCredentials(target, relativePaths) {
   for (const path of relativePaths) {
-    const text = readFileSync(join(target, path), 'utf8')
-    for (const { name, re } of CREDENTIAL_PATTERNS) {
-      if (re.test(text)) throw new Error(`${path} carries a ${name}; the record is refused — remove the credential from the run before recording it`)
-    }
+    const hit = scanSecrets(path, readFileSync(join(target, path), 'utf8')).find(match => REFUSED_PATTERNS.has(match.pattern))
+    if (hit !== undefined) throw new Error(`${path}:${hit.line} carries a ${hit.pattern}; the record is refused — remove the credential from the run before recording it`)
   }
+}
+
+/**
+ * Masks the personal data secret-patterns.mjs recognises (e-mail addresses)
+ * as `[REDACTED-<PATTERN>]` in the record's files, in place. A file is read
+ * and written as latin1, so every byte outside a masked match is kept.
+ * @param {string} target the record directory
+ * @param {string[]} relativePaths the record's files
+ * @returns {{ path: string, counts: Record<string, number> }[]} each file it changed, with the matches masked per pattern
+ */
+function maskPersonalData(target, relativePaths) {
+  const masked = []
+  for (const path of relativePaths) {
+    const file = join(target, path)
+    const { text, counts } = redactText(readFileSync(file, 'latin1'), PERSONAL_PATTERN_NAMES)
+    if (Object.keys(counts).length === 0) continue
+    writeFileSync(file, text, 'latin1')
+    masked.push({ path, counts })
+  }
+  return masked
 }
 
 /**
@@ -189,8 +204,10 @@ function main() {
     record('seeded-recall.json', Buffer.from(`${JSON.stringify(reading, null, 2)}\n`))
     return reading
   })()
-  // Key material the departments read out of the target is replaced before anything is digested.
+  // Key material the departments read out of the target, and every e-mail
+  // address, is replaced before anything is digested.
   const redactions = redactRecordFiles(target, written)
+  const personal = maskPersonalData(target, written)
   refuseCredentials(target, written)
   const files = written.map((path) => {
     const content = readFileSync(join(target, path))
@@ -231,6 +248,7 @@ function main() {
     sessions: Object.fromEntries(logs.map(log => [log.sessionId, `sessions/${log.sessionId}.jsonl`])),
     files,
     redactions: { rule: REDACTION_RULE, tool: 'tools/redact-record.mjs', files: redactions },
+    personalData: { patterns: [...PERSONAL_PATTERN_NAMES], tool: '../transcripts/tools/secret-patterns.mjs', files: personal },
     ...seededReading === undefined ? {} : {
       seeded: { groundTruth: 'seeded.ground-truth.json', manifest: 'seed-manifest.json', reading: 'seeded-recall.json', planted: seededReading.n, caught: seededReading.caught, interval: seededReading.interval },
     },

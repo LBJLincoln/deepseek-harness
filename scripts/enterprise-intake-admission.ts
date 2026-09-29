@@ -27,6 +27,7 @@ import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
 
+import { SECRET_PATTERN_NAMES, redactText } from '../data/transcripts/tools/secret-patterns.mjs'
 import type { Roster, RosterAgentDefinition } from './enterprise-roster.ts'
 import { loadTickets, TICKETS_DIR, validateTickets } from './enterprise-tickets.ts'
 import type { LoadedTicket } from './enterprise-tickets.ts'
@@ -283,7 +284,7 @@ export interface CheckRun {
   readonly signal: string | null
   readonly timedOut: boolean
   readonly seconds: number
-  /** The tail of the combined output, with credential-shaped strings masked. */
+  /** The tail of the combined output, with credential-shaped strings and e-mail addresses masked. */
   readonly output: string
   /** Paths the command left changed in the tip, which admission reset before the next command. */
   readonly dirtied: readonly string[]
@@ -293,37 +294,16 @@ export interface CheckRun {
 export type RunCheck = (check: TicketCheck) => Promise<CheckRun>
 
 /**
- * Credential-shaped text, copied from
- * `data/transcripts/tools/collect-claude-code-session.mjs`, which owns the list
- * and does not export it. Keep the two in step.
- */
-const CREDENTIAL_PATTERNS: readonly { readonly name: string; readonly re: RegExp }[] = [
-  { name: 'anthropic-key', re: /sk-ant-[A-Za-z0-9_-]{20,}/g },
-  { name: 'openrouter-key', re: /\bsk-or-v1-[A-Za-z0-9]{20,}/g },
-  { name: 'openai-style-key', re: /\bsk-(?:proj-)?[A-Za-z0-9]{20,}/g },
-  { name: 'github-token', re: /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|\bgithub_pat_[A-Za-z0-9_]{20,}/g },
-  { name: 'aws-access-key', re: /\bAKIA[0-9A-Z]{16}\b/g },
-  { name: 'slack-token', re: /\bxox[abprs]-[A-Za-z0-9-]{10,}/g },
-  { name: 'private-key', re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/g },
-  { name: 'bearer-token', re: /\bBearer [A-Za-z0-9._~+/=-]{20,}/g },
-]
-
-/**
- * Mask every credential-shaped string. The mask carries only the pattern's
- * name and no quote or backslash, so masking a JSON document keeps it JSON.
+ * Mask every credential-shaped string and e-mail address the shared patterns
+ * of `data/transcripts/tools/secret-patterns.mjs` recognise, as
+ * `[REDACTED-<PATTERN>]`. The mask carries no quote or backslash and never
+ * splits a JSON escape, so masking a JSON document keeps it JSON.
  * @param text - the text to scan.
  * @returns the masked text and the number of strings masked per pattern.
  */
 export function maskCredentials(text: string): { text: string; hits: Record<string, number> } {
-  const hits: Record<string, number> = {}
-  let masked = text
-  for (const { name, re } of CREDENTIAL_PATTERNS) {
-    masked = masked.replace(re, () => {
-      hits[name] = (hits[name] ?? 0) + 1
-      return `[masked:${name}]`
-    })
-  }
-  return { text: masked, hits }
+  const { text: masked, counts } = redactText(text, SECRET_PATTERN_NAMES)
+  return { text: masked, hits: counts }
 }
 
 /** Environment variable names a spawned acceptance command never receives. */

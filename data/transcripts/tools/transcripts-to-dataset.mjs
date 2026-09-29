@@ -32,6 +32,7 @@ import { basename, join, relative, resolve } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import assert from 'node:assert/strict'
 import { reassemble } from './live-chunks.mjs'
+import { SECRET_PATTERN_NAMES, redactText } from './secret-patterns.mjs'
 
 const argv = process.argv.slice(2)
 const sessionFlag = argv.indexOf('--session')
@@ -105,7 +106,9 @@ function materializeLive(liveDir, session) {
 // response excerpts, tool-call input excerpts) - broader than the task's
 // literal minimum (which only required it on tool-call input excerpts), on
 // the theory that a prompt or response can carry a pasted credential just as
-// easily as a tool argument can.
+// easily as a tool argument can. Every credential shape and e-mail address of
+// the shared secret-patterns.mjs is masked first as `[REDACTED-<PATTERN>]`;
+// the prefixed and generic rules below then mask what is left.
 // ---------------------------------------------------------------------------
 
 const PREFIXED_SECRET_PATTERNS = [
@@ -120,13 +123,14 @@ const PREFIXED_SECRET_PATTERNS = [
 const GENERIC_TOKEN_RE = /[A-Za-z0-9+=]{32,}/g
 
 /**
- * Replaces secret-shaped substrings with `[REDACTED]` placeholders.
+ * Replaces the shared patterns' matches with `[REDACTED-<PATTERN>]` and other
+ * secret-shaped substrings with `[REDACTED]` placeholders.
  * @param {string} input text to scan
- * @returns {string} text with secret-shaped substrings replaced
+ * @returns {string} text with secret-shaped substrings and e-mail addresses replaced
  */
 function maskSecrets(input) {
   if (!input) return input
-  let out = input
+  let out = redactText(input, SECRET_PATTERN_NAMES).text
   for (const { re, replacement } of PREFIXED_SECRET_PATTERNS) {
     out = out.replace(re, replacement)
   }
@@ -595,7 +599,7 @@ This dataset is the process transcripts of an AI-assisted build of the DeepSeek 
 ## What was removed
 
 - **Tool result bodies.** \`messages.jsonl\` records only the character count of each tool result (\`toolResultChars\`), never its content; the raw tree next to this dataset keeps the bodies.
-- **Secrets.** Any value shaped like a credential - an \`sk-\`, \`ghp_\`, or \`AKIA\`-prefixed token, a \`Bearer \` header value, or any other 32-or-more character hex/base64-looking run - is replaced with \`[REDACTED]\` everywhere this dataset includes text: message text, prompt/response excerpts, and tool-call input excerpts.
+- **Secrets and e-mail addresses.** Every credential shape and e-mail address \`tools/secret-patterns.mjs\` recognises is replaced with \`[REDACTED-<PATTERN>]\`, and any other value shaped like a credential - an \`sk-\`, \`ghp_\`, or \`AKIA\`-prefixed token, a \`Bearer \` header value, or any other 32-or-more character hex/base64-looking run - with \`[REDACTED]\`, everywhere this dataset includes text: message text, prompt/response excerpts, and tool-call input excerpts.
 - **Non-transcript files.** \`subagents/\` held ${readme.files} transcript-shaped files; ${readme.subagents} of them are genuine Claude Code JSONL subagent transcripts (every line parses as JSON and at least one line is a real user/assistant message). ${readme.nonJsonl} were plain-text captures of other tool output, ${readme.nonTranscript} were JSON without any conversation, and ${readme.empty} were empty. None of these is represented in \`agents.jsonl\` or \`messages.jsonl\`.
 
 ## Data quality notes
@@ -634,7 +638,7 @@ These transcripts are Claude outputs. Under Anthropic's usage policy they may no
 ## 移除了什么
 
 - **工具结果正文。** \`messages.jsonl\` 只记录每个工具结果的字符数（\`toolResultChars\`），从不记录其内容；正文保留在本数据集旁边的原始目录树中。
-- **密钥。** 任何形似凭证的值——以 \`sk-\`、\`ghp_\` 或 \`AKIA\` 开头的令牌、\`Bearer \` 头部值，或任何其他 32 个字符以上的十六进制或 base64 样式串——在本数据集包含文本的所有位置都替换为 \`[REDACTED]\`：消息文本、提示与回复摘录，以及工具调用输入摘录。
+- **密钥与邮箱地址。** \`tools/secret-patterns.mjs\` 识别的每个凭证形状和邮箱地址都替换为 \`[REDACTED-<PATTERN>]\`，任何其他形似凭证的值——以 \`sk-\`、\`ghp_\` 或 \`AKIA\` 开头的令牌、\`Bearer \` 头部值，或任何其他 32 个字符以上的十六进制或 base64 样式串——替换为 \`[REDACTED]\`，在本数据集包含文本的所有位置皆然：消息文本、提示与回复摘录，以及工具调用输入摘录。
 - **非 transcript 文件。** \`subagents/\` 中有 ${readme.files} 个 transcript 形态的文件；其中 ${readme.subagents} 个是真正的 Claude Code JSONL subagent transcript（每一行都能解析为 JSON，且至少一行是真实的用户或助手消息）。${readme.nonJsonl} 个是其他工具输出的纯文本捕获，${readme.nonTranscript} 个是不含任何对话的 JSON，${readme.empty} 个为空。这些都不会出现在 \`agents.jsonl\` 或 \`messages.jsonl\` 中。
 
 ## 数据质量说明

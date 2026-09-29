@@ -13,7 +13,7 @@ data/transcripts/
     collect-claude-code-session.mjs   snapshot one live Claude Code session into <build>/raw/
     capture-live.mjs                  append what is new in every live transcript source to live/
     live-chunks.mjs                   read live/: run manifests, capture state, files reassembled from chunks
-    secret-patterns.mjs               the credential shapes and the redaction both capture tools apply
+    secret-patterns.mjs               the credential and e-mail patterns and the redaction every publishing tool applies
     transcripts-to-dataset.mjs        derive agents.jsonl, messages.jsonl, stats.json, and the README pair from a raw tree or live/
   live/
     runs/<date>/<time>.json           one manifest per capture run: every chunk it wrote
@@ -36,12 +36,12 @@ data/transcripts/
 在被采集的会话内部、从仓库根目录运行，或用 `--session` 与 `--projects-dir` 指明会话及其项目目录：
 
 ```sh
-node data/transcripts/tools/collect-claude-code-session.mjs --out data/transcripts/2026-09-06-build/raw
+node data/transcripts/tools/collect-claude-code-session.mjs --out data/transcripts/2026-09-06-build/raw --redact email
 node data/transcripts/tools/transcripts-to-dataset.mjs data/transcripts/2026-09-06-build/raw data/transcripts/2026-09-06-build
 pnpm run verify-translation-pairing --write data/transcripts/2026-09-06-build/README.md
 ```
 
-采集器以三种方式之一处理形似凭证的字符串：`--accept-hit <sha256>` 将已审阅的占位符逐字保留，`--redact <pattern>`（一个 `SECRET_PATTERNS` 名称，如 `openrouter-key`）把匹配遮蔽为 `[REDACTED-<PATTERN>]`，从而让操作者自己消息中携带的真实凭证在去除机密后仍能被保存，其余情况则拒绝写入——被拒绝的运行会打印每个未处理的匹配以及可传入的两个参数。写入之后会重新扫描整棵目录树，任何不是已接受占位符的凭证形状都会删除该目录树并失败，因此漏掉一处遮蔽也绝不会提交出机密；被接受的摘要与 `redactions` 区块都记录在 `manifest.json` 中。它在行边界处拆分超过 40 MiB 的文件，使任何 blob 都不超过 GitHub 的单文件上限，记录每个文件的摘要，并对未变化的目录树不做任何改动，因此可以在构建期间反复运行而不产生噪音。原始目录树、重新生成的数据集和重新记录的配对要一起提交。
+采集器以三种方式之一处理形似凭证或邮箱地址的字符串：`--accept-hit <sha256>` 将已审阅的占位符逐字保留，`--redact <pattern>`（一个 `SECRET_PATTERNS` 名称，如 `openrouter-key`，或用 `email` 指上下文提醒携带的操作者邮箱）把匹配遮蔽为 `[REDACTED-<PATTERN>]`，从而让操作者自己消息中携带的真实凭证在去除机密后仍能被保存，其余情况则拒绝写入——被拒绝的运行会打印每个未处理的匹配以及可传入的两个参数。写入之后会重新扫描整棵目录树，任何不是已接受占位符的匹配都会删除该目录树并失败，因此漏掉一处遮蔽也绝不会提交出机密或邮箱地址；被接受的摘要与 `redactions` 区块都记录在 `manifest.json` 中。它在行边界处拆分超过 40 MiB 的文件，使任何 blob 都不超过 GitHub 的单文件上限，记录每个文件的摘要，并对未变化的目录树不做任何改动，因此可以在构建期间反复运行而不产生噪音。原始目录树、重新生成的数据集和重新记录的配对要一起提交。
 
 ## 实时捕获
 
@@ -49,7 +49,7 @@ pnpm run verify-translation-pairing --write data/transcripts/2026-09-06-build/RE
 
 每次运行只把自上次运行以来新增的内容作为不可变的 gzip 块追加到 `live/` 下，并写入一份清单 `live/runs/<date>/<time>.json`，逐块列出其来源路径、epoch 与序号、字节与行范围、所存字节以及它所结束的来源前缀的 SHA-256、它的遮蔽，以及捕获时间。捕获状态只从这些清单读出，因此重置之后的全新克隆会从最后一次已推送的运行停下的地方继续。一个块只包含完整的行；没有换行符的最后一行要等到文件在 `--settle-seconds` 内不再变化才会被捕获。一个文件若不再以已捕获的字节开头，例如服务器从其最后一次压缩处恢复的会话日志，就从字节 0 开始一个新的 epoch，更早 epoch 的块保持不动。每个文件每次运行超过 `--max-file-bytes` 的新字节，以及超过 `--max-run-bytes` 之后的文件，会推迟到下一次运行，并有一行日志点名它们。
 
-凭证形状与采集器相同：两个工具都导入 [`tools/secret-patterns.mjs`](tools/secret-patterns.mjs)。实时块永远不会被拒绝，因为拒绝就会丢失 transcript：每个匹配都被遮蔽为 `[REDACTED-<PATTERN>]`，并计入该块和该次运行的 `redactions`；已采集构建作为占位符接受的摘要（其 `acceptedHits`）逐字保留；纯文本日志中的 PEM 私钥块即使被块边界切开也会被遮蔽。遮蔽后的块会再扫描一次，任何剩余的未接受匹配都会在写入清单之前终止该次运行，因此循环不会从中提交任何内容。
+这些模式与采集器相同：两个工具都导入 [`tools/secret-patterns.mjs`](tools/secret-patterns.mjs)，数据集工具、intake 准入（[`scripts/enterprise-intake-admission.ts`](../../scripts/enterprise-intake-admission.ts)）、bench 预检（[`preflight.mjs`](../proving-ground/tools/preflight.mjs)）和 code-safety 记录器（[`record-run.mjs`](../code-safety/tools/record-run.mjs)）也导入它。它们覆盖凭证（Anthropic、OpenRouter 和 OpenAI 风格的密钥，包括 `github_pat_` 在内的 GitHub 令牌，Hugging Face `hf_` 令牌，E2B `e2b_` 密钥，AWS access key id 以及紧挨着它或位于 `aws_secret_access_key` / `SecretAccessKey` 之后、不带前缀的 40 字符 secret，Slack 令牌，PEM 私钥，`Bearer` 值）和个人数据（`email`，遮蔽为 `[REDACTED-EMAIL]`）。电话号码不做检测：在 2026-09-06 原始目录树与实时块共 588 MiB 中，国际与北美电话号码形状只匹配到一个 Twitter snowflake 纪元常量、数字表格和行号列表，没有任何电话号码。实时块永远不会被拒绝，因为拒绝就会丢失 transcript：每个匹配都被遮蔽为 `[REDACTED-<PATTERN>]`，并计入该块和该次运行的 `redactions`；已采集构建作为占位符接受的摘要（其 `acceptedHits`）逐字保留；纯文本日志中的 PEM 私钥块即使被块边界切开也会被遮蔽。遮蔽后的块会再扫描一次，任何剩余的未接受匹配都会在写入清单之前终止该次运行，因此循环不会从中提交任何内容。
 
 该循环在一个专用 worktree 中、在单实例锁下运行，只把 `data/transcripts/live/` 提交为 `chore(transcripts): live capture <UTC stamp>`，设置了 `ENTERPRISE_COMMIT_TRAILERS` 时附加在后，并通过 fetch、`git pull --rebase` 和 push 推送，在 2、4、8 和 16 秒后重试；没有到达远端的提交随下一轮一起推送。它的提交和推送都传 `--no-verify`：pre-push 钩子会对整个工作区做约三分钟的类型检查，超过间隔的一半，而一次捕获提交只包含机器写出的块和清单，没有任何钩子检查它们，这正是 [enterprise shift 引擎](../../.agents/notes/implemented/architecture/2026-09-28-enterprise-shift-engine.md) 为其自身数据提交给出的理由。只改动 transcript 数据的推送不会启动 Branch CI。重置之后，把操作者的 trailer 放进 `trailers`，再这样启动它：
 
@@ -64,9 +64,9 @@ node data/transcripts/tools/transcripts-to-dataset.mjs data/transcripts/live <ou
 
 ## 这些数据是什么、不是什么
 
-- 原始目录树是逐字的：消息文本、工具输入、工具结果、token 用量和时间都与 Claude Code 记录的一致，包括 harness 上下文提醒中携带的操作者账户邮箱。形似凭证的字符串会被拒绝，除非其摘要作为占位符被接受、或其模式被遮蔽——那时只有该匹配被遮蔽；其余内容不作改写。
-- 实时块就是来源字节，只是除已接受的占位符外，每个凭证形状都被遮蔽；清单统计每一处遮蔽。
-- 数据集去掉了工具结果正文并遮蔽了形似凭证的字符串；每次构建生成的 README 给出其计数和数据质量说明。
+- 原始目录树是逐字的：消息文本、工具输入、工具结果、token 用量和时间都与 Claude Code 记录的一致。形似凭证或邮箱地址的字符串会被拒绝，除非其摘要作为占位符被接受、或其模式被遮蔽——那时只有该匹配被遮蔽；其余内容不作改写。已提交的 `2026-09-06-build` 与 `2026-09-28-postreset` 原始目录树，以及 `2026-09-06-build` 数据集的 `messages.jsonl`，在 harness 上下文提醒携带操作者账户邮箱之处逐字保留了它；是否从公开历史中清除它由操作者决定。
+- 实时块就是来源字节，只是除已接受的占位符外，每个凭证形状和邮箱地址都被遮蔽；清单按模式统计每一处遮蔽。`live/runs/2026-09-29/2026-09-29T00-18-03.407Z.json` 之前各次运行的块只遮蔽了凭证，逐字保留了邮箱地址，其中包括操作者的邮箱。
+- 数据集去掉了工具结果正文并遮蔽了形似凭证的字符串和邮箱地址；每次构建生成的 README 给出其计数和数据质量说明。
 - 这些 transcript 是 Claude 的输出。根据 Anthropic 的使用政策，它们不得用于训练或微调竞争模型；请将其用于分析、过程挖掘、失败分类，以及使用虚构实体的环境合成。Daliesk 模型的 RLVR 语料来自 harness 自身在条款允许的路由上完成的经认证运行，经由[数据使用条款](../../packages/governance/data-use/README.md)和 [curator](../../packages/governance/curator/README.md)。
 
 ## 构建列表

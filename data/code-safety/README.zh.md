@@ -11,7 +11,7 @@ program 是 [`examples/headless-agent/tests/fixtures/program-code-safety/`](../.
 ```
 data/code-safety/
   <date>-<target>/
-    manifest.json      repository head and the paths dirty at record time, composition, knowledge-pack digest, locked target, per-department outcome, findings per severity and confidence, per-file bytes and SHA-256, redactions
+    manifest.json      repository head and the paths dirty at record time, composition, knowledge-pack digest, locked target, per-department outcome, findings per severity and confidence, per-file bytes and SHA-256, redactions, the e-mail addresses masked per file (`personalData`)
     result.json        the driver's result line: the ledger, the member sessions, the barrier refusals, the released file list
     SAFETY-REPORT.md   the report the program released, verbatim
     findings.json      the union of every department's findings, as released
@@ -21,7 +21,7 @@ data/code-safety/
     seeded.ground-truth.json, seed-manifest.json, seeded-recall.json   in a record of a seeded copy only: the planted defects, how they were planted, and the released findings scored against them
   targets/<target>.ground-truth.json   a target's own documented defects, for reading a record's recall against; never part of the release gate
   targets/<target>.target.json         a target pinned without a ground truth: revision, paths in scope, language, lock digest and seeding parameters; targets/README.md states each target's scope
-  tools/record-run.mjs                 copies one run directory into a record, redacts it, and writes its manifest
+  tools/record-run.mjs                 copies one run directory into a record, redacts it, masks every e-mail address (`../transcripts/tools/secret-patterns.mjs`), refuses a live credential, and writes its manifest
   tools/redact-record.mjs              replaces private-key bodies and example cloud keys in a record and refreshes its manifest; record-run.mjs runs it before digesting
   tools/redact-record.cases.mjs        one behavior case per private-key shape the tool covers; scripts/code-safety-redaction.spec.ts runs it under plain Node
   tools/recall.mjs                     reads a record's recall against a ground-truth list; never part of the release gate

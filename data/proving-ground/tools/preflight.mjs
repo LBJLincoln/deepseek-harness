@@ -9,7 +9,9 @@
 // data/proving-ground/loop/preflight.jsonl — passed or stopped, with each
 // step's exit status and seconds and the stopping step's last output — so a
 // night that never reached the loop is still on file once the line is
-// committed. Node built-ins only, so it runs before `pnpm install`.
+// committed. Node built-ins and the shared
+// data/transcripts/tools/secret-patterns.mjs only, so it runs before
+// `pnpm install`.
 //
 // Usage: node preflight.mjs [--queue <name>] [--steps <step,step,...>] [--timeout <seconds>]
 //
@@ -26,6 +28,7 @@
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { execFileSync, spawnSync } from 'node:child_process'
+import { SECRET_PATTERN_NAMES, redactText } from '../../transcripts/tools/secret-patterns.mjs'
 
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
 const PREFLIGHT_PATH = resolve(import.meta.dirname, '..', 'loop', 'preflight.jsonl')
@@ -68,8 +71,6 @@ process.exitCode = report.usable ? 0 : 1
 const DEFAULT_QUEUE = 'nightly-tier5'
 const DEFAULT_TIMEOUT_SECONDS = 900
 const TAIL_CHARS = 400
-// Credential-shaped strings are cut from a recorded tail before it reaches the repository.
-const CREDENTIAL_SHAPES = /\b(?:sk-[A-Za-z0-9_-]{8,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[abprs]-[A-Za-z0-9-]{10,})\b/g
 
 /**
  * Parses the command line.
@@ -139,12 +140,15 @@ function parseJsonObject(output) {
 }
 
 /**
- * The last characters of an output, with credential-shaped strings cut.
+ * The last characters of an output, with every credential shape and e-mail
+ * address of data/transcripts/tools/secret-patterns.mjs masked as
+ * `[REDACTED-<PATTERN>]` before the cut, so the cut cannot leave the unmatched
+ * rest of a secret.
  * @param {string} output the command's output
  * @returns {string} at most TAIL_CHARS characters
  */
 function tail(output) {
-  return output.slice(-TAIL_CHARS).replace(CREDENTIAL_SHAPES, '[redacted]')
+  return redactText(output, SECRET_PATTERN_NAMES).text.slice(-TAIL_CHARS)
 }
 
 /** One preflight step: runs it under the step timeout and returns the fields its ledger entry carries beside `step`. */

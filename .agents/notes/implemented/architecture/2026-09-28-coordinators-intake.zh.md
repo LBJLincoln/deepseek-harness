@@ -20,7 +20,7 @@ Status: implemented
 
 **用量上限会把整个进程隔断。** fixture 的 [`route-wall.ts`](../../../../examples/headless-agent/tests/fixtures/enterprise-intake/route-wall.ts) 读取路由上限 note 放在 LLM seam 上的分类：第一个以 `QUOTA_EXCEEDED_CODE` 结束的回合之后，之后的每一步都在请求组装之前于 `agent/pre-step` 被拒绝，该会话的 goal 以 `route-limit` 阻塞，program 把它记为该部门的阻塞代码。拒绝之后没有任何请求触达路由；受理方接纳已认证部门提交的内容，记录这次拒绝以及提示中写明的重置时刻，并以 3 退出。
 
-**每次运行都留下记录和职能行。** `data/enterprise/intake/<UTC date>-<id>/` 下的记录包含 `result.json`、每位协调人一个的 `<seat>.json`（含其拟议工单、结论与检查输出），以及每份会话日志，其中形似凭据的字符串都已遮蔽。部门触达过路由的每位协调人在 `data/enterprise/ledger.jsonl` 中得到一行职能行，字段集与企业各职能共用：它有工单被接纳时为 `pass`，它的部门被截断时为 `error`，其余为 `fail`。
+**每次运行都留下记录和职能行。** `data/enterprise/intake/<UTC date>-<id>/` 下的记录包含 `result.json`、每位协调人一个的 `<seat>.json`（含其拟议工单、结论与检查输出），以及每份会话日志，其中形似凭据的字符串和邮箱地址都已通过共享的 [`secret-patterns.mjs`](../../../../data/transcripts/tools/secret-patterns.mjs) 遮蔽。部门触达过路由的每位协调人在 `data/enterprise/ledger.jsonl` 中得到一行职能行，字段集与企业各职能共用：它有工单被接纳时为 `pass`，它的部门被截断时为 `error`，其余为 `fail`。
 
 ## Alternatives considered
 
