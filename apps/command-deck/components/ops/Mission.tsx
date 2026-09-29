@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import type { OpsCycle, OpsCycleStep, OpsShift, OpsShiftStage, OpsShiftTicket, OpsShipped, OpsSnapshot } from '@/deck/contract'
-import { countdown, factsAsOf, formatAge, SHIFT_TRACK, slotProgress, trackReached } from '@/deck/ops'
+import { actionableAttention, countdown, factsAsOf, formatAge, SHIFT_TRACK, slotProgress, trackReached } from '@/deck/ops'
 import { divisionColor } from '@/deck/palette'
 import { REPOSITORY } from '@/deck/repository'
 import { Age, useNow } from './Age.tsx'
@@ -116,15 +116,17 @@ export function CycleClock({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
  * @returns The banner, or a clear line when nothing is flagged.
  */
 export function NextAction({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
-  const first = snapshot.attention[0]
+  const actionable = actionableAttention(snapshot.attention)
+  const first = actionable[0]
   if (first === undefined) {
-    return <div className={styles.nextAction} data-severity="clear"><i className={styles.statusDot} data-tone="clear" /><b>Nothing needs you now.</b><span>No red CI, halt, failed step, stale loop or pressure in this snapshot.</span></div>
+    const recorded = snapshot.attention.length
+    return <div className={styles.nextAction} data-severity="clear"><i className={styles.statusDot} data-tone="clear" /><b>Nothing needs you now.</b><span>{recorded === 0 ? 'No red CI, halt, failed step, stale loop or pressure in this snapshot.' : `The ${String(recorded)} low item${recorded === 1 ? '' : 's'} under Attention need${recorded === 1 ? 's' : ''} no action.`}</span></div>
   }
   const link = first.evidence.find(entry => entry.url !== undefined)
   return (
     <div className={styles.nextAction} data-severity={first.severity}>
       <i className={styles.statusDot} data-tone={first.severity} />
-      <b>Do next{snapshot.attention.length === 1 ? '' : ` · 1 of ${snapshot.attention.length}`}:</b>
+      <b>Do next{actionable.length === 1 ? '' : ` · 1 of ${String(actionable.length)}`}:</b>
       <span className={styles.nextTitle}>{first.title}</span>
       <span className={styles.nextStep}>{first.next}</span>
       {link?.url === undefined ? null : <a href={link.url} target="_blank" rel="noreferrer">{link.label}</a>}

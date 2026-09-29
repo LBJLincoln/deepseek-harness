@@ -2435,18 +2435,29 @@ function collectHeartbeats(
 // Tickets and stuck agents
 // ---------------------------------------------------------------------------
 
+/**
+ * Flag every ticket a shift halted or a review rejected. A ticket halted once
+ * stays open and a later shift works it again without anyone acting, so it is
+ * low; one halted in two or more shifts is medium, because the next shift
+ * would likely halt it the same way until a person reads why.
+ */
 function flagTickets(c: Collection, ledger: { lines: NumberedLine[] } | undefined, tickets: Map<string, TicketFile> | undefined): void {
   if (ledger === undefined) return
+  const halts = new Map<string, number>()
+  for (const { entry } of ledger.lines) {
+    if (entry.type === 'ticket' && ticketStatus(entry) === 'halted') halts.set(entry.ticket, (halts.get(entry.ticket) ?? 0) + 1)
+  }
   for (const { standing, line } of standingsOf(ledger.lines).values()) {
     const { status, line: entry } = standing
     if (status === 'shipped') continue
     if (status === 'rejected' && Date.parse(entry.at) < c.since) continue
     const title = tickets?.get(entry.ticket)?.title
     const limit = /limit \(resets at ([^)]+)\)/.exec(entry.reason ?? '')?.[1]
+    const haltCount = status === 'halted' ? halts.get(entry.ticket) ?? 0 : 0
     c.flag({
       id: `ticket:${entry.ticket}:${status}`,
       kind: status === 'halted' ? 'ticket-halted' : 'ticket-rejected',
-      severity: status === 'halted' ? 'medium' : 'low',
+      severity: haltCount >= 2 ? 'medium' : 'low',
       title: `${entry.ticket} ${status} in shift ${entry.shift}`,
       detail: publicLine(`${title === undefined ? '' : `${title}. `}${entry.reason ?? 'no reason recorded'}`, 180),
       at: entry.at,
@@ -2458,7 +2469,9 @@ function flagTickets(c: Collection, ledger: { lines: NumberedLine[] } | undefine
         ? 'Read the reviewer\'s rationale in the shift record; file a narrower ticket if the change is still wanted.'
         : limit !== undefined
           ? `The route's usage limit stopped it; a shift after ${limit} works it again.`
-          : 'It stays open and a later shift works it again; read the department\'s report in the shift record first.',
+          : haltCount >= 2
+            ? `It halted in ${String(haltCount)} shifts; read the department reports in those shift records before a shift takes it again.`
+            : 'Nothing to do: it stays open and a later shift works it again.',
     })
   }
 }

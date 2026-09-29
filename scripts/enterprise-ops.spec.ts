@@ -512,7 +512,7 @@ describe('collectOps', () => {
       ['high', 'cycle-step-failed'],
       ['medium', 'heartbeat-down'],
       ['medium', 'owner-request'],
-      ['medium', 'ticket-halted'],
+      ['low', 'ticket-halted'],
       ['low', 'ticket-rejected'],
     ])
     const request = snapshot.attention.find(item => item.kind === 'owner-request')
@@ -525,6 +525,19 @@ describe('collectOps', () => {
     expect(halted?.next).toContain('2026-09-29T01:00:00Z')
     expect(halted?.evidence[0]?.url).toBe('https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/ledger.jsonl#L3')
     for (const item of snapshot.attention) expect(item.next.length).toBeGreaterThan(0)
+  })
+
+  it('ranks a ticket halted in two shifts as needing a person, and a first halt as needing nothing', async () => {
+    const inputs = machine()
+    const ledger = join(inputs.root, 'data/enterprise/ledger.jsonl')
+    const again = { type: 'ticket', at: '2026-09-29T02:00:00.000Z', shift: '020000-aaaa', ticket: 'T-0003', seat: 'harness-core-agent-steward', division: 'harness-core', checks: [], shipped: null, reason: 'budget-exhausted' }
+    writeFileSync(ledger, `${readFileSync(ledger, 'utf8')}${JSON.stringify(again)}\n`)
+    const snapshot = await collectOps(inputs)
+    expect(snapshot.attention.find(item => item.kind === 'ticket-halted')).toMatchObject({
+      severity: 'medium',
+      title: 'T-0003 halted in shift 020000-aaaa',
+      next: 'It halted in 2 shifts; read the department reports in those shift records before a shift takes it again.',
+    })
   })
 
   it('counts the big picture from the roster, the queue, the ledger, the cycles and Branch CI', async () => {

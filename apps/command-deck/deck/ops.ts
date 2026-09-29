@@ -357,6 +357,17 @@ export function trackReached(ticket: OpsShiftTicket): number {
   return SHIFT_TRACK.indexOf(stage) + 1
 }
 
+/**
+ * The items of the ranked attention queue that need the operator: every item
+ * above low severity, in rank order. A low item is kept for the record and
+ * needs no action, so the Do next line never names one.
+ * @param items - The queue, ranked.
+ * @returns The actionable items, in rank order.
+ */
+export function actionableAttention(items: readonly OpsAttention[]): OpsAttention[] {
+  return items.filter(item => item.severity !== 'low')
+}
+
 /** One entry of the attention panel: an item on its own, or a run of items of one kind and severity shown as one card. */
 export type AttentionEntry =
   | { item: OpsAttention }

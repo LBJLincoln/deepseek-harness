@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import type { OpsAgent, OpsAttention, OpsSnapshot, RunEvent } from '../deck/contract.ts'
 import { layoutOps, satellitePoint } from '../deck/layout-ops.ts'
 import {
-  chooseReading, countdown, cycleStation, factsAsOf, formatAge, groupAttention, isOpsSnapshot, ledgerStation, liveLimitMs,
-  slotProgress, stationCounts, stationOf, trackReached,
+  actionableAttention, chooseReading, countdown, cycleStation, factsAsOf, formatAge, groupAttention, isOpsSnapshot, ledgerStation,
+  liveLimitMs, slotProgress, stationCounts, stationOf, trackReached,
 } from '../deck/ops.ts'
 import { liveDelayMs, placeFrame } from '../deck/ops-store.ts'
 
@@ -203,5 +203,11 @@ describe('the attention panel', () => {
       'ci', 'ticket-halted:t1,t2,t3', 'req', 's1', 's2',
     ])
     expect(groupAttention(ranked, 2).map(entry => ('item' in entry ? entry.item.id : entry.kind))).toEqual(['ci', 'ticket-halted', 'req', 'cycle-step-failed'])
+  })
+
+  it('offers only items above low severity as the next action, in rank order', () => {
+    const ranked = [item('ci', 'ci-red', 'high'), item('req', 'owner-request', 'medium'), item('t1', 'ticket-halted', 'low')]
+    expect(actionableAttention(ranked).map(entry => entry.id)).toEqual(['ci', 'req'])
+    expect(actionableAttention([item('t1', 'ticket-halted', 'low'), item('s1', 'cycle-step-failed', 'low')])).toEqual([])
   })
 })
