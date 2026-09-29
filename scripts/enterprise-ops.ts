@@ -527,8 +527,8 @@ export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
   const history = inputs.git(['log', `--since=${iso(c.since)}`, '--format=%H%x09%cI%x09%s', 'HEAD'])
   const cycles = collectCycles(c, processes, history, checkoutAt)
   const scratchRuns = collectScratch(c, roster, tickets, ledger, cycles)
-  collectShiftRecords(c, scratchRuns)
-  const shift = collectShift(c, scratchRuns, tickets)
+  collectShiftRecords(c, scratchRuns, ledger)
+  const shift = collectShift(c, scratchRuns, tickets, ledger)
   collectRecords(c, roster, tickets, ledger)
   collectOperatorAgents(c)
   collectBench(c, processes)
@@ -1637,6 +1637,7 @@ function shippedTickets(
       at: entry.at,
       commit,
       ...verdict,
+      ...entry.recordedBy === undefined ? {} : { recordedBy: entry.recordedBy },
     })
   }
   return shipped
@@ -1786,12 +1787,15 @@ function readShiftRecord(dir: string, name: string): ShiftRecord | undefined {
 /**
  * Flag the shifts that did not deliver: every committed shift record in the
  * window newer than the newest shift that shipped (halted at a route limit,
- * or shipping nothing), and every shift whose scratch run no process holds,
- * that left no record, and has been silent past the abandon threshold.
+ * or shipping nothing); every shift whose run log closes with an error, so it
+ * pushed nothing; and every shift whose scratch run no process holds, that
+ * left no record, and has been silent past the abandon threshold. A scratch
+ * run whose record or ledger lines reached the branch is neither.
  * @param c - The collection.
  * @param scratchRuns - The scratch runs {@link collectScratch} read.
+ * @param ledger - The ledger, when it was read.
  */
-function collectShiftRecords(c: Collection, scratchRuns: readonly ScratchRun[]): void {
+function collectShiftRecords(c: Collection, scratchRuns: readonly ScratchRun[], ledger: { lines: NumberedLine[] } | undefined): void {
   const dir = join(c.inputs.root, 'data/enterprise/shifts')
   const names = listDir(dir) ?? []
   const records = names
@@ -1831,7 +1835,8 @@ function collectShiftRecords(c: Collection, scratchRuns: readonly ScratchRun[]):
     }
   }
   for (const run of scratchRuns) {
-    if (run.live || run.intake || names.some(name => name.endsWith(`-${run.id}`))) continue
+    // A shift whose record or ledger lines reached the branch recorded its work, however its own run ended.
+    if (run.live || run.intake || names.some(name => name.endsWith(`-${run.id}`)) || shiftLines(ledger, run.id).size > 0) continue
     const last = Math.max(mtimeOf(run.dir) ?? 0, mtimeOf(join(run.dir, 'run.log')) ?? 0)
     const result = runLogResult(run.dir)
     if (typeof result?.error === 'string' && last >= c.since) {
@@ -1898,6 +1903,61 @@ function ticketFacts(id: string, tickets: Map<string, TicketFile> | undefined, t
 }
 
 /**
+ * The furthest pipeline stage an unshipped ticket reached, from the outcomes
+ * its result or ledger line records.
+ * @param entry - The ticket's department, review and integration outcomes, and whether the shift assembled it.
+ * @returns The stage.
+ */
+function reachedOf(entry: { integration?: unknown; verdict?: string; department?: unknown; assembled: boolean }): NonNullable<OpsShiftTicket['reached']> {
+  if (entry.assembled || (entry.integration !== undefined && entry.integration !== 'skipped')) return 'integration'
+  if (entry.verdict === 'approve' || entry.verdict === 'reject') return 'review'
+  return entry.department === 'certified' ? 'certified' : 'working'
+}
+
+/**
+ * One shift ticket as the ledger's newest line for it in that shift states it:
+ * the ledger is what reached the branch, so it overrides the scratch run.
+ * @param line - The ledger line.
+ * @param prior - The ticket as the scratch run states it, for its title.
+ * @param tickets - The queue, for a title the scratch run did not give.
+ * @returns The ticket.
+ */
+function ledgerTicket(line: TicketLine, prior: OpsShiftTicket | undefined, tickets: Map<string, TicketFile> | undefined): OpsShiftTicket {
+  const stage = ticketStatus(line)
+  const verdict = line.review?.verdict.trim().toLowerCase()
+  const reached = reachedOf({
+    integration: line.integration?.outcome,
+    ...verdict === undefined ? {} : { verdict },
+    department: line.department?.outcome,
+    assembled: false,
+  })
+  return {
+    ...ticketFacts(line.ticket, tickets, prior?.title),
+    ticket: line.ticket,
+    seat: line.seat,
+    division: line.division,
+    stage,
+    ...stage === 'shipped' ? {} : { reached },
+    since: line.at,
+    ...stage !== 'shipped' && line.reason !== undefined ? { reason: publicLine(line.reason, 160) } : {},
+    ...line.shipped === null ? {} : { commit: line.shipped.commit },
+    ...line.recordedBy === undefined ? {} : { recordedBy: line.recordedBy },
+  }
+}
+
+/**
+ * The ledger's newest ticket line per ticket for one shift.
+ * @param ledger - The ledger, when it was read.
+ * @param shift - The shift's id.
+ * @returns The lines by ticket id; empty when the shift reached no line.
+ */
+function shiftLines(ledger: { lines: NumberedLine[] } | undefined, shift: string): Map<string, TicketLine> {
+  const found = new Map<string, TicketLine>()
+  for (const { entry } of ledger?.lines ?? []) if (entry.type === 'ticket' && entry.shift === shift) found.set(entry.ticket, entry)
+  return found
+}
+
+/**
  * The tickets of a shift's result, as its committed record or its run log's
  * closing line states them: shipped with its commit, rejected by its review,
  * else halted with the reason. A result carrying `error` is a shift that could
@@ -1921,12 +1981,12 @@ function resultTickets(
     const shipped = unpushed === undefined ? assembled : undefined
     const verdict = isRecord(entry.review) && typeof entry.review.verdict === 'string' ? entry.review.verdict.trim().toLowerCase() : undefined
     const stage: OpsShiftTicket['stage'] = shipped !== undefined ? 'shipped' : verdict === 'reject' ? 'rejected' : 'halted'
-    const integration = isRecord(entry.integration) ? entry.integration.outcome : undefined
-    const department = isRecord(entry.department) ? entry.department.outcome : undefined
-    const reached: OpsShiftTicket['reached'] = assembled !== undefined || (integration !== undefined && integration !== 'skipped') ? 'integration'
-      : verdict === 'approve' || verdict === 'reject' ? 'review'
-        : department === 'certified' ? 'certified'
-          : 'working'
+    const reached = reachedOf({
+      integration: isRecord(entry.integration) ? entry.integration.outcome : undefined,
+      ...verdict === undefined ? {} : { verdict },
+      department: isRecord(entry.department) ? entry.department.outcome : undefined,
+      assembled: assembled !== undefined && unpushed !== undefined,
+    })
     const reason = assembled !== undefined && unpushed !== undefined ? `assembled, but the shift did not push it: ${unpushed}` : entry.reason
     return [{
       ticket: entry.ticket,
@@ -1963,13 +2023,20 @@ function runLogResult(dir: string): Record<string, unknown> | undefined {
 /**
  * One shift read from its scratch run: the program ledger's goals, each moved
  * past `certified` by its review session and its verdict, and every ticket's
- * final stage from the run log's result once the shift ended.
+ * final stage from the run log's result once the shift ended; a ticket the
+ * ledger holds a line for in this shift takes its stage from that line.
  * @param c - The collection.
  * @param run - The scratch run.
  * @param tickets - The queue, for titles and seats.
- * @returns The shift, or `undefined` when the run holds no program ledger yet.
+ * @param ledger - The ledger, when it was read.
+ * @returns The shift, or `undefined` when the run holds no program ledger, no result and no ledger line.
  */
-function scratchShift(c: Collection, run: ScratchRun, tickets: Map<string, TicketFile> | undefined): OpsShift | undefined {
+function scratchShift(
+  c: Collection,
+  run: ScratchRun,
+  tickets: Map<string, TicketFile> | undefined,
+  ledger: { lines: NumberedLine[] } | undefined,
+): OpsShift | undefined {
   const sessionsDir = join(run.dir, '.sessions')
   const files = existsSync(sessionsDir) ? sessionFilesIn(sessionsDir) : []
   const programFile = files.find(file => /^program-[0-9a-f]{16,}$/.test(basename(dirname(file))))
@@ -1977,7 +2044,8 @@ function scratchShift(c: Collection, run: ScratchRun, tickets: Map<string, Ticke
   const result = run.live ? undefined : runLogResult(run.dir)
   const endedAt = result === undefined ? undefined : mtimeOf(join(run.dir, 'run.log'))
   const final = result === undefined ? undefined : resultTickets(result, tickets, endedAt)
-  if (program === undefined && final === undefined) return undefined
+  const recorded = shiftLines(ledger, run.id)
+  if (program === undefined && final === undefined && recorded.size === 0) return undefined
   const reviews = new Map<string, { verdict?: 'approve' | 'reject'; startedAt?: number; lastAt?: number }>()
   for (const file of files) {
     const id = basename(dirname(file))
@@ -2013,13 +2081,19 @@ function scratchShift(c: Collection, run: ScratchRun, tickets: Map<string, Ticke
     }
   })
   const startedAt = msOf(result?.startedAt) ?? program?.startedAt ?? mtimeOf(run.dir) ?? c.now
+  const stated = final ?? live
+  const merged = stated.map((ticket) => {
+    const line = recorded.get(ticket.ticket)
+    return line === undefined ? ticket : ledgerTicket(line, ticket, tickets)
+  })
+  for (const [id, line] of recorded) if (!stated.some(ticket => ticket.ticket === id)) merged.push(ledgerTicket(line, undefined, tickets))
   return {
     shift: run.id,
     state: run.live ? 'running' : 'ended',
     startedAt: iso(startedAt),
     ...endedAt === undefined ? {} : { endedAt: iso(endedAt) },
     source: 'scratch',
-    tickets: final ?? live,
+    tickets: merged,
     evidence: { label: `shift ${run.id} run.log` },
   }
 }
@@ -2030,12 +2104,18 @@ function scratchShift(c: Collection, run: ScratchRun, tickets: Map<string, Ticke
  * @param c - The collection.
  * @param scratchRuns - The scratch runs {@link collectScratch} read.
  * @param tickets - The queue, for titles and seats.
+ * @param ledger - The ledger, when it was read.
  * @returns The shift, or `null` when no shift is known.
  */
-function collectShift(c: Collection, scratchRuns: readonly ScratchRun[], tickets: Map<string, TicketFile> | undefined): OpsShift | null {
+function collectShift(
+  c: Collection,
+  scratchRuns: readonly ScratchRun[],
+  tickets: Map<string, TicketFile> | undefined,
+  ledger: { lines: NumberedLine[] } | undefined,
+): OpsShift | null {
   const shifts = scratchRuns.filter(run => !run.intake)
   const running = shifts.find(run => run.live)
-  if (running !== undefined) return scratchShift(c, running, tickets) ?? null
+  if (running !== undefined) return scratchShift(c, running, tickets, ledger) ?? null
   const dir = join(c.inputs.root, 'data/enterprise/shifts')
   const newestRecord = (listDir(dir) ?? []).filter(name => /^\d{4}-\d{2}-\d{2}-\d{6}-[0-9a-f]{4}$/.test(name)).sort().at(-1)
   // A scratch run is named `<HHMMSS>-<hex>` for its start; one newer than every record has not reached the checkout.
@@ -2044,7 +2124,7 @@ function collectShift(c: Collection, scratchRuns: readonly ScratchRun[], tickets
     .filter(run => !newestRecord?.endsWith(`-${run.id}`))
     .sort((a, b) => (mtimeOf(a.dir) ?? 0) - (mtimeOf(b.dir) ?? 0))
     .at(-1)
-  const fromScratch = newestScratch === undefined ? undefined : scratchShift(c, newestScratch, tickets)
+  const fromScratch = newestScratch === undefined ? undefined : scratchShift(c, newestScratch, tickets, ledger)
   if (fromScratch !== undefined) return fromScratch
   if (newestRecord === undefined) return null
   const result = readJson(join(dir, newestRecord, 'result.json'))

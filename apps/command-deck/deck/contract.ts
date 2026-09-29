@@ -888,12 +888,15 @@ export interface OpsShiftTicket {
   reason?: string
   /** The commit it shipped as. */
   commit?: string
+  /** Who wrote its ledger line after the fact, when the engine did not (`supervisor`). */
+  recordedBy?: string
 }
 
 /**
  * The shift running now, else the newest shift: its tickets in the order the
  * shift works them, each with its stage. Read from the shift's scratch run
- * while it runs, from its committed record once it ended.
+ * while it runs, from its committed record once it ended; a ticket line the
+ * ledger holds for the shift overrides what the scratch run states.
  */
 export interface OpsShift {
   shift: string
@@ -918,6 +921,8 @@ export interface OpsShippedTicket {
   ci: OpsShipped['ci']
   ciCommit?: string
   url?: string
+  /** Who wrote its ledger line after the fact, when the engine did not (`supervisor`). */
+  recordedBy?: string
 }
 
 /** One roster seat as the Operations scene draws it. */

@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -771,6 +771,19 @@ describe('collectOps', () => {
       ['T-0005', 'halted', 'working', undefined],
     ])
     expect(snapshot.shift?.tickets[0]?.reason).toMatch(/^assembled, but the shift did not push it: the shift could not finalize or push/)
+
+    // Once the supervisor pushes the kept clone and records the ledger lines, the ledger is what reached the branch.
+    const recovered = {
+      type: 'ticket', at: '2026-09-28T22:30:00.000Z', shift: '221520-e979', ticket: 'T-0004', seat: 'harness-core-agent-steward', division: 'harness-core',
+      checks: [], shipped: { commit: SHIPPED }, reason: 'approved and assembled', recordedBy: 'supervisor', recordedAt: '2026-09-28T22:38:00.000Z',
+    }
+    writeFileSync(join(inputs.root, 'data/enterprise/ledger.jsonl'), `${readFileSync(join(inputs.root, 'data/enterprise/ledger.jsonl'), 'utf8')}${JSON.stringify(recovered)}\n`)
+    const after = await collectOps({ ...inputs, alive: () => false, state: emptyOpsState() })
+    expect(after.attention.some(entry => entry.id.endsWith(':221520-e979'))).toBe(false)
+    expect(after.shift?.tickets[0]).toMatchObject({ ticket: 'T-0004', stage: 'shipped', commit: SHIPPED, since: '2026-09-28T22:30:00.000Z', recordedBy: 'supervisor' })
+    expect(after.shift?.tickets[0]?.reached).toBeUndefined()
+    expect(after.shift?.tickets[1]).toMatchObject({ ticket: 'T-0005', stage: 'halted' })
+    expect(after.big.shippedTickets?.[0]).toMatchObject({ ticket: 'T-0004', shift: '221520-e979', commit: SHIPPED, recordedBy: 'supervisor' })
   })
 
   it('lists each shipped ticket with its commit and the verdict enterprise:verdicts gives it', async () => {

@@ -245,6 +245,17 @@ function cycleSummary(cycle: OpsCycle): string {
   return parts.join(' · ')
 }
 
+/**
+ * How a ticket line written after the fact reads: a shipped ticket whose push
+ * its writer did not finish, else a line recorded later, with who wrote it.
+ * @param shipped - Whether the line records the ticket shipped.
+ * @param by - Who wrote the line, as the ledger names it.
+ * @returns `recovered push (supervisor)` or `recorded after the fact (supervisor)`.
+ */
+function recordedWords(shipped: boolean, by: string): string {
+  return shipped ? `recovered push (${by})` : `recorded after the fact (${by})`
+}
+
 /** A shift stage in words. */
 const STAGE_WORD: Record<OpsShiftStage, string> = {
   queued: 'queued',
@@ -317,6 +328,7 @@ function ShiftTicketRow({ ticket, live, day }: { ticket: OpsShiftTicket; live: b
         ))}
         <span data-end={ticket.stage}>{ended ? STAGE_WORD[ticket.stage] : 'ship'}</span>
       </div>
+      {ticket.recordedBy === undefined ? null : <p className={styles.recorded}>{recordedWords(ticket.stage === 'shipped', ticket.recordedBy)}</p>}
       {ticket.reason === undefined ? null : <p className={styles.ticketWhy} title={ticket.reason}>{ticket.reason}</p>}
       {ticket.commit === undefined ? null : <p className={styles.ticketWhy}><a href={`${REPOSITORY}/commit/${ticket.commit}`} target="_blank" rel="noreferrer">commit {ticket.commit.slice(0, 9)}</a></p>}
     </div>
@@ -367,6 +379,9 @@ export function ShippedTickets({ snapshot }: { snapshot: OpsSnapshot }): ReactNo
                 <span className={styles.shipMeta}>
                   <a href={`${REPOSITORY}/commit/${entry.commit}`} target="_blank" rel="noreferrer">{entry.commit.slice(0, 7)}</a>
                   {' · '}{when(entry.at, day)} UTC · shift {entry.shift}
+                  {entry.recordedBy === undefined
+                    ? null
+                    : <span className={styles.recorded}> · {recordedWords(true, entry.recordedBy)}</span>}
                 </span>
                 {entry.url === undefined
                   ? (
