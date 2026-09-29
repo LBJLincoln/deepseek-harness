@@ -4,8 +4,8 @@
     "until": "2026-09-29T13:40:56.861Z"
   },
   "head": {
-    "commit": "040eb5e9ecd534044508080191d5df399308066b",
-    "committedAt": "2026-09-29T13:39:58.000Z"
+    "commit": "c5f61983187369e3054c39e25f7aa1f4cfa4ed49",
+    "committedAt": "2026-09-29T15:32:34.000Z"
   },
   "cycles": {
     "count": 9,
@@ -294,6 +294,10 @@
           {
             "commit": "517250d81abf9a12e2b3a57221d812a82aae9bfe",
             "carries": "intake"
+          },
+          {
+            "commit": "5ab918eb669b251139aaa1358173b4c2a1f06279",
+            "carries": "rebuilds unpushed data on 040eb5e9ec"
           }
         ],
         "record": {
@@ -636,10 +640,18 @@
         "harness-core"
       ],
       "ci": {
-        "basis": "none",
+        "basis": "later",
+        "run": {
+          "id": 36576432474,
+          "headSha": "74a8101c1d4b506871f1611b10f897bd3b922b2d",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474",
+          "createdAt": "2026-09-29T13:37:13Z"
+        },
         "superseded": []
       },
-      "verdict": "no run"
+      "verdict": "failure"
     },
     {
       "commit": "cba8e46823c6fa946e5ee4f86d3945590a3fb1bc",
@@ -694,10 +706,18 @@
         "harness-core"
       ],
       "ci": {
-        "basis": "none",
+        "basis": "later",
+        "run": {
+          "id": 36576432474,
+          "headSha": "74a8101c1d4b506871f1611b10f897bd3b922b2d",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474",
+          "createdAt": "2026-09-29T13:37:13Z"
+        },
         "superseded": []
       },
-      "verdict": "no run"
+      "verdict": "failure"
     }
   ],
   "seats": {
@@ -967,7 +987,7 @@
       "seconds": 21829
     }
   ],
-  "headline": "Pilot, 2026-09-28T13:40:56.861Z to 2026-09-29T13:40:56.861Z: 9 cycles started (2 clean, 5 failed, 2 without a record); 11 shifts (10 recorded, 1 shown by ledger lines only); 22 ticket lines (7 shipped, 1 rejected, 14 halted); reviews 9 approved, 1 rejected, 12 not reached; 7 tickets shipped in 7 commits, Branch CI 3 failure, 2 success, 2 no run (5 from a later run containing the commit); 189 function runs (173 pass, 16 fail, 0 error).",
+  "headline": "Pilot, 2026-09-28T13:40:56.861Z to 2026-09-29T13:40:56.861Z: 9 cycles started (2 clean, 5 failed, 2 without a record); 11 shifts (10 recorded, 1 shown by ledger lines only); 22 ticket lines (7 shipped, 1 rejected, 14 halted); reviews 9 approved, 1 rejected, 12 not reached; 7 tickets shipped in 7 commits, Branch CI 5 failure, 2 success (7 from a later run containing the commit); 189 function runs (173 pass, 16 fail, 0 error).",
   "unknowns": [
     "2 cycles are seen only in git history (cycle-20260928T201148Z, cycle-20260928T221301Z): their steps, outcome and ledger lines are unknown",
     "who started cycle-20260928T221301Z is unknown: the cycle has no record",

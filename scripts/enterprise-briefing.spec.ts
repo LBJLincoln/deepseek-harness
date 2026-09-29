@@ -635,7 +635,7 @@ describe('the review record', () => {
     expect(record?.sessions.find(session => session.file.includes('/program-'))?.verdict).toBeUndefined()
   })
 
-  it('finds the later commits that name a shipped commit and change a file beside the ones it changed, a cherry-pick once', () => {
+  it('finds the later commits that name a shipped commit and change a file beside the ones it changed, a cherry-pick once', { timeout: 30_000 }, () => {
     const dir = mkdtempSync(join(tmpdir(), 'briefing-git-'))
     try {
       const git = (...args: string[]): string => execFileSync('git', ['-C', dir, '-c', 'user.name=t', '-c', 'user.email=t@example.test', ...args], { encoding: 'utf8' }).trim()

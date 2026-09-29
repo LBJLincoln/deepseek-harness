@@ -1,10 +1,10 @@
 {
   "schema": 2,
-  "generatedAt": "2026-09-29T13:41:13.054Z",
+  "generatedAt": "2026-09-29T15:41:24.550Z",
   "producer": "cycle",
   "window": {
-    "since": "2026-09-28T13:41:13.054Z",
-    "until": "2026-09-29T13:41:13.054Z"
+    "since": "2026-09-28T15:41:24.550Z",
+    "until": "2026-09-29T15:41:24.550Z"
   },
   "sources": [
     {
@@ -17,73 +17,73 @@
       "id": "ledger",
       "state": "ok",
       "detail": "217 lines",
-      "asOf": "2026-09-29T13:40:52.190Z"
+      "asOf": "2026-09-29T15:41:00.157Z"
     },
     {
       "id": "tickets",
       "state": "ok",
       "detail": "41 tickets in the queue",
-      "asOf": "2026-09-29T13:40:52.190Z"
+      "asOf": "2026-09-29T15:41:00.157Z"
     },
     {
       "id": "cycle-logs",
       "state": "ok",
-      "detail": "9 cycle logs in <home>/enterprise-cycles",
-      "asOf": "2026-09-29T13:41:13.054Z"
+      "detail": "10 cycle logs in <home>/enterprise-cycles",
+      "asOf": "2026-09-29T15:41:24.550Z"
     },
     {
       "id": "cycle-history",
       "state": "ok",
-      "detail": "6 cycles committed to the branch and 7 cycle records in the window",
-      "asOf": "2026-09-29T13:40:52.190Z"
+      "detail": "7 cycles committed to the branch and 7 cycle records in the window",
+      "asOf": "2026-09-29T15:41:00.157Z"
     },
     {
       "id": "scheduler",
       "state": "ok",
-      "detail": "scheduler runs (pid 32731)",
-      "asOf": "2026-09-29T13:41:13.054Z"
+      "detail": "scheduler runs (pid 588)",
+      "asOf": "2026-09-29T15:41:24.550Z"
     },
     {
       "id": "shifts",
       "state": "ok",
-      "detail": "3 scratch runs; 13 sessions, 0 working",
-      "asOf": "2026-09-29T13:41:13.054Z"
+      "detail": "3 scratch runs; 9 sessions, 0 working",
+      "asOf": "2026-09-29T15:41:24.550Z"
     },
     {
       "id": "department-transcripts",
       "state": "ok",
       "detail": "no working department to match a transcript to",
-      "asOf": "2026-09-29T13:41:13.054Z"
+      "asOf": "2026-09-29T15:41:24.550Z"
     },
     {
       "id": "operator-agents",
       "state": "ok",
       "detail": "not published: the operator's own sessions are not enterprise agents",
-      "asOf": "2026-09-29T13:41:13.054Z"
+      "asOf": "2026-09-29T15:41:24.550Z"
     },
     {
       "id": "bench",
       "state": "ok",
       "detail": "no bench loop runs; 0 live runs, 16 cells, 1 records in the window",
-      "asOf": "2026-09-29T13:41:13.054Z"
+      "asOf": "2026-09-29T15:41:24.550Z"
     },
     {
       "id": "ci",
       "state": "ok",
-      "detail": "50 Branch CI runs read 60 s ago",
-      "asOf": "2026-09-29T13:40:12.959Z"
+      "detail": "50 Branch CI runs read 0 s ago",
+      "asOf": "2026-09-29T15:41:24.550Z"
     },
     {
       "id": "host",
       "state": "ok",
       "detail": "1 filesystem",
-      "asOf": "2026-09-29T13:41:13.054Z"
+      "asOf": "2026-09-29T15:41:24.550Z"
     },
     {
       "id": "requests",
       "state": "ok",
       "detail": "0 owner requests, 0 open",
-      "asOf": "2026-09-29T13:40:52.190Z"
+      "asOf": "2026-09-29T15:41:00.157Z"
     }
   ],
   "heartbeats": [
@@ -91,72 +91,60 @@
       "id": "scheduler",
       "label": "Cycle scheduler",
       "state": "alive",
-      "lastRunAt": "2026-09-29T12:13:00.000Z",
+      "lastRunAt": "2026-09-29T14:13:00.000Z",
       "everySeconds": 7200,
-      "detail": "pid 32731; last ran 88 minutes ago"
+      "detail": "pid 588; last ran 88 minutes ago"
     },
     {
       "id": "transcript-capture",
       "label": "Transcript capture",
       "state": "alive",
-      "lastRunAt": "2026-09-29T13:40:02.000Z",
+      "lastRunAt": "2026-09-29T15:32:38.000Z",
       "everySeconds": 300,
-      "detail": "pid 1175; last ran 71 s ago; pushed 040eb5e9e",
+      "detail": "pid 588; last ran 9 minutes ago; pushed c5f619831",
       "lastPush": {
-        "at": "2026-09-29T13:40:02.000Z",
-        "commit": "040eb5e9e"
+        "at": "2026-09-29T15:32:38.000Z",
+        "commit": "c5f619831"
       }
     },
     {
       "id": "ops-loop",
       "label": "Operations loop",
       "state": "alive",
-      "lastRunAt": "2026-09-29T13:41:03.694Z",
+      "lastRunAt": "2026-09-29T15:41:19.365Z",
       "everySeconds": 15,
-      "detail": "pid 816; last ran 9 s ago"
+      "detail": "pid 588; last ran 5 s ago"
     }
   ],
-  "agents": [
-    {
-      "id": "cycle:cycle-20260929T121300Z",
-      "kind": "cycle-step",
-      "label": "cycle-20260929T121300Z · push",
-      "doing": "running the cycle's push step",
-      "startedAt": "2026-09-29T13:40:49.000Z",
-      "lastEventAt": "2026-09-29T13:41:12.934Z",
-      "run": "cycle-20260929T121300Z",
-      "evidence": {
-        "label": "cycle-20260929T121300Z",
-        "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T121300Z.json"
-      },
-      "elapsedSeconds": 24,
-      "idleSeconds": 0,
-      "state": "working"
-    }
-  ],
+  "agents": [],
   "attention": [
     {
-      "id": "ci-red:36568945186",
-      "kind": "ci-red",
+      "id": "shift-abandoned:141308-b243",
+      "kind": "shift-abandoned",
       "severity": "high",
-      "title": "Branch CI is red on e75a8e73c",
-      "detail": "Failing job: node 24 / snapshots and artifacts.",
-      "at": "2026-09-29T13:00:09Z",
+      "title": "Shift 141308-b243 was abandoned",
+      "detail": "No process holds it, no shift record reached the branch, and its scratch run has been silent for 86 minutes: the shift stopped before it recorded (a crash, a reset or a stop by hand).",
+      "at": "2026-09-29T14:14:56.338Z",
       "evidence": [
         {
-          "label": "CI run 36568945186",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186"
-        },
-        {
-          "label": "node 24 / snapshots and artifacts",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186/job/109411899661"
-        },
-        {
-          "label": "commit e75a8e73c",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/e75a8e73cdeeaadc264825d03d1f711233a4dbe5"
+          "label": "shift 141308-b243 scratch run"
         }
       ],
-      "next": "Open the node 24 / snapshots and artifacts log, find the gate it names, and fix it or file a ticket for it; the judges record the verdict at the next cycle."
+      "next": "Read /tmp/dsh-enterprise/141308-b243/run.log for its last lines; its tickets stay open and the next shift takes them again."
+    },
+    {
+      "id": "cycle-interrupted:cycle-20260929T141300Z",
+      "kind": "cycle-interrupted",
+      "severity": "high",
+      "title": "cycle-20260929T141300Z stopped during shift",
+      "detail": "Its log has no closing line and no cycle process runs: the cycle was killed, most likely by a container reset.",
+      "at": "2026-09-29T14:13:07.000Z",
+      "evidence": [
+        {
+          "label": "cycle-20260929T141300Z"
+        }
+      ],
+      "next": "The next scheduled cycle starts over. Check the cycle checkout for uncommitted changes first: they make the next cycle refuse to run (exit 5)."
     },
     {
       "id": "ticket:T-0023:halted",
@@ -175,7 +163,7 @@
           "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/tickets/T-0023.json"
         }
       ],
-      "next": "It halted in 2 shifts; read the department reports in those shift records before a shift takes it again."
+      "next": "It halted in 2 shifts; read the department report in the record of shift 001527-881f before a shift takes it again."
     },
     {
       "id": "ticket:T-0001:halted",
@@ -194,45 +182,7 @@
           "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/tickets/T-0001.json"
         }
       ],
-      "next": "It halted in 2 shifts; read the department reports in those shift records before a shift takes it again."
-    },
-    {
-      "id": "cycle-step:cycle-20260929T101300Z:pull-after-shift",
-      "kind": "cycle-step-failed",
-      "severity": "low",
-      "title": "cycle-20260929T101300Z: pull-after-shift exited 1; the supervisor recorded shift 101309-c95c afterwards",
-      "detail": "The shift's ledger lines reached the branch at 11:21 UTC, written after the fact by the supervisor.",
-      "at": "2026-09-29T11:06:40.000Z",
-      "evidence": [
-        {
-          "label": "cycle-20260929T101300Z",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T101300Z.json"
-        },
-        {
-          "label": "commit d9503aeaa",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/d9503aeaafb4c59a2118c1cb3e7ea429ff2b4d50"
-        }
-      ],
-      "next": "Nothing is left to push by hand for this shift; the next cycle starts from the branch as it stands."
-    },
-    {
-      "id": "cycle-step:cycle-20260929T101300Z:shift",
-      "kind": "cycle-step-failed",
-      "severity": "low",
-      "title": "cycle-20260929T101300Z: shift exited 1; the supervisor recorded shift 101309-c95c afterwards",
-      "detail": "The shift's ledger lines reached the branch at 11:21 UTC, written after the fact by the supervisor.",
-      "at": "2026-09-29T11:06:40.000Z",
-      "evidence": [
-        {
-          "label": "cycle-20260929T101300Z",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T101300Z.json"
-        },
-        {
-          "label": "commit d9503aeaa",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/d9503aeaafb4c59a2118c1cb3e7ea429ff2b4d50"
-        }
-      ],
-      "next": "Nothing is left to push by hand for this shift; the next cycle starts from the branch as it stands."
+      "next": "It halted in 2 shifts; read the department report in the record of shift 221520-e979 before a shift takes it again."
     },
     {
       "id": "ticket:T-0014:halted",
@@ -464,28 +414,12 @@
       "rejected": 0
     },
     "cycles": {
-      "last24h": 9,
-      "lastStartedAt": "2026-09-29T12:13:00.000Z",
-      "running": "cycle-20260929T121300Z"
+      "last24h": 10,
+      "lastStartedAt": "2026-09-29T14:13:00.000Z",
+      "nextAt": "2026-09-29T16:13:00.000Z"
     },
     "throughput": {
       "hours": [
-        {
-          "hour": "2026-09-28T14:00:00.000Z",
-          "shipped": 0,
-          "rejected": 0,
-          "halted": 0,
-          "functions": 0,
-          "runs": 0
-        },
-        {
-          "hour": "2026-09-28T15:00:00.000Z",
-          "shipped": 0,
-          "rejected": 0,
-          "halted": 0,
-          "functions": 0,
-          "runs": 0
-        },
         {
           "hour": "2026-09-28T16:00:00.000Z",
           "shipped": 0,
@@ -661,6 +595,22 @@
           "halted": 0,
           "functions": 20,
           "runs": 25
+        },
+        {
+          "hour": "2026-09-29T14:00:00.000Z",
+          "shipped": 0,
+          "rejected": 0,
+          "halted": 0,
+          "functions": 0,
+          "runs": 4
+        },
+        {
+          "hour": "2026-09-29T15:00:00.000Z",
+          "shipped": 0,
+          "rejected": 0,
+          "halted": 0,
+          "functions": 0,
+          "runs": 0
         }
       ],
       "shippedPerHour": 0.29,
@@ -673,7 +623,7 @@
         "tickets": [
           "T-0040"
         ],
-        "ci": "running",
+        "ci": "fail",
         "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474",
         "ciCommit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
       },
@@ -683,7 +633,7 @@
         "tickets": [
           "T-0003"
         ],
-        "ci": "running",
+        "ci": "fail",
         "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474",
         "ciCommit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
       },
@@ -747,7 +697,7 @@
         "shift": "121310-3eae",
         "at": "2026-09-29T13:37:07.184Z",
         "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5",
-        "ci": "running",
+        "ci": "fail",
         "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474",
         "ciCommit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
       },
@@ -759,7 +709,7 @@
         "shift": "121310-3eae",
         "at": "2026-09-29T13:37:07.184Z",
         "commit": "e086cb101806019afe126869b15e67c765c62333",
-        "ci": "running",
+        "ci": "fail",
         "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474",
         "ciCommit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
       },
@@ -829,32 +779,22 @@
     "ci": {
       "branch": "claude/coding-agent-harness-u9l4gt",
       "latest": {
-        "commit": "e75a8e73cdeeaadc264825d03d1f711233a4dbe5",
-        "conclusion": "failure",
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186",
-        "at": "2026-09-29T13:00:09Z",
-        "failingJobs": [
-          {
-            "name": "node 24 / snapshots and artifacts",
-            "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186/job/109411899661"
-          }
-        ]
-      },
-      "running": {
-        "commit": "979fa0314882e756c30641ec98aa1eae8bb61807",
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576631699",
-        "startedAt": "2026-09-29T13:38:51Z"
+        "commit": "cb75784a88d986aedbb2c581c4c87eeed5177780",
+        "conclusion": "success",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36581119441",
+        "at": "2026-09-29T14:32:44Z",
+        "failingJobs": []
       }
     },
     "host": {
       "disks": [
         {
           "mount": "/",
-          "usedPct": 66.1
+          "usedPct": 61.8
         }
       ],
-      "memoryAvailablePct": 92.3,
-      "swapUsedPct": 1.3
+      "memoryAvailablePct": 93.9,
+      "swapUsedPct": 0
     }
   },
   "seats": [
@@ -4812,202 +4752,86 @@
       "kind": "cycle-step",
       "label": "20260929T121300Z push",
       "startedAt": "2026-09-29T13:40:49.000Z",
-      "outcome": "running"
+      "endedAt": "2026-09-29T13:41:49.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T141300Z:pull",
+      "kind": "cycle-step",
+      "label": "20260929T141300Z pull",
+      "startedAt": "2026-09-29T14:13:00.000Z",
+      "endedAt": "2026-09-29T14:13:01.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T141300Z:intake",
+      "kind": "cycle-step",
+      "label": "20260929T141300Z intake",
+      "startedAt": "2026-09-29T14:13:01.000Z",
+      "endedAt": "2026-09-29T14:13:03.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T141300Z:intake-push",
+      "kind": "cycle-step",
+      "label": "20260929T141300Z intake-push",
+      "startedAt": "2026-09-29T14:13:03.000Z",
+      "endedAt": "2026-09-29T14:13:07.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-99ea670b8b1a46893579112570f1731433b4c6cdcd931b3c90ba146459353d20-t-0006",
+      "kind": "department",
+      "label": "T-0006 · Tools Steward",
+      "seat": "harness-core-tools-steward",
+      "division": "harness-core",
+      "startedAt": "2026-09-29T14:14:56.354Z",
+      "endedAt": "2026-09-29T14:19:20.095Z",
+      "outcome": "unknown"
     }
   ],
-  "activity": [
-    {
-      "ts": 1790689027184,
-      "seq": 194,
-      "sessionId": "ledger",
-      "agentId": "harness-core-subagent-codex-steward",
-      "kind": "merge",
-      "label": "T-0040 shipped"
-    },
-    {
-      "ts": 1790689027184,
-      "seq": 195,
-      "sessionId": "ledger",
-      "agentId": "harness-core-agent-default-model-steward",
-      "kind": "merge",
-      "label": "T-0003 shipped"
-    },
-    {
-      "ts": 1790689033000,
-      "seq": 4,
-      "sessionId": "cycle:cycle-20260929T121300Z",
-      "kind": "step",
-      "label": "shift exit=0"
-    },
-    {
-      "ts": 1790689034000,
-      "seq": 5,
-      "sessionId": "cycle:cycle-20260929T121300Z",
-      "kind": "step",
-      "label": "pull-after-shift exit=0"
-    },
-    {
-      "ts": 1790689039134,
-      "seq": 196,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-agent-note-classification",
-      "kind": "certificate",
-      "label": "verify-agent-note-classification pass"
-    },
-    {
-      "ts": 1790689040399,
-      "seq": 197,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-agent-note-format",
-      "kind": "certificate",
-      "label": "verify-agent-note-format pass"
-    },
-    {
-      "ts": 1790689041693,
-      "seq": 198,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-archived-agent-notes",
-      "kind": "certificate",
-      "label": "verify-archived-agent-notes pass"
-    },
-    {
-      "ts": 1790689042958,
-      "seq": 199,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-client-domain-graph",
-      "kind": "refusal",
-      "label": "verify-client-domain-graph fail"
-    },
-    {
-      "ts": 1790689044323,
-      "seq": 200,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-config-source-ownership",
-      "kind": "certificate",
-      "label": "verify-config-source-ownership pass"
-    },
-    {
-      "ts": 1790689048678,
-      "seq": 201,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-cordis-config",
-      "kind": "certificate",
-      "label": "verify-cordis-config pass"
-    },
-    {
-      "ts": 1790689049935,
-      "seq": 202,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-doc-budgets",
-      "kind": "certificate",
-      "label": "verify-doc-budgets pass"
-    },
-    {
-      "ts": 1790689052151,
-      "seq": 203,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-doc-refs",
-      "kind": "certificate",
-      "label": "verify-doc-refs pass"
-    },
-    {
-      "ts": 1790689107024,
-      "seq": 204,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-doc-site-fragments",
-      "kind": "certificate",
-      "label": "verify-doc-site-fragments pass"
-    },
-    {
-      "ts": 1790689108541,
-      "seq": 205,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-dsh-package-licenses",
-      "kind": "certificate",
-      "label": "verify-dsh-package-licenses pass"
-    },
-    {
-      "ts": 1790689118764,
-      "seq": 206,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-export-jsdoc",
-      "kind": "certificate",
-      "label": "verify-export-jsdoc pass"
-    },
-    {
-      "ts": 1790689140773,
-      "seq": 207,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-md-links",
-      "kind": "certificate",
-      "label": "verify-md-links pass"
-    },
-    {
-      "ts": 1790689157759,
-      "seq": 208,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-md-wrap",
-      "kind": "certificate",
-      "label": "verify-md-wrap pass"
-    },
-    {
-      "ts": 1790689178492,
-      "seq": 209,
-      "sessionId": "ledger",
-      "agentId": "verification-verify-mermaid",
-      "kind": "certificate",
-      "label": "verify-mermaid pass"
-    },
-    {
-      "ts": 1790689190932,
-      "seq": 216,
-      "sessionId": "ledger",
-      "agentId": "observatory-session-stats-observer",
-      "kind": "certificate",
-      "label": "session-stats pass"
-    },
-    {
-      "ts": 1790689190944,
-      "seq": 217,
-      "sessionId": "ledger",
-      "agentId": "curation-data-scorekeeper",
-      "kind": "certificate",
-      "label": "scoreboard pass"
-    },
-    {
-      "ts": 1790689191000,
-      "seq": 6,
-      "sessionId": "cycle:cycle-20260929T121300Z",
-      "kind": "step",
-      "label": "functions exit=0"
-    },
-    {
-      "ts": 1790689195000,
-      "seq": 7,
-      "sessionId": "cycle:cycle-20260929T121300Z",
-      "kind": "step",
-      "label": "roster exit=0"
-    },
-    {
-      "ts": 1790689247000,
-      "seq": 8,
-      "sessionId": "cycle:cycle-20260929T121300Z",
-      "kind": "step",
-      "label": "publish exit=0"
-    },
-    {
-      "ts": 1790689249000,
-      "seq": 9,
-      "sessionId": "cycle:cycle-20260929T121300Z",
-      "kind": "step",
-      "label": "record exit=0"
-    }
-  ],
+  "activity": [],
   "cycles": [
+    {
+      "cycle": "cycle-20260929T141300Z",
+      "startedAt": "2026-09-29T14:13:00.000Z",
+      "endedAt": "2026-09-29T14:13:07.000Z",
+      "outcome": "interrupted",
+      "source": "log",
+      "steps": [
+        {
+          "name": "pull",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T14:13:01.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "intake",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T14:13:03.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "intake-push",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T14:13:07.000Z",
+          "seconds": 4
+        }
+      ],
+      "shift": "141308-b243",
+      "evidence": {
+        "label": "cycle-20260929T141300Z"
+      }
+    },
     {
       "cycle": "cycle-20260929T121300Z",
       "startedAt": "2026-09-29T12:13:00.000Z",
-      "outcome": "running",
+      "endedAt": "2026-09-29T13:40:49.453Z",
+      "outcome": "clean",
+      "exit": 0,
       "source": "log",
       "steps": [
         {
@@ -5075,9 +4899,10 @@
         },
         {
           "name": "push",
-          "state": "running",
-          "at": "2026-09-29T13:40:49.000Z",
-          "seconds": 24
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T13:41:49.000Z",
+          "seconds": 60
         }
       ],
       "shift": "121310-3eae",
@@ -5773,34 +5598,30 @@
     }
   ],
   "shift": {
-    "shift": "121310-3eae",
+    "shift": "141308-b243",
     "state": "ended",
-    "startedAt": "2026-09-29T12:13:11.643Z",
-    "endedAt": "2026-09-29T13:37:07.184Z",
-    "source": "record",
+    "startedAt": "2026-09-29T14:14:56.337Z",
+    "source": "scratch",
     "tickets": [
       {
-        "title": "Resolve cmd.exe and codex to absolute paths before the Codex provider spawns in the delegating workspace",
-        "seat": "harness-core-subagent-codex-steward",
+        "ticket": "T-0006",
+        "title": "Pin and document the UNSUPPORTED_SCHEMA refusal of the tool registry.",
+        "seat": "harness-core-tools-steward",
         "division": "harness-core",
-        "ticket": "T-0040",
-        "stage": "shipped",
-        "since": "2026-09-29T13:37:07.184Z",
-        "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5"
+        "stage": "working",
+        "since": "2026-09-29T14:14:56.387Z"
       },
       {
-        "title": "saveSelection() warns when no settings provider can retain the selection",
-        "seat": "harness-core-agent-default-model-steward",
-        "division": "harness-core",
-        "ticket": "T-0003",
-        "stage": "shipped",
-        "since": "2026-09-29T13:37:07.184Z",
-        "commit": "e086cb101806019afe126869b15e67c765c62333"
+        "ticket": "T-0026",
+        "title": "Describe every pre-commit hook job in the pre-push-checks skill.",
+        "seat": "knowledge-dsh-pre-push-checks-skill-keeper",
+        "division": "knowledge",
+        "stage": "queued",
+        "since": "2026-09-29T14:14:56.339Z"
       }
     ],
     "evidence": {
-      "label": "data/enterprise/shifts/2026-09-29-121310-3eae/result.json",
-      "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/shifts/2026-09-29-121310-3eae/result.json"
+      "label": "shift 141308-b243 run.log"
     }
   }
 }
