@@ -123,7 +123,7 @@ export function DayPanel(): ReactNode {
                     {' · '}
                     {cycle.record === undefined
                       ? `pushed: ${cycle.commits.map(commit => commit.carries).join(' · ') || 'nothing'}`
-                      : `${cycle.record.tickets.shipped} shipped · ${cycle.record.functions.pass} pass · ${cycle.record.functions.fail} fail · ${cycle.record.functions.error} error`}
+                      : `${cycle.record.tickets.shipped} shipped at its end · ${cycle.record.functions.pass} pass · ${cycle.record.functions.fail} fail · ${cycle.record.functions.error} error`}
                   </span>
                 </div>
               )
