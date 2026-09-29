@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "asOf": "2026-09-29T00:15:25.000Z",
+  "asOf": "2026-09-29T06:41:45.825Z",
   "repository": {
     "name": "LBJLincoln/deepseek-harness",
     "branch": "claude/coding-agent-harness-u9l4gt",
@@ -26,7 +26,7 @@
       }
     },
     "seats.occupied": {
-      "value": 47,
+      "value": 53,
       "source": {
         "paths": [
           "data/enterprise/roster.json"
@@ -35,16 +35,16 @@
       }
     },
     "seats.active": {
-      "value": 39,
+      "value": 44,
       "source": {
         "paths": [
           "data/enterprise/roster.json"
         ],
-        "computation": "counts.active: seats whose newest deliverable falls in the 24 hours ending at the roster's stamp, 2026-09-29T00:14:56.809Z."
+        "computation": "counts.active: seats whose newest deliverable falls in the 24 hours ending at the roster's stamp, 2026-09-29T06:41:45.825Z."
       }
     },
     "roster.stamp": {
-      "value": "2026-09-29T00:14:56.809Z",
+      "value": "2026-09-29T06:41:45.825Z",
       "source": {
         "paths": [
           "data/enterprise/roster.json"
@@ -91,7 +91,7 @@
       }
     },
     "tickets.halted": {
-      "value": 2,
+      "value": 8,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
@@ -100,7 +100,7 @@
       }
     },
     "shifts.count": {
-      "value": 3,
+      "value": 6,
       "source": {
         "paths": [
           "data/enterprise/shifts"
@@ -109,7 +109,7 @@
       }
     },
     "ledger.lines": {
-      "value": 63,
+      "value": 139,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
@@ -118,7 +118,7 @@
       }
     },
     "ledger.functionLines": {
-      "value": 59,
+      "value": 129,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
@@ -208,7 +208,7 @@
       }
     },
     "pilot.cycles": {
-      "value": 3,
+      "value": 6,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -223,7 +223,7 @@
       }
     },
     "pilot.schedulerCycles": {
-      "value": 2,
+      "value": 5,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -238,7 +238,7 @@
       }
     },
     "pilot.operatorUnits": {
-      "value": 3,
+      "value": 6,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -432,7 +432,7 @@
       }
     },
     "ci.completed": {
-      "value": 60,
+      "value": 71,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -445,7 +445,7 @@
       }
     },
     "ci.success": {
-      "value": 7,
+      "value": 13,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -458,7 +458,7 @@
       }
     },
     "ci.failure": {
-      "value": 24,
+      "value": 25,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -471,7 +471,7 @@
       }
     },
     "ci.cancelled": {
-      "value": 29,
+      "value": 33,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -510,7 +510,7 @@
       }
     },
     "ci.latestConclusion": {
-      "value": "success",
+      "value": "failure",
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -519,11 +519,11 @@
         "urls": [
           "https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml"
         ],
-        "computation": "The newest run that rendered a verdict (success or failure), https://github.com/LBJLincoln/deepseek-harness/actions/runs/36507780574."
+        "computation": "The newest run that rendered a verdict (success or failure), https://github.com/LBJLincoln/deepseek-harness/actions/runs/36530079559."
       }
     },
     "ci.latestAt": {
-      "value": "2026-09-29T01:46:25Z",
+      "value": "2026-09-29T06:39:16Z",
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -532,7 +532,7 @@
         "urls": [
           "https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml"
         ],
-        "computation": "The newest run that rendered a verdict (success or failure), https://github.com/LBJLincoln/deepseek-harness/actions/runs/36507780574."
+        "computation": "The newest run that rendered a verdict (success or failure), https://github.com/LBJLincoln/deepseek-harness/actions/runs/36530079559."
       }
     }
   },
@@ -543,8 +543,8 @@
         "name": "Harness Core",
         "purpose": "Stewards the product API spine: session, prompt assembly, tools, agent, the agent loop, LLM routing, and subagent delegation.",
         "defined": 24,
-        "occupied": 3,
-        "active": 3
+        "occupied": 6,
+        "active": 6
       },
       {
         "id": "proving-ground",
@@ -552,7 +552,7 @@
         "purpose": "Operates the harness against real bench scenarios recorded under examples/headless-agent/tests.",
         "defined": 12,
         "occupied": 12,
-        "active": 4
+        "active": 3
       },
       {
         "id": "verification",
@@ -575,16 +575,16 @@
         "name": "Curation & Data",
         "purpose": "Curates the Agent Note corpus and fixture datasets, and keeps score of usage for the observatory.",
         "defined": 8,
-        "occupied": 1,
-        "active": 1
+        "occupied": 2,
+        "active": 2
       },
       {
         "id": "program-departments",
         "name": "Program Departments",
         "purpose": "Coordinates cross-cutting package groups as departments of one program.",
         "defined": 10,
-        "occupied": 2,
-        "active": 2
+        "occupied": 3,
+        "active": 3
       },
       {
         "id": "code-safety",
@@ -607,8 +607,8 @@
         "name": "Governance",
         "purpose": "Owns process standards: labels, stacking, dependencies, vendoring, licensing, and translation pairing.",
         "defined": 8,
-        "occupied": 0,
-        "active": 0
+        "occupied": 1,
+        "active": 1
       },
       {
         "id": "observatory",
@@ -960,6 +960,51 @@
         "reason": null,
         "redacted": 0,
         "seconds": 2318
+      },
+      {
+        "shift": "021357-6546",
+        "dir": "data/enterprise/shifts/2026-09-29-021357-6546",
+        "type": "result",
+        "startedAt": "2026-09-29T02:13:58.317Z",
+        "endedAt": "2026-09-29T02:14:43.714Z",
+        "tickets": [
+          "T-0005",
+          "T-0023"
+        ],
+        "shipped": [],
+        "reason": null,
+        "redacted": 0,
+        "seconds": 45
+      },
+      {
+        "shift": "041341-222d",
+        "dir": "data/enterprise/shifts/2026-09-29-041341-222d",
+        "type": "result",
+        "startedAt": "2026-09-29T04:13:42.264Z",
+        "endedAt": "2026-09-29T04:14:26.512Z",
+        "tickets": [
+          "T-0007",
+          "T-0024"
+        ],
+        "shipped": [],
+        "reason": null,
+        "redacted": 0,
+        "seconds": 44
+      },
+      {
+        "shift": "061342-191b",
+        "dir": "data/enterprise/shifts/2026-09-29-061342-191b",
+        "type": "result",
+        "startedAt": "2026-09-29T06:13:43.453Z",
+        "endedAt": "2026-09-29T06:14:36.155Z",
+        "tickets": [
+          "T-0008",
+          "T-0025"
+        ],
+        "shipped": [],
+        "reason": null,
+        "redacted": 0,
+        "seconds": 53
       }
     ],
     "source": {
@@ -1148,13 +1193,327 @@
             "name": "intake-push",
             "exit": 0,
             "at": "2026-09-29T00:15:25.000Z"
+          },
+          {
+            "name": "shift",
+            "exit": 2,
+            "at": "2026-09-29T02:04:40.000Z"
+          },
+          {
+            "name": "pull-after-shift",
+            "exit": 0,
+            "at": "2026-09-29T02:04:41.000Z"
+          },
+          {
+            "name": "functions",
+            "exit": 0,
+            "at": "2026-09-29T02:12:11.000Z"
+          },
+          {
+            "name": "roster",
+            "exit": 0,
+            "at": "2026-09-29T02:12:15.000Z"
+          },
+          {
+            "name": "publish",
+            "exit": 0,
+            "at": "2026-09-29T02:12:40.000Z"
           }
         ],
-        "finished": false,
+        "finished": true,
         "paths": [
           "data/enterprise/ledger.jsonl",
+          "data/enterprise/cycles/cycle-20260929T001517Z.json",
           "data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T001517Z.log-e8b966e567",
           "data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b"
+        ]
+      },
+      {
+        "id": "cycle-20260929T021318Z",
+        "kind": "cycle",
+        "startedAt": "2026-09-29T02:13:18.000Z",
+        "startedBy": "scheduler",
+        "basis": "Its cycle record states scheduler: the cycle script records scheduler when scripts/enterprise-scheduler.sh is its parent process, and operator otherwise.",
+        "shifts": [],
+        "attempted": null,
+        "shipped": [],
+        "failed": [],
+        "lost": null,
+        "tokens": null,
+        "steps": [
+          {
+            "name": "pull",
+            "exit": 128,
+            "at": "2026-09-29T02:13:19.000Z"
+          },
+          {
+            "name": "intake",
+            "exit": 0,
+            "at": "2026-09-29T02:13:20.000Z"
+          },
+          {
+            "name": "intake-push",
+            "exit": 1,
+            "at": "2026-09-29T02:13:55.000Z"
+          },
+          {
+            "name": "shift",
+            "exit": 0,
+            "at": "2026-09-29T02:14:49.000Z"
+          },
+          {
+            "name": "pull-after-shift",
+            "exit": 128,
+            "at": "2026-09-29T02:14:50.000Z"
+          },
+          {
+            "name": "functions",
+            "exit": 0,
+            "at": "2026-09-29T02:16:47.000Z"
+          },
+          {
+            "name": "roster",
+            "exit": 0,
+            "at": "2026-09-29T02:16:51.000Z"
+          },
+          {
+            "name": "publish",
+            "exit": 0,
+            "at": "2026-09-29T02:17:15.000Z"
+          }
+        ],
+        "finished": true,
+        "paths": [
+          "data/enterprise/ledger.jsonl",
+          "data/enterprise/cycles/cycle-20260929T021318Z.json",
+          "data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T021318Z.log-daa1d3ea17",
+          "data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b"
+        ]
+      },
+      {
+        "id": "021357-6546",
+        "kind": "shift",
+        "startedAt": "2026-09-29T02:13:58.317Z",
+        "startedBy": "operator",
+        "basis": "It started outside every cycle on the branch; a shift outside a cycle is started by hand with pnpm run enterprise -- shift.",
+        "shifts": [
+          "021357-6546"
+        ],
+        "attempted": 2,
+        "shipped": [],
+        "failed": [
+          {
+            "ticket": "T-0005",
+            "status": "halted",
+            "failedChecks": [],
+            "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n[WARN] Failed to create bin at /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/021357-6546/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+          },
+          {
+            "ticket": "T-0023",
+            "status": "halted",
+            "failedChecks": [],
+            "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n[WARN] Failed to create bin at /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/021357-6546/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+          }
+        ],
+        "lost": 0,
+        "tokens": 0,
+        "steps": [],
+        "finished": null,
+        "paths": [
+          "data/enterprise/ledger.jsonl",
+          "data/enterprise/shifts/2026-09-29-021357-6546"
+        ]
+      },
+      {
+        "id": "cycle-20260929T041300Z",
+        "kind": "cycle",
+        "startedAt": "2026-09-29T04:13:00.000Z",
+        "startedBy": "scheduler",
+        "basis": "Its cycle record states scheduler: the cycle script records scheduler when scripts/enterprise-scheduler.sh is its parent process, and operator otherwise.",
+        "shifts": [],
+        "attempted": null,
+        "shipped": [],
+        "failed": [],
+        "lost": null,
+        "tokens": null,
+        "steps": [
+          {
+            "name": "pull",
+            "exit": 128,
+            "at": "2026-09-29T04:13:01.000Z"
+          },
+          {
+            "name": "intake",
+            "exit": 0,
+            "at": "2026-09-29T04:13:03.000Z"
+          },
+          {
+            "name": "intake-push",
+            "exit": 1,
+            "at": "2026-09-29T04:13:39.000Z"
+          },
+          {
+            "name": "shift",
+            "exit": 0,
+            "at": "2026-09-29T04:14:32.000Z"
+          },
+          {
+            "name": "pull-after-shift",
+            "exit": 128,
+            "at": "2026-09-29T04:14:33.000Z"
+          },
+          {
+            "name": "functions",
+            "exit": 0,
+            "at": "2026-09-29T04:16:36.000Z"
+          },
+          {
+            "name": "roster",
+            "exit": 0,
+            "at": "2026-09-29T04:16:40.000Z"
+          },
+          {
+            "name": "publish",
+            "exit": 0,
+            "at": "2026-09-29T04:17:08.000Z"
+          }
+        ],
+        "finished": true,
+        "paths": [
+          "data/enterprise/ledger.jsonl",
+          "data/enterprise/cycles/cycle-20260929T041300Z.json",
+          "data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T041300Z.log-18b903f95f",
+          "data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b"
+        ]
+      },
+      {
+        "id": "041341-222d",
+        "kind": "shift",
+        "startedAt": "2026-09-29T04:13:42.264Z",
+        "startedBy": "operator",
+        "basis": "It started outside every cycle on the branch; a shift outside a cycle is started by hand with pnpm run enterprise -- shift.",
+        "shifts": [
+          "041341-222d"
+        ],
+        "attempted": 2,
+        "shipped": [],
+        "failed": [
+          {
+            "ticket": "T-0007",
+            "status": "halted",
+            "failedChecks": [],
+            "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n[WARN] Failed to create bin at /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/041341-222d/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+          },
+          {
+            "ticket": "T-0024",
+            "status": "halted",
+            "failedChecks": [],
+            "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n[WARN] Failed to create bin at /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/041341-222d/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+          }
+        ],
+        "lost": 0,
+        "tokens": 0,
+        "steps": [],
+        "finished": null,
+        "paths": [
+          "data/enterprise/ledger.jsonl",
+          "data/enterprise/shifts/2026-09-29-041341-222d"
+        ]
+      },
+      {
+        "id": "cycle-20260929T061300Z",
+        "kind": "cycle",
+        "startedAt": "2026-09-29T06:13:00.000Z",
+        "startedBy": "scheduler",
+        "basis": "Its cycle record states scheduler: the cycle script records scheduler when scripts/enterprise-scheduler.sh is its parent process, and operator otherwise.",
+        "shifts": [],
+        "attempted": null,
+        "shipped": [],
+        "failed": [],
+        "lost": null,
+        "tokens": null,
+        "steps": [
+          {
+            "name": "pull",
+            "exit": 128,
+            "at": "2026-09-29T06:13:01.000Z"
+          },
+          {
+            "name": "intake",
+            "exit": 0,
+            "at": "2026-09-29T06:13:03.000Z"
+          },
+          {
+            "name": "intake-push",
+            "exit": 1,
+            "at": "2026-09-29T06:13:40.000Z"
+          },
+          {
+            "name": "shift",
+            "exit": 0,
+            "at": "2026-09-29T06:14:42.000Z"
+          },
+          {
+            "name": "pull-after-shift",
+            "exit": 128,
+            "at": "2026-09-29T06:14:43.000Z"
+          },
+          {
+            "name": "functions",
+            "exit": 0,
+            "at": "2026-09-29T06:16:50.000Z"
+          },
+          {
+            "name": "roster",
+            "exit": 0,
+            "at": "2026-09-29T06:16:54.000Z"
+          },
+          {
+            "name": "publish",
+            "exit": 0,
+            "at": "2026-09-29T06:17:23.000Z"
+          }
+        ],
+        "finished": true,
+        "paths": [
+          "data/enterprise/ledger.jsonl",
+          "data/enterprise/cycles/cycle-20260929T061300Z.json",
+          "data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T061300Z.log-90da8cbdda",
+          "data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b"
+        ]
+      },
+      {
+        "id": "061342-191b",
+        "kind": "shift",
+        "startedAt": "2026-09-29T06:13:43.453Z",
+        "startedBy": "operator",
+        "basis": "It started outside every cycle on the branch; a shift outside a cycle is started by hand with pnpm run enterprise -- shift.",
+        "shifts": [
+          "061342-191b"
+        ],
+        "attempted": 2,
+        "shipped": [],
+        "failed": [
+          {
+            "ticket": "T-0008",
+            "status": "halted",
+            "failedChecks": [],
+            "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n[WARN] Failed to create bin at /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/061342-191b/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+          },
+          {
+            "ticket": "T-0025",
+            "status": "halted",
+            "failedChecks": [],
+            "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n[WARN] Failed to create bin at /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/061342-191b/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+          }
+        ],
+        "lost": 0,
+        "tokens": 0,
+        "steps": [],
+        "finished": null,
+        "paths": [
+          "data/enterprise/ledger.jsonl",
+          "data/enterprise/shifts/2026-09-29-061342-191b"
         ]
       }
     ],
@@ -1717,28 +2076,117 @@
         {
           "id": 36509070621,
           "head": "a34c6defa0308cc0b9d8cbded7fa510c5444458e",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "createdAt": "2026-09-29T01:41:15Z",
-          "updatedAt": "2026-09-29T01:46:37Z",
+          "updatedAt": "2026-09-29T02:00:57Z",
           "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36509070621"
         },
         {
           "id": 36509725510,
           "head": "de1f8d7f4b03b9ee9a8682d2e9bdc16f012e44d0",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "createdAt": "2026-09-29T01:49:46Z",
-          "updatedAt": "2026-09-29T01:49:47Z",
+          "updatedAt": "2026-09-29T02:15:09Z",
           "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36509725510"
+        },
+        {
+          "id": 36510870413,
+          "head": "6dc293c60fc10740c72a9edeeea7858d83cb66b1",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "createdAt": "2026-09-29T02:04:22Z",
+          "updatedAt": "2026-09-29T02:11:20Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36510870413"
+        },
+        {
+          "id": 36511414185,
+          "head": "1b3dcefcf314fd3ff80cdd4ed81f6e0e57cbe5fd",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "createdAt": "2026-09-29T02:11:19Z",
+          "updatedAt": "2026-09-29T02:12:03Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36511414185"
+        },
+        {
+          "id": 36511469587,
+          "head": "322616d92453413f1dc8c5e76883259bb5efec61",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "createdAt": "2026-09-29T02:12:02Z",
+          "updatedAt": "2026-09-29T02:14:32Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36511469587"
+        },
+        {
+          "id": 36511665208,
+          "head": "3db6cda3111a652771e6b81dc45a812ae2b3f1ff",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "createdAt": "2026-09-29T02:14:31Z",
+          "updatedAt": "2026-09-29T02:14:50Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36511665208"
+        },
+        {
+          "id": 36511686160,
+          "head": "ad3c0f73cab4521a6e21bcd4a622b4774f86cbf7",
+          "status": "completed",
+          "conclusion": "success",
+          "createdAt": "2026-09-29T02:14:48Z",
+          "updatedAt": "2026-09-29T02:29:34Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36511686160"
+        },
+        {
+          "id": 36520724223,
+          "head": "c2254305bb0f6ddcb3345553ec075da63d74ce13",
+          "status": "completed",
+          "conclusion": "success",
+          "createdAt": "2026-09-29T04:14:15Z",
+          "updatedAt": "2026-09-29T04:29:12Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36520724223"
+        },
+        {
+          "id": 36520746852,
+          "head": "cf2b2180fc303c7db77b43eefccd22e880d0b7a5",
+          "status": "completed",
+          "conclusion": "success",
+          "createdAt": "2026-09-29T04:14:31Z",
+          "updatedAt": "2026-09-29T04:41:19Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36520746852"
+        },
+        {
+          "id": 36530053048,
+          "head": "52163a30c045548a209e5cac2f54e301456add33",
+          "status": "completed",
+          "conclusion": "success",
+          "createdAt": "2026-09-29T06:14:23Z",
+          "updatedAt": "2026-09-29T06:26:52Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36530053048"
+        },
+        {
+          "id": 36530079559,
+          "head": "1dc4398aa2292cda9e56d7e09310eeab8b087d14",
+          "status": "completed",
+          "conclusion": "failure",
+          "createdAt": "2026-09-29T06:14:41Z",
+          "updatedAt": "2026-09-29T06:39:16Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36530079559"
+        },
+        {
+          "id": 36532281989,
+          "head": "ed8cc9ed32197d27512a122e695d585afcabe8f1",
+          "status": "in_progress",
+          "conclusion": null,
+          "createdAt": "2026-09-29T06:40:17Z",
+          "updatedAt": "2026-09-29T06:40:28Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36532281989"
         }
       ],
       "counts": {
-        "failure": 24,
-        "cancelled": 29,
-        "success": 7,
-        "in_progress": 1,
-        "pending": 1
+        "failure": 25,
+        "cancelled": 33,
+        "success": 13,
+        "in_progress": 1
       }
     },
     "source": {
@@ -2755,6 +3203,60 @@
           "kind": "human",
           "at": "2026-09-28T22:16:47.677Z",
           "form": "event"
+        },
+        {
+          "run": "021357-6546",
+          "record": "shift",
+          "transition": "spec-freeze",
+          "principal": "daliesk-enterprise-shift",
+          "kind": "machine",
+          "at": null,
+          "form": "decision"
+        },
+        {
+          "run": "021357-6546",
+          "record": "shift",
+          "transition": "release",
+          "principal": "daliesk-enterprise-shift",
+          "kind": "machine",
+          "at": null,
+          "form": "decision"
+        },
+        {
+          "run": "041341-222d",
+          "record": "shift",
+          "transition": "spec-freeze",
+          "principal": "daliesk-enterprise-shift",
+          "kind": "machine",
+          "at": null,
+          "form": "decision"
+        },
+        {
+          "run": "041341-222d",
+          "record": "shift",
+          "transition": "release",
+          "principal": "daliesk-enterprise-shift",
+          "kind": "machine",
+          "at": null,
+          "form": "decision"
+        },
+        {
+          "run": "061342-191b",
+          "record": "shift",
+          "transition": "spec-freeze",
+          "principal": "daliesk-enterprise-shift",
+          "kind": "machine",
+          "at": null,
+          "form": "decision"
+        },
+        {
+          "run": "061342-191b",
+          "record": "shift",
+          "transition": "release",
+          "principal": "daliesk-enterprise-shift",
+          "kind": "machine",
+          "at": null,
+          "form": "decision"
         }
       ],
       "source": {
@@ -2828,28 +3330,40 @@
       "sha256": "887633e5b05335fd0ce92f51f1f565fa64fdbb5ee11d603c23ea1693482419cf"
     },
     {
+      "path": "data/enterprise/cycles",
+      "files": 4,
+      "bytes": 5687,
+      "sha256": "6d65aeed3054a232c63a4cf7a3461db31356aa5f1ef26a9ace72bb7f224f44ee"
+    },
+    {
       "path": "data/enterprise/intake",
-      "files": 8,
-      "bytes": 991311,
-      "sha256": "60e68f0dcaf2e981d65bba8051185163dce24a7f17a8dd3e50ae868f82d2970a"
+      "files": 11,
+      "bytes": 992100,
+      "sha256": "36d4a4d00c9c5dd214fcd2014b476f016e853c9c77f7a6f8c6e4c389262afeaa"
     },
     {
       "path": "data/enterprise/ledger.jsonl",
       "files": 1,
-      "bytes": 26349,
-      "sha256": "89734c4ee7750c4252ef9079dc39190a69fafb42f0f21d3f046b64dfb2e974ec"
+      "bytes": 70052,
+      "sha256": "b399e592eb0b29f2458172523d3e9ec50c5837a72148bebb28ef7573fe5e51bf"
     },
     {
       "path": "data/enterprise/roster.json",
       "files": 1,
-      "bytes": 124368,
-      "sha256": "9c29093b83d494d110422253363e81b085b5037fc73ece811e947b4d19dab9ec"
+      "bytes": 124640,
+      "sha256": "ceb26c0760366cfefcdf56977b523d5f35fbac0bc70b8fd821c3a7e20a33fdc2"
+    },
+    {
+      "path": "data/enterprise/shift-starts.jsonl",
+      "files": 1,
+      "bytes": 609,
+      "sha256": "ef86807132285d6ed4350a3f0f570d5b344e87988015d38063619dec076136ec"
     },
     {
       "path": "data/enterprise/shifts",
-      "files": 21,
-      "bytes": 2349252,
-      "sha256": "1674658e179c9e86b880804dbad4afa41f394764ff54c3db453d461698edd8f4"
+      "files": 27,
+      "bytes": 2372105,
+      "sha256": "31a3cfaeb19f898a71efbf465a604acf5609e1a164f7183c61b671e0eb3ff6c3"
     },
     {
       "path": "data/enterprise/tickets",
@@ -2871,9 +3385,9 @@
     },
     {
       "path": "data/transcripts/live/enterprise-cycles",
-      "files": 7,
-      "bytes": 20855,
-      "sha256": "8e671623e4bd5186117c9c5dc329cdf84de67734af5a3c184f1d48000626b3d1"
+      "files": 18,
+      "bytes": 37950,
+      "sha256": "9c60d31a497b1558047c60ddf993a9a703ce4e5e64a9df69650f03a08ea56382"
     },
     {
       "path": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments",

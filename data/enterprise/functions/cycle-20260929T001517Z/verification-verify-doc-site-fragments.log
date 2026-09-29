@@ -1,0 +1,25 @@
+# pnpm run docs:build:mpa on 6dc293c60fc10740c72a9edeeea7858d83cb66b1 at 2026-09-29T02:11:01.935Z: pass (48.9s)
+$ pnpm --filter @deepseek-ai/website exec vitepress build . --mpa && pnpm run verify-doc-site-fragments
+native/landlock-run/packages/linux-arm64 | [WARN] Unsupported platform: wanted: {"cpu":["arm64"],"os":["linux"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+▲ [WARNING] Unrecognized target environment "es2024" [tsconfig.json]
+
+    ../../../../tsconfig.base.json:6:14:
+      6 │     "target": "es2024",
+        ╵               ~~~~~~~~
+
+▲ [WARNING] Unrecognized target environment "es2024" [tsconfig.json]
+
+    ../tsconfig.base.json:6:14:
+      6 │     "target": "es2024",
+        ╵               ~~~~~~~~
+
+
+  vitepress v1.6.4
+
+- building client + server bundles...
+✓ building client + server bundles...
+- rendering pages...
+✓ rendering pages...
+build complete in 28.73s.
+$ tsx scripts/verify-doc-site-fragments.ts
+verify-doc-site-fragments: 2624 internal fragment reference(s) resolve.
