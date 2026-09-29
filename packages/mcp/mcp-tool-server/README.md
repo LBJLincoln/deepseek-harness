@@ -4,7 +4,7 @@ English | [中文](README.zh.md)
 
 Serves ONE harness agent's own tool registry to an external agent as a [Model Context Protocol](https://modelcontextprotocol.io/) server, and executes every call it receives through `ctx.tools.execute()` on that agent. It is the inverse of [`dsh-mcp-client`](../mcp-client/README.md), which registers a foreign server's tools on `ctx.tools`: here a foreign model reaches the harness's tools instead, so approval, the registry guards, the filesystem policy each tool dispatches, the around-dispatch wrappers, and the durable `tool/call`/`tool/result` pair all apply to work a model outside this process asked for.
 
-The [external-agent bridge Agent Note](../../../.agents/notes/proposed/architecture/2026-09-06-external-agent-bridge.md) owns the design rationale. Its first consumer is [`dsh-subagent-claude-code`](../../subagent/subagent-claude-code/README.md) in bridge mode.
+The [external-agent bridge Agent Note](../../../.agents/notes/implemented/architecture/2026-09-06-external-agent-bridge.md) owns the design rationale. Its first consumer is [`dsh-subagent-claude-code`](../../subagent/subagent-claude-code/README.md) in bridge mode.
 
 ## Usage
 

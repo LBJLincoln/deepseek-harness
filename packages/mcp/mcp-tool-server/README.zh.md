@@ -4,7 +4,7 @@
 
 把**一个**本仓库智能体自己的工具注册表作为一台 [Model Context Protocol](https://modelcontextprotocol.io/) 服务器提供给外部智能体，并把收到的每一次调用都通过该智能体上的 `ctx.tools.execute()` 执行。它是 [`dsh-mcp-client`](../mcp-client/README.md) 的反向：后者把外来服务器的工具注册到 `ctx.tools` 上，而这里是外来模型来够本仓库的工具，因此审批、注册表守卫、每个工具自己派发的文件系统策略、环绕派发的包装器，以及持久的 `tool/call`/`tool/result` 事件对，全都作用于一个本进程之外的模型所请求的工作。
 
-设计理由归 [external-agent bridge Agent Note](../../../.agents/notes/proposed/architecture/2026-09-06-external-agent-bridge.md)。它的首个消费者是桥接模式下的 [`dsh-subagent-claude-code`](../../subagent/subagent-claude-code/README.md)。
+设计理由归 [external-agent bridge Agent Note](../../../.agents/notes/implemented/architecture/2026-09-06-external-agent-bridge.md)。它的首个消费者是桥接模式下的 [`dsh-subagent-claude-code`](../../subagent/subagent-claude-code/README.md)。
 
 ## 用法
 

@@ -49,7 +49,7 @@ interface SubagentHarnessTools {
 
 ## 单次启动请求
 
-工具层根据模型输入和自身配置构建此请求；服务在 `start` 之前针对指定提供方进行校验。必填的 `parent` 提供会话 cwd、谱系与委派深度。可选的 output schema、depth、工具过滤器、persona、harness 工具与 model 需要对应的能力 flag 匹配。不支持的 schema 在启动时即失败；进程内后端将 filter 和 persona 的作用域限定在子 agent 创建阶段，并通过强制 capture 工具实现所支持的 object-rooted schema。`harnessTools` 与 `model` 是进程外后端能够持有的两个——`model` 之所以可持有，是因为产品本身接受模型选择，且会拒绝它不接受的标识符，这正是调用方得以用它所要求的模型给测量结果贴标签的原因；而子进程后端声称自己跑了什么、花了什么，作为 `reportedModel`、`reportedUsage` 与 `reportedCostUsd` 随结果返回。在 `harnessTools` 之下：提供方在父级血统下创建一个子本仓库智能体，通过 [`dsh-mcp-tool-server`](../../packages/mcp/mcp-tool-server/README.md) 把该智能体的注册表提供给它的外来模型，并把该模型发出的每一次调用都通过该智能体上的本仓库执行器运行，这正是子会话成为该次运行持久记录的原因（见 [external-agent bridge Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-external-agent-bridge.md)）。
+工具层根据模型输入和自身配置构建此请求；服务在 `start` 之前针对指定提供方进行校验。必填的 `parent` 提供会话 cwd、谱系与委派深度。可选的 output schema、depth、工具过滤器、persona、harness 工具与 model 需要对应的能力 flag 匹配。不支持的 schema 在启动时即失败；进程内后端将 filter 和 persona 的作用域限定在子 agent 创建阶段，并通过强制 capture 工具实现所支持的 object-rooted schema。`harnessTools` 与 `model` 是进程外后端能够持有的两个——`model` 之所以可持有，是因为产品本身接受模型选择，且会拒绝它不接受的标识符，这正是调用方得以用它所要求的模型给测量结果贴标签的原因；而子进程后端声称自己跑了什么、花了什么，作为 `reportedModel`、`reportedUsage` 与 `reportedCostUsd` 随结果返回。在 `harnessTools` 之下：提供方在父级血统下创建一个子本仓库智能体，通过 [`dsh-mcp-tool-server`](../../packages/mcp/mcp-tool-server/README.md) 把该智能体的注册表提供给它的外来模型，并把该模型发出的每一次调用都通过该智能体上的本仓库执行器运行，这正是子会话成为该次运行持久记录的原因（见 [external-agent bridge Agent Note](../../.agents/notes/implemented/architecture/2026-09-06-external-agent-bridge.md)）。
 
 ```ts type-equiv
 /**

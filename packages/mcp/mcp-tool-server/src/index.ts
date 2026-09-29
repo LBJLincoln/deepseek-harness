@@ -11,7 +11,7 @@
  * A served run is one turn of the served agent's session — the step-scoped
  * durable pair needs one — so the agent handed to {@link
  * McpToolServerService.instance} must be a child nothing else drives. The
- * [external-agent bridge Agent Note](../../../.agents/notes/proposed/architecture/2026-09-06-external-agent-bridge.md)
+ * [external-agent bridge Agent Note](../../../.agents/notes/implemented/architecture/2026-09-06-external-agent-bridge.md)
  * owns the design rationale.
  *
  * @module @deepseek-ai/dsh-mcp-tool-server
