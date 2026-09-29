@@ -93,7 +93,7 @@ The view says which of three modes it is in, in its own badge and in the header'
 
 The hosted deck is live while the operator's machine runs the [operations loop](mirror/README.md#the-operations-loop), and otherwise shows the snapshot the last enterprise cycle published.
 
-![The Operations view at 1600×900: glance tiles, the operations floor, the attention queue and the 24-hour swimlanes](docs/ops.png)
+![The Operations view at 1600×900: glance tiles, the Do next line, the operations floor with the scheduler's clock, the cycle matrix, the shift board and the attention queue](docs/ops.png)
 
 ![The Operations view at phone width](docs/ops-phone.png)
 

@@ -182,7 +182,7 @@ function CycleTimeline({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
         <div className={styles.empty}>Neither the cycle logs nor the branch history could be read.</div>
       ) : (
         <div className={styles.matrixScroll}>
-          <div className={styles.matrix} style={{ gridTemplateColumns: `max-content max-content repeat(${Math.max(1, columns.length)}, minmax(28px, 38px)) minmax(120px, 1fr)` }} role="table" aria-label="Each cycle's steps and their exit codes">
+          <div className={styles.matrix} style={{ gridTemplateColumns: `max-content max-content repeat(${Math.max(1, columns.length)}, minmax(22px, 28px)) minmax(120px, 1fr)` }} role="table" aria-label="Each cycle's steps and their exit codes">
             <div className={styles.matrixRow} role="row">
               <span className={styles.matrixHead} role="columnheader">UTC</span>
               <span className={styles.matrixHead} role="columnheader">outcome</span>
@@ -211,7 +211,7 @@ function CycleTimeline({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
                     ? <i key={name} className={styles.cell} role="cell" data-state="absent" title={`${name}: did not run`} />
                     : <i key={name} className={styles.cell} role="cell" data-state={step.state} title={stepTitle(step, now)}>{step.state === 'failed' ? step.exit : null}</i>
                 })}
-                <span className={styles.cycleSum} role="cell" title={[cycleSummary(cycle), cycle.shift === undefined ? '' : `shift ${cycle.shift}`].filter(Boolean).join(' · ')}>{cycleSummary(cycle) || (cycle.shift === undefined ? '' : `shift ${cycle.shift}`)}</span>
+                <span className={styles.cycleSum} role="cell" title={cycleDetail(cycle)}>{cycleSummary(cycle) || (cycle.shift === undefined ? '' : `shift ${cycle.shift}`)}</span>
               </div>
             ))}
           </div>
@@ -221,13 +221,26 @@ function CycleTimeline({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
   )
 }
 
-/** What a cycle delivered, from its record: its tickets by status and its gates. */
+/** What a cycle delivered in full words, for the delivered cell's title. */
+function cycleDetail(cycle: OpsCycle): string {
+  const parts: string[] = []
+  if (cycle.shift !== undefined) parts.push(`shift ${cycle.shift}`)
+  if (cycle.tickets !== undefined) parts.push(`tickets: ${cycle.tickets.shipped} shipped, ${cycle.tickets.rejected} rejected, ${cycle.tickets.halted} halted`)
+  if (cycle.functions !== undefined) parts.push(`gates: ${cycle.functions.pass} pass, ${cycle.functions.fail} fail, ${cycle.functions.error} error`)
+  return parts.join('; ')
+}
+
+/** What a cycle delivered, from its record: its tickets shipped of those worked, and its gates passed of those run. */
 function cycleSummary(cycle: OpsCycle): string {
   const parts: string[] = []
-  if (cycle.tickets !== undefined) parts.push(`${cycle.tickets.shipped} shipped · ${cycle.tickets.halted} halted${cycle.tickets.rejected === 0 ? '' : ` · ${cycle.tickets.rejected} rejected`}`)
+  if (cycle.tickets !== undefined) {
+    const { shipped, rejected, halted } = cycle.tickets
+    const total = shipped + rejected + halted
+    if (total > 0) parts.push(`${shipped}/${total} shipped`)
+  }
   if (cycle.functions !== undefined) {
     const total = cycle.functions.pass + cycle.functions.fail + cycle.functions.error
-    if (total > 0) parts.push(`gates ${cycle.functions.pass}/${total} pass`)
+    if (total > 0) parts.push(`${cycle.functions.pass}/${total} gates`)
   }
   return parts.join(' · ')
 }
@@ -341,7 +354,7 @@ export function ShippedTickets({ snapshot }: { snapshot: OpsSnapshot }): ReactNo
   const day = snapshot.generatedAt.slice(0, 10)
   return (
     <section className={styles.section} aria-label="Shipped tickets">
-      <h2>Shipped tickets <small>{shipped === null ? 'ledger unknown' : `${shipped.length} newest · commit and Branch CI verdict`}</small><Age at={factsAsOf(snapshot, ['ledger', 'ci'])} /></h2>
+      <h2>Shipped tickets <small>{shipped === null ? 'ledger unknown' : `${shipped.length} newest · commit · CI verdict`}</small><Age at={factsAsOf(snapshot, ['ledger', 'ci'])} /></h2>
       {shipped === null || shipped.length === 0 ? <div className={styles.empty}>{shipped === null ? 'The ledger could not be read.' : 'The ledger records no shipped ticket.'}</div> : (
         <div className={`${styles.card} ${styles.rows}`}>
           {shipped.map(entry => (

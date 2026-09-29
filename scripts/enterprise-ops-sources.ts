@@ -579,7 +579,7 @@ export function parseCaptureLog(text: string): CaptureLog {
 // ---------------------------------------------------------------------------
 
 /** One goal of a shift's program: a ticket, as the program ledger's newest event states it. */
-export interface ProgramGoal {
+interface ProgramGoal {
   /** The goal's key, `t-0014`. */
   key: string
   /** The ticket's title, from the goal's objective, when it opens with `Ticket T-NNNN: <title>`. */

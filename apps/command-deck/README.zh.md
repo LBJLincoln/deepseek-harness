@@ -93,7 +93,7 @@ pnpm --dir apps/command-deck fixtures
 
 运营者的机器运行[运营循环](mirror/README.md#the-operations-loop)时，托管的 deck 是实时的；否则它显示上一个企业周期发布的快照。
 
-![1600×900 下的运营视图：速览卡片、运营大厅、关注队列与 24 小时泳道图](docs/ops.png)
+![1600×900 下的运营视图：速览卡片、“Do next”行、带调度器时钟的运营大厅、周期矩阵、班次看板与关注队列](docs/ops.png)
 
 ![手机宽度下的运营视图](docs/ops-phone.png)
 

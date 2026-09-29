@@ -484,7 +484,9 @@
 /* ------------------------------------------------------------ next action - */
 
 /* The attention queue's first item across the top strip: the one thing to do now. */
+/* First in the strip's source order, so a phone reads it right after the mode; the desktop grid places it under the tiles. */
 .nextAction {
+  order: 1;
   grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
@@ -580,7 +582,7 @@
 .matrixScroll { overflow-x: auto; }
 .matrix { display: grid; gap: 3px 3px; align-items: center; min-width: 560px; font-size: 12px; }
 .matrixRow { display: contents; }
-.matrixHead[data-step] { position: relative; height: 58px; padding: 0; overflow: visible; }
+.matrixHead[data-step] { position: relative; height: 66px; padding: 0; overflow: visible; }
 .matrixHead[data-step] span {
   position: absolute;
   left: calc(50% - 4px);
@@ -661,7 +663,7 @@
 .shipRow { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
 .shipTop, .shipBottom { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
 .shipBottom { justify-content: space-between; flex-wrap: wrap; }
-.shipRow b { font-family: var(--font-mono); color: var(--o-ink); font-weight: 600; }
+.shipRow b { flex: none; white-space: nowrap; font-family: var(--font-mono); color: var(--o-ink); font-weight: 600; }
 .shipTitle { color: var(--o-ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .shipMeta { color: var(--o-ink-3); }
 .shipMeta a { color: var(--o-accent); font-family: var(--font-mono); }

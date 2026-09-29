@@ -204,8 +204,8 @@ function TopStrip({ reading, theme, setTheme }: TopStripProps): ReactNode {
         </div>
         <div className={styles.modeText}>{modeLine(reading, now)}</div>
       </div>
-      {snapshot === undefined ? null : <Tiles snapshot={snapshot} />}
       {snapshot === undefined ? null : <NextAction snapshot={snapshot} />}
+      {snapshot === undefined ? null : <Tiles snapshot={snapshot} />}
     </header>
   )
 }
