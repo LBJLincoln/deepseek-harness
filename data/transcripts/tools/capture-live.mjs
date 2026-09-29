@@ -37,8 +37,9 @@
 // a settled trailing line. When a file no longer starts with the bytes already
 // captured (the file shrank, or the SHA-256 of its first captured bytes
 // differs), the file begins its next epoch at byte 0; earlier chunks are never
-// rewritten. Every credential shape in secret-patterns.mjs is masked as
-// `[REDACTED-<PATTERN>]` and counted in the manifest, except a match whose
+// rewritten. Every credential shape and e-mail address in secret-patterns.mjs
+// is masked as `[REDACTED-<PATTERN>]` and counted per pattern in the chunk and
+// run manifests, except a match whose
 // SHA-256 is an accepted placeholder of a collected build
 // (data/transcripts/*/raw/manifest.json `acceptedHits`), which stays verbatim.
 // In a plain-text file (anything but `.jsonl`), a PEM private-key block spread
@@ -186,7 +187,7 @@ function acceptedPlaceholders(transcriptsDir) {
 }
 
 /**
- * Masks one chunk's credentials. The text is the chunk's bytes decoded as
+ * Masks one chunk's credentials and e-mail addresses. The text is the chunk's bytes decoded as
  * latin1, so every byte maps to one character and an unmasked chunk re-encodes
  * to its exact source bytes.
  * @param {string} text chunk bytes as latin1
@@ -371,7 +372,7 @@ export function capture(argv, env = process.env, now = new Date()) {
         const redacted = redactChunk(raw.toString('latin1'), { plain, pemOpen, accepted })
         const survived = scanSecrets(path, redacted.text).filter(hit => !accepted.has(hit.digest))
         if (survived.length > 0) {
-          throw new Error(`${path}: ${survived.length} credential-shaped match(es) survived redaction (${survived.map(hit => hit.pattern).join(', ')}); nothing from this run is kept`)
+          throw new Error(`${path}: ${survived.length} credential- or e-mail-shaped match(es) survived redaction (${survived.map(hit => hit.pattern).join(', ')}); nothing from this run is kept`)
         }
         const stored = Buffer.from(redacted.text, 'latin1')
         const file = `${dir}/e${epoch}/${day}/${String(seq).padStart(6, '0')}${extname(path) || '.txt'}.gz`

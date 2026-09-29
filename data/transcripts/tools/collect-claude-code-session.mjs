@@ -13,21 +13,23 @@
 //   --projects-dir  Claude Code project directory holding <session>.jsonl and
 //                   <session>/{subagents,tool-results}; defaults to
 //                   ~/.claude/projects/<cwd with every non-alphanumeric byte as "-">
-//   --accept-hit    SHA-256 of one credential-shaped match reviewed as a
+//   --accept-hit    SHA-256 of one credential- or e-mail-shaped match reviewed as a
 //                   placeholder to keep verbatim (printed by a refused run); repeatable
 //   --redact        name of a SECRET_PATTERNS entry whose matches are replaced by
 //                   `[REDACTED-<PATTERN>]` in the written copy instead of being
 //                   refused; repeatable. Use it for a real credential that appears
-//                   in the transcript (the operator's own key echoed in a message),
-//                   which must never be kept verbatim, so the transcript can still
-//                   be preserved with the secret masked.
+//                   in the transcript (the operator's own key echoed in a message)
+//                   and for `email` (the operator's address the context reminders
+//                   carry), which must never be kept verbatim, so the transcript
+//                   can still be preserved with the secret or address masked.
 //
-// A credential-shaped match is handled in one of three ways: a `--redact` of its
-// pattern masks it, an `--accept-hit` of its digest keeps it verbatim (for a
-// reviewed placeholder), and anything else refuses the write — the run prints
-// every unhandled match with its digest and exits 1. After writing, the tree is
-// re-scanned and any credential shape that is not an accepted placeholder aborts
-// the run and removes the tree, so a redaction miss can never ship a secret.
+// A credential- or e-mail-shaped match is handled in one of three ways: a
+// `--redact` of its pattern masks it, an `--accept-hit` of its digest keeps it
+// verbatim (for a reviewed placeholder), and anything else refuses the write —
+// the run prints every unhandled match with its digest and exits 1. After
+// writing, the tree is re-scanned and any match that is not an accepted
+// placeholder aborts the run and removes the tree, so a redaction miss can
+// never ship a secret or an address.
 // The patterns and the redaction are secret-patterns.mjs, shared with
 // capture-live.mjs. Files above MAX_PART_BYTES are written as line-split parts so no single blob
 // exceeds GitHub's per-file ceiling; the manifest records the whole file's
@@ -147,7 +149,7 @@ function main() {
     entries.push({ target, text, bytes: Buffer.byteLength(text, 'utf8'), sha256: sha256(text) })
   }
   if (refused.length > 0) {
-    console.error(`refusing to write ${outDir}: ${refused.length} credential-shaped match(es) without --accept-hit or --redact`)
+    console.error(`refusing to write ${outDir}: ${refused.length} credential- or e-mail-shaped match(es) without --accept-hit or --redact`)
     for (const hit of refused) console.error(`  ${hit.target}:${hit.line} ${hit.pattern} ${hit.preview} --accept-hit ${hit.digest} (or --redact ${hit.pattern})`)
     process.exit(1)
   }
@@ -191,9 +193,9 @@ function main() {
   }
   writeFileSync(manifestPath, `${JSON.stringify({ collectedAt: new Date().toISOString(), ...manifest }, null, 2)}\n`)
 
-  // Prove no secret shipped: re-scan every written blob and abort on any match
-  // that is not an accepted placeholder, so a redaction gap removes the tree
-  // rather than committing a key.
+  // Prove no secret or address shipped: re-scan every written blob and abort on
+  // any match that is not an accepted placeholder, so a redaction gap removes
+  // the tree rather than committing a key.
   const survived = []
   for (const entry of manifestFiles) {
     const paths = entry.partBodies === undefined ? [entry.path] : entry.parts
@@ -205,7 +207,7 @@ function main() {
   }
   if (survived.length > 0) {
     rmSync(outDir, { recursive: true, force: true })
-    console.error(`removed ${outDir}: ${survived.length} credential-shaped match(es) survived redaction`)
+    console.error(`removed ${outDir}: ${survived.length} credential- or e-mail-shaped match(es) survived redaction`)
     for (const hit of survived) console.error(`  ${hit.target}:${hit.line} ${hit.pattern} ${hit.preview}`)
     process.exit(1)
   }

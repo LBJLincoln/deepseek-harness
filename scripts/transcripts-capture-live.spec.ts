@@ -2,10 +2,10 @@
  * The live transcript capture (`data/transcripts/tools/capture-live.mjs`): each
  * run appends only the whole lines that are new since the run manifests say it
  * last stopped, a file that no longer starts with the captured bytes begins a
- * new epoch without touching the old chunks, every credential shape is masked
- * and counted unless its digest is an accepted placeholder, and the state is
- * read from the committed manifests alone. The synthetic keys here match the
- * credential shapes but are not real credentials.
+ * new epoch without touching the old chunks, every credential shape and e-mail
+ * address is masked and counted unless its digest is an accepted placeholder,
+ * and the state is read from the committed manifests alone. The synthetic keys
+ * and addresses here match the shapes but are invented.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -23,6 +23,7 @@ const FAKE_OPENROUTER = `sk-or-v1-${'0123456789abcdef'.repeat(4)}`
 const FAKE_AWS = `AKIA${'Q'.repeat(16)}`
 const PLACEHOLDER = `Bearer ${'placeholder'.repeat(3)}`
 const PEM_BODY = 'fedcba9876543210FEDCBA98'.repeat(3)
+const EMAIL = 'jane.doe@mailhost.org'
 
 interface Chunk {
   source: string
@@ -173,6 +174,28 @@ describe('live transcript capture', () => {
     const [first, second] = manifests()
     expect(first!.redactions).toEqual({ 'private-key': 2, 'openrouter-key': 1, 'aws-access-key': 1 })
     expect(second!.redactions).toEqual({ 'private-key': 1 })
+  })
+
+  it('masks e-mail addresses and the newer credential shapes in a JSONL chunk and counts each class in the chunk and run manifests', () => {
+    const transcript = join(sources, 'session.jsonl')
+    const hf = `hf_${'Ab1'.repeat(12)}`
+    const awsSecret = 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYFAKEKEY012'
+    writeFileSync(transcript, [
+      JSON.stringify({ type: 'system', content: `# userEmail\nThe user's email address is ${EMAIL}.` }),
+      JSON.stringify({ text: `git log\nAuthor: Jane <${EMAIL}>\nHF_TOKEN=${hf}\n${FAKE_AWS},${awsSecret}` }),
+      '',
+    ].join('\n'))
+    capture()
+    const [chunk] = chunksOf(transcript)
+    const text = stored(chunk!)
+    expect(text).not.toContain(EMAIL)
+    expect(text).not.toContain(hf)
+    expect(text).not.toContain(awsSecret)
+    expect(text).toContain("The user's email address is [REDACTED-EMAIL].")
+    for (const line of text.split('\n').filter(Boolean)) expect(() => { JSON.parse(line) }).not.toThrow()
+    const counts = { email: 2, 'huggingface-token': 1, 'aws-secret-key': 1, 'aws-access-key': 1 }
+    expect(chunk!.redactions).toEqual(counts)
+    expect(manifests()[0]!.redactions).toEqual(counts)
   })
 
   it('reads its state from the manifests alone, so a copy of the committed tree resumes where the last run stopped', () => {
