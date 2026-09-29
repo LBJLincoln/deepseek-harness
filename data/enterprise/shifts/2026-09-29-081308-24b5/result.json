@@ -1,0 +1,181 @@
+{
+  "type": "result",
+  "shift": "081308-24b5",
+  "startedAt": "2026-09-29T08:13:10.033Z",
+  "base": "8ce6afb4f5a350fa46fc41b73eefb7eef4ca8772",
+  "remote": "https://github.com/LBJLincoln/deepseek-harness",
+  "branch": "claude/coding-agent-harness-u9l4gt",
+  "implementer": "route",
+  "model": "Claude Code sonnet",
+  "programId": "program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4",
+  "report": {
+    "programId": "program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4",
+    "sessionId": "program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4",
+    "outcome": "failed",
+    "goals": [
+      {
+        "key": "t-0014",
+        "status": "blocked",
+        "sessionId": "program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4-t-0014",
+        "reason": "budget-exhausted"
+      },
+      {
+        "key": "t-0016",
+        "status": "certified",
+        "sessionId": "program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4-t-0016",
+        "revision": "f0231bf3f554ecbcf9f283aca0c90d61e396bad7",
+        "tree": "eaf97d3baa65dfa7036b9dc3668f71d3b17cdc41"
+      }
+    ]
+  },
+  "halt": null,
+  "decisions": [
+    {
+      "transition": "spec-freeze",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 081308-24b5"
+      },
+      "artefactSha256": "4342b8e799f2a107a29d0828a212e939ce62dd4cc5bf99b6097674e8d27186d1"
+    },
+    {
+      "transition": "release",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 081308-24b5"
+      },
+      "artefactSha256": "4342b8e799f2a107a29d0828a212e939ce62dd4cc5bf99b6097674e8d27186d1"
+    }
+  ],
+  "tickets": [
+    {
+      "type": "ticket",
+      "at": "2026-09-29T09:37:06.598Z",
+      "shift": "081308-24b5",
+      "ticket": "T-0014",
+      "seat": "harness-core-subagent-steward",
+      "division": "harness-core",
+      "programId": "program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "blocked",
+        "sessionId": "program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4-t-0014"
+      },
+      "checks": [
+        {
+          "id": "spec",
+          "ok": true
+        },
+        {
+          "id": "readme-code",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": false
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "doc-sync",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "none",
+        "sessionId": null
+      },
+      "integration": {
+        "outcome": "skipped"
+      },
+      "shipped": null,
+      "reason": "budget-exhausted",
+      "tokens": 562235,
+      "seconds": 3280,
+      "rationale": ""
+    },
+    {
+      "type": "ticket",
+      "at": "2026-09-29T09:37:06.598Z",
+      "shift": "081308-24b5",
+      "ticket": "T-0016",
+      "seat": "harness-core-tool-subagent-steward",
+      "division": "harness-core",
+      "programId": "program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4-t-0016"
+      },
+      "checks": [
+        {
+          "id": "keys-documented",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "doc-sync",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0016-f22a14a7"
+      },
+      "integration": {
+        "outcome": "checks-failed"
+      },
+      "shipped": null,
+      "reason": "acceptance failed over the assembled tree: T-0016 doc-sync:  the pair: \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk-… vs \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk-…\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.zh.md: missing language switcher — no link to README.md\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.md: missing language switcher — no link back to README.zh.md\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.md ↔ program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.zh.md: link target #1 diverges between the pair: \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk/… vs \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk/…\nrun-gates: unsuccessful gates:\n  - FAILED translation pairing (50.40s, exit 1)\n    pnpm run verify-translation-pairing",
+      "tokens": 202900,
+      "seconds": 1158,
+      "rationale": "- **Scope:** The diff touches only `README.md`, `README.zh.md` and `README.i18n.yaml` under `packages/subagent/tool-subagent/`. There is no code or schema change, which matches the documentation-only constraint.\n- **Required content:** The `toolFilter` row now covers each item the ticket lists:\n  - It gives the value shape `{ allow?: string[]; deny?: string[] }`, each key a list of global tool names.\n  - It says `allow` keeps only the named global tools visible, and that `allow: []` removes all of them.\n  - It says `deny` removes the named tools, and states the precedence when both are present: a tool must be in `allow` and absent from `deny`, so `deny` wins for a name in both.\n  - It quotes the load-time failure for a filter naming neither key, and says that omitting the key means no restriction.\n- **Bilingual pairing:** The Chinese row carries the same content, including the identical error message. `README.i18n.yaml` has new hashes for both files, and the translation-pairing gate reports all 1103 pairs consistent.\n- **Checks:** All acceptance checks pass. That includes `keys-documented`, `coverage` (100%, 68 tests), `typecheck` and `doc-sync` (29 gates, including markdown wrap, links and doc budgets). The engine checks for committed, scope, whitespace and documentation also pass.\n- **cordis.yml example:** The ticket only asks for one \"if the README has one\". The diff adds none, and nothing in the record suggests the README has one to update.\n- **Caveat:** The row adds two claims the ticket did not list: scoped registrations and the reserved Code Mode transport are unaffected, and an unknown tool name fails at child start. I cannot check these or the quoted error text against the source from this record. They are consistent with the `ToolRestriction` description in the ticket and are not contradicted anywhere, so I don't treat them as grounds to reject."
+    }
+  ],
+  "redacted": 10
+}
