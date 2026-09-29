@@ -1,16 +1,16 @@
 {
   "window": {
-    "since": "2026-09-28T07:07:25.821Z",
-    "until": "2026-09-29T07:07:25.821Z"
+    "since": "2026-09-28T09:41:21.384Z",
+    "until": "2026-09-29T09:41:21.384Z"
   },
   "head": {
-    "commit": "d48fbd1ea372a7bb0b2a7b516cd4ea33c09ce87d",
-    "committedAt": "2026-09-29T07:07:18.000Z"
+    "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d",
+    "committedAt": "2026-09-29T09:37:06.000Z"
   },
   "cycles": {
-    "count": 6,
+    "count": 7,
     "recorded": 4,
-    "gitOnly": 2,
+    "gitOnly": 3,
     "clean": 0,
     "failed": 4,
     "failedByStep": {
@@ -198,6 +198,22 @@
           },
           "recordOnRemote": "unknown"
         }
+      },
+      {
+        "cycle": "cycle-20260929T081300Z",
+        "startedAt": "2026-09-29T08:13:00.000Z",
+        "source": "git",
+        "outcome": "unknown",
+        "startedBy": {
+          "by": "unknown",
+          "basis": "the cycle has no record"
+        },
+        "commits": [
+          {
+            "commit": "608c758574c176a0d8401d6f42f7b1fc77e8c46a",
+            "carries": "intake"
+          }
+        ]
       }
     ]
   },
@@ -297,14 +313,26 @@
         "halted": 2
       },
       "evidence": "data/enterprise/shifts/2026-09-29-061342-191b"
+    },
+    {
+      "shift": "081308-24b5",
+      "startedAt": "2026-09-29T08:13:10.033Z",
+      "source": "record",
+      "outcome": "program failed",
+      "tickets": {
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 2
+      },
+      "evidence": "data/enterprise/shifts/2026-09-29-081308-24b5"
     }
   ],
   "tickets": {
-    "lines": 12,
+    "lines": 14,
     "byStatus": {
       "shipped": 3,
       "rejected": 0,
-      "halted": 9
+      "halted": 11
     },
     "byDivision": [
       {
@@ -323,10 +351,10 @@
       },
       {
         "division": "harness-core",
-        "lines": 7,
+        "lines": 9,
         "shipped": 3,
         "rejected": 0,
-        "halted": 4
+        "halted": 6
       },
       {
         "division": "knowledge",
@@ -344,9 +372,9 @@
       }
     ],
     "reviews": {
-      "approved": 3,
+      "approved": 4,
       "rejected": 0,
-      "notReached": 9
+      "notReached": 10
     },
     "shipped": [
       {
@@ -444,18 +472,18 @@
     }
   ],
   "seats": {
-    "at": "2026-09-29T07:07:25.821Z",
+    "at": "2026-09-29T09:41:21.384Z",
     "defined": 147,
-    "occupied": 53,
-    "active": 44,
+    "occupied": 55,
+    "active": 46,
     "work": {
       "occupied": {
-        "model": 27,
+        "model": 29,
         "check": 22,
         "halted": 4
       },
       "active": {
-        "model": 18,
+        "model": 20,
         "check": 22,
         "halted": 4
       }
@@ -465,10 +493,10 @@
         "id": "harness-core",
         "name": "Harness Core",
         "defined": 24,
-        "occupied": 6,
-        "active": 6,
+        "occupied": 8,
+        "active": 8,
         "work": {
-          "model": 4,
+          "model": 6,
           "check": 0,
           "halted": 2
         }
@@ -584,7 +612,7 @@
     ]
   },
   "functions": {
-    "lines": 123,
+    "lines": 145,
     "byDivision": [
       {
         "division": "code-safety",
@@ -594,19 +622,19 @@
       },
       {
         "division": "curation-data",
-        "pass": 6,
+        "pass": 7,
         "fail": 0,
         "error": 0
       },
       {
         "division": "judging",
-        "pass": 15,
-        "fail": 3,
+        "pass": 18,
+        "fail": 6,
         "error": 0
       },
       {
         "division": "observatory",
-        "pass": 6,
+        "pass": 7,
         "fail": 0,
         "error": 0
       },
@@ -618,8 +646,8 @@
       },
       {
         "division": "verification",
-        "pass": 78,
-        "fail": 6,
+        "pass": 91,
+        "fail": 7,
         "error": 0
       }
     ]
@@ -628,9 +656,9 @@
     {
       "covers": "ticket lines: the engine's count for each ticket a shift worked, its department's and its review's sessions",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 12,
-      "tokens": 2741223,
-      "seconds": 8159
+      "items": 14,
+      "tokens": 3506358,
+      "seconds": 12597
     },
     {
       "covers": "intake coordinators: each coordinator department an intake ran, as its intake record counts it",
@@ -670,14 +698,14 @@
     {
       "covers": "recorded sessions under data/enterprise/shifts whose newest event falls in the window: the tokens their usage events state, and their model time",
       "source": "data/enterprise/shifts",
-      "items": 19,
-      "tokens": 6274153,
-      "seconds": 1692.1,
+      "items": 23,
+      "tokens": 7039288,
+      "seconds": 1833.2,
       "breakdown": {
-        "input": 374,
-        "output": 119786,
-        "cacheRead": 5645311,
-        "cacheWrite": 508682,
+        "input": 420,
+        "output": 132696,
+        "cacheRead": 6308314,
+        "cacheWrite": 597858,
         "reasoning": 0
       }
     },
@@ -698,9 +726,9 @@
     {
       "covers": "function lines: the seconds each seat's gate, verdict read or fold took; no model is called",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 123,
+      "items": 145,
       "tokens": null,
-      "seconds": 22585.9
+      "seconds": 27252.8
     },
     {
       "covers": "recorded cycles: each one's wall time from its start to its record",
@@ -710,12 +738,13 @@
       "seconds": 7799
     }
   ],
-  "headline": "Pilot, 2026-09-28T07:07:25.821Z to 2026-09-29T07:07:25.821Z: 6 cycles started (0 clean, 4 failed, 2 without a record); 8 shifts (7 recorded, 1 lost); 12 ticket lines (3 shipped, 0 rejected, 9 halted); reviews 3 approved, 0 rejected, 9 not reached; 3 tickets shipped in 3 commits, Branch CI 3 failure (3 from a later run containing the commit); 123 function runs (114 pass, 9 fail, 0 error).",
+  "headline": "Pilot, 2026-09-28T09:41:21.384Z to 2026-09-29T09:41:21.384Z: 7 cycles started (0 clean, 4 failed, 3 without a record); 9 shifts (8 recorded, 1 lost); 14 ticket lines (3 shipped, 0 rejected, 11 halted); reviews 4 approved, 0 rejected, 10 not reached; 3 tickets shipped in 3 commits, Branch CI 3 failure (3 from a later run containing the commit); 145 function runs (132 pass, 13 fail, 0 error).",
   "unknowns": [
-    "2 cycles are seen only in git history (cycle-20260928T201148Z, cycle-20260928T221301Z): their steps, outcome and ledger lines are unknown",
+    "3 cycles are seen only in git history (cycle-20260928T201148Z, cycle-20260928T221301Z, cycle-20260929T081300Z): their steps, outcome and ledger lines are unknown",
     "who started cycle-20260928T221301Z is unknown: the cycle has no record",
     "who started cycle-20260929T001517Z is unknown: its record predates the startedBy field",
     "whether cycle-20260929T061300Z's record reached the remote branch is unknown until a later cycle's record states it",
+    "who started cycle-20260929T081300Z is unknown: the cycle has no record",
     "the tickets, sessions and spend of shift 201448-94fd are unknown: data/transcripts/LOSSES.md records it as lost, and it left no ledger line and no record"
   ]
 }
