@@ -35,6 +35,9 @@ export const LEDGER_PATH = 'data/enterprise/ledger.jsonl'
 /** The directory every shift record is written under, relative to the repository root. */
 export const SHIFTS_DIR = 'data/enterprise/shifts'
 
+/** The file every shift appends its start line to, relative to the repository root. */
+export const SHIFT_STARTS_PATH = 'data/enterprise/shift-starts.jsonl'
+
 /** How one department was staffed: the harness loop on the composed route, or Claude Code through the subagent seam. */
 export type ImplementerKind = 'route' | 'subagent'
 
@@ -84,6 +87,114 @@ export type TicketStatus = 'shipped' | 'rejected' | 'open'
 
 /** The prefix of the reason a ticket line carries when the shift halted on the subscription's usage limit. */
 export const LIMIT_HALT_REASON = 'halted: limit'
+
+/**
+ * One line of {@link SHIFT_STARTS_PATH}: a shift that selected its tickets,
+ * written and pushed before any department runs. The shift's ticket lines are
+ * its end; a start with none was cut off before it could write them.
+ */
+export interface ShiftStartLine {
+  readonly type: 'shift-start'
+  /** ISO-8601 instant the shift started. */
+  readonly at: string
+  readonly shift: string
+  readonly tickets: readonly string[]
+  /** The tip the shift cut its worktrees from. */
+  readonly base: string
+  /** The host and process that ran the shift, which tell a shift still running from one that died. */
+  readonly host: string
+  readonly pid: number
+  readonly implementer: ImplementerKind
+}
+
+/** The prefix of the reason a ticket line carries when its shift started and never recorded an end. */
+export const ABANDONED_REASON = 'abandoned: container reset'
+
+/**
+ * Parse the start lines of {@link SHIFT_STARTS_PATH}. The file is
+ * machine-written, so a line that is not JSON is refused as damage; a line of
+ * another type is skipped.
+ * @param text - the file's contents, possibly empty.
+ * @returns the start lines in file order.
+ */
+export function parseShiftStarts(text: string): ShiftStartLine[] {
+  return text.split('\n')
+    .filter(line => line.trim() !== '')
+    .map(line => JSON.parse(line) as { type?: unknown })
+    .filter(parsed => parsed.type === 'shift-start') as ShiftStartLine[]
+}
+
+/**
+ * The ticket lines that close every started shift which recorded no end: a
+ * start whose shift has no ticket line in the ledger, unless `inFlight` says
+ * its process is still running. Each of its tickets still in the queue gets an
+ * `abandoned` line under the dead shift's id, whose reason starts with
+ * {@link ABANDONED_REASON} and so counts as an attempt in {@link queueOrder}.
+ * @param starts - the start lines.
+ * @param lines - the ledger so far.
+ * @param tickets - the validated queue, for each ticket's seat and division.
+ * @param at - the instant the lines are written.
+ * @param inFlight - whether a start's shift is still running.
+ * @returns the lines, in start order then ticket order.
+ */
+export function abandonedLines(
+  starts: readonly ShiftStartLine[],
+  lines: readonly TicketLedgerLine[],
+  tickets: readonly Ticket[],
+  at: string,
+  inFlight: (start: ShiftStartLine) => boolean,
+): TicketLedgerLine[] {
+  const ended = new Set(lines.map(line => line.shift))
+  return starts.filter(start => !ended.has(start.shift) && !inFlight(start)).flatMap(start => start.tickets.flatMap((id) => {
+    const ticket = tickets.find(candidate => candidate.id === id)
+    if (ticket === undefined) return []
+    return [{
+      type: 'ticket' as const,
+      at,
+      shift: start.shift,
+      ticket: id,
+      seat: ticket.seat,
+      division: ticket.division,
+      programId: '',
+      implementer: start.implementer,
+      model: '',
+      department: { outcome: 'abandoned' as const, sessionId: null },
+      checks: [],
+      review: { verdict: 'none' as const, sessionId: null },
+      integration: { outcome: 'skipped' as const },
+      shipped: null,
+      reason: `${ABANDONED_REASON}: shift ${start.shift} started at ${start.at} on ${start.host} over ${start.base} and recorded no end`,
+      tokens: 0,
+      seconds: 0,
+    }]
+  }))
+}
+
+/**
+ * The message of the commit that carries a shift's start line and the lines
+ * that close the shifts which never ended.
+ * @param shift - the starting shift.
+ * @param tickets - the tickets it selected.
+ * @param abandoned - the ids of the shifts it closed as abandoned.
+ * @param trailers - the two trailer lines.
+ * @returns the full message.
+ */
+export function shiftStartMessage(
+  shift: string,
+  tickets: readonly string[],
+  abandoned: readonly string[],
+  trailers: CommitTrailers,
+): string {
+  return [
+    `chore(enterprise): shift ${shift} starts over ${tickets.join(', ')}`,
+    '',
+    `Daliesk shift ${shift}: its start line in ${SHIFT_STARTS_PATH}, pushed before any department runs.`,
+    ...abandoned.length === 0 ? [] : [`It closes ${abandoned.join(', ')}, which started and recorded no end, as ${ABANDONED_REASON}.`],
+    '',
+    `Co-Authored-By: ${trailers.coAuthor}`,
+    `Claude-Session: ${trailers.session}`,
+  ].join('\n')
+}
 
 /** How a shift chooses its tickets: the next `n` open ones in queue order, or named ones. */
 export type TicketSelection = { readonly kind: 'next'; readonly count: number } | { readonly kind: 'tickets'; readonly ids: readonly string[] }

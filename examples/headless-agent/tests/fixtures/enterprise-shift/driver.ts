@@ -26,9 +26,10 @@
 
 import { execFileSync, spawnSync } from 'node:child_process'
 import { createHash, randomBytes } from 'node:crypto'
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { appendFile, mkdir, writeFile } from 'node:fs/promises'
-import { join, relative } from 'node:path'
+import { hostname } from 'node:os'
+import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { boot, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
@@ -51,6 +52,7 @@ import type { QueuePolicy } from '../../../../../scripts/enterprise-tickets.ts'
 import { ROSTER_PATH } from '../../../../../scripts/enterprise-roster.ts'
 import type { Roster } from '../../../../../scripts/enterprise-roster.ts'
 import {
+  abandonedLines,
   acceptanceRun,
   departmentKey,
   departmentObjective,
@@ -59,6 +61,7 @@ import {
   LEDGER_PATH,
   LIMIT_HALT_REASON,
   parseLedger,
+  parseShiftStarts,
   readQueue,
   readReviewVerdict,
   redactCredentials,
@@ -69,13 +72,16 @@ import {
   shiftCommitMessage,
   shiftIdFor,
   shiftRecordName,
+  SHIFT_STARTS_PATH,
   SHIFTS_DIR,
+  shiftStartMessage,
   shippedCommitMessage,
   ticketChecks,
 } from './shift.ts'
 import type {
   CommitTrailers,
   DepartmentOutcome,
+  ShiftStartLine,
   ImplementerKind,
   IntegrationOutcome,
   ReviewedCheck,
@@ -235,6 +241,57 @@ function cloneTip(config: ShiftConfig): { repo: string; base: string } {
   git(repo, 'config', 'user.name', 'Claude')
   git(repo, 'config', 'user.email', 'noreply@anthropic.com')
   return { repo, base: git(repo, 'rev-parse', 'HEAD') }
+}
+
+/** Whether a process id names a live process this user can signal. */
+function alive(pid: number): boolean {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch {
+    // ESRCH: no such process, so the shift that started under it is not running.
+    return false
+  }
+}
+
+/**
+ * Record the shift's start before any department runs: the lines closing every
+ * started shift that recorded no end, and this shift's start line, in one
+ * commit on the clone's tip, pushed fast-forward when the shift pushes. A tip
+ * that moved is fetched and the commit rebased onto it, both files merging by
+ * line union; a start that cannot reach the remote in every round stops the
+ * shift, because work it went on to do could be lost without a trace.
+ * @returns the commit every worktree of the shift is cut from, or the reason the start could not be pushed.
+ */
+function startShift(
+  repo: string,
+  start: ShiftStartLine,
+  abandoned: readonly TicketLedgerLine[],
+  trailers: CommitTrailers,
+): { base: string } | { refused: string } {
+  const ledger = join(repo, LEDGER_PATH)
+  const starts = join(repo, SHIFT_STARTS_PATH)
+  mkdirSync(dirname(starts), { recursive: true })
+  if (abandoned.length > 0) appendFileSync(ledger, abandoned.map(line => `${JSON.stringify(line)}\n`).join(''))
+  appendFileSync(starts, `${JSON.stringify(start)}\n`)
+  git(repo, 'add', '--', ...abandoned.length > 0 ? [LEDGER_PATH] : [], SHIFT_STARTS_PATH)
+  const message = join(repo, '.git', 'enterprise-shift-start.msg')
+  writeFileSync(message, `${shiftStartMessage(start.shift, start.tickets, [...new Set(abandoned.map(line => line.shift))], trailers)}\n`)
+  git(repo, 'commit', '-q', '--no-verify', '-F', message)
+  if (!config.push) return { base: git(repo, 'rev-parse', 'HEAD') }
+  let refused = ''
+  for (let round = 1; round <= PUSH_ROUNDS; round += 1) {
+    const push = tryGit(repo, 'push', '--quiet', '--no-verify', config.remote, `HEAD:refs/heads/${config.branch}`)
+    if (push.ok) return { base: git(repo, 'rev-parse', 'HEAD') }
+    refused = `start push round ${round} refused: ${push.output.slice(-500)}`
+    git(repo, 'fetch', '--quiet', 'origin', config.branch)
+    const rebased = tryGit(repo, 'rebase', 'FETCH_HEAD')
+    if (!rebased.ok) {
+      tryGit(repo, 'rebase', '--abort')
+      return { refused: `the start commit does not rebase onto the moved tip: ${rebased.output.slice(-500)}` }
+    }
+  }
+  return { refused }
 }
 
 /** The display name of one seat, from the clone's roster. */
@@ -556,17 +613,47 @@ for (const name of Object.keys(process.env)) {
   if (name.startsWith('GIT_CONFIG_')) Reflect.deleteProperty(process.env, name)
 }
 
-const { repo, base } = cloneTip(config)
+const { repo, base: tip } = cloneTip(config)
 const policy = config.openPolicy ? OPEN_QUEUE_POLICY : HARNESS_QUEUE_POLICY
 const tickets = readQueue(repo, policy)
 const ledgerFile = join(repo, LEDGER_PATH)
-const ledgerBefore = parseLedger(existsSync(ledgerFile) ? readFileSync(ledgerFile, 'utf8') : '')
+const startsFile = join(repo, SHIFT_STARTS_PATH)
+const ledgerRead = parseLedger(existsSync(ledgerFile) ? readFileSync(ledgerFile, 'utf8') : '')
+// A shift that started and never wrote its ticket lines was cut off; its
+// tickets get one abandoned line each, which counts as their attempt before
+// this shift selects. A start on this host whose process lives is still running.
+const abandoned = abandonedLines(
+  parseShiftStarts(existsSync(startsFile) ? readFileSync(startsFile, 'utf8') : ''),
+  ledgerRead,
+  tickets,
+  startedAt.toISOString(),
+  start => start.host === hostname() && alive(start.pid),
+)
+const ledgerBefore = [...ledgerRead, ...abandoned]
 const selected = selectTickets(tickets, ledgerBefore, config.selection)
 if (selected.length === 0) {
-  process.stdout.write(`${JSON.stringify({ type: 'result', shift: config.shift, base, selected: [], reason: 'no open ticket' })}\n`)
+  process.stdout.write(`${JSON.stringify({ type: 'result', shift: config.shift, base: tip, selected: [], reason: 'no open ticket' })}\n`)
   if (!config.keep) rmSync(config.scratch, { recursive: true, force: true })
   process.exit(0)
 }
+const started = startShift(repo, {
+  type: 'shift-start',
+  at: startedAt.toISOString(),
+  shift: config.shift,
+  tickets: selected.map(ticket => ticket.id),
+  base: tip,
+  host: hostname(),
+  pid: process.pid,
+  implementer: config.implementer,
+}, abandoned, { coAuthor: 'Daliesk enterprise shift <noreply@anthropic.com>', session: CLAUDE_SESSION })
+if ('refused' in started) {
+  process.stdout.write(`${JSON.stringify({ type: 'result', shift: config.shift, base: tip, selected: selected.map(ticket => ticket.id), error: started.refused, repo })}\n`)
+  process.stderr.write(`enterprise-shift: the start line could not be pushed, so no department ran: ${started.refused}; the clone is kept at ${repo}\n`)
+  process.exit(2)
+}
+// Every worktree is cut from the start commit, which the remote already
+// carries, so the final push fast-forwards from it.
+const { base } = started
 const spec = programSpec(repo, selected, base, config.implementer, policy, config.heavyLock)
 const programId = programIdFor(programSpecDigest(resolveProgramSpec(spec)))
 const runs: TicketRun[] = selected.map(ticket => ({

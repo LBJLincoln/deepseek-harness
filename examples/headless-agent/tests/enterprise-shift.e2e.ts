@@ -19,13 +19,13 @@
 import { execFileSync, spawnSync } from 'node:child_process'
 import { chmodSync, cpSync, mkdirSync, writeFileSync } from 'node:fs'
 import { mkdtemp, rm } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { hostname, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterAll, describe, expect, it } from 'vitest'
 import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
-import { parseLedger, ticketStatuses } from './fixtures/enterprise-shift/shift.ts'
-import type { TicketLedgerLine } from './fixtures/enterprise-shift/shift.ts'
+import { parseLedger, parseShiftStarts, ticketStatuses } from './fixtures/enterprise-shift/shift.ts'
+import type { ShiftStartLine, TicketLedgerLine } from './fixtures/enterprise-shift/shift.ts'
 
 const fixtureDir = fileURLToPath(new URL('./fixtures/enterprise-shift/', import.meta.url))
 const seedDir = join(fixtureDir, 'seed')
@@ -100,6 +100,23 @@ async function refusingHooks(): Promise<string> {
   writeFileSync(join(template, 'hooks', 'pre-push'), `#!/bin/sh\necho '${HOOK_REFUSAL}' >&2\nexit 1\n`)
   chmodSync(join(template, 'hooks', 'pre-push'), 0o755)
   return template
+}
+
+/** Commit one file's appended text to the remote's `main` from a scratch clone, as another writer of the branch would. */
+async function appendOnRemote(remote: string, path: string, text: string, subject: string): Promise<void> {
+  const work = await mkdtemp(join(tmpdir(), 'enterprise-writer-'))
+  roots.push(work)
+  git(work, 'clone', '-q', remote, '.')
+  mkdirSync(join(work, path, '..'), { recursive: true })
+  writeFileSync(join(work, path), text, { flag: 'a' })
+  git(work, 'add', '--', path)
+  git(work, '-c', 'user.name=writer', '-c', 'user.email=writer@example.test', 'commit', '-qm', subject)
+  git(work, 'push', '-q', 'origin', 'HEAD:main')
+}
+
+/** The start lines the remote's `main` carries. */
+function remoteStarts(remote: string): ShiftStartLine[] {
+  return parseShiftStarts(git(remote, 'show', 'main:data/enterprise/shift-starts.jsonl'))
 }
 
 /** Run one shift over a remote and read the result line back, with the refusing hook and a heavy lock of its own. */
@@ -204,12 +221,19 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(probe.status).not.toBe(0)
     expect(probe.stderr).toContain(HOOK_REFUSAL)
 
-    // The remote's main is the seed, the shipped ticket, then the shift's own
-    // commit with the ledger and the record; the ticket commit names the
-    // ticket, the seat, the program and both sessions, and ends with the trailers.
+    // The remote's main is the seed, the shift's start line, pushed before any
+    // department ran and the base of every worktree, the shipped ticket, then
+    // the shift's own commit with the ledger and the record; the ticket commit
+    // names the ticket, the seat, the program and both sessions, and ends with the trailers.
     expect(observed.pushed).toEqual({ commit: observed.shiftCommit, rounds: 1 })
     const log = remoteLog(remote)
-    expect(log.map(entry => entry.sha)).toEqual([observed.shiftCommit, shipped.shipped?.commit, base])
+    expect(log.map(entry => entry.sha)).toEqual([observed.shiftCommit, shipped.shipped?.commit, observed.base, base])
+    expect(log[2]?.message.split('\n')[0]).toBe('chore(enterprise): shift e2e-mixed starts over T-0001, T-0002, T-0004')
+    expect(log[2]?.message.split('\n').slice(-2)).toEqual(['Co-Authored-By: Daliesk enterprise shift <noreply@anthropic.com>', TRAILERS[1]])
+    expect(git(remote, 'diff', '--name-only', base, observed.base)).toBe('data/enterprise/shift-starts.jsonl')
+    expect(remoteStarts(remote)).toEqual([expect.objectContaining({
+      type: 'shift-start', shift: 'e2e-mixed', tickets: ['T-0001', 'T-0002', 'T-0004'], base, host: hostname(), implementer: 'route',
+    })])
     const ticketCommit = log[1]?.message ?? ''
     expect(ticketCommit.split('\n')[0]).toBe('T-0001: Add the greeting tool')
     expect(ticketCommit).toContain('Shift: Daliesk shift e2e-mixed')
@@ -259,7 +283,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     ]))
     expect(JSON.stringify(recorded)).not.toContain('"human"')
     const manifest = JSON.parse(git(remote, 'show', `main:${observed.record}/manifest.json`)) as { files: { path: string }[]; base: string }
-    expect(manifest.base).toBe(base)
+    expect(manifest.base).toBe(observed.base)
     expect(manifest.files.map(file => file.path)).toEqual(expect.arrayContaining(['result.json', `sessions/${observed.programId}.jsonl`]))
 
     // The heavy acceptance command ran under the shift's heavy lock — the
@@ -293,8 +317,15 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(session?.parentSessionId).toBeUndefined()
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
 
-  it('does not ship a certified ticket the reviewer rejects, and closes it in the ledger', async () => {
+  it('does not ship a certified ticket the reviewer rejects, closes it in the ledger, and closes a shift a reset cut off', async () => {
     const { remote, base } = await seedRemote()
+    // Two earlier shifts started and recorded no end: one on a host that is
+    // gone, whose ticket counts an abandoned attempt, and one on this host whose
+    // process is alive, which is still running and is left alone.
+    const crashed: ShiftStartLine = { type: 'shift-start', at: '2026-09-28T20:00:00.000Z', shift: 'e2e-crashed', tickets: ['T-0002'], base, host: 'a-container-since-reset', pid: 1, implementer: 'route' }
+    const running: ShiftStartLine = { ...crashed, shift: 'e2e-running', tickets: ['T-0004'], host: hostname(), pid: process.pid }
+    await appendOnRemote(remote, 'data/enterprise/shift-starts.jsonl', `${JSON.stringify(crashed)}\n${JSON.stringify(running)}\n`, 'two shifts started')
+    const seeded = git(remote, 'rev-parse', 'main')
     const observed = await runShift(remote, { DSH_ENTERPRISE_TICKETS: 'T-0003', DSH_ENTERPRISE_SHIFT: 'e2e-reject' })
     const line = lineOf(observed, 'T-0003')
     expect(observed.report.outcome).toBe('released')
@@ -303,9 +334,15 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(line.rationale).toContain('rejects T-0003')
     expect(line.integration.outcome).toBe('not-shipped')
     expect(line.shipped).toBeNull()
-    expect(remoteLog(remote).map(entry => entry.sha)).toEqual([observed.shiftCommit, base])
+    const log = remoteLog(remote)
+    expect(log.map(entry => entry.sha)).toEqual([observed.shiftCommit, observed.base, seeded, base])
+    expect(log[1]?.message).toContain('It closes e2e-crashed, which started and recorded no end, as abandoned: container reset.')
     expect(git(remote, 'ls-tree', '--name-only', 'main', 'tools/bye.mjs')).toBe('')
-    expect([...ticketStatuses(remoteLedger(remote)).entries()]).toEqual([['T-0003', 'rejected']])
+    const ledger = remoteLedger(remote)
+    expect(ledger.map(entry => [entry.ticket, entry.shift, entry.department.outcome])).toEqual([['T-0002', 'e2e-crashed', 'abandoned'], ['T-0003', 'e2e-reject', 'certified']])
+    expect(ledger[0]?.reason.startsWith(`abandoned: container reset: shift e2e-crashed started at ${crashed.at} on a-container-since-reset over ${base}`)).toBe(true)
+    expect([...ticketStatuses(ledger).entries()]).toEqual([['T-0002', 'open'], ['T-0003', 'rejected']])
+    expect(remoteStarts(remote).map(start => start.shift)).toEqual(['e2e-crashed', 'e2e-running', 'e2e-reject'])
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
 
   it('rebases onto a tip that moved during the shift, recertifies, and ships', async () => {
@@ -324,10 +361,11 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
       'chore(enterprise): shift e2e-moved, shipped T-0005',
       'T-0005: Add the echo tool',
       'the tip moved during the shift',
+      'chore(enterprise): shift e2e-moved starts over T-0005',
       'the seed repository and its ticket queue',
     ])
     expect(log[1]?.sha).toBe(line.shipped?.commit)
-    expect(log[3]?.sha).toBe(base)
+    expect(log[4]?.sha).toBe(base)
     expect(observed.base).toBe(log[2]?.sha)
     expect(git(remote, 'show', 'main:tools/echo.mjs')).toBe("console.log('echo')")
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
@@ -353,7 +391,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     // The departments blocked on their refused turn rather than spending rounds
     // against the wall, and the ledger still reached the remote.
     expect(observed.report.goals.map(goal => goal.status)).toEqual(['blocked', 'blocked'])
-    expect(remoteLog(remote).map(entry => entry.sha)).toEqual([observed.shiftCommit, base])
+    expect(remoteLog(remote).map(entry => entry.sha)).toEqual([observed.shiftCommit, observed.base, base])
     expect(remoteLedger(remote).map(line => [line.ticket, line.department.outcome])).toEqual([['T-0001', 'halted'], ['T-0004', 'halted']])
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
 })

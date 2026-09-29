@@ -10,6 +10,8 @@ import { describe, expect, it } from 'vitest'
 import type { CheckId } from '@deepseek-ai/dsh-verification/types'
 import { HARNESS_QUEUE_POLICY, OPEN_QUEUE_POLICY } from '../../../scripts/enterprise-tickets.ts'
 import {
+  ABANDONED_REASON,
+  abandonedLines,
   acceptanceRun,
   departmentKey,
   departmentObjective,
@@ -19,6 +21,7 @@ import {
   engineDecisions,
   LIMIT_HALT_REASON,
   parseLedger,
+  parseShiftStarts,
   queueOrder,
   readReviewVerdict,
   redactCredentials,
@@ -26,12 +29,13 @@ import {
   selectTickets,
   shiftIdFor,
   shiftRecordName,
+  shiftStartMessage,
   shippedCommitMessage,
   ticketChecks,
   ticketScope,
   ticketStatuses,
 } from './fixtures/enterprise-shift/shift.ts'
-import type { Ticket, TicketLedgerLine } from './fixtures/enterprise-shift/shift.ts'
+import type { ShiftStartLine, Ticket, TicketLedgerLine } from './fixtures/enterprise-shift/shift.ts'
 
 function ticket(id: string, priority: number, division = 'harness-core'): Ticket {
   return {
@@ -234,6 +238,66 @@ describe('the shipped commit message', () => {
       'Co-Authored-By: Claude Code sonnet <noreply@anthropic.com>',
       'Claude-Session: https://claude.ai/code/session_x',
     ])
+  })
+})
+
+describe('shifts that started and never ended', () => {
+  const start = (shift: string, tickets: string[], host = 'gone-host'): ShiftStartLine => ({
+    type: 'shift-start', at: '2026-09-28T20:00:00.000Z', shift, tickets, base: 'b'.repeat(40), host, pid: 7, implementer: 'route',
+  })
+
+  it('reads start lines and skips lines of any other type', () => {
+    const text = `${JSON.stringify(start('s1', ['T-0001']))}\n${JSON.stringify({ type: 'other' })}\n\n`
+    expect(parseShiftStarts(text).map(line => line.shift)).toEqual(['s1'])
+    expect(parseShiftStarts('')).toEqual([])
+    expect(() => parseShiftStarts('torn\n')).toThrow()
+  })
+
+  it('closes every ticket of a start with no ticket line as abandoned, which counts as an attempt', () => {
+    const queue = [ticket('T-0001', 1), ticket('T-0002', 1), ticket('T-0003', 1)]
+    const ended = { ...line('T-0003', null, 'none'), shift: 'ended' }
+    const lines = abandonedLines(
+      [start('dead', ['T-0001', 'T-0009']), start('ended', ['T-0003']), start('alive', ['T-0002'], 'this-host')],
+      [ended],
+      queue,
+      '2026-09-29T01:00:00.000Z',
+      candidate => candidate.host === 'this-host',
+    )
+    expect(lines).toEqual([{
+      type: 'ticket',
+      at: '2026-09-29T01:00:00.000Z',
+      shift: 'dead',
+      ticket: 'T-0001',
+      seat: 'seed-tools-steward',
+      division: 'harness-core',
+      programId: '',
+      implementer: 'route',
+      model: '',
+      department: { outcome: 'abandoned', sessionId: null },
+      checks: [],
+      review: { verdict: 'none', sessionId: null },
+      integration: { outcome: 'skipped' },
+      shipped: null,
+      reason: `${ABANDONED_REASON}: shift dead started at 2026-09-28T20:00:00.000Z on gone-host over ${'b'.repeat(40)} and recorded no end`,
+      tokens: 0,
+      seconds: 0,
+    }])
+    expect(queueOrder(queue, lines).map(entry => entry.id)).toEqual(['T-0002', 'T-0003', 'T-0001'])
+    expect(ticketStatuses(lines).get('T-0001')).toBe('open')
+  })
+
+  it('names the tickets and the closed shifts in the start commit', () => {
+    const trailers = { coAuthor: 'Daliesk enterprise shift <noreply@anthropic.com>', session: 'https://claude.ai/code/session_x' }
+    expect(shiftStartMessage('s2', ['T-0001', 'T-0002'], ['dead'], trailers).split('\n')).toEqual([
+      'chore(enterprise): shift s2 starts over T-0001, T-0002',
+      '',
+      'Daliesk shift s2: its start line in data/enterprise/shift-starts.jsonl, pushed before any department runs.',
+      `It closes dead, which started and recorded no end, as ${ABANDONED_REASON}.`,
+      '',
+      'Co-Authored-By: Daliesk enterprise shift <noreply@anthropic.com>',
+      'Claude-Session: https://claude.ai/code/session_x',
+    ])
+    expect(shiftStartMessage('s2', ['T-0001'], [], trailers)).not.toContain('It closes')
   })
 })
 
