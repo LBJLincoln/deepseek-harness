@@ -193,7 +193,7 @@
   grid-template-columns: minmax(0, 1fr) 420px;
 }
 
-.main { min-height: 0; min-width: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+.main { min-height: 0; min-width: 0; display: grid; grid-template-rows: minmax(440px, 1fr) auto auto; overflow-y: auto; }
 
 .stage {
   position: relative;
@@ -481,6 +481,192 @@
 .beatLast { grid-column: 2 / -1; font-size: 12px; color: var(--o-ink-3); }
 .beatLast .age { margin-left: 0; font-size: 12px; }
 
+/* ------------------------------------------------------------ next action - */
+
+/* The attention queue's first item across the top strip: the one thing to do now. */
+.nextAction {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 7px 12px;
+  background: var(--o-surface);
+  border-left: 3px solid var(--o-unknown);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--o-ink-2);
+}
+.nextAction[data-severity='critical'] { border-left-color: var(--o-critical); }
+.nextAction[data-severity='high'] { border-left-color: var(--o-high); }
+.nextAction[data-severity='medium'] { border-left-color: var(--o-medium); }
+.nextAction[data-severity='low'] { border-left-color: var(--o-low); }
+.nextAction[data-severity='clear'] { border-left-color: var(--o-ok); }
+.nextAction .statusDot { align-self: center; }
+.nextAction b { color: var(--o-ink); font-weight: 650; white-space: nowrap; }
+.nextTitle { color: var(--o-ink); font-weight: 600; }
+.nextStep { flex: 1 1 360px; min-width: 0; }
+.nextAction a { color: var(--o-accent); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+
+/* ------------------------------------------------------------ cycle clock - */
+
+/* The scheduler's clock on the floor: a ring from the newest cycle start to the next slot, the countdown inside it. */
+.clock {
+  position: absolute;
+  top: 128px;
+  right: 16px;
+  z-index: 1;
+  width: 168px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.clock svg { width: 168px; height: 168px; overflow: visible; }
+.clockTrack { fill: rgba(6, 12, 22, 0.66); stroke: rgba(79, 216, 255, 0.16); stroke-width: 5; }
+.clockArc {
+  fill: none;
+  stroke: #4fd8ff;
+  stroke-width: 5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(79, 216, 255, 0.85));
+  transition: stroke-dashoffset 1s linear;
+}
+.clock[data-state='running'] .clockArc { stroke: #ffcf7a; filter: drop-shadow(0 0 6px rgba(255, 207, 122, 0.85)); }
+.clockText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  text-align: center;
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.95);
+}
+.clockLabel { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #a2b2ce; font-weight: 600; }
+.clockValue {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #e8eefc;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 14px rgba(79, 216, 255, 0.75);
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clock[data-state='running'] .clockValue { font-size: 17px; text-shadow: 0 0 14px rgba(255, 207, 122, 0.7); }
+.clockSub { font-size: 12px; color: #cdd8ee; }
+.clockBeat { margin-top: 2px; font-size: 11px; color: #8594b5; display: inline-flex; gap: 3px; }
+.clockBeat .age { margin-left: 0; font-size: 11px; color: #8594b5; }
+.clockBeat[data-state='down'] { color: #ff5577; }
+.clockBeat[data-state='late'] { color: #ffc94d; }
+
+/* ------------------------------------------------------------------ band - */
+
+/* Under the floor: the cycle matrix and the shift board side by side. */
+.band {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 1px;
+  background: var(--o-line);
+  border-top: 1px solid var(--o-line);
+}
+.bandPanel { background: var(--o-surface); padding: 10px 14px 10px; min-width: 0; }
+.bandPanel .links { margin-top: 4px; }
+
+.matrixScroll { overflow-x: auto; }
+.matrix { display: grid; gap: 3px 3px; align-items: center; min-width: 560px; font-size: 12px; }
+.matrixRow { display: contents; }
+.matrixHead[data-step] { position: relative; height: 58px; padding: 0; overflow: visible; }
+.matrixHead[data-step] span {
+  position: absolute;
+  left: calc(50% - 4px);
+  bottom: 4px;
+  transform-origin: 0 100%;
+  transform: rotate(-38deg);
+  white-space: nowrap;
+}
+.matrixHead {
+  align-self: end;
+  font-size: 11px;
+  line-height: 1.15;
+  color: var(--o-ink-3);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  padding-bottom: 2px;
+}
+.cycleWhen { padding-right: 4px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--o-ink); white-space: nowrap; }
+.cycleWhen a { color: var(--o-ink); text-decoration: underline; text-decoration-color: var(--o-line-strong); text-underline-offset: 2px; }
+.cycleState { padding-right: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--o-ink-2); font-variant-numeric: tabular-nums; }
+.cycleState[data-outcome='clean'] { color: var(--o-ok); }
+.cycleState[data-outcome='failed'], .cycleState[data-outcome='interrupted'] { color: var(--o-failed); }
+.cycleState[data-outcome='running'] { color: var(--o-running); font-weight: 600; }
+.cycleSum { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--o-ink-3); }
+.cycleNote { font-style: normal; color: var(--o-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.matrixRow[data-outcome='next'] .cycleWhen,
+.matrixRow[data-outcome='next'] .cycleState { color: var(--o-accent); font-weight: 600; }
+
+.cell {
+  height: 18px;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.cell[data-state='ok'] { background: var(--o-ok); }
+.cell[data-state='failed'] { background: var(--o-failed); }
+.cell[data-state='running'] { background: var(--o-running); animation: breathe 1.4s ease-in-out infinite; }
+.cell[data-state='pending'] { border: 1px dashed var(--o-line-strong); }
+.cell[data-state='absent'] { background: var(--o-raised); }
+
+.tickets { display: flex; flex-direction: column; gap: 8px; }
+.ticket { display: flex; flex-direction: column; gap: 4px; }
+.ticketHead { display: grid; grid-template-columns: 9px auto minmax(0, 1fr) auto; gap: 7px; align-items: baseline; font-size: 12px; }
+.ticketHead i { width: 9px; height: 9px; border-radius: 50%; align-self: center; }
+.ticketHead b { font-family: var(--font-mono); color: var(--o-ink); font-weight: 600; }
+.ticketHead span { color: var(--o-ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ticketHead em { font-style: normal; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: var(--o-ink-2); white-space: nowrap; }
+.ticketHead em[data-stage='shipped'] { color: var(--o-ok); }
+.ticketHead em[data-stage='halted'], .ticketHead em[data-stage='rejected'] { color: var(--o-failed); }
+.ticketHead em[data-stage='working'], .ticketHead em[data-stage='review'], .ticketHead em[data-stage='integration'] { color: var(--o-running); }
+
+.track { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; }
+.track span {
+  padding: 2px 4px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--o-ink-3);
+  background: var(--o-raised);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.track span:first-child { border-radius: 5px 0 0 5px; }
+.track span:last-child { border-radius: 0 5px 5px 0; }
+.track span[data-on='true'] { background: color-mix(in srgb, var(--o-running) 22%, var(--o-surface)); color: var(--o-ink); }
+.track span[data-current='true'] { background: var(--o-running); color: #fff; font-weight: 700; animation: breathe 1.8s ease-in-out infinite; }
+.track span[data-stop='true'] { box-shadow: inset 0 -2px 0 var(--o-failed); }
+.track span[data-end='shipped'] { background: var(--o-ok); color: #fff; font-weight: 700; }
+.track span[data-end='halted'], .track span[data-end='rejected'] { background: var(--o-failed); color: #fff; font-weight: 700; }
+.ticketWhy { margin: 0; font-size: 12px; color: var(--o-ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ticketWhy a { color: var(--o-accent); font-family: var(--font-mono); }
+
+.shipRow { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.shipTop, .shipBottom { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.shipBottom { justify-content: space-between; flex-wrap: wrap; }
+.shipRow b { font-family: var(--font-mono); color: var(--o-ink); font-weight: 600; }
+.shipTitle { color: var(--o-ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.shipMeta { color: var(--o-ink-3); }
+.shipMeta a { color: var(--o-accent); font-family: var(--font-mono); }
+.shipRow + .shipRow { border-top: 1px solid var(--o-line); padding-top: 5px; }
+
 /* ------------------------------------------------------------ flat floor - */
 
 .flat { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 84px 16px 112px; }
@@ -493,7 +679,10 @@
 /* ------------------------------------------------------------ responsive - */
 
 :global(.deck:is([data-presentation='focus'], [data-presentation='tour'])) .side,
-:global(.deck:is([data-presentation='focus'], [data-presentation='tour'])) .timeline { display: none; }
+:global(.deck:is([data-presentation='focus'], [data-presentation='tour'])) .timeline,
+:global(.deck:is([data-presentation='focus'], [data-presentation='tour'])) .band,
+:global(.deck:is([data-presentation='focus'], [data-presentation='tour'])) .nextAction { display: none; }
+:global(.deck:is([data-presentation='focus'], [data-presentation='tour'])) .main { grid-template-rows: minmax(0, 1fr); }
 :global(.deck:is([data-presentation='focus'], [data-presentation='tour'])) .body { grid-template-columns: 1fr; }
 
 @media (max-width: 1280px) {
@@ -515,8 +704,16 @@
   .stageTop { position: absolute; top: 0; left: 0; right: 0; padding: 12px 16px; pointer-events: none; }
   .stageBottom { margin: 0; padding: 10px 16px 12px; background: none; }
   .top > .tile:last-child { grid-column: 1 / -1; }
-  .side { order: 2; }
-  .timeline { order: 3; }
+  .band { order: 2; grid-template-columns: minmax(0, 1fr); }
+  .bandPanel { padding: 10px 16px; }
+  .side { order: 3; }
+  .timeline { order: 4; }
+  .mode { order: -2; }
+  .nextAction { order: -1; }
+  /* The clock leaves the canvas for the strip under it at phone width. */
+  .clock { position: relative; top: auto; right: auto; width: auto; margin: 10px 16px 0; grid-template-columns: 88px minmax(0, 1fr); justify-items: start; gap: 12px; }
+  .clock svg { width: 88px; height: 88px; grid-column: 1; grid-row: 1; }
+  .clockText { position: static; grid-column: 2; grid-row: 1; align-items: flex-start; text-align: left; }
   .side { border-left: none; overflow: visible; padding: 14px 16px 24px; }
   .timeline { padding: 10px 16px; }
   .ticker { display: none; }
@@ -536,5 +733,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .badge[data-mode='live'] i,
-  .lanes rect[data-outcome='running'] { animation: none; }
+  .lanes rect[data-outcome='running'],
+  .cell[data-state='running'],
+  .track span[data-current='true'] { animation: none; }
+  .clockArc { transition: none; }
 }

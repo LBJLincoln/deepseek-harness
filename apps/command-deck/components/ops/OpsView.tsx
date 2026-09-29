@@ -12,6 +12,7 @@ import { isOccupied } from '@/components/enterprise/evidence'
 import { Age, useNow } from './Age.tsx'
 import { WebGLGate } from '@/components/three/WebGLGate'
 import { FlatFloor } from './FlatFloor.tsx'
+import { CycleClock, MissionBand, NextAction, ShippedTickets } from './Mission.tsx'
 import { KIND_LABEL, Swimlanes } from './Swimlanes.tsx'
 import styles from './ops.module.css'
 
@@ -150,6 +151,7 @@ export function OpsView(): ReactNode {
             </div>
             <StageOverlay reading={reading} />
           </div>
+          {snapshot === undefined ? null : <MissionBand snapshot={snapshot} />}
           {snapshot === undefined ? null : <Swimlanes snapshot={snapshot} />}
         </div>
         <aside className={styles.side} aria-label="Attention and agents">
@@ -203,6 +205,7 @@ function TopStrip({ reading, theme, setTheme }: TopStripProps): ReactNode {
         <div className={styles.modeText}>{modeLine(reading, now)}</div>
       </div>
       {snapshot === undefined ? null : <Tiles snapshot={snapshot} />}
+      {snapshot === undefined ? null : <NextAction snapshot={snapshot} />}
     </header>
   )
 }
@@ -365,6 +368,7 @@ function StageOverlay({ reading }: { reading: OpsReading | undefined }): ReactNo
           ))}
         </div>
       </div>
+      {snapshot === undefined ? null : <CycleClock snapshot={snapshot} />}
       <div className={styles.stageBottom}>
         {counts === undefined ? null : (
           <div className={styles.flow} aria-label="The pipeline">
@@ -438,7 +442,7 @@ function Panel({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
         ))}
       </section>
       <Divisions snapshot={snapshot} />
-      <Shipped snapshot={snapshot} />
+      {snapshot.big.shippedTickets === undefined ? <Shipped snapshot={snapshot} /> : <ShippedTickets snapshot={snapshot} />}
       <Sources snapshot={snapshot} />
     </>
   )
@@ -465,7 +469,9 @@ function Heartbeats({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
             <b>{beat.label}</b>
             <span className={styles.beatState} data-state={beat.state}>{BEAT[beat.state].word}</span>
             <span className={styles.beatLast}>
-              {beat.lastRunAt === undefined ? 'no run recorded' : <>last ran <Age at={beat.lastRunAt} verb="last ran" short /> ago</>} · every {span(beat.everySeconds)}
+              {beat.lastPush !== undefined
+                ? <>last push <Age at={beat.lastPush.at} verb="pushed" short /> ago · <a href={`${REPOSITORY}/commit/${beat.lastPush.commit}`} target="_blank" rel="noreferrer">{beat.lastPush.commit.slice(0, 7)}</a></>
+                : beat.lastRunAt === undefined ? 'no run recorded' : <>last ran <Age at={beat.lastRunAt} verb="last ran" short /> ago</>} · every {span(beat.everySeconds)}
             </span>
           </div>
         ))}

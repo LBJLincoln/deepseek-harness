@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import type { OpsAgent, OpsSnapshot, RunEvent } from '../deck/contract.ts'
 import { layoutOps, satellitePoint } from '../deck/layout-ops.ts'
-import { chooseReading, cycleStation, factsAsOf, formatAge, isOpsSnapshot, ledgerStation, liveLimitMs, stationCounts, stationOf } from '../deck/ops.ts'
+import {
+  chooseReading, countdown, cycleStation, factsAsOf, formatAge, isOpsSnapshot, ledgerStation, liveLimitMs,
+  slotProgress, stationCounts, stationOf, trackReached,
+} from '../deck/ops.ts'
 import { liveDelayMs, placeFrame } from '../deck/ops-store.ts'
 
 const NOW = Date.parse('2026-09-28T23:40:00.000Z')
@@ -154,5 +157,30 @@ describe('the operations floor layout', () => {
     const around = satellitePoint(0, 2, 'review', layout)
     expect(Math.hypot(around.x - layout.stations.review.x, around.z - layout.stations.review.z)).toBeCloseTo(4.5, 6)
     expect(satellitePoint(0, 3, undefined, layout).y).toBeGreaterThan(layout.stations.review.y)
+  })
+})
+
+describe('the cycle clock and the shift track', () => {
+  it('counts down to the next slot in minutes and seconds, with hours beyond one, and stops at zero', () => {
+    expect(countdown('2026-09-29T00:13:00.000Z', NOW)).toBe('33:00')
+    expect(countdown('2026-09-29T01:13:00.500Z', NOW)).toBe('1:33:01')
+    expect(countdown('2026-09-28T23:00:00.000Z', NOW)).toBe('00:00')
+    expect(countdown('not a time', NOW)).toBeUndefined()
+  })
+
+  it('fills the ring from the newest cycle start to the next slot, and draws none without both', () => {
+    expect(slotProgress('2026-09-28T22:13:00.000Z', '2026-09-29T00:13:00.000Z', NOW)).toBeCloseTo(87 / 120)
+    expect(slotProgress('2026-09-28T22:13:00.000Z', '2026-09-29T00:13:00.000Z', Date.parse('2026-09-29T03:00:00Z'))).toBe(1)
+    expect(slotProgress(undefined, '2026-09-29T00:13:00.000Z', NOW)).toBeUndefined()
+    expect(slotProgress('2026-09-29T00:13:00.000Z', '2026-09-29T00:13:00.000Z', NOW)).toBeUndefined()
+  })
+
+  it('lights a ticket\'s track up to its stage, the whole track once shipped, and up to where it stopped otherwise', () => {
+    expect(trackReached({ ticket: 'T-0001', stage: 'queued' })).toBe(1)
+    expect(trackReached({ ticket: 'T-0001', stage: 'review' })).toBe(4)
+    expect(trackReached({ ticket: 'T-0001', stage: 'shipped' })).toBe(5)
+    expect(trackReached({ ticket: 'T-0001', stage: 'halted', reached: 'integration' })).toBe(5)
+    expect(trackReached({ ticket: 'T-0001', stage: 'rejected', reached: 'review' })).toBe(4)
+    expect(trackReached({ ticket: 'T-0001', stage: 'halted' })).toBe(2)
   })
 })

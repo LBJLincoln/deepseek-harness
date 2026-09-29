@@ -497,25 +497,186 @@ export function currentCycleStep(log: CycleLog): string {
   return next ?? `after ${last.step}`
 }
 
+/**
+ * The steps a running cycle has still to reach after the one it runs now, in
+ * {@link CYCLE_STEPS} order.
+ * @param log - A cycle log without its closing line.
+ * @returns The step names; none when the running step is not in the order.
+ */
+export function pendingCycleSteps(log: CycleLog): string[] {
+  const index = CYCLE_STEPS.indexOf(currentCycleStep(log) as typeof CYCLE_STEPS[number])
+  return index === -1 ? [] : CYCLE_STEPS.slice(index + 1)
+}
+
 /** What the scheduler's own log states. */
 interface SchedulerLog {
   /** The newest `next cycle at` time it announced. */
   nextAt?: string
+  /** Each cycle's exit code as the scheduler logged it when the cycle returned, by the cycle log's stamp. */
+  exits: Map<string, number>
 }
 
 /**
- * Parse the scheduler's log.
+ * Parse the scheduler's log: its `next cycle at <ISO>` announcements and its
+ * `<cycle> exit=<n> at <clock>` lines, which name the cycle by the stamp of the
+ * log file the scheduler opened for it.
  * @param text - Its content.
- * @returns The newest announced slot.
+ * @returns The newest announced slot and every cycle's exit code.
  */
 export function parseSchedulerLog(text: string): SchedulerLog {
-  const log: SchedulerLog = {}
-  for (const line of text.split('\n')) {
-    const next = /^enterprise-scheduler: next cycle at (\S+)/.exec(line.trim())
+  const log: SchedulerLog = { exits: new Map() }
+  for (const raw of text.split('\n')) {
+    const line = raw.trim()
+    const next = /^enterprise-scheduler: next cycle at (\S+)/.exec(line)
     const at = next?.[1] === undefined ? undefined : msOf(next[1])
     if (at !== undefined) log.nextAt = new Date(at).toISOString()
+    const exit = /^enterprise-scheduler: (cycle-\d{8}T\d{6}Z) exit=(\d+)\b/.exec(line)
+    if (exit?.[1] !== undefined) log.exits.set(exit[1], Number(exit[2]))
   }
   return log
+}
+
+/** The transcript capture loop's newest push and newest problem, from its log. */
+export interface CaptureLog {
+  /** The newest round that pushed: when, epoch milliseconds, and the short commit it pushed. */
+  push?: { at: number; commit: string }
+  /** The newest round that did not push, with the loop's own words. */
+  problem?: { at: number; line: string }
+}
+
+/**
+ * Parse the transcript capture loop's log (`scripts/transcripts-capture.sh`):
+ * a round logs `transcripts-capture: <UTC stamp> pushed <commit> at <clock>Z`
+ * when its push landed, and `transcripts-capture: <UTC stamp> <problem>` when
+ * the pull, the push lock, the capture or the push failed. The push time is the
+ * round's date with the logged clock, rolled to the next day when the clock is
+ * before the round's own.
+ * @param text - Its content.
+ * @returns The newest push and the newest problem.
+ */
+export function parseCaptureLog(text: string): CaptureLog {
+  const log: CaptureLog = {}
+  for (const raw of text.split('\n')) {
+    const round = /^transcripts-capture: (\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})Z (.+)$/.exec(raw.trim())
+    if (round === null) continue
+    const [, date, clock, rest = ''] = round
+    const started = Date.parse(`${date}T${clock}Z`)
+    if (Number.isNaN(started)) continue
+    const pushed = /^pushed ([0-9a-f]{7,40}) at (\d{2}:\d{2}:\d{2})Z$/.exec(rest)
+    if (pushed?.[1] !== undefined) {
+      let at = Date.parse(`${date}T${pushed[2]}Z`)
+      if (at < started) at += 24 * 60 * 60 * 1000
+      if (log.push === undefined || at >= log.push.at) log.push = { at, commit: pushed[1] }
+      continue
+    }
+    if (log.problem === undefined || started >= log.problem.at) log.problem = { at: started, line: publicLine(rest, 160) }
+  }
+  return log
+}
+
+// ---------------------------------------------------------------------------
+// A shift's program ledger and its reviews
+// ---------------------------------------------------------------------------
+
+/** One goal of a shift's program: a ticket, as the program ledger's newest event states it. */
+export interface ProgramGoal {
+  /** The goal's key, `t-0014`. */
+  key: string
+  /** The ticket's title, from the goal's objective, when it opens with `Ticket T-NNNN: <title>`. */
+  title?: string
+  /** `pending`, `running`, `certified`, `blocked` or `failed`, as the program logged it. */
+  status: string
+  /** When the goal entered its status, epoch milliseconds. */
+  since?: number
+  /** The program's reason for a blocked or failed goal. */
+  reason?: string
+}
+
+/** What a shift's program ledger (`program-<hash>/session.jsonl`) states. */
+export interface ProgramLedger {
+  startedAt?: number
+  /** Set once the program logged its end: every department is done, and review and integration follow. */
+  endedAt?: number
+  /** The goals in the order the program's spec lists them. */
+  goals: ProgramGoal[]
+}
+
+/**
+ * Fold a shift's program ledger: `program/start` names the goals in order,
+ * each `program/goal` moves one goal to a new status, and `program/end` closes
+ * the departments' part of the shift.
+ * @param lines - The decoded lines.
+ * @returns The goals with their newest status.
+ */
+export function foldProgramLedger(lines: readonly SessionLine[]): ProgramLedger {
+  const ledger: ProgramLedger = { goals: [] }
+  const byKey = new Map<string, ProgramGoal>()
+  const goal = (key: string): ProgramGoal => {
+    let known = byKey.get(key)
+    if (known === undefined) {
+      known = { key, status: 'pending' }
+      byKey.set(key, known)
+      ledger.goals.push(known)
+    }
+    return known
+  }
+  for (const line of lines) {
+    const time = numberOf(line.time)
+    const data = isRecord(line.data) ? line.data : {}
+    switch (line.type) {
+      case 'program/start': {
+        if (time !== undefined) ledger.startedAt = time
+        const spec = isRecord(data.spec) ? data.spec : {}
+        for (const entry of Array.isArray(spec.goals) ? spec.goals.filter(isRecord) : []) {
+          const key = stringOf(entry.key)
+          if (key === undefined) continue
+          const title = /^Ticket T-\d{4}: (.+)$/m.exec(stringOf(entry.objective) ?? '')?.[1]
+          const known = goal(key)
+          if (title !== undefined) known.title = publicLine(title, 120)
+        }
+        break
+      }
+      case 'program/goal': {
+        const key = stringOf(data.key)
+        const status = stringOf(data.status)
+        if (key === undefined || status === undefined) break
+        const known = goal(key)
+        known.status = status
+        if (time !== undefined) known.since = time
+        const reason = stringOf(data.reason)
+        if (reason === undefined) delete known.reason
+        else known.reason = publicLine(reason, 160)
+        break
+      }
+      case 'program/end':
+        if (time !== undefined) ledger.endedAt = time
+        break
+      default:
+        break
+    }
+  }
+  return ledger
+}
+
+/**
+ * The verdict an independent review session gave: its newest assistant
+ * message's first line, `verdict: approve` or `verdict: reject`.
+ * @param lines - The review session's decoded lines.
+ * @returns `approve`, `reject`, or `undefined` while the review has not answered.
+ */
+export function reviewVerdictOf(lines: readonly SessionLine[]): 'approve' | 'reject' | undefined {
+  let verdict: 'approve' | 'reject' | undefined
+  for (const line of lines) {
+    if (line.type !== 'assistant/message') continue
+    const message = isRecord(line.data) && isRecord(line.data.message) ? line.data.message : {}
+    const text = (Array.isArray(message.content) ? message.content : [])
+      .filter(isRecord)
+      .map(part => (part.type === 'text' ? stringOf(part.text) ?? '' : ''))
+      .join('')
+    const said = /^\s*verdict:\s*(approve|reject)\b/i.exec(text)?.[1]?.toLowerCase()
+    if (said === 'approve' || said === 'reject') verdict = said
+  }
+  return verdict
 }
 
 /**

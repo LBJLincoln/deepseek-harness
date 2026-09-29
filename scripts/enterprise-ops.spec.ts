@@ -14,15 +14,19 @@ import {
   describeToolCall,
   emptyTranscript,
   foldHarnessSession,
+  foldProgramLedger,
   foldTranscript,
   newestCapture,
+  parseCaptureLog,
   parseCiJobs,
   parseCiRuns,
   parseCycleLog,
   parseJsonl,
   parseMeminfo,
   parseSchedulerLog,
+  pendingCycleSteps,
   publicLine,
+  reviewVerdictOf,
   type ProcessInfo,
 } from './enterprise-ops-sources.ts'
 
@@ -112,9 +116,38 @@ describe('cycle logs', () => {
     expect(parseCycleLog('scheduler.log', 'anything')).toBeUndefined()
   })
 
-  it('reads the scheduler\'s newest announced slot', () => {
-    expect(parseSchedulerLog('enterprise-scheduler: next cycle at 2026-09-28T22:13:00Z\nenterprise-scheduler: next cycle at 2026-09-29T00:13:00Z\n').nextAt).toBe('2026-09-29T00:13:00.000Z')
+  it('reads the scheduler\'s newest announced slot and each cycle\'s exit code', () => {
+    const log = parseSchedulerLog([
+      'enterprise-scheduler: next cycle at 2026-09-28T22:13:00Z',
+      'enterprise-scheduler: cycle-20260928T221300Z exit=2 at 00:11:04Z',
+      'enterprise-scheduler: next cycle at 2026-09-29T00:13:00Z',
+      'enterprise-scheduler: cycle-20260929T001300Z exit=5 at 00:13:01Z',
+    ].join('\n'))
+    expect(log.nextAt).toBe('2026-09-29T00:13:00.000Z')
+    expect([...log.exits]).toEqual([['cycle-20260928T221300Z', 2], ['cycle-20260929T001300Z', 5]])
     expect(parseSchedulerLog('').nextAt).toBeUndefined()
+  })
+
+  it('lists the steps a running cycle has still to reach, and none after a step the order does not know', () => {
+    const running = parseCycleLog('cycle-20260928T235900Z.log', 'enterprise-cycle: cycle-20260928T235901Z roster exit=0 at 23:59:10Z')
+    expect(running === undefined ? undefined : pendingCycleSteps(running)).toEqual(['record', 'push'])
+    const unknown = parseCycleLog('cycle-20260928T235900Z.log', 'enterprise-cycle: cycle-20260928T235901Z finish exit=0 at 23:59:30Z')
+    expect(unknown === undefined ? undefined : pendingCycleSteps(unknown)).toEqual([])
+  })
+
+  it('reads the transcript capture\'s newest push and a newer round that did not push', () => {
+    const log = parseCaptureLog([
+      'capture-live: captured 10 chunks',
+      'transcripts-capture: 2026-09-28T23:59:56Z pushed 2c8c029e0 at 00:00:03Z',
+      'transcripts-capture: 2026-09-29T00:04:56Z pushed 148490ce5 at 00:05:03Z',
+      'transcripts-capture: 2026-09-29T00:09:56Z push failed after 5 tries; the next round pushes it',
+      'transcripts-capture: another capture loop holds the lock',
+    ].join('\n'))
+    expect(log.push).toEqual({ at: at('2026-09-29T00:05:03Z'), commit: '148490ce5' })
+    expect(log.problem).toEqual({ at: at('2026-09-29T00:09:56Z'), line: 'push failed after 5 tries; the next round pushes it' })
+    // A push that crossed midnight is dated on the next day.
+    expect(parseCaptureLog('transcripts-capture: 2026-09-28T23:59:56Z pushed 2c8c029e0 at 00:00:03Z').push?.at).toBe(at('2026-09-29T00:00:03Z'))
+    expect(parseCaptureLog('')).toEqual({})
   })
 
   it('finds each cycle in the branch history with its span and newest commit', () => {
@@ -171,6 +204,33 @@ describe('harness session logs', () => {
       { type: 'turn/end', seq: 0, time: 20, data: {} },
     ])), 'fallback')
     expect(facts).toMatchObject({ certified: false, goalEnded: false, turnEnded: true, tokens: 0 })
+  })
+
+  it('folds a shift\'s program ledger into each goal\'s newest status, title and reason', () => {
+    const ledger = foldProgramLedger(parseJsonl(jsonl([
+      { type: 'session', id: PROGRAM, createdAt: 1 },
+      { type: 'program/start', seq: 0, time: 10, data: { spec: { goals: [{ key: 't-0014', objective: 'Ticket T-0014: Pin the refusal.\nYou are the Subagent Steward.' }, { key: 't-0016', objective: 'no title line' }, { objective: 'keyless' }] } } },
+      { type: 'program/goal', seq: 1, time: 11, data: { key: 't-0014', status: 'running' } },
+      { type: 'program/goal', seq: 2, time: 20, data: { key: 't-0014', status: 'blocked', reason: 'budget-exhausted' } },
+      { type: 'program/goal', seq: 3, time: 21, data: { key: 't-0016', status: 'running' } },
+      { type: 'program/goal', seq: 4, time: 22, data: { status: 'running' } },
+      { type: 'program/end', seq: 5, time: 30, data: { outcome: 'failed' } },
+    ])))
+    expect(ledger).toEqual({
+      startedAt: 10,
+      endedAt: 30,
+      goals: [
+        { key: 't-0014', title: 'Pin the refusal.', status: 'blocked', since: 20, reason: 'budget-exhausted' },
+        { key: 't-0016', status: 'running', since: 21 },
+      ],
+    })
+  })
+
+  it('reads a review\'s verdict from its newest answer, and none before it answers', () => {
+    const answer = (text: string): Record<string, unknown> => ({ type: 'assistant/message', seq: 1, time: 5, data: { message: { role: 'assistant', content: [{ type: 'text', text }] } } })
+    expect(reviewVerdictOf(parseJsonl(jsonl([{ type: 'session', id: 'review-t-0016-aa' }, answer('verdict: approve\n\n- scope ok')])))).toBe('approve')
+    expect(reviewVerdictOf(parseJsonl(jsonl([answer('verdict: approve'), answer('Verdict: REJECT — out of scope')])))).toBe('reject')
+    expect(reviewVerdictOf(parseJsonl(jsonl([answer('thinking about it'), { type: 'turn/start', seq: 2, time: 6, data: {} }])))).toBeUndefined()
   })
 
   it('names each program session by its role', () => {
@@ -507,7 +567,10 @@ describe('collectOps', () => {
       roster: 'unknown', ledger: 'unknown', tickets: 'unknown', 'cycle-logs': 'unknown', 'cycle-history': 'unknown', scheduler: 'unknown',
       shifts: 'unknown', 'department-transcripts': 'unknown', 'operator-agents': 'unknown', bench: 'unknown', ci: 'unknown', host: 'unknown', requests: 'unknown',
     })
-    expect(snapshot.big).toEqual({ seats: null, tickets: null, cycles: null, throughput: null, shipped: null, ci: null, host: null })
+    expect(snapshot.big).toEqual({
+      seats: null, tickets: null, cycles: null, throughput: null, shipped: null, shippedTickets: null, ci: null, host: null,
+    })
+    expect([snapshot.cycles, snapshot.shift]).toEqual([null, null])
     expect(snapshot.agents).toEqual([])
     expect(snapshot.attention).toEqual([])
     expect(snapshot.sources.every(source => source.asOf === undefined)).toBe(true)
@@ -585,6 +648,134 @@ describe('collectOps', () => {
     expect(shifts[2]?.evidence[0]?.url).toBe('https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/shifts/2026-09-28-180000-0004/result.json')
     // The live shift holds the lock, so it is not abandoned.
     expect(shifts.some(item => item.id === 'shift-abandoned:221520-e979')).toBe(false)
+  })
+
+  it('lays out the window\'s cycles newest first with each step\'s exit status, the running one\'s steps to come included', async () => {
+    const snapshot = await collectOps(machine())
+    expect(snapshot.cycles?.map(cycle => [cycle.cycle, cycle.outcome, cycle.source])).toEqual([
+      ['cycle-20260928T221301Z', 'running', 'log'],
+      ['cycle-20260928T201148Z', 'failed', 'record'],
+    ])
+    const running = snapshot.cycles?.[0]
+    expect(running?.steps.map(step => [step.name, step.state, step.exit])).toEqual([
+      ['pull', 'ok', 0], ['intake', 'ok', 0], ['intake-push', 'failed', 1], ['shift', 'running', undefined],
+      ['pull-after-shift', 'pending', undefined], ['functions', 'pending', undefined], ['roster', 'pending', undefined],
+      ['publish', 'pending', undefined], ['record', 'pending', undefined], ['push', 'pending', undefined],
+    ])
+    expect(running?.steps[0]).toMatchObject({ at: '2026-09-28T22:13:05.000Z', seconds: 5 })
+    expect(running?.steps[3]).toMatchObject({ at: '2026-09-28T22:15:19.000Z', seconds: 1481 })
+    expect(running).toMatchObject({ shift: '221520-e979', evidence: { label: 'cycle-20260928T221301Z' } })
+    expect(snapshot.cycles?.[1]).toMatchObject({
+      endedAt: '2026-09-28T20:40:00.000Z',
+      tickets: { shipped: 0, rejected: 0, halted: 0 },
+      steps: [{ name: 'pull', state: 'ok', exit: 0, seconds: 2 }, { name: 'functions', state: 'failed', exit: 1, seconds: 1390 }],
+    })
+    // The scheduler's exit code marks a cycle whose steps all passed as failed; a refused cycle keeps its reason.
+    const inputs = machine()
+    write(join(inputs.cyclesDir, 'cycle-20260928T180000Z.log'), 'enterprise-cycle: the checkout has uncommitted changes to tracked files; refusing to run\n')
+    write(join(inputs.cyclesDir, 'cycle-20260928T160000Z.log'), 'enterprise-cycle: cycle-20260928T160000Z pull exit=0 at 16:00:02Z\n')
+    write(join(inputs.cyclesDir, 'scheduler.log'), 'enterprise-scheduler: cycle-20260928T180000Z exit=5 at 18:00:01Z\nenterprise-scheduler: cycle-20260928T160000Z exit=128 at 16:00:03Z\n')
+    const more = await collectOps(inputs)
+    expect(more.cycles?.slice(2).map(cycle => [cycle.cycle, cycle.outcome, cycle.exit, cycle.detail])).toEqual([
+      ['cycle-20260928T180000Z', 'refused', 5, 'the checkout has uncommitted changes'],
+      ['cycle-20260928T160000Z', 'failed', 128, undefined],
+    ])
+    const unread = await collectOps({ ...machine(), cyclesDir: join(base, 'no-cycles'), git: () => undefined })
+    expect(unread.cycles).toBeNull()
+  })
+
+  it('follows the running shift\'s tickets through the department, the review and the integration', async () => {
+    const inputs = machine()
+    const sessions = join(inputs.scratch, '221520-e979/.sessions')
+    write(join(sessions, `x/${PROGRAM}/session.jsonl`), jsonl([
+      { type: 'session', id: PROGRAM, createdAt: at('2026-09-28T22:15:20Z') },
+      { type: 'program/start', seq: 0, time: at('2026-09-28T22:15:20Z'), data: { spec: { goals: [{ key: 't-0004' }, { key: 't-0005' }, { key: 't-0006', objective: 'Ticket T-0006: Pin the error codes' }, { key: 't-0007' }] } } },
+      { type: 'program/goal', seq: 1, time: at('2026-09-28T22:15:21Z'), data: { key: 't-0004', status: 'running' } },
+      { type: 'program/goal', seq: 2, time: at('2026-09-28T22:20:00Z'), data: { key: 't-0005', status: 'certified' } },
+      { type: 'program/goal', seq: 3, time: at('2026-09-28T22:21:00Z'), data: { key: 't-0007', status: 'blocked', reason: 'budget-exhausted' } },
+    ]))
+    write(join(sessions, 'r/review-t-0005-aa/session.jsonl'), jsonl([
+      { type: 'session', id: 'review-t-0005-aa', createdAt: at('2026-09-28T22:21:00Z') },
+      { type: 'assistant/message', seq: 1, time: at('2026-09-28T22:25:00Z'), data: { message: { content: [{ type: 'text', text: 'verdict: approve' }] } } },
+      { type: 'turn/end', seq: 2, time: at('2026-09-28T22:25:00Z'), data: {} },
+    ]))
+    const snapshot = await collectOps(inputs)
+    expect(snapshot.shift).toMatchObject({ shift: '221520-e979', state: 'running', source: 'scratch', startedAt: '2026-09-28T22:15:20.000Z', evidence: { label: 'shift 221520-e979 run.log' } })
+    const stages = snapshot.shift?.tickets.map(entry => [entry.ticket, entry.stage, entry.since, entry.title, entry.reached, entry.reason])
+    expect(stages).toEqual([
+      ['T-0004', 'working', '2026-09-28T22:15:21.000Z', 'Ticket T-0004', undefined, undefined],
+      ['T-0005', 'integration', '2026-09-28T22:25:00.000Z', 'Ticket T-0005', undefined, undefined],
+      ['T-0006', 'queued', undefined, 'Pin the error codes', undefined, undefined],
+      ['T-0007', 'halted', '2026-09-28T22:21:00.000Z', undefined, 'working', 'budget-exhausted'],
+    ])
+    expect(snapshot.shift?.tickets[0]).toMatchObject({ seat: 'harness-core-agent-steward', division: 'harness-core' })
+  })
+
+  it('shows the newest committed shift once none runs, each ticket where it stopped', async () => {
+    const inputs = machine()
+    const name = '2026-09-28-221600-0005'
+    write(join(inputs.root, `data/enterprise/shifts/${name}/result.json`), JSON.stringify({
+      type: 'result',
+      shift: '221600-0005',
+      startedAt: '2026-09-28T22:16:00Z',
+      tickets: [
+        { type: 'ticket', ticket: 'T-0001', shipped: { commit: SHIPPED }, review: { verdict: 'approve' }, integration: { outcome: 'assembled' } },
+        { type: 'ticket', ticket: 'T-0002', shipped: null, department: { outcome: 'certified' }, review: { verdict: 'reject' }, integration: { outcome: 'skipped' }, reason: 'out of scope' },
+        { type: 'ticket', ticket: 'T-0003', shipped: null, department: { outcome: 'certified' }, review: { verdict: 'approve' }, integration: { outcome: 'checks-failed' }, reason: 'acceptance failed over the assembled tree' },
+        { type: 'ticket', ticket: 'T-0009', shipped: null, department: { outcome: 'blocked' }, review: { verdict: 'none' }, integration: { outcome: 'skipped' }, reason: 'budget-exhausted' },
+      ],
+    }))
+    write(join(inputs.root, `data/enterprise/shifts/${name}/manifest.json`), JSON.stringify({ endedAt: '2026-09-28T22:39:00Z' }))
+    const scratchRun = join(inputs.scratch, '221520-e979')
+    utimesSync(scratchRun, new Date('2026-09-28T22:15:20Z'), new Date('2026-09-28T22:15:20Z'))
+    const snapshot = await collectOps({ ...inputs, alive: () => false })
+    expect(snapshot.shift).toMatchObject({ shift: '221600-0005', state: 'ended', source: 'record', startedAt: '2026-09-28T22:16:00.000Z', endedAt: '2026-09-28T22:39:00.000Z' })
+    expect(snapshot.shift?.evidence.url).toBe(`https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/shifts/${name}/result.json`)
+    expect(snapshot.shift?.tickets.map(ticket => [ticket.ticket, ticket.stage, ticket.reached, ticket.commit, ticket.reason])).toEqual([
+      ['T-0001', 'shipped', undefined, SHIPPED, undefined],
+      ['T-0002', 'rejected', 'review', undefined, 'out of scope'],
+      ['T-0003', 'halted', 'integration', undefined, 'acceptance failed over the assembled tree'],
+      ['T-0009', 'halted', 'working', undefined, 'budget-exhausted'],
+    ])
+    const none = await collectOps({ ...machine(), scratch: join(base, 'no-scratch'), root: join(base, 'nowhere') })
+    expect(none.shift).toBeNull()
+  })
+
+  it('lists each shipped ticket with its commit and the verdict enterprise:verdicts gives it', async () => {
+    const inputs = machine()
+    // A run cancelled on the commit itself renders no verdict; the first later run that rendered one does.
+    const cancelled = { id: 3, head_sha: SHIPPED, html_url: 'https://github.com/run/3', created_at: '2026-09-28T19:05:00Z', status: 'completed', conclusion: 'cancelled' }
+    const runs = { workflow_runs: [
+      { id: 2, head_sha: TIP, html_url: 'https://github.com/run/2', created_at: '2026-09-28T22:20:00Z', updated_at: '2026-09-28T22:35:00Z', status: 'completed', conclusion: 'failure' },
+      cancelled,
+    ] }
+    const withCancelled: OpsInputs = { ...inputs, github: async path => (path.includes('/jobs') ? { jobs: [] } : runs) }
+    const snapshot = await collectOps(withCancelled)
+    expect(snapshot.big.shippedTickets).toEqual([{
+      ticket: 'T-0001', title: 'Ticket T-0001', seat: 'harness-core-agent-steward', division: 'harness-core', shift: '182951-78a6', at: '2026-09-28T19:04:29.582Z',
+      commit: SHIPPED, ci: 'fail', url: 'https://github.com/run/2', ciCommit: TIP,
+    }])
+    // The cycle's report paged further back than the collector's one read, so its rendered answer stands.
+    write(join(inputs.root, 'apps/command-deck/public/fixtures/enterprise-day.json'), JSON.stringify({ commits: [
+      { commit: SHIPPED, ci: { basis: 'later', run: { id: 1, headSha: 'f'.repeat(40), conclusion: 'success', url: 'https://github.com/run/1' }, superseded: [] } },
+    ] }))
+    const reported = await collectOps({ ...withCancelled, state: emptyOpsState() })
+    expect(reported.big.shippedTickets?.[0]).toMatchObject({ ci: 'pass', url: 'https://github.com/run/1', ciCommit: 'f'.repeat(40) })
+    expect(reported.big.shipped?.[0]).toMatchObject({ ci: 'pass', ciCommit: 'f'.repeat(40) })
+    // With no rendered run covering it, a later run in progress says so.
+    rmSync(join(inputs.root, 'apps/command-deck/public/fixtures/enterprise-day.json'))
+    const busy = { workflow_runs: [{ id: 4, head_sha: TIP, html_url: 'https://github.com/run/4', created_at: '2026-09-28T22:30:00Z', status: 'in_progress', conclusion: null }] }
+    const running = await collectOps({ ...machine(), state: emptyOpsState(), github: async path => (path.includes('/jobs') ? { jobs: [] } : busy) })
+    expect(running.big.shippedTickets?.[0]).toMatchObject({ ci: 'running', url: 'https://github.com/run/4', ciCommit: TIP })
+  })
+
+  it('dates the transcript capture by the newest push its log records', async () => {
+    const inputs = machine()
+    write(join(inputs.cyclesDir, 'transcripts-capture.log'), 'transcripts-capture: 2026-09-28T22:34:56Z pushed 148490ce5 at 22:35:03Z\ntranscripts-capture: 2026-09-28T22:39:56Z the push lock /tmp/dsh-push.lock is busy; this round captures and commits locally and pushes nothing\n')
+    const snapshot = await collectOps(inputs)
+    const capture = snapshot.heartbeats.find(beat => beat.id === 'transcript-capture')
+    expect(capture).toMatchObject({ state: 'alive', lastRunAt: '2026-09-28T22:35:03.000Z', lastPush: { at: '2026-09-28T22:35:03.000Z', commit: '148490ce5' } })
+    expect(capture?.detail).toContain('its newest round did not push: the push lock dsh-push.lock is busy')
   })
 
   it('keeps the transcript and record reads it can reuse in its state', async () => {

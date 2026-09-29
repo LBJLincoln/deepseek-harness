@@ -38,12 +38,17 @@ import {
   type OpsAgentKind,
   type OpsAttention,
   type OpsBigPicture,
+  type OpsCycle,
+  type OpsCycleStep,
   type OpsHeartbeat,
   type OpsHour,
   type OpsLink,
   type OpsRun,
   type OpsRunOutcome,
+  type OpsShift,
+  type OpsShiftTicket,
   type OpsShipped,
+  type OpsShippedTicket,
   type OpsSnapshot,
   type OpsSource,
   type OpsSourceId,
@@ -59,18 +64,22 @@ import {
   diskUsage,
   emptyTranscript,
   foldHarnessSession,
+  foldProgramLedger,
   foldTranscript,
   msOf,
+  parseCaptureLog,
   parseCiJobs,
   parseCiRuns,
   parseCycleLog,
   parseJsonl,
   parseMeminfo,
   parseSchedulerLog,
+  pendingCycleSteps,
   newestCapture,
   publicLine,
   readFrom,
   readProcesses,
+  reviewVerdictOf,
   type CiJob,
   type CiRun,
   type CycleLog,
@@ -519,6 +528,7 @@ export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
   const cycles = collectCycles(c, processes, history, checkoutAt)
   const scratchRuns = collectScratch(c, roster, tickets, ledger, cycles)
   collectShiftRecords(c, scratchRuns)
+  const shift = collectShift(c, scratchRuns, tickets)
   collectRecords(c, roster, tickets, ledger)
   collectOperatorAgents(c)
   collectBench(c, processes)
@@ -538,6 +548,7 @@ export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
     cycles: cycles.summary,
     throughput: ledger === undefined ? null : throughput(c, ledger.lines),
     shipped: ledger === undefined ? null : shippedCommits(c, ledger.lines, ci),
+    shippedTickets: ledger === undefined ? null : shippedTickets(c, ledger.lines, tickets, ci),
     ci: ci === undefined ? null : ci.summary,
     host,
   }
@@ -564,6 +575,8 @@ export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
     })),
     runs: [...c.runs.values()].sort((a, b) => a.startedAt.localeCompare(b.startedAt) || a.id.localeCompare(b.id)),
     activity: frames,
+    cycles: cycles.timeline,
+    shift,
   })
 }
 
@@ -614,6 +627,89 @@ interface CycleReading {
   lastTick?: number
   /** The scheduler's process, when the process table shows one. */
   scheduler?: ProcessInfo
+  /** The window's cycles, newest first; `null` when neither the logs nor the history could be read. */
+  timeline: OpsCycle[] | null
+}
+
+/**
+ * A cycle's ended steps on the timeline, each timed from the end of the one before.
+ * @param startedAt - The cycle's start, epoch milliseconds.
+ * @param steps - The steps in the order they ended.
+ * @returns The timeline steps.
+ */
+function endedSteps(startedAt: number, steps: readonly { name: string; exit: number; at: string }[]): OpsCycleStep[] {
+  let from = startedAt
+  return steps.map((step) => {
+    const at = Date.parse(step.at)
+    const seconds = Math.max(0, Math.round((at - from) / 1000))
+    from = at
+    return { name: step.name, state: step.exit === 0 ? 'ok' : 'failed', exit: step.exit, at: iso(at), seconds }
+  })
+}
+
+/**
+ * One cycle log as a timeline entry: its logged steps, then, while it runs,
+ * its running step and the steps it has still to reach.
+ * @param c - The collection.
+ * @param log - The log.
+ * @param live - Whether the cycle runs now.
+ * @param record - Its committed record, when the checkout has one.
+ * @param exit - The cycle's exit code as the scheduler logged it.
+ * @returns The entry.
+ */
+function logCycle(c: Collection, log: CycleLog, live: boolean, record: CycleRecord | undefined, exit: number | undefined): OpsCycle {
+  const cycle = log.cycle ?? log.file.replace(/\.log$/, '')
+  const started = Date.parse(log.startedAt)
+  const steps = endedSteps(started, log.steps.map(step => ({ name: step.step, exit: step.exit, at: step.at })))
+  const last = steps.at(-1)?.at
+  if (live) {
+    const from = last === undefined ? started : Date.parse(last)
+    steps.push({ name: currentCycleStep(log), state: 'running', at: iso(from), seconds: Math.max(0, Math.round((c.now - from) / 1000)) })
+    for (const name of pendingCycleSteps(log)) steps.push({ name, state: 'pending' })
+  }
+  const failed = steps.some(step => step.state === 'failed') || (log.done?.firstFailure ?? 0) !== 0 || (exit ?? 0) !== 0
+  const outcome: OpsCycle['outcome'] = live ? 'running'
+    : log.refused !== undefined ? 'refused'
+      : failed ? 'failed'
+        : log.done !== undefined ? 'clean'
+          : 'interrupted'
+  const endedAt = live ? undefined : record?.endedAt ?? last
+  return {
+    cycle,
+    startedAt: log.startedAt,
+    ...endedAt === undefined ? {} : { endedAt },
+    outcome,
+    ...exit === undefined ? {} : { exit },
+    source: 'log',
+    steps,
+    ...log.shift === undefined ? {} : { shift: log.shift },
+    ...record === undefined ? {} : { tickets: record.tickets, functions: record.functions },
+    ...log.refused === undefined ? {} : { detail: log.refused },
+    evidence: cycleLink(c.inputs.branch, cycle, record !== undefined),
+  }
+}
+
+/**
+ * A committed cycle record as a timeline entry, for a cycle whose log is gone.
+ * @param c - The collection.
+ * @param record - The record.
+ * @param exit - The cycle's exit code as the scheduler logged it.
+ * @returns The entry.
+ */
+function recordCycle(c: Collection, record: CycleRecord, exit: number | undefined): OpsCycle {
+  return {
+    cycle: record.cycle,
+    startedAt: record.startedAt,
+    endedAt: record.endedAt,
+    outcome: record.firstFailure === null && (exit ?? 0) === 0 ? 'clean' : 'failed',
+    ...exit === undefined ? {} : { exit },
+    source: 'record',
+    steps: endedSteps(Date.parse(record.startedAt), record.steps),
+    ...record.shifts[0] === undefined ? {} : { shift: record.shifts[0] },
+    tickets: record.tickets,
+    functions: record.functions,
+    evidence: cycleLink(c.inputs.branch, record.cycle, true),
+  }
 }
 
 /** Whether a process runs a given script. */
@@ -644,6 +740,7 @@ function collectCycles(
   const committed = history === undefined ? undefined : cyclesFromHistory(history)
   const { records, unreadable } = readCycleRecords(c.inputs.root)
   const recorded = records.filter(record => Date.parse(record.endedAt) >= c.since)
+  const timeline: OpsCycle[] = []
   if (committed === undefined) c.unknown('cycle-history', 'git log could not be read in the checkout')
   else {
     const skipped = unreadable.length === 0 ? '' : `, ${unreadable.length} unreadable ${unreadable.length === 1 ? 'record' : 'records'} skipped`
@@ -685,6 +782,9 @@ function collectCycles(
       from = at
     }
     const live = log === newest && log.done === undefined && log.refused === undefined && cycleProcess !== undefined
+    if (Date.parse(log.startedAt) >= c.since) {
+      timeline.push(logCycle(c, log, live, recorded.find(record => record.cycle === cycle), scheduler.exits.get(log.file.replace(/\.log$/, ''))))
+    }
     if (live) {
       running = log
       const step = currentCycleStep(log)
@@ -747,10 +847,14 @@ function collectCycles(
   for (const record of recorded) {
     if (logs.some(log => log.cycle === record.cycle)) continue
     recordRuns(c, record, committed?.get(record.cycle)?.commit, Date.parse(record.startedAt) > newestStart && record === recorded.at(-1))
+    if (Date.parse(record.startedAt) >= c.since) timeline.push(recordCycle(c, record, scheduler.exits.get(record.cycle)))
   }
   for (const [cycle, times] of committed ?? []) {
     if (logs.some(log => log.cycle === cycle) || recorded.some(record => record.cycle === cycle)) continue
     c.run({ id: `cycle:${cycle}`, kind: 'cycle-step', label: `${cycle.replace('cycle-', '')} (log erased)`, startedAt: times.first, endedAt: times.last, outcome: 'unknown' })
+    if (Date.parse(times.first) >= c.since) {
+      timeline.push({ cycle, startedAt: times.first, endedAt: times.last, outcome: 'unknown', source: 'history', steps: [], evidence: commitLink(times.commit) })
+    }
   }
 
   const inWindow = [...starts.entries()].filter(([, at]) => at >= c.since)
@@ -786,6 +890,7 @@ function collectCycles(
     ...Number.isFinite(lastStart) ? { lastStart } : {},
     ...Number.isFinite(Math.max(lastStart, newestStart)) ? { lastTick: Math.max(lastStart, newestStart) } : {},
     ...schedulerProcess === undefined ? {} : { scheduler: schedulerProcess },
+    timeline: !known ? null : timeline.sort((a, b) => b.startedAt.localeCompare(a.startedAt) || b.cycle.localeCompare(a.cycle)),
     summary: !known ? null : {
       last24h: inWindow.length,
       ...Number.isFinite(lastStart) ? { lastStartedAt: iso(lastStart) } : {},
@@ -1397,15 +1502,17 @@ async function collectCi(c: Collection, ledger: { lines: NumberedLine[] } | unde
 
 /**
  * The shipped commits, newest first, each with the Branch CI verdict that
- * covers it. A shift pushes its commits together and Branch CI runs on the
- * pushed tip, so a commit without a run of its own takes the verdict of the
- * oldest later commit on the branch that has one.
+ * covers it: the cycle report's rendered answer ({@link reportVerdicts}), else
+ * {@link shippedVerdict} over the runs read now. A shift pushes its commits
+ * together and Branch CI runs on the pushed tip, so a commit without a run of
+ * its own takes the verdict of the first later run that rendered one.
  * @param c - The collection, for the branch history.
  * @param lines - The ledger.
  * @param ci - The Branch CI reading, when there is one.
  * @returns Up to {@link SHIPPED_LIMIT} commits.
  */
 function shippedCommits(c: Collection, lines: readonly NumberedLine[], ci: CiReading | undefined): OpsShipped[] {
+  const reported = reportVerdicts(c.inputs.root)
   const byCommit = new Map<string, OpsShipped>()
   const shippedLines = lines.filter((entry): entry is { line: number; entry: TicketLine } => entry.entry.type === 'ticket' && entry.entry.shipped !== null)
   for (const { entry } of shippedLines.sort((a, b) => b.entry.at.localeCompare(a.entry.at))) {
@@ -1417,13 +1524,23 @@ function shippedCommits(c: Collection, lines: readonly NumberedLine[], ci: CiRea
       continue
     }
     if (byCommit.size >= SHIPPED_LIMIT) break
-    byCommit.set(commit, { commit, at: entry.at, tickets: [entry.ticket], ...shippedVerdict(c, commit, ci) })
+    byCommit.set(commit, { commit, at: entry.at, tickets: [entry.ticket], ...reported.get(commit) ?? shippedVerdict(c, commit, ci) })
   }
   return [...byCommit.values()]
 }
 
+/** A completed run whose lanes rendered a verdict; a cancelled run rendered none (the rule of `enterprise-report.ts`). */
+function rendered(run: CiRun): boolean {
+  return run.status === 'completed' && (run.conclusion === 'success' || run.conclusion === 'failure')
+}
+
 /**
- * The Branch CI verdict covering one shipped commit.
+ * The Branch CI verdict covering one shipped commit, under the rule
+ * `pnpm run enterprise:verdicts` applies (`scripts/enterprise-report.ts`): the
+ * commit's own newest run when one rendered a verdict or still runs; else the
+ * oldest later run that rendered one and whose head contains the commit; else
+ * `running` while a later run containing it is in progress, and `no-run`. The
+ * runs are the collector's one read of the branch's newest runs.
  * @param c - The collection, for the branch history.
  * @param commit - The shipped commit.
  * @param ci - The Branch CI reading, when there is one.
@@ -1431,18 +1548,98 @@ function shippedCommits(c: Collection, lines: readonly NumberedLine[], ci: CiRea
  */
 function shippedVerdict(c: Collection, commit: string, ci: CiReading | undefined): Pick<OpsShipped, 'ci' | 'ciCommit' | 'url'> {
   if (ci === undefined) return { ci: 'unknown' }
-  const bySha = new Map(ci.runs.map(run => [run.sha, run]))
-  let run = bySha.get(commit)
+  const newestFirst = [...ci.runs].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id)
+  const exact = newestFirst.filter(run => run.sha === commit)
+  let run = exact.some(entry => entry.status !== 'completed' || rendered(entry)) ? exact.find(rendered) ?? exact.find(entry => entry.status !== 'completed') : undefined
   if (run === undefined) {
-    const later = c.inputs.git(['rev-list', '--reverse', '--ancestry-path', `${commit}..HEAD`])
+    const later = c.inputs.git(['rev-list', '--ancestry-path', `${commit}..HEAD`])
     if (later === undefined) return { ci: 'unknown' }
-    run = later.split('\n').map(sha => bySha.get(sha.trim())).find(candidate => candidate !== undefined)
+    const containing = new Set(later.split('\n').map(sha => sha.trim()).filter(sha => sha.length > 0))
+    const covering = newestFirst.filter(entry => containing.has(entry.sha)).reverse()
+    run = covering.find(rendered) ?? covering.find(entry => entry.status !== 'completed')
     if (run === undefined) return { ci: 'no-run' }
   }
-  const verdict: OpsShipped['ci'] = run.status !== 'completed'
-    ? 'running'
-    : run.conclusion === 'success' ? 'pass' : run.conclusion === 'failure' ? 'fail' : run.conclusion === 'cancelled' ? 'cancelled' : 'unknown'
+  const verdict: OpsShipped['ci'] = run.status !== 'completed' ? 'running' : run.conclusion === 'success' ? 'pass' : 'fail'
   return { ci: verdict, url: run.url, ...run.sha === commit ? {} : { ciCommit: run.sha } }
+}
+
+/** The 24-hour report the cycle's publish step writes with `pnpm run enterprise:report`, relative to the repository root. */
+const DAY_REPORT = 'apps/command-deck/public/fixtures/enterprise-day.json'
+
+/**
+ * The Branch CI verdicts the cycle's 24-hour report rendered for its shipped
+ * commits, the answers `pnpm run enterprise:verdicts` gives: each read from a
+ * run on the commit, else from the first later run that rendered a verdict,
+ * which the report pages the branch's runs to find. A commit whose answer is
+ * still open (a run in progress, no run, unknown) is left out for the live read.
+ * @param root - The checkout.
+ * @returns The rendered verdicts by commit.
+ */
+function reportVerdicts(root: string): Map<string, Pick<OpsShipped, 'ci' | 'ciCommit' | 'url'>> {
+  const verdicts = new Map<string, Pick<OpsShipped, 'ci' | 'ciCommit' | 'url'>>()
+  const report = readJson(join(root, DAY_REPORT))
+  const commits = isRecord(report) && Array.isArray(report.commits) ? report.commits.filter(isRecord) : []
+  const verdict = (conclusion: unknown): OpsShipped['ci'] | undefined => (conclusion === 'success' ? 'pass' : conclusion === 'failure' ? 'fail' : undefined)
+  for (const entry of commits) {
+    const answer = isRecord(entry.ci) ? entry.ci : {}
+    if (typeof entry.commit !== 'string') continue
+    if (answer.basis === 'later' && isRecord(answer.run)) {
+      const ci = verdict(answer.run.conclusion)
+      if (ci !== undefined && typeof answer.run.url === 'string' && typeof answer.run.headSha === 'string') {
+        verdicts.set(entry.commit, { ci, url: answer.run.url, ciCommit: answer.run.headSha })
+      }
+    } else if (answer.basis === 'exact' && Array.isArray(answer.runs)) {
+      const run = answer.runs.filter(isRecord).find(candidate => verdict(candidate.conclusion) !== undefined)
+      const ci = verdict(run?.conclusion)
+      if (ci !== undefined && typeof run?.url === 'string') verdicts.set(entry.commit, { ci, url: run.url })
+    }
+  }
+  return verdicts
+}
+
+/**
+ * The newest shipped tickets, each with the commit it shipped as and that
+ * commit's Branch CI verdict: the cycle report's rendered answer when it has
+ * one, else {@link shippedVerdict} over the runs read now.
+ * @param c - The collection, for the branch history.
+ * @param lines - The ledger.
+ * @param tickets - The queue, for titles.
+ * @param ci - The Branch CI reading, when there is one.
+ * @returns Up to {@link SHIPPED_LIMIT} tickets, newest first.
+ */
+function shippedTickets(
+  c: Collection,
+  lines: readonly NumberedLine[],
+  tickets: Map<string, TicketFile> | undefined,
+  ci: CiReading | undefined,
+): OpsShippedTicket[] {
+  const verdicts = reportVerdicts(c.inputs.root)
+  const seen = new Set<string>()
+  const shipped: OpsShippedTicket[] = []
+  const newestFirst = lines.flatMap(({ entry }) => (entry.type === 'ticket' && entry.shipped !== null ? [entry] : [])).sort((a, b) => b.at.localeCompare(a.at))
+  for (const entry of newestFirst) {
+    const commit = entry.shipped?.commit
+    if (commit === undefined || seen.has(entry.ticket)) continue
+    if (shipped.length >= SHIPPED_LIMIT) break
+    seen.add(entry.ticket)
+    let verdict = verdicts.get(commit)
+    if (verdict === undefined) {
+      verdict = shippedVerdict(c, commit, ci)
+      verdicts.set(commit, verdict)
+    }
+    const title = tickets?.get(entry.ticket)?.title
+    shipped.push({
+      ticket: entry.ticket,
+      ...title === undefined ? {} : { title: publicLine(title, 120) },
+      seat: entry.seat,
+      division: entry.division,
+      shift: entry.shift,
+      at: entry.at,
+      commit,
+      ...verdict,
+    })
+  }
+  return shipped
 }
 
 // ---------------------------------------------------------------------------
@@ -1651,6 +1848,183 @@ function collectShiftRecords(c: Collection, scratchRuns: readonly ScratchRun[]):
 }
 
 // ---------------------------------------------------------------------------
+// The shift view: the running shift's tickets and each department's stage
+// ---------------------------------------------------------------------------
+
+/** A ticket's seat and division from the queue, and its title when the source gave none. */
+function ticketFacts(id: string, tickets: Map<string, TicketFile> | undefined, title: string | undefined): Pick<OpsShiftTicket, 'title' | 'seat' | 'division'> {
+  const file = tickets?.get(id)
+  const named = title ?? file?.title
+  return {
+    ...named === undefined ? {} : { title: publicLine(named, 120) },
+    ...file?.seat === undefined ? {} : { seat: file.seat },
+    ...file?.division === undefined ? {} : { division: file.division },
+  }
+}
+
+/**
+ * The tickets of a shift's result, as its committed record or its run log's
+ * closing line states them: shipped with its commit, rejected by its review,
+ * else halted with the reason.
+ * @param result - The decoded result.
+ * @param tickets - The queue, for titles and seats.
+ * @param since - When the shift ended, epoch milliseconds, when known.
+ * @returns The tickets, or `undefined` when the result lists none.
+ */
+function resultTickets(
+  result: Record<string, unknown>,
+  tickets: Map<string, TicketFile> | undefined,
+  since: number | undefined,
+): OpsShiftTicket[] | undefined {
+  if (!Array.isArray(result.tickets)) return undefined
+  return result.tickets.filter(isRecord).flatMap((entry) => {
+    if (typeof entry.ticket !== 'string') return []
+    const shipped = isRecord(entry.shipped) && typeof entry.shipped.commit === 'string' ? entry.shipped.commit : undefined
+    const verdict = isRecord(entry.review) && typeof entry.review.verdict === 'string' ? entry.review.verdict.trim().toLowerCase() : undefined
+    const stage: OpsShiftTicket['stage'] = shipped !== undefined ? 'shipped' : verdict === 'reject' ? 'rejected' : 'halted'
+    const integration = isRecord(entry.integration) ? entry.integration.outcome : undefined
+    const department = isRecord(entry.department) ? entry.department.outcome : undefined
+    const reached: OpsShiftTicket['reached'] = integration !== undefined && integration !== 'skipped' ? 'integration'
+      : verdict === 'approve' || verdict === 'reject' ? 'review'
+        : department === 'certified' ? 'certified'
+          : 'working'
+    return [{
+      ticket: entry.ticket,
+      ...ticketFacts(entry.ticket, tickets, undefined),
+      stage,
+      ...stage === 'shipped' ? {} : { reached },
+      ...since === undefined ? {} : { since: iso(since) },
+      ...stage !== 'shipped' && typeof entry.reason === 'string' ? { reason: publicLine(entry.reason, 160) } : {},
+      ...shipped === undefined ? {} : { commit: shipped },
+    }]
+  })
+}
+
+/**
+ * The closing `{"type":"result"}` line a shift's run log carries once the shift ended.
+ * @param dir - The shift's scratch run.
+ * @returns The decoded result, or `undefined` while the shift runs or when the log has none.
+ */
+function runLogResult(dir: string): Record<string, unknown> | undefined {
+  const text = readText(join(dir, 'run.log'))
+  let found: Record<string, unknown> | undefined
+  for (const row of text?.split('\n') ?? []) {
+    if (!row.startsWith('{"type":"result"')) continue
+    try {
+      const decoded: unknown = JSON.parse(row)
+      if (isRecord(decoded)) found = decoded
+    } catch {
+      // A result line cut by a crash mid-write: the shift is read from its sessions instead.
+    }
+  }
+  return found
+}
+
+/**
+ * One shift read from its scratch run: the program ledger's goals, each moved
+ * past `certified` by its review session and its verdict, and every ticket's
+ * final stage from the run log's result once the shift ended.
+ * @param c - The collection.
+ * @param run - The scratch run.
+ * @param tickets - The queue, for titles and seats.
+ * @returns The shift, or `undefined` when the run holds no program ledger yet.
+ */
+function scratchShift(c: Collection, run: ScratchRun, tickets: Map<string, TicketFile> | undefined): OpsShift | undefined {
+  const sessionsDir = join(run.dir, '.sessions')
+  const files = existsSync(sessionsDir) ? sessionFilesIn(sessionsDir) : []
+  const programFile = files.find(file => /^program-[0-9a-f]{16,}$/.test(basename(dirname(file))))
+  const program = programFile === undefined ? undefined : foldProgramLedger(parseJsonl(readText(programFile) ?? ''))
+  const result = run.live ? undefined : runLogResult(run.dir)
+  const endedAt = result === undefined ? undefined : mtimeOf(join(run.dir, 'run.log'))
+  const final = result === undefined ? undefined : resultTickets(result, tickets, endedAt)
+  if (program === undefined && final === undefined) return undefined
+  const reviews = new Map<string, { verdict?: 'approve' | 'reject'; startedAt?: number; lastAt?: number }>()
+  for (const file of files) {
+    const id = basename(dirname(file))
+    const ticket = /^review-t-(\d{4})\b/.exec(id)?.[1]
+    if (ticket === undefined) continue
+    const lines = parseJsonl(readText(file) ?? '')
+    const facts = foldHarnessSession(lines, id)
+    const verdict = reviewVerdictOf(lines)
+    reviews.set(`T-${ticket}`, { ...verdict === undefined ? {} : { verdict }, ...facts.createdAt === undefined ? {} : { startedAt: facts.createdAt }, ...facts.lastAt === undefined ? {} : { lastAt: facts.lastAt } })
+  }
+  const stageOf = (status: string, review: { verdict?: 'approve' | 'reject'; startedAt?: number; lastAt?: number } | undefined, since: number | undefined): Pick<OpsShiftTicket, 'stage' | 'since'> => {
+    const at = (ms: number | undefined): Pick<OpsShiftTicket, 'since'> => (ms === undefined ? {} : { since: iso(ms) })
+    switch (status) {
+      case 'pending': return { stage: 'queued', ...at(since) }
+      case 'running': return { stage: 'working', ...at(since) }
+      case 'certified':
+        if (review === undefined) return { stage: 'certified', ...at(since) }
+        if (review.verdict === 'reject') return { stage: 'rejected', ...at(review.lastAt) }
+        return review.verdict === 'approve' ? { stage: 'integration', ...at(review.lastAt) } : { stage: 'review', ...at(review.startedAt) }
+      default: return { stage: 'halted', ...at(since) }
+    }
+  }
+  const live: OpsShiftTicket[] = (program?.goals ?? []).map((goal) => {
+    const id = goal.key.toUpperCase()
+    const { stage, since } = stageOf(goal.status, reviews.get(id), goal.since)
+    return {
+      ticket: id,
+      ...ticketFacts(id, tickets, goal.title),
+      stage,
+      ...stage === 'halted' ? { reached: 'working' as const } : stage === 'rejected' ? { reached: 'review' as const } : {},
+      ...since === undefined ? {} : { since },
+      ...stage === 'halted' && goal.reason !== undefined ? { reason: goal.reason } : {},
+    }
+  })
+  const startedAt = msOf(result?.startedAt) ?? program?.startedAt ?? mtimeOf(run.dir) ?? c.now
+  return {
+    shift: run.id,
+    state: run.live ? 'running' : 'ended',
+    startedAt: iso(startedAt),
+    ...endedAt === undefined ? {} : { endedAt: iso(endedAt) },
+    source: 'scratch',
+    tickets: final ?? live,
+    evidence: { label: `shift ${run.id} run.log` },
+  }
+}
+
+/**
+ * The shift the view follows: the one holding the shift lock; else the newest
+ * of the committed shift records and the scratch runs no record covers yet.
+ * @param c - The collection.
+ * @param scratchRuns - The scratch runs {@link collectScratch} read.
+ * @param tickets - The queue, for titles and seats.
+ * @returns The shift, or `null` when no shift is known.
+ */
+function collectShift(c: Collection, scratchRuns: readonly ScratchRun[], tickets: Map<string, TicketFile> | undefined): OpsShift | null {
+  const shifts = scratchRuns.filter(run => !run.intake)
+  const running = shifts.find(run => run.live)
+  if (running !== undefined) return scratchShift(c, running, tickets) ?? null
+  const dir = join(c.inputs.root, 'data/enterprise/shifts')
+  const newestRecord = (listDir(dir) ?? []).filter(name => /^\d{4}-\d{2}-\d{2}-\d{6}-[0-9a-f]{4}$/.test(name)).sort().at(-1)
+  // A scratch run is named `<HHMMSS>-<hex>` for its start; one newer than every record has not reached the checkout.
+  const newestScratch = shifts
+    .filter(run => newestRecord === undefined || (mtimeOf(run.dir) ?? 0) > (msOf(`${newestRecord.slice(0, 10)}T${newestRecord.slice(11, 13)}:${newestRecord.slice(13, 15)}:${newestRecord.slice(15, 17)}Z`) ?? 0))
+    .filter(run => !newestRecord?.endsWith(`-${run.id}`))
+    .sort((a, b) => (mtimeOf(a.dir) ?? 0) - (mtimeOf(b.dir) ?? 0))
+    .at(-1)
+  const fromScratch = newestScratch === undefined ? undefined : scratchShift(c, newestScratch, tickets)
+  if (fromScratch !== undefined) return fromScratch
+  if (newestRecord === undefined) return null
+  const result = readJson(join(dir, newestRecord, 'result.json'))
+  const manifest = readJson(join(dir, newestRecord, 'manifest.json'))
+  if (!isRecord(result)) return null
+  const startedAt = msOf(result.startedAt) ?? msOf(isRecord(manifest) ? manifest.startedAt : undefined)
+  const endedAt = msOf(isRecord(manifest) ? manifest.endedAt : undefined) ?? msOf(result.endedAt)
+  if (startedAt === undefined) return null
+  return {
+    shift: typeof result.shift === 'string' ? result.shift : newestRecord.slice(11),
+    state: 'ended',
+    startedAt: iso(startedAt),
+    ...endedAt === undefined ? {} : { endedAt: iso(endedAt) },
+    source: 'record',
+    tickets: resultTickets(result, tickets, endedAt) ?? [],
+    evidence: blobLink(c.inputs.branch, `data/enterprise/shifts/${newestRecord}/result.json`),
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Heartbeats: the scheduler, the transcript capture, the operations loop
 // ---------------------------------------------------------------------------
 
@@ -1736,19 +2110,29 @@ function collectHeartbeats(
   const read = processes !== undefined
   const find = (script: string): ProcessInfo | undefined => processes?.find(entry => runs(entry, script))
   const opsEvery = c.inputs.producer === 'loop' ? c.inputs.intervalSeconds ?? 15 : 15
+  // The capture's own log dates its newest push as it landed; the checkout's history sees a push only after its next fetch.
+  const capture = parseCaptureLog(readText(join(c.inputs.cyclesDir, 'transcripts-capture.log')) ?? '')
+  const captureBeat = heartbeat(c, read, {
+    id: 'transcript-capture',
+    label: 'Transcript capture',
+    running: find('scripts/transcripts-capture.sh'),
+    lastRun: capture.push?.at ?? (history === undefined ? undefined : newestCapture(history)),
+    everySeconds: CAPTURE_EVERY_SECONDS,
+    allowanceMs: 3 * CAPTURE_EVERY_SECONDS * 1000,
+    measuredAt: capture.push === undefined ? checkoutAt ?? c.now : c.now,
+  })
+  if (capture.push !== undefined) {
+    captureBeat.lastPush = { at: iso(capture.push.at), commit: capture.push.commit }
+    captureBeat.detail = `${captureBeat.detail}; pushed ${capture.push.commit}`
+  }
+  if (capture.problem !== undefined && capture.problem.at > (capture.push?.at ?? 0)) {
+    captureBeat.detail = `${captureBeat.detail}; its newest round did not push: ${capture.problem.line}`
+  }
   const beats = [
     heartbeat(c, read, {
       id: 'scheduler', label: 'Cycle scheduler', running: cycles.scheduler, lastRun: cycles.lastTick, everySeconds: 7200, allowanceMs: c.inputs.staleMs, measuredAt: c.now,
     }),
-    heartbeat(c, read, {
-      id: 'transcript-capture',
-      label: 'Transcript capture',
-      running: find('scripts/transcripts-capture.sh'),
-      lastRun: history === undefined ? undefined : newestCapture(history),
-      everySeconds: CAPTURE_EVERY_SECONDS,
-      allowanceMs: 3 * CAPTURE_EVERY_SECONDS * 1000,
-      measuredAt: checkoutAt ?? c.now,
-    }),
+    captureBeat,
     heartbeat(c, read, {
       id: 'ops-loop',
       label: 'Operations loop',

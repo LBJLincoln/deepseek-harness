@@ -783,6 +783,109 @@ export interface OpsHeartbeat {
   /** How often the loop runs, in seconds. */
   everySeconds: number
   detail: string
+  /**
+   * The transcript capture's newest push to the branch, read from its log;
+   * absent for the other loops, and from a snapshot an earlier collector wrote.
+   */
+  lastPush?: { at: string; commit: string }
+}
+
+/**
+ * One step of a cycle on the cycle timeline: `ok` and `failed` ended with
+ * their exit code, `running` is the step the cycle runs now, and `pending` is
+ * a step a running cycle has still to reach.
+ */
+export interface OpsCycleStep {
+  name: string
+  state: 'ok' | 'failed' | 'running' | 'pending'
+  exit?: number
+  /** When the step ended, or began for the running step. */
+  at?: string
+  /** How long it ran, in seconds; absent for a pending step. */
+  seconds?: number
+}
+
+/**
+ * One cycle of the window, as the scheduler ran it: `running` now, `clean`
+ * when every step exited 0, `failed` when one did not, `refused` when it
+ * refused to start, `interrupted` when its log stops with no cycle process
+ * left, and `unknown` when only the branch history names it.
+ */
+export interface OpsCycle {
+  cycle: string
+  startedAt: string
+  /** The newest step's end, or the record's; absent while it runs. */
+  endedAt?: string
+  outcome: 'running' | 'clean' | 'failed' | 'refused' | 'interrupted' | 'unknown'
+  /** The cycle's exit code as the scheduler logged it. */
+  exit?: number
+  /** Where the steps were read: the machine's cycle log, the committed cycle record, or the branch history alone. */
+  source: 'log' | 'record' | 'history'
+  steps: OpsCycleStep[]
+  /** The shift the cycle ran. */
+  shift?: string
+  /** The ticket lines the ledger gained during the cycle, from its record. */
+  tickets?: Record<'shipped' | 'rejected' | 'halted', number>
+  /** The function lines the ledger gained during the cycle, from its record. */
+  functions?: Record<'pass' | 'fail' | 'error', number>
+  /** Why a refused cycle refused. */
+  detail?: string
+  evidence: OpsLink
+}
+
+/**
+ * Where one ticket of a shift stands: `queued` behind the department working
+ * before it, `working` in its department, `certified` by its acceptance
+ * checks, in independent `review`, in `integration` over the assembled tree,
+ * or ended `shipped`, `rejected` by its review, or `halted`.
+ */
+export type OpsShiftStage = 'queued' | 'working' | 'certified' | 'review' | 'integration' | 'shipped' | 'rejected' | 'halted'
+
+/** One ticket of a shift and the stage its department has reached. */
+export interface OpsShiftTicket {
+  ticket: string
+  title?: string
+  seat?: string
+  division?: string
+  stage: OpsShiftStage
+  /** For a ticket that ended without shipping, the furthest stage of the pipeline it reached. */
+  reached?: 'working' | 'certified' | 'review' | 'integration'
+  /** When the ticket entered its stage, when a record dates it. */
+  since?: string
+  /** Why it halted or was rejected, one line. */
+  reason?: string
+  /** The commit it shipped as. */
+  commit?: string
+}
+
+/**
+ * The shift running now, else the newest shift: its tickets in the order the
+ * shift works them, each with its stage. Read from the shift's scratch run
+ * while it runs, from its committed record once it ended.
+ */
+export interface OpsShift {
+  shift: string
+  state: 'running' | 'ended'
+  startedAt: string
+  endedAt?: string
+  /** Where it was read: its scratch run on the machine, or its committed record. */
+  source: 'scratch' | 'record'
+  tickets: OpsShiftTicket[]
+  evidence: OpsLink
+}
+
+/** One shipped ticket with the commit it shipped as and the Branch CI verdict that covers that commit. */
+export interface OpsShippedTicket {
+  ticket: string
+  title?: string
+  seat?: string
+  division?: string
+  shift: string
+  at: string
+  commit: string
+  ci: OpsShipped['ci']
+  ciCommit?: string
+  url?: string
 }
 
 /** One roster seat as the Operations scene draws it. */
@@ -810,9 +913,12 @@ export interface OpsShipped {
   at: string
   tickets: string[]
   /**
-   * The verdict of the Branch CI run on the commit, else on the oldest later
-   * commit of the branch that has a run and contains it (`ciCommit`); `no-run`
-   * when no read run covers it yet, `unknown` when it could not be placed.
+   * The Branch CI verdict under the rule of `pnpm run enterprise:verdicts`: the
+   * newest run on the commit itself when one rendered a verdict or still runs;
+   * else the oldest later run that rendered one (`success` or `failure`) and
+   * whose head contains the commit (`ciCommit`), a cancelled run rendering none;
+   * else `running` while a later run containing it is in progress, `no-run`
+   * when no read run covers it, and `unknown` when it could not be placed.
    */
   ci: 'pass' | 'fail' | 'running' | 'cancelled' | 'no-run' | 'unknown'
   /** The commit the verdict was read from, when it is not the shipped commit itself. */
@@ -842,6 +948,8 @@ export interface OpsBigPicture {
   cycles: { last24h: number; lastStartedAt?: string; running?: string; nextAt?: string } | null
   throughput: { hours: OpsHour[]; shippedPerHour: number; deliverablesPerHour: number } | null
   shipped: OpsShipped[] | null
+  /** The newest shipped tickets, each with its commit and verdict; absent from a snapshot an earlier collector wrote. */
+  shippedTickets?: OpsShippedTicket[] | null
   ci: {
     branch: string
     /** The newest completed Branch CI run. */
@@ -877,4 +985,12 @@ export interface OpsSnapshot {
   seats: OpsSeat[] | null
   runs: OpsRun[]
   activity: RunEvent[]
+  /**
+   * The window's cycles, newest first, with each step's exit status; `null`
+   * when neither the cycle logs nor the history could be read. This field and
+   * `shift` are absent from a snapshot an earlier collector wrote.
+   */
+  cycles?: OpsCycle[] | null
+  /** The shift running now, else the newest one; `null` when no shift is known. */
+  shift?: OpsShift | null
 }

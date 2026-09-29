@@ -1152,7 +1152,8 @@ input[type='range']::-moz-range-thumb {
 
   .deck__header { flex-wrap: wrap; gap: 10px; height: auto; padding: 10px 16px; }
   .deck__spacer { display: none; }
-  .deck__counts { gap: 14px; }
+  /* The seat counts and the roster stamp wrap to a second row rather than widening the page. */
+  .deck__counts { gap: 6px 14px; flex-wrap: wrap; max-width: 100%; }
   /* Five views do not fit one row at phone width; the nav wraps rather than widening the page. */
   .deck__nav { flex-wrap: wrap; row-gap: 4px; max-width: 100%; }
   .deck__nav a { padding: 0 9px; }

@@ -14,7 +14,7 @@
  * than the snapshot's own `generatedAt` states.
  */
 
-import { OPS_SCHEMA, type OpsAgentKind, type OpsSnapshot, type OpsSourceId, type RunEvent } from './contract.ts'
+import { OPS_SCHEMA, type OpsAgentKind, type OpsShiftStage, type OpsShiftTicket, type OpsSnapshot, type OpsSourceId, type RunEvent } from './contract.ts'
 import { FIXTURE_BASE, feedUrl } from './feed.ts'
 import { hostlessJson } from './host-paths.ts'
 
@@ -298,4 +298,52 @@ export function stationCounts(snapshot: OpsSnapshot): Record<Station, { busy: nu
     },
     ship: { busy: busy('ship'), lines: [tickets === null ? `shipped ${unknown}` : `${tickets.shipped} shipped · 24 h`] },
   }
+}
+
+/**
+ * The time left until a moment, as a countdown clock read in whole seconds.
+ * @param at - The ISO moment.
+ * @param now - The viewer's clock, epoch milliseconds.
+ * @returns `07:12` under an hour, `1:07:12` beyond it, `00:00` once the moment passed; `undefined` for a time that does not parse.
+ */
+export function countdown(at: string, now: number): string | undefined {
+  const target = Date.parse(at)
+  if (Number.isNaN(target)) return undefined
+  const left = Math.max(0, Math.ceil((target - now) / 1000))
+  const hours = Math.floor(left / 3600)
+  const minutes = Math.floor((left % 3600) / 60)
+  const seconds = left % 60
+  const pad = (value: number): string => String(value).padStart(2, '0')
+  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`
+}
+
+/**
+ * How far the scheduler has come from the newest cycle start to the slot it
+ * announced next, for the countdown ring.
+ * @param from - The newest cycle start, ISO.
+ * @param to - The next slot, ISO.
+ * @param now - The viewer's clock, epoch milliseconds.
+ * @returns A fraction from 0 to 1; `undefined` when either time is missing, does not parse, or the span is empty.
+ */
+export function slotProgress(from: string | undefined, to: string | undefined, now: number): number | undefined {
+  const start = from === undefined ? Number.NaN : Date.parse(from)
+  const end = to === undefined ? Number.NaN : Date.parse(to)
+  if (Number.isNaN(start) || Number.isNaN(end) || end <= start) return undefined
+  return Math.min(1, Math.max(0, (now - start) / (end - start)))
+}
+
+/** The pipeline stages a shift ticket moves through before it ends, in order. */
+export const SHIFT_TRACK: readonly OpsShiftStage[] = ['queued', 'working', 'certified', 'review', 'integration']
+
+/**
+ * How far along the shift pipeline a ticket is, as the number of track stages
+ * it has passed or holds: a live ticket up to its own stage, a shipped one the
+ * whole track, and one that ended otherwise up to the stage it reached.
+ * @param ticket - The ticket.
+ * @returns From 1 (queued) to {@link SHIFT_TRACK}'s length.
+ */
+export function trackReached(ticket: OpsShiftTicket): number {
+  if (ticket.stage === 'shipped') return SHIFT_TRACK.length
+  const stage = ticket.stage === 'halted' || ticket.stage === 'rejected' ? ticket.reached ?? 'working' : ticket.stage
+  return SHIFT_TRACK.indexOf(stage) + 1
 }
