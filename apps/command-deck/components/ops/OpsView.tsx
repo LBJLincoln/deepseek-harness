@@ -268,6 +268,8 @@ function Tiles({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
   const stuck = snapshot.agents.filter(agent => agent.state === 'stuck').length
   const hours = big.throughput?.hours ?? []
   const peak = Math.max(1, ...hours.map(hour => hour.shipped + hour.functions + hour.rejected + hour.halted))
+  const inWindow = (field: 'shipped' | 'rejected' | 'halted' | 'functions'): number => hours.reduce((sum, hour) => sum + hour[field], 0)
+  const entries = inWindow('shipped') + inWindow('rejected') + inWindow('halted') + inWindow('functions')
   return (
     <>
       <div className={styles.tile}>
@@ -290,13 +292,14 @@ function Tiles({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
       <div className={styles.tile}>
         <p className={styles.tileLabel}>Shipped · 24 h <FactsAge snapshot={snapshot} sources={['ledger', 'tickets']} short /></p>
         <div className={styles.tileValue}>{big.tickets === null ? 'unknown' : big.tickets.shipped}</div>
-        <div className={styles.tileSub}>{big.tickets === null ? 'the ledger or the queue could not be read' : `${big.tickets.queued} queued · ${big.tickets.halted} halted · ${big.tickets.rejected} rejected`}</div>
+        <div className={styles.tileSub}>{big.tickets === null ? 'the ledger or the queue could not be read' : `${big.throughput === null ? '' : `${inWindow('rejected')} rejected by review · `}now ${big.tickets.queued} queued, ${big.tickets.halted} halted`}</div>
       </div>
       <div className={styles.tile}>
-        <p className={styles.tileLabel}>Throughput <FactsAge snapshot={snapshot} sources={['ledger']} short /></p>
-        <div className={styles.tileValue}>{big.throughput === null ? 'unknown' : big.throughput.deliverablesPerHour}<small>{big.throughput === null ? '' : 'deliverables / h'}</small></div>
+        <p className={styles.tileLabel}>Ledger entries · 24 h <FactsAge snapshot={snapshot} sources={['ledger']} short /></p>
+        <div className={styles.tileValue}>{big.throughput === null ? 'unknown' : entries}</div>
+        <div className={styles.tileSub}>{big.throughput === null ? 'the ledger could not be read' : `${inWindow('shipped')} shipped · ${inWindow('halted')} halted · ${inWindow('rejected')} rejected · ${inWindow('functions')} automated checks`}</div>
         {hours.length === 0 ? null : (
-          <svg className={styles.spark} viewBox={`0 0 ${hours.length * 6} 22`} preserveAspectRatio="none" role="img" aria-label="Deliverables per hour, last 24 hours">
+          <svg className={styles.spark} viewBox={`0 0 ${hours.length * 6} 22`} preserveAspectRatio="none" role="img" aria-label="Ledger entries per hour, last 24 hours">
             {hours.map((hour, index) => {
               const value = hour.shipped + hour.functions + hour.rejected + hour.halted
               const barHeight = value === 0 ? 1 : Math.max(2, (value / peak) * 22)

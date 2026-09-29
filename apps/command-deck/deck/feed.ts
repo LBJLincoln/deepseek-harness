@@ -170,8 +170,25 @@ export async function getNewestRoster(source: FeedSource): Promise<Roster> {
  * @param source - Source from {@link resolveFeed}.
  * @returns Every run the feed knows about.
  */
-export function getRuns(source: FeedSource): Promise<Run[]> {
-  return readJson<Run[]>(source, '/runs')
+export async function getRuns(source: FeedSource): Promise<Run[]> {
+  return withoutScratchCopies(await readJson<Run[]>(source, '/runs'))
+}
+
+/** Two listings of one kind that start closer together than this are one run: its scratch copy and its committed record. */
+const SAME_RUN_MS = 1000
+
+/**
+ * The feed lists a finished run twice, under its scratch directory and under its committed `data/` record, and only the
+ * record's event stream carries the run's events; this keeps the record and drops the scratch copy. A scratch run with no
+ * committed record, such as a review still running, stays listed.
+ * @param runs - the runs as the feed lists them.
+ * @returns the runs without the scratch copies of committed ones, in the feed's order.
+ */
+export function withoutScratchCopies(runs: readonly Run[]): Run[] {
+  const committed = runs.filter(run => run.path.startsWith('data/'))
+  return runs.filter(run => run.path.startsWith('data/') || !committed.some(record => (
+    record.kind === run.kind && Math.abs(Date.parse(record.startedAt) - Date.parse(run.startedAt)) < SAME_RUN_MS
+  )))
 }
 
 /**

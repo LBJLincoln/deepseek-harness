@@ -292,12 +292,14 @@ export function stationCounts(snapshot: OpsSnapshot): Record<Station, { busy: nu
   const busy = (station: Station): number => snapshot.agents.filter(agent => stationOf(agent.kind, agent.label) === station).length
   const tickets = snapshot.big.tickets
   const ci = snapshot.big.ci
+  // Review verdicts inside the window, from the ledger's lines: a ticket rejected and later shipped still counts.
+  const rejections = snapshot.big.throughput === null ? null : snapshot.big.throughput.hours.reduce((sum, hour) => sum + hour.rejected, 0)
   const unknown = 'unknown'
   const plural = (count: number, word: string): string => `${count} ${word}${count === 1 ? '' : 's'}`
   return {
     intake: { busy: busy('intake'), lines: [`${plural(busy('intake'), 'agent')} now`, tickets === null ? `queue ${unknown}` : `${tickets.queued} queued`] },
     shift: { busy: busy('shift'), lines: [`${plural(busy('shift'), 'agent')} now`, tickets === null ? `halts ${unknown}` : `${tickets.halted} halted`] },
-    review: { busy: busy('review'), lines: [`${plural(busy('review'), 'agent')} now`, tickets === null ? `rejections ${unknown}` : `${tickets.rejected} rejected · 24 h`] },
+    review: { busy: busy('review'), lines: [`${plural(busy('review'), 'agent')} now`, rejections === null ? `rejections ${unknown}` : `${rejections} rejected · 24 h`] },
     ci: {
       busy: busy('ci'),
       lines: [

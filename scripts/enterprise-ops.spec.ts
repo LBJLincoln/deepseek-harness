@@ -419,6 +419,7 @@ describe('collectOps', () => {
       scratch,
       claudeProjects,
       operatorTree,
+      operatorAgents: true,
       benchRoots: [],
       benchLog: join(base, 'nightly-loop.log'),
       branch: 'claude/coding-agent-harness-u9l4gt',
@@ -530,7 +531,7 @@ describe('collectOps', () => {
   it('ranks a ticket halted in two shifts as needing a person, and a first halt as needing nothing', async () => {
     const inputs = machine()
     const ledger = join(inputs.root, 'data/enterprise/ledger.jsonl')
-    const again = { type: 'ticket', at: '2026-09-29T02:00:00.000Z', shift: '020000-aaaa', ticket: 'T-0003', seat: 'harness-core-agent-steward', division: 'harness-core', checks: [], shipped: null, reason: 'budget-exhausted' }
+    const again = { type: 'ticket', at: '2026-09-29T02:00:00.000Z', shift: '020000-aaaa', ticket: 'T-0003', seat: 'harness-core-agent-steward', division: 'harness-core', department: { outcome: 'failed', sessionId: 'program-t-0003' }, checks: [], shipped: null, reason: 'budget-exhausted' }
     writeFileSync(ledger, `${readFileSync(ledger, 'utf8')}${JSON.stringify(again)}\n`)
     const snapshot = await collectOps(inputs)
     expect(snapshot.attention.find(item => item.kind === 'ticket-halted')).toMatchObject({
@@ -538,6 +539,19 @@ describe('collectOps', () => {
       title: 'T-0003 halted in shift 020000-aaaa',
       next: 'It halted in 2 shifts; read the department reports in those shift records before a shift takes it again.',
     })
+  })
+
+  it('names the causes of repeated halts that ran no department, and leaves them to the next shift', async () => {
+    const inputs = machine()
+    const ledger = join(inputs.root, 'data/enterprise/ledger.jsonl')
+    const again = { type: 'ticket', at: '2026-09-29T02:00:00.000Z', shift: '020000-aaaa', ticket: 'T-0003', seat: 'harness-core-agent-steward', division: 'harness-core', department: { outcome: 'failed' }, checks: [], shipped: null, reason: 'the shift could not prepare its worktrees: pnpm install failed in /tmp/dsh-enterprise/020000-aaaa/repo' }
+    writeFileSync(ledger, `${readFileSync(ledger, 'utf8')}${JSON.stringify(again)}\n`)
+    const snapshot = await collectOps(inputs)
+    const item = snapshot.attention.find(entry => entry.kind === 'ticket-halted')
+    expect(item?.severity).toBe('low')
+    expect(item?.detail).toContain('the shift could not prepare its worktrees')
+    expect(item?.next).toMatch(/^It halted in 2 shifts before any department ran \(.*could not prepare its worktrees.*\); it stays open/)
+    expect(item?.detail).not.toContain('/tmp/')
   })
 
   it('counts the big picture from the roster, the queue, the ledger, the cycles and Branch CI', async () => {

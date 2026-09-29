@@ -27,7 +27,7 @@ function outcomeWord(cycle: OpsCycle): string {
     case 'failed': return cycle.exit === undefined || cycle.exit === 0 ? 'step failed' : `exit ${cycle.exit}`
     case 'refused': return cycle.exit === undefined ? 'refused' : `refused · exit ${cycle.exit}`
     case 'interrupted': return 'interrupted'
-    case 'unknown': return 'log erased'
+    case 'unknown': return 'no log kept'
     default: return cycle.outcome satisfies never
   }
 }
@@ -182,11 +182,14 @@ function CycleTimeline({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
   const columns = stepColumns(cycles ?? [])
   const clean = cycles?.filter(cycle => cycle.outcome === 'clean').length ?? 0
   const failed = cycles?.filter(cycle => cycle.outcome === 'failed' || cycle.outcome === 'interrupted').length ?? 0
+  // A refused slot never started a cycle; the tile counts started cycles, so the header counts them the same way.
+  const refused = cycles?.filter(cycle => cycle.outcome === 'refused').length ?? 0
+  const started = (cycles?.length ?? 0) - refused
   return (
     <section className={styles.bandPanel} aria-label="Cycles">
       <div className={styles.sectionHead}>
         <h2>Cycles · 24 h</h2>
-        <p>{cycles === null || cycles === undefined ? 'unknown' : `${cycles.length} cycles · ${clean} clean · ${failed} failed`}</p>
+        <p>{cycles === null || cycles === undefined ? 'unknown' : `${started} started · ${clean} clean · ${failed} failed${refused === 0 ? '' : ` · ${refused} ${refused === 1 ? 'slot' : 'slots'} refused`}`}</p>
         <Age at={factsAsOf(snapshot, ['cycle-logs', 'scheduler'])} />
         <div className={`${styles.keys} ${styles.keysCompact}`} aria-label="Cell states">
           {CELL_KEYS.map(([state, words]) => <span key={state}><i className={styles.cellKey} data-state={state} />{words}</span>)}
@@ -218,7 +221,7 @@ function CycleTimeline({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
                 </span>
                 <span className={styles.cycleState} role="cell" data-outcome={cycle.outcome}>{outcomeWord(cycle)}</span>
                 {cycle.steps.length === 0 ? (
-                  <em className={styles.cycleNote} role="cell" style={{ gridColumn: `span ${Math.max(1, columns.length)}` }}>{cycle.detail ?? (cycle.source === 'history' ? 'its log is gone; only its commits remain' : 'no step logged')}</em>
+                  <em className={styles.cycleNote} role="cell" style={{ gridColumn: `span ${Math.max(1, columns.length)}` }}>{cycle.detail ?? (cycle.source === 'history' ? 'its log did not survive a container reset (data/transcripts/LOSSES.md); its commits remain' : 'no step logged')}</em>
                 ) : columns.map((name) => {
                   const step = cycle.steps.find(entry => entry.name === name)
                   return step === undefined

@@ -178,6 +178,11 @@ export interface OpsInputs {
   claudeProjects: string
   /** The operator's working tree, whose Claude Code sessions and background agents are the operator's agents. */
   operatorTree: string
+  /**
+   * Whether the snapshot lists the operator's own agents, with their titles, commands and tokens. They are not enterprise
+   * agents, so a published snapshot (`--push` to the public relay, `--fixture` for the deck) never lists them.
+   */
+  operatorAgents?: boolean
   /** Checkouts whose `.proving-ground/runs` hold live bench runs. */
   benchRoots: readonly string[]
   /** The nightly bench loop's output. */
@@ -530,7 +535,8 @@ export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
   collectShiftRecords(c, scratchRuns, ledger)
   const shift = collectShift(c, scratchRuns, tickets, ledger)
   collectRecords(c, roster, tickets, ledger)
-  collectOperatorAgents(c)
+  if (inputs.operatorAgents === true) collectOperatorAgents(c)
+  else c.ok('operator-agents', 'not published: the operator\'s own sessions are not enterprise agents')
   collectBench(c, processes)
   collectGates(c, roster, processes)
   collectLedgerRuns(c, roster, ledger)
@@ -2436,6 +2442,14 @@ function collectHeartbeats(
 // ---------------------------------------------------------------------------
 
 /**
+ * @param reason - a ledger line's reason.
+ * @returns its opening clause, before any command output it quotes, with host paths masked.
+ */
+function openingClause(reason: string | undefined): string {
+  return publicLine((reason ?? 'no reason recorded').split(': ')[0] ?? '', 120)
+}
+
+/**
  * Flag every ticket a shift halted or a review rejected. A ticket halted once
  * stays open and a later shift works it again without anyone acting, so it is
  * low; one halted in two or more shifts is medium, because the next shift
@@ -2444,8 +2458,14 @@ function collectHeartbeats(
 function flagTickets(c: Collection, ledger: { lines: NumberedLine[] } | undefined, tickets: Map<string, TicketFile> | undefined): void {
   if (ledger === undefined) return
   const halts = new Map<string, number>()
+  // Tickets one of whose halts ran a department session, which left a report to read.
+  const reported = new Set<string>()
+  const causes = new Map<string, Set<string>>()
   for (const { entry } of ledger.lines) {
-    if (entry.type === 'ticket' && ticketStatus(entry) === 'halted') halts.set(entry.ticket, (halts.get(entry.ticket) ?? 0) + 1)
+    if (entry.type !== 'ticket' || ticketStatus(entry) !== 'halted') continue
+    halts.set(entry.ticket, (halts.get(entry.ticket) ?? 0) + 1)
+    if (entry.department?.sessionId !== undefined) reported.add(entry.ticket)
+    causes.set(entry.ticket, (causes.get(entry.ticket) ?? new Set<string>()).add(openingClause(entry.reason)))
   }
   for (const { standing, line } of standingsOf(ledger.lines).values()) {
     const { status, line: entry } = standing
@@ -2454,12 +2474,14 @@ function flagTickets(c: Collection, ledger: { lines: NumberedLine[] } | undefine
     const title = tickets?.get(entry.ticket)?.title
     const limit = /limit \(resets at ([^)]+)\)/.exec(entry.reason ?? '')?.[1]
     const haltCount = status === 'halted' ? halts.get(entry.ticket) ?? 0 : 0
+    // Repeated halts need a person only when a department ran and left a report; halts before any model ran do not.
+    const repeated = haltCount >= 2 && reported.has(entry.ticket)
     c.flag({
       id: `ticket:${entry.ticket}:${status}`,
       kind: status === 'halted' ? 'ticket-halted' : 'ticket-rejected',
-      severity: haltCount >= 2 ? 'medium' : 'low',
+      severity: repeated ? 'medium' : 'low',
       title: `${entry.ticket} ${status} in shift ${entry.shift}`,
-      detail: publicLine(`${title === undefined ? '' : `${title}. `}${entry.reason ?? 'no reason recorded'}`, 180),
+      detail: publicLine(`${title === undefined ? '' : `${title}. `}${entry.reason === undefined ? 'no reason recorded' : openingClause(entry.reason)}`, 180),
       at: entry.at,
       evidence: [
         blobLink(c.inputs.branch, 'data/enterprise/ledger.jsonl', line),
@@ -2469,9 +2491,11 @@ function flagTickets(c: Collection, ledger: { lines: NumberedLine[] } | undefine
         ? 'Read the reviewer\'s rationale in the shift record; file a narrower ticket if the change is still wanted.'
         : limit !== undefined
           ? `The route's usage limit stopped it; a shift after ${limit} works it again.`
-          : haltCount >= 2
+          : repeated
             ? `It halted in ${String(haltCount)} shifts; read the department reports in those shift records before a shift takes it again.`
-            : 'Nothing to do: it stays open and a later shift works it again.',
+            : haltCount >= 2
+              ? `It halted in ${String(haltCount)} shifts before any department ran (${[...causes.get(entry.ticket) ?? []].join('; ')}); it stays open and a later shift works it again.`
+              : 'Nothing to do: it stays open and a later shift works it again.',
     })
   }
 }
@@ -2798,6 +2822,7 @@ export function cliInputs(cli: OpsCli, state: OpsState): OpsInputs {
     scratch: cli.scratch,
     claudeProjects: cli.claudeProjects,
     operatorTree: cli.operatorTree,
+    operatorAgents: !cli.push && !cli.fixture,
     benchRoots: cli.benchRoots,
     benchLog: cli.benchLog,
     branch: cli.branch,

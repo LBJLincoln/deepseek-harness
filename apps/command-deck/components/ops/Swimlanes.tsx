@@ -90,6 +90,11 @@ function clock(ms: number): string {
   return new Date(ms).toISOString().slice(11, 16)
 }
 
+/** The UTC month and day, `09-28`, so a 24-hour window names both of its days. */
+function day(ms: number): string {
+  return new Date(ms).toISOString().slice(5, 10)
+}
+
 /**
  * The last 24 hours as swimlanes: one lane per agent kind, one bar per run
  * from its start to its end, coloured by how it ended, with the snapshot's
@@ -126,7 +131,7 @@ export function Swimlanes({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
     <div className={styles.timeline}>
       <div className={styles.sectionHead}>
         <h2>Every agent run, last 24 hours</h2>
-        <p>{snapshot.runs.length} runs by kind, {clock(since)}–{clock(until)} UTC</p>
+        <p>{snapshot.runs.length} runs by kind, {day(since)} {clock(since)} – {day(until)} {clock(until)} UTC</p>
         <Age at={snapshot.generatedAt} />
         <div className={styles.keys} aria-label="Bar colours">
           {(['running', 'ok', 'failed', 'unknown'] as const).map(outcome => (

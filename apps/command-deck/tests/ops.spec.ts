@@ -133,7 +133,19 @@ describe('stations and frames', () => {
   it('counts what each station prints from the snapshot alone, and says unknown for a source it could not read', () => {
     const counts = stationCounts(snapshot(0, [agent({}), agent({ id: 'session:b', kind: 'reviewer' })]))
     expect(counts.shift).toEqual({ busy: 1, lines: ['1 agent now', '2 halted'] })
-    expect(counts.review.lines).toEqual(['1 agent now', '1 rejected · 24 h'])
+    expect(counts.review.lines).toEqual(['1 agent now', 'rejections unknown'])
+    // A ticket rejected in the window counts though a later shift shipped it and its standing now reads shipped.
+    const hours = Array.from({ length: 24 }, (_, index) => ({
+      hour: new Date(NOW - (23 - index) * 3_600_000).toISOString(),
+      shipped: index === 9 ? 1 : 0,
+      rejected: index === 5 ? 1 : 0,
+      halted: 0,
+      functions: 0,
+      runs: 0,
+    }))
+    const windowed = snapshot(0, [agent({})])
+    const throughput = { hours, shippedPerHour: 0.04, deliverablesPerHour: 0.08 }
+    expect(stationCounts({ ...windowed, big: { ...windowed.big, throughput } }).review.lines).toEqual(['0 agents now', '1 rejected · 24 h'])
     expect(counts.ci.lines).toEqual(['0 gates now', 'Branch CI unknown'])
     expect(stationCounts({ ...snapshot(0), big: { ...snapshot(0).big, tickets: null } }).intake.lines).toEqual(['0 agents now', 'queue unknown'])
   })
