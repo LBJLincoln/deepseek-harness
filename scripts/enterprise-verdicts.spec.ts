@@ -49,9 +49,16 @@ describe('shippedVerdicts', () => {
     }
     const sources: ReportSources = {
       root,
-      repository: { head: () => HEAD, cycleCommits: () => [], commitTime: () => undefined, contains: () => undefined },
+      repository: {
+        head: () => HEAD,
+        cycleCommits: () => [],
+        commitTime: () => undefined,
+        contains: () => undefined,
+        firstChange: () => undefined,
+      },
       github,
       rosterAt: until => buildRoster(repoRoot, { generatedAt: until, recorded: [], ledger: readLedger(join(root, LEDGER_PATH)).lines }),
+      sessions: () => ({ byTree: {}, skipped: [] }),
     }
     const commits = await shippedVerdicts(sources, NOW)
     expect(commits.map(entry => [entry.commit, entry.tickets, entry.verdict])).toEqual([[OLD, ['T-0001'], 'success'], [RECENT, ['T-0002'], 'success']])

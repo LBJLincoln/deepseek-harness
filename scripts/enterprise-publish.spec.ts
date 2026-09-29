@@ -163,8 +163,9 @@ describe('buildEnterpriseReport', () => {
 
 /** A checkout whose history names no cycle and lacks the shipped commit, and a Branch CI with no run on it. */
 const SOURCES: PublishSources = {
-  repository: { head: () => 'f'.repeat(40), cycleCommits: () => [], commitTime: () => undefined, contains: () => undefined },
+  repository: { head: () => 'f'.repeat(40), cycleCommits: () => [], commitTime: () => undefined, contains: () => undefined, firstChange: () => undefined },
   github: { json: async () => ({ workflow_runs: [] }), text: async () => '' },
+  sessions: () => ({ byTree: {}, skipped: [] }),
 }
 
 describe('publishDeckData', () => {

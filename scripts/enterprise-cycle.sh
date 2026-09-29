@@ -50,8 +50,10 @@ main() {
     exit 4
   fi
 
-  # The cycle record's input: one "<name> <exit> <UTC time>" line per step.
+  # The cycle record's input: one "<name> <exit> <UTC time>" line per step, and
+  # who started the cycle, the scheduler when it is this shell's parent process.
   steps="${TMPDIR:-/tmp}/enterprise-${cycle}.steps"
+  case "$(ps -o args= -p "$PPID" 2>/dev/null)" in *enterprise-scheduler.sh*) started_by=scheduler ;; *) started_by=operator ;; esac
   step() {
     local name=$1 code=$2 at
     at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -104,7 +106,7 @@ main() {
   pnpm run -s enterprise:functions -- --shift "$cycle" --lock "$heavy_lock"; step functions $?
   pnpm run -s roster; step roster $?
   pnpm run -s enterprise:publish; step publish $?
-  pnpm run -s enterprise:cycle-record -- --cycle "$cycle" --steps "$steps" --start "$start" --pulled "$pulled" --remote "$remote"; step record $?
+  pnpm run -s enterprise:cycle-record -- --cycle "$cycle" --steps "$steps" --start "$start" --pulled "$pulled" --remote "$remote" --started-by "$started_by"; step record $?
   ship "chore(enterprise): ${cycle} functions, roster and deck" data/enterprise apps/command-deck/public/fixtures; step push $?
   rm -f "$steps"
 

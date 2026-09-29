@@ -54,6 +54,12 @@ export interface CycleRecord {
   /** ISO time the record was built, after the cycle's last data step and before its final commit. */
   endedAt: string
   /**
+   * `scheduler` when `scripts/enterprise-scheduler.sh` is the cycle's parent
+   * process, `operator` when anything else started it; absent from a record
+   * whose cycle script did not pass it.
+   */
+  startedBy?: 'scheduler' | 'operator'
+  /**
    * `start`: the checkout's commit when the cycle began, whose cycle script ran;
    * `pulled`: the checkout's commit after the initial pull, whose ledger the
    * cycle's lines are counted against; `end`: the checkout's commit when the
@@ -145,9 +151,10 @@ export function parseStepLines(text: string): CycleStep[] {
 export function cycleRecordProblems(value: unknown): string[] {
   if (!isRecord(value)) return ['not a JSON object']
   const problems: string[] = []
-  const { cycle, startedAt, endedAt, commits, steps, shifts, tickets, functions, unreadable, firstFailure, previous } = value
+  const { cycle, startedAt, endedAt, startedBy, commits, steps, shifts, tickets, functions, unreadable, firstFailure, previous } = value
   if (typeof cycle !== 'string' || cycleStartedAt(cycle) === undefined) problems.push('"cycle" is not a cycle id')
   else if (startedAt !== cycleStartedAt(cycle)) problems.push('"startedAt" is not the moment the cycle id stamps')
+  if (startedBy !== undefined && startedBy !== 'scheduler' && startedBy !== 'operator') problems.push('"startedBy" is neither "scheduler" nor "operator"')
   if (!isIsoTime(endedAt)) problems.push('"endedAt" is not an ISO time')
   else if (isIsoTime(startedAt) && Date.parse(endedAt) < Date.parse(startedAt)) problems.push('"endedAt" precedes "startedAt"')
   if (!isRecord(commits) || !['start', 'pulled', 'end'].every(key => typeof commits[key] === 'string' && COMMIT.test(commits[key]))) {
@@ -198,6 +205,7 @@ export interface CycleRecordInput {
   cycle: string
   /** ISO time the record is built. */
   endedAt: string
+  startedBy?: CycleRecord['startedBy']
   commits: CycleRecord['commits']
   steps: readonly CycleStep[]
   /** The ledger's content at `commits.pulled`. */
@@ -242,6 +250,7 @@ export function buildCycleRecord(input: CycleRecordInput): CycleRecord {
     cycle: input.cycle,
     startedAt: cycleStartedAt(input.cycle) ?? '',
     endedAt: new Date(input.endedAt).toISOString(),
+    ...input.startedBy === undefined ? {} : { startedBy: input.startedBy },
     commits: { ...input.commits },
     steps: input.steps.map(step => ({ ...step })),
     shifts,
@@ -292,13 +301,17 @@ export interface CycleRecordArguments {
   pulled: string
   /** The remote branch's commit after the initial pull, or `none` when the checkout has no such ref. */
   remote: string
+  /** Who started the cycle; a cycle script that predates the flag passes none. */
+  startedBy?: 'scheduler' | 'operator'
 }
 
 /**
  * Read the CLI flags; a bare `--`, which `pnpm run` forwards, is skipped.
+ * `--started-by` is optional, so a running cycle whose script predates it
+ * still gets a record from this builder.
  * @param argv - the arguments after the script path.
  * @returns the flags.
- * @throws on an unknown flag, a flag without its value, or a missing flag.
+ * @throws on an unknown flag, a flag without its value, a missing required flag, or a `--started-by` other than `scheduler` or `operator`.
  */
 export function parseCycleRecordArguments(argv: readonly string[]): CycleRecordArguments {
   const flags = new Map<string, string>()
@@ -306,7 +319,7 @@ export function parseCycleRecordArguments(argv: readonly string[]): CycleRecordA
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index] ?? ''
     if (flag === '--') continue
-    if (!known.includes(flag)) throw new Error(`enterprise-cycle-record: unknown flag ${flag}`)
+    if (!known.includes(flag) && flag !== '--started-by') throw new Error(`enterprise-cycle-record: unknown flag ${flag}`)
     const value = argv[index + 1]
     if (value === undefined || value.startsWith('--')) throw new Error(`enterprise-cycle-record: ${flag} needs a value`)
     flags.set(flag, value)
@@ -315,7 +328,11 @@ export function parseCycleRecordArguments(argv: readonly string[]): CycleRecordA
   const missing = known.filter(flag => !flags.has(flag))
   if (missing.length > 0) throw new Error(`enterprise-cycle-record: missing ${missing.join(', ')}`)
   const value = (flag: string): string => flags.get(flag) ?? ''
-  return { cycle: value('--cycle'), steps: value('--steps'), start: value('--start'), pulled: value('--pulled'), remote: value('--remote') }
+  const parsed: CycleRecordArguments = { cycle: value('--cycle'), steps: value('--steps'), start: value('--start'), pulled: value('--pulled'), remote: value('--remote') }
+  const startedBy = flags.get('--started-by')
+  if (startedBy === undefined) return parsed
+  if (startedBy !== 'scheduler' && startedBy !== 'operator') throw new Error(`enterprise-cycle-record: --started-by is ${startedBy}; it is scheduler or operator`)
+  return { ...parsed, startedBy }
 }
 
 /**
@@ -369,6 +386,7 @@ export function writeCycleRecord(root: string, args: CycleRecordArguments, now: 
   const record = buildCycleRecord({
     cycle: args.cycle,
     endedAt: now.toISOString(),
+    ...args.startedBy === undefined ? {} : { startedBy: args.startedBy },
     commits: { start: args.start, pulled: args.pulled, end: git(root, ['rev-parse', 'HEAD']) },
     steps: parseStepLines(readFileSync(args.steps, 'utf8')),
     ledgerBefore: git(root, ['show', `${args.pulled}:${LEDGER_PATH}`]),

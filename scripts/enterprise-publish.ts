@@ -33,7 +33,14 @@ import {
   type TicketLine,
   type TicketStatus,
 } from './enterprise-ledger.ts'
-import { enterpriseReport, gitRepository, type EnterpriseWindowReport, type ReportRepository } from './enterprise-report.ts'
+import {
+  enterpriseReport,
+  gitRepository,
+  recordedSessionsIn,
+  type EnterpriseWindowReport,
+  type ReportRepository,
+  type ReportSources,
+} from './enterprise-report.ts'
 import { divisionSeats, ROSTER_PATH, type Roster } from './enterprise-roster.ts'
 import { loadTickets, type LoadedTicket } from './enterprise-tickets.ts'
 
@@ -49,10 +56,11 @@ export const ENTERPRISE_FIXTURE = `${DECK_FIXTURES}/enterprise.json`
 /** The fixture the deck's 24 hours tab reads: the enterprise report over the roster's window. */
 export const DAY_FIXTURE = `${DECK_FIXTURES}/enterprise-day.json`
 
-/** What {@link publishDeckData} reads beyond the checkout's files: the git history and Branch CI. */
+/** What {@link publishDeckData} reads beyond the checkout's files: the git history, Branch CI and the recorded sessions. */
 export interface PublishSources {
   repository: ReportRepository
   github: GitHubReader
+  sessions: ReportSources['sessions']
 }
 
 /** How many shipped commits the report lists, newest first. */
@@ -269,7 +277,8 @@ export async function publishDeckData(
 const isMain = process.argv[1] !== undefined && import.meta.url === `file://${resolve(process.argv[1])}`
 if (isMain) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-  const { report, day, changed } = await publishDeckData(root, { repository: gitRepository(root), github: githubReader() })
+  const sources: PublishSources = { repository: gitRepository(root), github: githubReader(), sessions: recordedSessionsIn(root) }
+  const { report, day, changed } = await publishDeckData(root, sources)
   const tickets = Object.entries(report.tickets).map(([status, list]) => `${list.length} ${status}`).join(', ')
   console.log([
     `enterprise-publish: ${changed.length === 0 ? 'kept' : `wrote ${changed.join(', ')}`};`,

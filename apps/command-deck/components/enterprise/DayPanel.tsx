@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, type ReactNode } from 'react'
-import type { DayCycle, DayShippedCommit, DayShippedTicket, EnterpriseDay } from '@/deck/contract'
+import type { DayCycle, DayEffortTotal, DayShippedCommit, DayShippedTicket, EnterpriseDay } from '@/deck/contract'
 import { getEnterpriseDay } from '@/deck/feed'
 import { stamp } from '@/deck/format'
 import { divisionColor } from '@/deck/palette'
@@ -53,7 +53,7 @@ function ShippedRow({ ticket, entry }: { ticket: DayShippedTicket; entry: DayShi
   const source = entry === undefined ? { basis: 'no answer was read' } : verdictSource(entry)
   const chip = (
     <span className="chip" style={{ color: verdictColor(verdict), borderColor: 'currentColor' }} title={`Branch CI: ${source.basis}`}>
-      CI · {verdict}
+      CI · {verdict}{entry?.ci.basis === 'later' ? ' · later run' : ''}
     </span>
   )
   return (
@@ -67,10 +67,12 @@ function ShippedRow({ ticket, entry }: { ticket: DayShippedTicket; entry: DayShi
 
 /**
  * The 24 hours tab: the report `pnpm run enterprise:publish` publishes over
- * the 24 hours ending at the roster's stamp — the cycles run and their
- * outcomes, the tickets shipped by division with each commit's Branch CI
- * verdict, the seats active by division, and every fact the data does not
- * show — read from `fixtures/enterprise-day.json`.
+ * the 24 hours ending at the roster's stamp — the pilot's headline counts, the
+ * cycles run with their outcomes and starters, the shifts, the tickets shipped
+ * by division with each commit's Branch CI verdict (labelled when a later run
+ * gave it) and the review outcomes, the spend per source, the seats active by
+ * division, and every fact the data does not show — read from
+ * `fixtures/enterprise-day.json`.
  * @returns The tab body.
  */
 export function DayPanel(): ReactNode {
@@ -91,13 +93,16 @@ export function DayPanel(): ReactNode {
   const verdicts = new Map(day.commits.map(entry => [entry.commit, entry]))
   const divisions = [...new Set(day.tickets.shipped.map(ticket => ticket.division))].sort()
   const { cycles } = day
+  const { reviews } = day.tickets
+  const effort: DayEffortTotal[] = Array.isArray(day.effort) ? day.effort as DayEffortTotal[] : []
 
   return (
     <>
+      {day.headline === undefined ? null : <p className="evidence-lead" style={{ color: 'var(--ink)' }}>{day.headline}</p>}
       <p className="evidence-lead">
         From {stamp(day.window.since)} to {stamp(day.window.until)}, read from commit <span className="mono">{day.head.commit.slice(0, 10)}</span>:
-        the cycle records, the ledger, the git history and the Branch CI runs. A cycle's record is committed after the deck's data,
-        so the cycle that published this report shows without one.
+        the cycle, shift and intake records, the ledger, the recorded sessions, the git history and the Branch CI runs. A cycle's record
+        is committed after the deck's data, so the cycle that published this report shows without one.
       </p>
 
       <div className="section">
@@ -113,7 +118,9 @@ export function DayPanel(): ReactNode {
                 <div className="routes__row" key={cycle.cycle} data-run={cycle.record !== undefined}>
                   <span className="mono">{stamp(cycle.startedAt)}</span>
                   <b style={{ color: outcome.color, fontWeight: 500, fontSize: 11 }}>{outcome.text}</b>
-                  <span>
+                  <span title={cycle.startedBy?.basis}>
+                    {cycle.startedBy === undefined || cycle.startedBy.by === 'unknown' ? 'starter unknown' : `by the ${cycle.startedBy.by}`}
+                    {' · '}
                     {cycle.record === undefined
                       ? `pushed: ${cycle.commits.map(commit => commit.carries).join(' · ') || 'nothing'}`
                       : `${cycle.record.tickets.shipped} shipped · ${cycle.record.functions.pass} pass · ${cycle.record.functions.fail} fail · ${cycle.record.functions.error} error`}
@@ -125,8 +132,30 @@ export function DayPanel(): ReactNode {
         )}
       </div>
 
+      {day.shifts === undefined ? null : (
+        <div className="section">
+          <h3>Shifts · {day.shifts.length}</h3>
+          {day.shifts.length === 0 ? <div className="panel__empty">No shift in these 24 hours.</div> : (
+            <div className="routes">
+              {day.shifts.map(shift => (
+                <div className="routes__row" key={shift.shift} data-run={shift.source === 'record'} title={shift.evidence}>
+                  <span className="mono">{shift.shift}</span>
+                  <b style={{ color: shift.source === 'lost' ? 'var(--red)' : 'var(--ink-2)', fontWeight: 500, fontSize: 11 }}>{shift.outcome}</b>
+                  <span>{shift.tickets.shipped} shipped · {shift.tickets.rejected} rejected · {shift.tickets.halted} halted</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="section">
         <h3>Tickets shipped · by division · Branch CI</h3>
+        <p className="evidence-lead">
+          {day.tickets.lines} ticket lines: {day.tickets.byStatus.shipped} shipped, {day.tickets.byStatus.rejected} rejected,
+          {' '}{day.tickets.byStatus.halted} halted
+          {reviews === undefined ? '.' : `; reviews ${reviews.approved} approved, ${reviews.rejected} rejected, ${reviews.notReached} not reached.`}
+        </p>
         {divisions.length === 0 ? <div className="panel__empty">No ticket shipped in these 24 hours.</div> : divisions.map((division) => {
           const shipped = day.tickets.shipped.filter(ticket => ticket.division === division)
           return (
@@ -157,6 +186,21 @@ export function DayPanel(): ReactNode {
           </div>
         </div>
       </div>
+
+      {effort.length === 0 ? null : (
+        <div className="section">
+          <h3>Tokens and seconds · per source, not summed</h3>
+          <div className="routes">
+            {effort.map(total => (
+              <div className="routes__row" key={`${total.source}-${total.covers}`} data-run={total.items > 0} title={total.covers}>
+                <span className="mono">{total.source}</span>
+                <b style={{ fontWeight: 500, fontSize: 11 }}>{total.tokens === null ? 'no tokens recorded' : `${total.tokens.toLocaleString('en-US')} tokens`}</b>
+                <span>{total.items} items · {total.seconds === null ? 'no seconds recorded' : `${total.seconds}s`}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {day.unknowns.length === 0 ? null : (
         <div className="section">

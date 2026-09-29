@@ -20,6 +20,7 @@ import {
   runFunctions,
   SCOREBOARD_PATH,
   seatOccupancy,
+  sessionFiguresIn,
   TELEMETRY_PATH,
   verdictOf,
   verifierScript,
@@ -459,6 +460,15 @@ describe('the command line', () => {
 
   it('names a shift after the minute it started', () => {
     expect(defaultShift(new Date('2026-09-28T17:20:33.123Z'))).toBe('2026-09-28T17-20Z')
+  })
+
+  it('folds the sessions whose newest event falls in a window, per record tree, and none outside it', () => {
+    const inside = sessionFiguresIn(root, [RECORD], { since: '2026-09-01T00:00:00.000Z', until: '2026-09-30T00:00:00.000Z' })
+    expect(Object.keys(inside.byTree)).toEqual(['data/proving-ground'])
+    expect(inside.byTree['data/proving-ground']?.sessions).toBe(1)
+    expect(inside.byTree['data/proving-ground']?.tokens.output).toBeGreaterThan(0)
+    expect(inside.skipped).toEqual([])
+    expect(sessionFiguresIn(root, [RECORD], { since: '2026-08-01T00:00:00.000Z', until: '2026-08-31T00:00:00.000Z' }).byTree).toEqual({})
   })
 
   it('observes the committed records and any shift record directories', () => {

@@ -811,6 +811,38 @@ export function seatOccupancy(roster: Roster, ledger: readonly LedgerLine[], win
   }
 }
 
+/**
+ * Fold the recorded sessions whose newest event falls inside a window, per
+ * record tree: `data/enterprise/<kind>` for the enterprise's own records
+ * (shifts, intake), the first two path segments for the others.
+ * @param root - repository root.
+ * @param records - record directories, repository-relative.
+ * @param window - the interval, both ends inclusive.
+ * @returns the figures per tree, and the sessions the scorekeeper fold could not read, whose tokens are then left out.
+ */
+export function sessionFiguresIn(
+  root: string,
+  records: readonly string[],
+  window: ActiveWindow,
+): { byTree: Record<string, SessionFigures>; skipped: { session: string; reason: string }[] } {
+  const byTree: Record<string, SessionFigures> = {}
+  const skipped: { session: string; reason: string }[] = []
+  for (const session of readSessions(root, records)) {
+    if (session.lastSeenMs < Date.parse(window.since) || session.lastSeenMs > Date.parse(window.until)) continue
+    let facts: SessionFactsRecord | undefined
+    try {
+      facts = foldSessionFacts(session.header, session.events)
+    } catch (error) {
+      skipped.push({ session: session.file, reason: error instanceof Error ? error.message : String(error) })
+    }
+    const tree = session.record.split('/').slice(0, session.record.startsWith('data/enterprise/') ? 3 : 2).join('/')
+    const figures = byTree[tree] ?? emptyFigures()
+    addFigures(figures, facts, foldSessionStats(session.events))
+    byTree[tree] = figures
+  }
+  return { byTree: Object.fromEntries(Object.entries(byTree).sort(([left], [right]) => left.localeCompare(right))), skipped }
+}
+
 function runObservatory(options: FunctionsOptions, ledger: readonly LedgerLine[]): FunctionLine[] {
   const started = performance.now()
   const sessions = readSessions(options.root, options.records)

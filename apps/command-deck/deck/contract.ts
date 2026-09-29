@@ -223,6 +223,8 @@ export interface DayCycle {
   outcome: 'clean' | 'failed' | 'unknown'
   /** The commits whose subjects name the cycle, oldest first. */
   commits: { commit: string; carries: string }[]
+  /** Who started the cycle, and what says so. */
+  startedBy?: { by: 'scheduler' | 'operator' | 'unknown'; basis: string }
   record?: {
     endedAt: string
     firstFailure: { step: string; exit: number } | null
@@ -255,15 +257,40 @@ export interface DayShippedCommit {
   verdict: string
 }
 
+/** One shift of the report's window: recorded, shown by ledger lines only, or lost as the loss register states. */
+export interface DayShift {
+  shift: string
+  startedAt: string | null
+  source: 'record' | 'ledger' | 'lost'
+  outcome: string
+  tickets: Record<'shipped' | 'rejected' | 'halted', number>
+  evidence: string
+}
+
+/** One labelled total of spend; totals overlap and are never summed. */
+export interface DayEffortTotal {
+  covers: string
+  source: string
+  items: number
+  tokens: number | null
+  seconds: number | null
+  breakdown?: { input: number; output: number; cacheRead: number; cacheWrite: number; reasoning: number }
+}
+
 /**
  * `fixtures/enterprise-day.json`: the report `pnpm run enterprise:report`
  * writes, over the 24 hours ending at the roster's stamp, published by
  * `pnpm run enterprise:publish` with the rest of the enterprise data. The deck
- * reads it from the committed fixtures in live and replay alike.
+ * reads it from the committed fixtures in live and replay alike. The optional
+ * fields are absent from a report an earlier publisher wrote, until the next
+ * cycle publishes again.
  */
 export interface EnterpriseDay {
   window: ActiveWindow
   head: { commit: string; committedAt: string | null }
+  /** The pilot's state over the window in one sentence of exact counts. */
+  headline?: string
+  shifts?: DayShift[]
   cycles: {
     count: number
     recorded: number
@@ -277,6 +304,8 @@ export interface EnterpriseDay {
     lines: number
     byStatus: Record<'shipped' | 'rejected' | 'halted', number>
     byDivision: ({ division: string; lines: number } & Record<'shipped' | 'rejected' | 'halted', number>)[]
+    /** The independent review of the window's ticket lines. */
+    reviews?: { approved: number; rejected: number; notReached: number }
     shipped: DayShippedTicket[]
   }
   commits: DayShippedCommit[]
@@ -288,10 +317,8 @@ export interface EnterpriseDay {
     byDivision: { id: string; name: string; defined: number; occupied: number; active: number }[]
   }
   functions: { lines: number; byDivision: ({ division: string } & Record<FunctionOutcome, number>)[] }
-  effort: {
-    tokens: { total: number; lines: number; withoutCount: number }
-    seconds: { tickets: number; functions: number; cycles: number }
-  }
+  /** Spend, one labelled total per source; an earlier publisher wrote an object here instead. */
+  effort: DayEffortTotal[] | Record<string, unknown>
   /** Every fact the report could not establish. */
   unknowns: string[]
 }

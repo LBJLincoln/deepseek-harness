@@ -187,6 +187,13 @@ describe('parseCycleRecordArguments', () => {
       .toEqual({ cycle: 'cycle-20260928T221301Z', steps: '/tmp/s', start: COMMIT_A, pulled: COMMIT_B, remote: 'none' })
   })
 
+  it('reads who started the cycle when the script passes it, and refuses any other starter', () => {
+    const required = ['--cycle', 'cycle-20260928T221301Z', '--steps', '/tmp/s', '--start', COMMIT_A, '--pulled', COMMIT_B, '--remote', 'none']
+    expect(parseCycleRecordArguments([...required, '--started-by', 'scheduler']).startedBy).toBe('scheduler')
+    expect(() => parseCycleRecordArguments([...required, '--started-by', 'cron'])).toThrow(/scheduler or operator/)
+    expect(cycleRecordProblems({ ...buildCycleRecord(input({ startedBy: 'operator' })), startedBy: 'cron' })).toEqual(['"startedBy" is neither "scheduler" nor "operator"'])
+  })
+
   it('refuses an unknown, valueless or missing flag', () => {
     expect(() => parseCycleRecordArguments(['--cycles', 'x'])).toThrow(/unknown flag --cycles/)
     expect(() => parseCycleRecordArguments(['--cycle', '--steps', 'x'])).toThrow(/--cycle needs a value/)
@@ -335,7 +342,7 @@ describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
     const record = JSON.parse(git(origin, 'show', `cycle-test:${first}`)) as CycleRecord
     expect(record.steps.map(step => step.name)).toEqual(['pull', 'intake', 'intake-push', 'shift', 'pull-after-shift', 'functions', 'roster', 'publish'])
     expect(record.firstFailure).toEqual({ step: 'roster', exit: 1 })
-    expect(record).toMatchObject({ shifts: [TICKET.shift], tickets: { shipped: 1 }, functions: { pass: 1 }, previous: null })
+    expect(record).toMatchObject({ startedBy: 'operator', shifts: [TICKET.shift], tickets: { shipped: 1 }, functions: { pass: 1 }, previous: null })
     expect(git(origin, 'rev-parse', 'cycle-test^')).toBe(record.commits.end)
     expect(git(origin, 'log', '-1', '--format=%s', 'cycle-test')).toBe(`chore(enterprise): ${record.cycle} functions, roster and deck`)
     expect(existsSync(join(env.TMPDIR, `enterprise-${record.cycle}.steps`))).toBe(false)

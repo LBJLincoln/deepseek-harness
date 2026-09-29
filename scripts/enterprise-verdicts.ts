@@ -18,6 +18,7 @@ import {
   describeCi,
   enterpriseReport,
   gitRepository,
+  recordedSessionsIn,
   rosterGeneratorAt,
   type ReportSources,
   type ShippedCommitReport,
@@ -74,6 +75,12 @@ export function renderVerdicts(commits: readonly ShippedCommitReport[]): string 
 const isMain = process.argv[1] !== undefined && import.meta.url === `file://${resolve(process.argv[1])}`
 if (isMain) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-  const sources: ReportSources = { root, repository: gitRepository(root), github: githubReader(), rosterAt: rosterGeneratorAt(root) }
+  const sources: ReportSources = {
+    root,
+    repository: gitRepository(root),
+    github: githubReader(),
+    rosterAt: rosterGeneratorAt(root),
+    sessions: recordedSessionsIn(root),
+  }
   process.stdout.write(renderVerdicts(await shippedVerdicts(sources, new Date())))
 }

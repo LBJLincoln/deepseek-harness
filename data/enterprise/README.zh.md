@@ -128,7 +128,7 @@ pnpm run enterprise:publish     # the deck's fixtures from the roster and the le
 
 `cycles/<周期 id>.json` 记录一个周期做了什么：由 `pnpm run enterprise:cycle-record`（[`scripts/enterprise-cycle-record.ts`](../../scripts/enterprise-cycle-record.ts)）在周期的发布步骤之后写出，并随周期的最后一个提交一起提交，因此无论容器本地的日志后来如何，分支都保存着每一个最后推送到达了它的周期。周期脚本为每个步骤向一个临时文件追加一行 `<name> <exit code> <UTC time>`；该命令读取这个文件和检出，校验记录，并且从不覆盖已有的记录。一条记录包含：
 
-- `cycle`、`startedAt`（id 所标记的时刻）与 `endedAt`（构建记录的时刻）；
+- `cycle`、`startedAt`（id 所标记的时刻）、`endedAt`（构建记录的时刻）与 `startedBy`：`scripts/enterprise-scheduler.sh` 是周期的父进程时为 `scheduler`，否则为 `operator`（周期脚本早于该字段的记录中没有它）；
 - `commits`：`start`，周期开始时检出所在的提交，即运行的周期脚本所在的提交；`pulled`，首次拉取之后的提交，周期新增的台账行以它的台账为基准计数；`end`，构建记录时所在的提交，即周期最后一个提交的父提交；
 - `steps`：记录之前运行过的每个步骤，按顺序，形如 `{ name, exit, at }`——`pull`、`intake`、`intake-push`、`shift`（受理停在用量上限而跳过班次时不出现）、`pull-after-shift`、`functions`、`roster`、`publish`；
 - `shifts`、`tickets` 与 `functions`：台账在周期内新增的工单行所属的班次 id、这些工单行按状态的计数，以及新增的职能行按结果的计数；台账行按多重集合比较，因此重排了它们的变基也只把每行计一次；`unreadable` 统计新增行中任何读取方都无法使用的行数；
@@ -139,15 +139,16 @@ pnpm run enterprise:publish     # the deck's fixtures from the roster and the le
 
 ## 报告
 
-`pnpm run enterprise:report -- [--since <ISO>] [--until <ISO>] [--write]`（[`scripts/enterprise-report.ts`](../../scripts/enterprise-report.ts)）以 Markdown 打印企业在一个时间窗内（两端都包含）做了什么；`--until` 默认为当前时刻，`--since` 默认为 `--until` 之前 24 小时。它读取检出——台账、[周期记录](#the-cycle-record)、HEAD 的 git 历史、花名册生成器——并像[职能](#functions)运行器那样，经代理以无凭据方式从 GitHub REST API 读取 Branch CI 的运行，因此在固定的时间窗上，给定仓库与这些回答，它的输出是确定的。`--write` 还会写出 `reports/<until 形如 YYYY-MM-DDTHHMMZ>.json` 与 `.md`。它报告：
+`pnpm run enterprise:report -- [--since <ISO>] [--until <ISO>] [--write]`（[`scripts/enterprise-report.ts`](../../scripts/enterprise-report.ts)）以 Markdown 打印企业在一个时间窗内（两端都包含）做了什么；`--until` 默认为当前时刻，`--since` 默认为 `--until` 之前 24 小时。它读取检出——台账、[周期记录](#the-cycle-record)、班次与受理记录、损失登记 `data/transcripts/LOSSES.md`、已记录的会话、HEAD 的 git 历史、花名册生成器——并像[职能](#functions)运行器那样，经代理以无凭据方式从 GitHub REST API 读取 Branch CI 的运行，因此在固定的时间窗上，给定仓库与这些回答，它的输出是确定的。`--write` 还会写出 `reports/<until 形如 YYYY-MM-DDTHHMMZ>.json` 与 `.md`。报告以一句陈述试点精确计数的标题开头，并报告：
 
-- 时间窗内开始的周期：由记录统计数量、干净与失败的周期，以及每个步骤在多少个周期中失败；每条记录是否到达了远程分支，以下一条记录的陈述为准；没有记录的周期由指名它的提交计数，并标注为只在 git 历史中可见、结果未知；
-- 时间窗内工单行按状态与按事业部的计数，以及已交付的不同工单及其提交；
-- 每个已交付提交的 Branch CI 裁决：以该提交本身为 head 的运行中有一个作出过裁决或仍在排队、运行时，取这些运行；否则是在该提交之后创建、作出过裁决、且在检出历史中 head 包含它的第一个运行，并说明是哪一种，同时列出该提交自身被后一次推送取代的运行；否则为 `no run`；
-- 各事业部定义、在岗与活跃的席位数，来自在时间窗结束时刻、以不晚于该时刻的台账行与已记录会话运行的花名册生成器；
+- 时间窗内开始的周期：由记录统计数量、干净与失败的周期，以及每个步骤在多少个周期中失败；每个周期由谁启动（其记录的 `startedBy`；在 `scripts/enterprise-scheduler.sh` 首次提交之前开始的周期则为操作员）；每条记录是否到达了远程分支，以下一条记录的陈述为准；没有记录的周期由指名它的提交计数，并标注为只在 git 历史中可见、结果未知；
+- 班次：时间窗内开始的每个班次记录及其程序结果与中止情况、只由时间窗内台账行显示的每个班次，以及损失登记中点名、两者都没有留下的每个班次，以其 id 中的时刻、落在登记首次提到它的那一天来确定时间；
+- 时间窗内工单行按状态与按事业部的计数，其评审按批准、拒绝、未进行分类，以及已交付的不同工单及其提交；
+- 每个已交付提交的 Branch CI 裁决：以该提交本身为 head 的运行中有一个作出过裁决或仍在排队、运行时，取这些运行；否则是在该提交之后创建、作出过裁决、且在检出历史中 head 包含它的第一个运行，并标注为来自那次后续运行，同时列出该提交自身被后一次推送取代的运行；否则为 `no run`；
 - 时间窗内职能行按事业部与结果的计数；
-- 工单行陈述的 token 数与秒数、职能行的秒数，以及已记录周期的实际耗时。
+- 开销，每个来源一个总计，各自标明所覆盖的内容，并且因为相互重叠而从不相加：工单行的 token 数与秒数、受理协调人的计数、按记录树（班次、受理、Proving Ground、代码安全）统计的、最新事件落在时间窗内的已记录会话的 token 数与模型耗时、职能行的秒数，以及已记录周期的实际耗时；
+- 各事业部定义、在岗与活跃的席位数，来自在时间窗结束时刻、以不晚于该时刻的台账行与已记录会话运行的花名册生成器。
 
-数据未显示的内容都列在 Unknown 下，而不是推断：只在 git 历史中可见的周期、无法读取的记录或台账行、API 无法给出或其运行 head 不在检出中的裁决、没有 token 数的工单行，以及尚无后续记录陈述其推送的记录。
+数据未显示的内容都列在 Unknown 下，而不是推断：只在 git 历史中可见或没有记录陈述其启动者的周期、丢失班次的工单与开销、无法读取的记录或台账行、API 无法给出或其运行 head 不在检出中的裁决、没有 token 数的行或协调人、折叠无法读取的会话，以及尚无后续记录陈述其推送的记录。
 
 `pnpm run enterprise:verdicts`（[`scripts/enterprise-verdicts.ts`](../../scripts/enterprise-verdicts.ts)）以 Markdown 表格打印台账工单行交付过的每个提交，范围从台账的第一行到当前时刻，列出它承载的工单、它的裁决、依据（`exact`、`later`、`none` 或 `unknown`）、那是哪一次运行，以及该运行的页面，每一项都按报告的方式作答。

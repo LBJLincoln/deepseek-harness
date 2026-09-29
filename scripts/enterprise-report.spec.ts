@@ -17,6 +17,7 @@ import {
   type EnterpriseWindowReport,
   type ReportRepository,
   type ReportSources,
+  type WindowSessions,
 } from './enterprise-report.ts'
 import { buildRoster } from './enterprise-roster.ts'
 
@@ -76,6 +77,7 @@ const LEDGER: LedgerLine[] = [
   ticket({ ticket: 'T-0053', at: '2026-09-28T19:00:00.000Z', shipped: null, review: { verdict: 'none' } }),
   ticket({ ticket: 'T-0054', at: '2026-09-28T23:56:00.000Z', shipped: { commit: NONE } }),
   ticket({ ticket: 'T-0055', at: '2026-09-28T23:40:00.000Z', shipped: { commit: MISSING } }),
+  ticket({ ticket: 'T-0056', at: '2026-09-28T21:00:00.000Z', shipped: null, review: undefined }),
   fn({ at: WINDOW.since }),
   fn({ seat: 'judging-ci-static', division: 'judging', function: 'ci-static', outcome: 'fail', evidence: { url: 'https://github.com/x/actions/runs/1/job/2' }, seconds: 300 }),
   fn({ at: '2026-09-29T00:00:00.001Z', outcome: 'error' }),
@@ -98,6 +100,7 @@ function record(cycle: string, overrides: Partial<CycleRecord>): CycleRecord {
 const RECORDS: CycleRecord[] = [
   record('cycle-20260928T201301Z', { shifts: ['202000-aa11'], tickets: { shipped: 1, rejected: 0, halted: 0 }, functions: { pass: 1, fail: 0, error: 0 } }),
   record('cycle-20260928T221301Z', {
+    startedBy: 'scheduler',
     steps: [{ name: 'pull', exit: 0, at: '2026-09-28T22:13:02.000Z' }, { name: 'functions', exit: 1, at: '2026-09-28T22:50:00.000Z' }, { name: 'roster', exit: 2, at: '2026-09-28T22:51:00.000Z' }],
     firstFailure: { step: 'functions', exit: 1 },
     previous: { cycle: 'cycle-20260928T201301Z', recordOnRemote: true },
@@ -123,11 +126,50 @@ const COMMIT_TIMES: Record<string, string> = {
 /** Which run heads contain which shipped commit; a pair not listed is not contained, and a head named `absent` is not in the checkout. */
 const CONTAINS = new Set([`${LATER} ${sha('b')}`, `${LATER} ${sha('d')}`])
 
+/** The scheduler script's first commit, and the loss register's first mention of the lost shift. */
+const FIRST_CHANGES: Record<string, string> = {
+  'scripts/enterprise-scheduler.sh': '2026-09-28T20:41:16.000Z',
+  'data/transcripts/LOSSES.md 201448-94fd': '2026-09-28T23:30:00.000Z',
+}
+
 const repository: ReportRepository = {
   head: () => HEAD,
   cycleCommits: () => CYCLE_COMMITS,
   commitTime: commit => COMMIT_TIMES[commit],
   contains: (ancestor, descendant) => (descendant === sha('e') ? undefined : CONTAINS.has(`${ancestor} ${descendant}`)),
+  firstChange: (path, text) => FIRST_CHANGES[text === undefined ? path : `${path} ${text}`],
+}
+
+/** A failed shift's record, as the engine writes `result.json`. */
+const SHIFT_RECORD = {
+  type: 'result',
+  shift: '221520-e979',
+  startedAt: '2026-09-28T22:15:21.531Z',
+  report: { outcome: 'failed' },
+  halt: null,
+  tickets: [
+    ticket({ ticket: 'T-0001', shift: '221520-e979', at: '2026-09-28T22:53:59.804Z', shipped: null, review: { verdict: 'none' } }),
+    ticket({ ticket: 'T-0005', shift: '221520-e979', at: '2026-09-28T22:53:59.804Z', shipped: null, review: { verdict: 'none' } }),
+  ],
+}
+
+/** An intake whose coordinators state tokens, no tokens, and did not run. */
+const INTAKE_RECORD = {
+  type: 'intake',
+  at: '2026-09-28T22:13:03.803Z',
+  coordinators: [{ ran: true, tokens: 100, seconds: 10 }, { ran: true, seconds: 5 }, { ran: false, tokens: 999 }],
+}
+
+/** The shift sessions a window folds. */
+const SESSIONS: WindowSessions = {
+  byTree: {
+    'data/enterprise/shifts': {
+      sessions: 3,
+      tokens: { input: 10, output: 20, cacheRead: 30, cacheWrite: 40, reasoning: 0 },
+      stats: { turns: 3, steps: 9, llmMs: 12_345, toolMs: 600 },
+    },
+  },
+  skipped: [],
 }
 
 function run(id: number, head: string, createdAt: string, conclusion: string | null, status = 'completed'): Record<string, unknown> {
@@ -174,6 +216,16 @@ function root(): string {
   mkdirSync(join(dir, CYCLES_DIR), { recursive: true })
   writeFileSync(join(dir, LEDGER_PATH), `${LEDGER.map(line => JSON.stringify(line)).join('\n')}\n{"torn": \n`)
   for (const entry of RECORDS) writeFileSync(join(dir, CYCLES_DIR, `${entry.cycle}.json`), JSON.stringify(entry))
+  const files: Record<string, unknown> = {
+    'data/enterprise/shifts/2026-09-28-221520-e979/result.json': SHIFT_RECORD,
+    'data/enterprise/intake/2026-09-28-221303-c2c8/result.json': INTAKE_RECORD,
+  }
+  for (const [path, value] of Object.entries(files)) {
+    mkdirSync(join(dir, path, '..'), { recursive: true })
+    writeFileSync(join(dir, path), JSON.stringify(value))
+  }
+  mkdirSync(join(dir, 'data/transcripts'), { recursive: true })
+  writeFileSync(join(dir, 'data/transcripts/LOSSES.md'), 'The reset ended the shift `201448-94fd`; the shift `221520-e979` failed.\n')
   return dir
 }
 
@@ -186,6 +238,7 @@ function sources(dir: string, reader: GitHubReader): ReportSources {
       const ledger = readLedger(join(dir, LEDGER_PATH)).lines.filter(line => Date.parse(line.at) <= Date.parse(until))
       return buildRoster(repoRoot, { generatedAt: until, recorded: [], ledger })
     },
+    sessions: () => SESSIONS,
   }
 }
 
@@ -210,14 +263,53 @@ describe('enterpriseReport', () => {
     expect(cycles.list[2]?.record).toMatchObject({ firstFailure: { step: 'functions', exit: 1 }, failedSteps: ['functions', 'roster'] })
   })
 
-  it('tallies the ticket lines dated in the window by status and division, and lists the distinct tickets shipped', async () => {
+  it('says who started each cycle: its record, or the operator for a cycle older than the scheduler', async () => {
+    const { cycles } = await report()
+    expect(cycles.list.map(entry => entry.startedBy)).toEqual([
+      { by: 'operator', basis: 'it began before scripts/enterprise-scheduler.sh was first committed, at 2026-09-28T20:41:16.000Z' },
+      { by: 'operator', basis: 'it began before scripts/enterprise-scheduler.sh was first committed, at 2026-09-28T20:41:16.000Z' },
+      { by: 'scheduler', basis: 'the cycle record' },
+    ])
+  })
+
+  it('lists every shift: a recorded one with its outcome, one only ledger lines show, and one the loss register names', async () => {
+    expect((await report()).shifts).toEqual([
+      {
+        shift: '201448-94fd',
+        startedAt: '2026-09-28T20:14:48.000Z',
+        source: 'lost',
+        outcome: 'lost: no ledger line and no record',
+        tickets: { shipped: 0, rejected: 0, halted: 0 },
+        evidence: 'data/transcripts/LOSSES.md',
+      },
+      {
+        shift: '202000-aa11',
+        startedAt: null,
+        source: 'ledger',
+        outcome: 'no shift record in the checkout',
+        tickets: { shipped: 4, rejected: 1, halted: 1 },
+        evidence: LEDGER_PATH,
+      },
+      {
+        shift: '221520-e979',
+        startedAt: '2026-09-28T22:15:21.531Z',
+        source: 'record',
+        outcome: 'program failed',
+        tickets: { shipped: 0, rejected: 0, halted: 2 },
+        evidence: 'data/enterprise/shifts/2026-09-28-221520-e979',
+      },
+    ])
+  })
+
+  it('tallies the ticket lines dated in the window by status, division and review, and lists the distinct tickets shipped', async () => {
     const { tickets } = await report()
-    expect(tickets.lines).toBe(5)
-    expect(tickets.byStatus).toEqual({ shipped: 4, rejected: 1, halted: 0 })
+    expect(tickets.lines).toBe(6)
+    expect(tickets.byStatus).toEqual({ shipped: 4, rejected: 1, halted: 1 })
     expect(tickets.byDivision).toEqual([
-      { division: 'harness-core', lines: 4, shipped: 4, rejected: 0, halted: 0 },
+      { division: 'harness-core', lines: 5, shipped: 4, rejected: 0, halted: 1 },
       { division: 'knowledge', lines: 1, shipped: 0, rejected: 1, halted: 0 },
     ])
+    expect(tickets.reviews).toEqual({ approved: 4, rejected: 1, notReached: 1 })
     expect(tickets.shipped.map(entry => [entry.ticket, entry.commit])).toEqual([['T-0050', EXACT], ['T-0051', LATER], ['T-0055', MISSING], ['T-0054', NONE]])
   })
 
@@ -240,10 +332,10 @@ describe('enterpriseReport', () => {
     const unreadable = await enterpriseReport(sources(root(), failing), WINDOW)
     expect(unreadable.commits.map(entry => entry.verdict)).toEqual(['unknown', 'unknown', 'unknown', 'unknown'])
     expect(unreadable.unknowns.filter(unknown => unknown.includes('Branch CI could not be read: GET answered 403'))).toHaveLength(4)
-    expect(unreadable.tickets.lines).toBe(5)
+    expect(unreadable.tickets.lines).toBe(6)
   })
 
-  it('takes seats from the roster generator at the window\'s end, and function runs and effort from the window\'s lines', async () => {
+  it('takes seats from the roster generator at the window\'s end, and function runs from the window\'s lines', async () => {
     const built = await report()
     expect(built.seats.at).toBe(WINDOW.until)
     expect(built.seats.byDivision.find(division => division.id === 'judging')).toMatchObject({ occupied: 1, active: 1 })
@@ -252,29 +344,51 @@ describe('enterpriseReport', () => {
       lines: 2,
       byDivision: [{ division: 'judging', pass: 0, fail: 1, error: 0 }, { division: 'verification', pass: 1, fail: 0, error: 0 }],
     })
-    expect(built.effort).toEqual({
-      tokens: { total: 5000, lines: 4, withoutCount: 1 },
-      seconds: { tickets: 550, functions: 310, cycles: 6000 },
-    })
     expect(built.head).toEqual({ commit: HEAD, committedAt: '2026-09-29T00:30:00.000Z' })
+  })
+
+  it('totals the spend per source, each labelled with what it covers, and never sums them', async () => {
+    expect((await report()).effort.map(total => [total.source, total.items, total.tokens, total.seconds])).toEqual([
+      [LEDGER_PATH, 6, 6000, 650],
+      ['data/enterprise/intake/*/result.json', 2, 100, 15],
+      ['data/enterprise/shifts', 3, 100, 12.3],
+      [LEDGER_PATH, 2, null, 310],
+      ['data/enterprise/cycles/*.json', 2, null, 6000],
+    ])
+  })
+
+  it('heads the report with the pilot\'s exact counts, not its seats', async () => {
+    expect((await report()).headline).toBe([
+      'Pilot, 2026-09-28T20:00:00.000Z to 2026-09-29T00:00:00.000Z:',
+      '3 cycles started (1 clean, 1 failed, 1 without a record);',
+      '3 shifts (1 lost, 1 shown by ledger lines only, 1 recorded);',
+      '6 ticket lines (4 shipped, 1 rejected, 1 halted);',
+      'reviews 4 approved, 1 rejected, 1 not reached;',
+      '4 tickets shipped in 4 commits, Branch CI 1 success, 1 failure, 1 no run, 1 unknown (1 from a later run containing the commit);',
+      '2 function runs (1 pass, 1 fail, 0 error).',
+    ].join(' '))
   })
 
   it('lists every unknown in plain words', async () => {
     expect((await report()).unknowns).toEqual([
-      '1 ledger row (line 10) could not be read; its time and content are unknown',
+      '1 ledger row (line 11) could not be read; its time and content are unknown',
       '1 cycle is seen only in git history (cycle-20260928T201148Z): its steps, outcome and ledger lines are unknown',
+      'the tickets, sessions and spend of shift 201448-94fd are unknown: data/transcripts/LOSSES.md records it as lost, and it left no ledger line and no record',
       `the Branch CI verdict of ${MISSING.slice(0, 10)} is unknown: Branch CI run 24's head ${sha('e')} is not in this checkout; fetch the branch and run the report again`,
-      '1 ticket line states no token count; the token total leaves it out',
+      '1 ticket line states no token count; the ticket lines\' token total leaves it out',
+      '1 intake coordinator states no token count; the intake total leaves it out',
     ])
   })
 
-  it('renders the same Markdown for the same inputs, naming each cycle\'s source and each unknown', async () => {
+  it('renders the same Markdown for the same inputs, labelling each cycle\'s source and each verdict a later run gave', async () => {
     const markdown = renderReport(await report())
     expect(renderReport(await report())).toBe(markdown)
+    expect(markdown.split('\n').slice(0, 3)).toEqual(['# Enterprise pilot report, 2026-09-28T20:00:00.000Z to 2026-09-29T00:00:00.000Z', '', (await report()).headline])
     expect(markdown).toContain('3 cycles started in the window: 2 recorded (1 clean, 1 failed), 1 seen only in git history.')
-    expect(markdown).toContain(`| cycle-20260928T201148Z | git history only | unknown | — | — | — | \`${sha('6').slice(0, 10)}\` intake | — |`)
-    expect(markdown).toContain(`| \`${LATER.slice(0, 10)}\` | T-0051 | failure | run 19 (cancelled) on this exact commit rendered no verdict; the first later completed run whose head contains it is 22 on ${sha('d').slice(0, 10)} |`)
-    expect(markdown).toContain('- 1 ticket line states no token count; the token total leaves it out')
+    expect(markdown).toContain(`| cycle-20260928T201148Z | operator (it began before scripts/enterprise-scheduler.sh was first committed, at 2026-09-28T20:41:16.000Z) | git history only | unknown | — | — | — | \`${sha('6').slice(0, 10)}\` intake | — |`)
+    expect(markdown).toContain(`| \`${LATER.slice(0, 10)}\` | T-0051 | failure (from later run 22, which contains it) | run 19 (cancelled) on this exact commit rendered no verdict; the first later completed run whose head contains it is 22 on ${sha('d').slice(0, 10)} |`)
+    expect(markdown).toContain('| 201448-94fd | 2026-09-28T20:14:48.000Z | lost | lost: no ledger line and no record | 0 shipped, 0 rejected, 0 halted | `data/transcripts/LOSSES.md` |')
+    expect(markdown.indexOf('## Seats at')).toBeGreaterThan(markdown.indexOf('## Tokens and seconds'))
     expect(markdown.endsWith('\n') && !markdown.endsWith('\n\n')).toBe(true)
   })
 })
