@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from
 import { layoutWorkflow } from '@/deck/layout-workflow'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { eventsUpTo, useDeck } from '@/deck/store'
+import { useOps } from '@/deck/ops-store'
 import { kinetic } from './kinetic.tsx'
 import { VIEWS } from './views.ts'
 
@@ -46,6 +47,7 @@ function useCard(pathname: string): Card {
   const events = useDeck(state => state.events)
   const cursor = useDeck(state => state.cursor)
   const safety = useDeck(state => state.safety)
+  const operations = useOps(state => state.reading?.snapshot)
 
   const workflow = useMemo(() => {
     if (pathname !== '/workflow') return undefined
@@ -60,6 +62,18 @@ function useCard(pathname: string): Card {
       lines: [
         `${spell(workflow.nodes.length)} sessions, ${workflow.edges.length} edges between them`,
         `${workflow.certificates} certificates, ${spell(workflow.merges)} merges`,
+      ],
+    }
+  }
+
+  if (pathname === '/ops') {
+    if (operations === undefined) return { title: 'Operations', lines: [] }
+    const { tickets, cycles } = operations.big
+    return {
+      title: 'Operations',
+      lines: [
+        `${operations.agents.length} agents working now · ${operations.attention.length} ${operations.attention.length === 1 ? 'item needs' : 'items need'} attention`,
+        `${tickets === null ? 'tickets unknown' : `${tickets.shipped} tickets shipped`} · ${cycles === null ? 'cycles unknown' : `${cycles.last24h} cycles`} in 24 hours`,
       ],
     }
   }

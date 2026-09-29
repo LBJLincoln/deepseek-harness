@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useViewPathname } from './pathname.ts'
 import { useEffect, type ReactNode } from 'react'
 import { useDeck } from '@/deck/store'
+import { useOps } from '@/deck/ops-store'
 import { Opening } from './Opening.tsx'
 import { RollingNumber } from './RollingNumber.tsx'
 import { TitleCard } from './TitleCard.tsx'
@@ -36,12 +37,16 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
   const qualityTier = useDeck(state => state.qualityTier)
   const qualityPinned = useDeck(state => state.qualityPinned)
   const opening = useDeck(state => state.opening)
+  const opsMode = useOps(state => state.reading?.mode)
   const rate = useEventRate()
 
   useEffect(() => { void boot() }, [boot])
   usePresentation()
 
-  const mode = source?.mode ?? 'probing'
+  // The Operations view reads its own snapshot, so on /ops the badge says which of its modes it is in.
+  const onOps = pathname === '/ops'
+  const mode = onOps ? (opsMode === undefined ? 'probing' : opsMode === 'live' ? 'live' : 'replay') : source?.mode ?? 'probing'
+  const modeName = onOps && opsMode !== undefined ? opsMode : mode === 'probing' ? 'connecting' : mode
   const certified = roster?.agents.filter(agent => agent.status === 'certified').length
   const run = runs.find(entry => entry.id === selectedRunId)
 
@@ -85,7 +90,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
 
         <span className="badge" data-mode={mode}>
           <i className="badge__dot" />
-          {mode === 'probing' ? 'connecting' : mode}
+          {modeName}
         </span>
       </header>
 
@@ -99,8 +104,13 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
       </main>
 
       <footer className="deck__footer">
-        <span>feed <b>{source?.configured ?? '…'}</b></span>
-        <span>·</span>
+        {/* The Operations view is shown to clients; it names its mode, never the feed's address. */}
+        {onOps ? null : (
+          <>
+            <span>feed <b>{source?.configured ?? '…'}</b></span>
+            <span>·</span>
+          </>
+        )}
         <span>stream <b>{streamState}</b></span>
         <span>·</span>
         <span>run <b className="deck__run">{run?.name ?? '—'}</b></span>
@@ -124,7 +134,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         {presentation === 'off' ? null : (
           <span className="deck__mode" data-mode={presentation}>{presentation}</span>
         )}
-        <span>1 / 2 / 3 / 4 views · o open · f focus · p tour{pathname === '/safety' ? ' · g findings' : ''} · esc deselect</span>
+        <span>1–5 views · o open · f focus · p tour{pathname === '/safety' ? ' · g findings' : ''} · esc deselect</span>
       </footer>
     </div>
   )

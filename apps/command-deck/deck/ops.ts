@@ -14,11 +14,11 @@
  * than the snapshot's own `generatedAt` states.
  */
 
-import { OPS_SCHEMA, type OpsAgentKind, type OpsSnapshot, type RunEvent } from './contract.ts'
+import { OPS_SCHEMA, type OpsAgentKind, type OpsSnapshot, type OpsSourceId, type RunEvent } from './contract.ts'
 import { FIXTURE_BASE, feedUrl } from './feed.ts'
 
 /** Which snapshot the view shows, and how it knows. */
-export type OpsMode = 'live' | 'recent' | 'offline'
+type OpsMode = 'live' | 'recent' | 'offline'
 
 /** One read's outcome: a snapshot, or why there is none. */
 export interface OpsFetch {
@@ -74,7 +74,27 @@ export function isOpsSnapshot(value: unknown): value is OpsSnapshot {
     && Array.isArray(body.runs)
     && Array.isArray(body.activity)
     && Array.isArray(body.sources)
+    && Array.isArray(body.heartbeats)
     && typeof body.big === 'object' && body.big !== null
+}
+
+/**
+ * When the facts a panel shows were current: the oldest `asOf` of the
+ * sources it reads, or the snapshot's own time for a panel that reads the
+ * whole snapshot.
+ * @param snapshot - The snapshot.
+ * @param ids - The sources the panel's figures are counted from; empty for the whole snapshot.
+ * @returns ISO time, or `undefined` when one of the sources was not read.
+ */
+export function factsAsOf(snapshot: OpsSnapshot, ids: readonly OpsSourceId[] = []): string | undefined {
+  if (ids.length === 0) return snapshot.generatedAt
+  let oldest: string | undefined
+  for (const id of ids) {
+    const asOf = snapshot.sources.find(source => source.id === id)?.asOf
+    if (asOf === undefined) return undefined
+    if (oldest === undefined || asOf < oldest) oldest = asOf
+  }
+  return oldest
 }
 
 /**
@@ -91,7 +111,7 @@ export function snapshotAge(snapshot: OpsSnapshot, now: number): number {
 /**
  * Say how long ago something was, in the largest unit that keeps it short.
  * @param ms - Milliseconds.
- * @returns `12 s`, `4 min`, `3 h 5 min` or `2 d`.
+ * @returns `12 s`, `4 min`, `2 h`, `3 h 5 min` or `2 d`.
  */
 export function formatAge(ms: number): string {
   if (!Number.isFinite(ms)) return 'an unknown time'
@@ -100,7 +120,7 @@ export function formatAge(ms: number): string {
   const minutes = Math.round(seconds / 60)
   if (minutes < 120) return `${minutes} min`
   const hours = Math.floor(minutes / 60)
-  if (hours < 48) return `${hours} h ${minutes % 60} min`
+  if (hours < 48) return minutes % 60 === 0 ? `${hours} h` : `${hours} h ${minutes % 60} min`
   return `${Math.floor(hours / 24)} d`
 }
 
@@ -175,6 +195,15 @@ export const STATIONS = ['intake', 'shift', 'review', 'ci', 'ship'] as const
 /** One station of the pipeline. */
 export type Station = typeof STATIONS[number]
 
+/** Station names as the view prints them. */
+export const STATION_NAME: Record<Station, string> = {
+  intake: 'Intake',
+  shift: 'Shift',
+  review: 'Review',
+  ci: 'CI',
+  ship: 'Ship',
+}
+
 /** The station an agent kind works at; bench cells and the operator's agents work off the pipeline. */
 const KIND_STATION: Record<OpsAgentKind, Station | undefined> = {
   coordinator: 'intake',
@@ -196,6 +225,7 @@ const STEP_STATION: Record<string, Station> = {
   functions: 'ci',
   roster: 'ship',
   publish: 'ship',
+  record: 'ship',
   push: 'ship',
 }
 
@@ -238,4 +268,31 @@ export function ledgerStation(frame: RunEvent): Station {
  */
 export function frameKey(frame: RunEvent): string {
   return `${frame.sessionId}\u0000${String(frame.seq)}`
+}
+
+/**
+ * What each station's label counts, every figure read from the snapshot: the
+ * agents working there now and the queue or outcome that station owns.
+ * @param snapshot - The snapshot.
+ * @returns Per station, the agents working there and the lines to print.
+ */
+export function stationCounts(snapshot: OpsSnapshot): Record<Station, { busy: number; lines: string[] }> {
+  const busy = (station: Station): number => snapshot.agents.filter(agent => stationOf(agent.kind, agent.label) === station).length
+  const tickets = snapshot.big.tickets
+  const ci = snapshot.big.ci
+  const unknown = 'unknown'
+  const plural = (count: number, word: string): string => `${count} ${word}${count === 1 ? '' : 's'}`
+  return {
+    intake: { busy: busy('intake'), lines: [`${plural(busy('intake'), 'agent')} now`, tickets === null ? `queue ${unknown}` : `${tickets.queued} queued`] },
+    shift: { busy: busy('shift'), lines: [`${plural(busy('shift'), 'agent')} now`, tickets === null ? `halts ${unknown}` : `${tickets.halted} halted`] },
+    review: { busy: busy('review'), lines: [`${plural(busy('review'), 'agent')} now`, tickets === null ? `rejections ${unknown}` : `${tickets.rejected} rejected · 24 h`] },
+    ci: {
+      busy: busy('ci'),
+      lines: [
+        `${plural(busy('ci'), 'gate')} now`,
+        ci === null ? `Branch CI ${unknown}` : ci.latest === undefined ? 'no completed run' : `${ci.latest.conclusion} · ${ci.latest.commit.slice(0, 7)}`,
+      ],
+    },
+    ship: { busy: busy('ship'), lines: [tickets === null ? `shipped ${unknown}` : `${tickets.shipped} shipped · 24 h`] },
+  }
 }
