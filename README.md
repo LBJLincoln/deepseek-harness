@@ -25,7 +25,7 @@ Every figure here is read from [`data/enterprise/roster.json`](data/enterprise/r
 | Occupied, with evidence | 53: 27 model-driven, 22 automated checks, 4 only halted before any model ran | a recorded session or ledger line names the seat |
 | Active in the window | 44: 18 model-driven, 22 automated checks, 4 halted before any model ran | one of those deliverables is dated inside the window |
 
-**Which models ran.** Every enterprise ticket line records `Claude Code sonnet` or no model at all, and every intake and code-safety review ran on Claude Code. Of the 1,912 sessions recorded under `data/proving-ground` and `data/code-safety`, 1,283 ran on Claude Code, 29 ran free open-weight models through OpenRouter in the Proving Ground bench, and 600 made no model request. The roster defines 74 seats for the DeepSeek API route and 25 for Codex; no recorded session has run on either.
+**Which models ran.** Every enterprise ticket line records `Claude Code sonnet` or no model at all, and every intake and code-safety review ran on Claude Code. Of the 1,912 sessions recorded under `data/proving-ground` and `data/code-safety`, 1,283 ran on Claude Code, 29 ran free open-weight models through OpenRouter on the Proving Ground's tier 2 (DeepSeek V4 Flash, Nex N2.5 Pro, Nemotron 3 Super, Laguna S 2.1 and Qwen 3.8), and 600 made no model request. The roster defines 74 seats for the DeepSeek API route and 25 for Codex; no recorded session has run on either.
 
 ## DeepSeek Harness
 
@@ -63,9 +63,14 @@ pnpm dsh web
 
 ## Proving Ground
 
-The harness measures itself on the Proving Ground: a bench of 44 environments across six domains — forty single-file programs and a four-task pilot tier of multi-file repositories — its two hardest tiers validated on hidden cases the implementer never sees, run as frozen paired experiments with bootstrap intervals. [data/proving-ground/dashboard.html](data/proving-ground/dashboard.html) is the one page folded from every recorded run: the verdict of each paired comparison with its interval, the models on the sealed tier, the certification matrix, the timeline, and the training-corpus fold. The [results note](.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md) states what those runs proved and refuted, and [data/proving-ground/improvement-log.md](data/proving-ground/improvement-log.md) is the ledger of the loop itself: one row per improvement iteration, from the change proposed to the decision the verdict earned it. The bench runs on the operator's own Claude Code login and, through the `with-openrouter` overlay, on free open-weight models: three of them certified 16 of 18 tier-2 cells on 2026-09-19, and `pnpm run bench -- loop` recorded its first five iterations without a hand on them, two of them replications of frozen pairs.
+The harness measures itself on the Proving Ground: a bench of 44 environments across six domains — forty single-file programs and a four-task pilot tier of multi-file repositories — its two hardest tiers validated on hidden cases the implementer never sees, run as frozen paired experiments with bootstrap intervals. [data/proving-ground/dashboard.html](data/proving-ground/dashboard.html) is the one page folded from every recorded run: the verdict of each paired comparison with its interval, the models on the sealed tier, the certification matrix, the timeline, and the training-corpus fold. The [results note](.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md) states what those runs proved and refuted, and [data/proving-ground/improvement-log.md](data/proving-ground/improvement-log.md) is the ledger of the loop itself: one row per improvement iteration, from the change proposed to the decision the verdict earned it. The bench runs Claude Haiku, Sonnet and Opus on one Claude Code login and, through the `with-openrouter` overlay, free open-weight models on tier 2 only. What the records show, as the dashboard folded them from the 67 records on 2026-09-29:
 
-![The Proving Ground dashboard: the records, cells, and certificates counted, and the paired verdicts with their bootstrap intervals](data/proving-ground/dashboard.png)
+- **Capability.** Pooled over every model and loop that ran it, sealed tier 5 certified 624 of 733 cells, 85.1 % with a 95 % Wilson interval of 82.4 % to 87.5 %; sealed tier 6 certified 41 of 64, 51.8 % to 74.7 %. District cells, which certify a village of trivial tasks, and suites without a tier are kept out of every tier.
+- **Paired verdicts.** Of 23 frozen paired experiments, 4 were decisive, all on tier 5: Haiku certified fewer cells than Sonnet (1 against 14 of 16), Opus more (16 against 13 of 16), one attempt fewer than three (9 against 15 of 16), and five attempts more than three (14 against 12 of 16), a verdict the [improvement log](data/proving-ground/improvement-log.md) sets aside as an artifact of the statistic. The other 19 were not decisive: their intervals include zero.
+- **Harness against product.** Claude Code's own loop against the harness loop, both on Sonnet, over 4 frozen pairs: 85 against 83 of 90 cells certified by the harness loop and by Claude Code, no decisive verdict. The harness is not shown to certify more tasks than the product it wraps.
+- **The improvement loop.** `pnpm run bench -- loop` ran 16 iterations unattended from 2026-09-19 to 2026-09-28: 6 frozen pairs, of which 1 was decisive, and 10 single-arm runs, 9 of them the unchanged nightly baseline. No change it tested has been adopted.
+
+![The Proving Ground dashboard: the certification rate by tier with its Wilson interval, what the paired comparisons show, and every paired verdict with its interval](data/proving-ground/dashboard.png)
 
 After `pnpm run build`, list the checked-in plans, run one frozen paired experiment from them, or run one task through the harness on your own Claude Code login with no API key:
 
@@ -85,6 +90,8 @@ pnpm run poc                                             # the feed on :4711 and
 ```
 
 ## Community and support
+
+These are the upstream DeepSeek Harness project's channels, for the harness itself; Daliesk, the enterprise, the deck and the records in this fork are discussed on [this fork's repository](https://github.com/LBJLincoln/deepseek-harness).
 
 - Feel free to submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
 - Add the [`dsh-plugin`](https://github.com/topics/dsh-plugin) topic to your plugin repository for discoverability.

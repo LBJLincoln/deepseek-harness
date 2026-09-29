@@ -25,7 +25,7 @@ Daliesk 是一个试点性质的 AI 智能体组织：它通过工单队列修�
 | 已占据（有证据） | 53：27 个模型驱动，22 个自动检查，4 个仅在任何模型运行之前就停止 | 某条已记录的会话或台账行指名该席位 |
 | 窗口内活跃 | 44：18 个模型驱动，22 个自动检查，4 个在任何模型运行之前就停止 | 这些交付物之一的日期落在窗口内 |
 
-**运行了哪些模型。** 企业的每条工单行记录的都是 `Claude Code sonnet` 或根本没有模型，每次 intake 与代码安全审查都运行在 Claude Code 上。在 `data/proving-ground` 与 `data/code-safety` 下记录的 1,912 个会话中，1,283 个运行在 Claude Code 上，29 个在 Proving Ground bench 中经 OpenRouter 运行免费的开放权重模型，600 个没有发出模型请求。花名册为 DeepSeek API 路由定义了 74 个席位、为 Codex 定义了 25 个；没有任何已记录的会话在这两者上运行过。
+**运行了哪些模型。** 企业的每条工单行记录的都是 `Claude Code sonnet` 或根本没有模型，每次 intake 与代码安全审查都运行在 Claude Code 上。在 `data/proving-ground` 与 `data/code-safety` 下记录的 1,912 个会话中，1,283 个运行在 Claude Code 上，29 个在 Proving Ground 的第 2 层经 OpenRouter 运行免费的开放权重模型（DeepSeek V4 Flash、Nex N2.5 Pro、Nemotron 3 Super、Laguna S 2.1 与 Qwen 3.8），600 个没有发出模型请求。花名册为 DeepSeek API 路由定义了 74 个席位、为 Codex 定义了 25 个；没有任何已记录的会话在这两者上运行过。
 
 ## DeepSeek Harness
 
@@ -63,9 +63,14 @@ pnpm dsh web
 
 ## Proving Ground
 
-harness 在 Proving Ground 上度量自身：这是一个横跨六个领域、由 44 个环境组成的 bench —— 四十个单文件程序，外加一个由四个多文件仓库任务构成的试点层 —— 其最难的两档由 implementer 从未见过的隐藏用例验证，并以带 bootstrap 区间的冻结配对实验运行。[data/proving-ground/dashboard.html](data/proving-ground/dashboard.html) 是由每一条已记录运行折叠而成的那一个页面：每组配对比较的判定及其区间、密封层级上的各模型、认证矩阵、时间线，以及训练语料折叠。[结果笔记](.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md)陈述这些运行证明了什么、驳倒了什么，而 [data/proving-ground/improvement-log.md](data/proving-ground/improvement-log.md) 是这个循环本身的台账：每次改进迭代一行，从被提出的改动到裁决为它挣得的决定。这个 bench 跑在操作者自己的 Claude Code 登录上，也经 `with-openrouter` 叠加层跑在免费的开放权重模型上：2026-09-19 其中三个模型认证了第 2 层 18 个 cell 中的 16 个，而 `pnpm run bench -- loop` 无人插手地记录了它的前五次迭代，其中两次是对冻结配对的复现。
+harness 在 Proving Ground 上度量自身：这是一个横跨六个领域、由 44 个环境组成的 bench —— 四十个单文件程序，外加一个由四个多文件仓库任务构成的试点层 —— 其最难的两档由 implementer 从未见过的隐藏用例验证，并以带 bootstrap 区间的冻结配对实验运行。[data/proving-ground/dashboard.html](data/proving-ground/dashboard.html) 是由每一条已记录运行折叠而成的那一个页面：每组配对比较的判定及其区间、密封层级上的各模型、认证矩阵、时间线，以及训练语料折叠。[结果笔记](.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md)陈述这些运行证明了什么、驳倒了什么，而 [data/proving-ground/improvement-log.md](data/proving-ground/improvement-log.md) 是这个循环本身的台账：每次改进迭代一行，从被提出的改动到裁决为它挣得的决定。这个 bench 在一个 Claude Code 登录上运行 Claude Haiku、Sonnet 与 Opus，并经 `with-openrouter` 叠加层仅在第 2 层运行免费的开放权重模型。记录所显示的内容，即 2026-09-29 仪表板从 67 份记录折叠出的结果：
 
-![Proving Ground 仪表板：记录、cell 与证书的计数，以及带 bootstrap 区间的配对判定](data/proving-ground/dashboard.png)
+- **能力。** 汇总运行过它的每个模型与循环，密封的第 5 层认证了 733 个 cell 中的 624 个，即 85.1 %，95 % Wilson 区间为 82.4 % 至 87.5 %；密封的第 6 层认证了 64 个中的 41 个，区间为 51.8 % 至 74.7 %。district 的 cell（它们认证的是一个由简单任务组成的 village）以及没有层级的测试集都不计入任何层级。
+- **配对判定。** 在 23 组冻结配对实验中，有 4 组是决定性的，全部在第 5 层：Haiku 认证的 cell 少于 Sonnet（16 个中 1 对 14），Opus 多于 Sonnet（16 个中 16 对 13），一次尝试少于三次（16 个中 9 对 15），五次尝试多于三次（16 个中 14 对 12），而[改进日志](data/proving-ground/improvement-log.md)把最后这一判定视为统计量造成的假象而搁置。其余 19 组不是决定性的：它们的区间包含零。
+- **harness 对产品。** 在 4 组冻结配对上，Claude Code 自身的循环对 harness 循环，二者都在 Sonnet 上：90 个 cell 中，harness 循环认证 85 个，Claude Code 认证 83 个，没有决定性判定。没有证据表明 harness 比它所包装的产品认证更多任务。
+- **改进循环。** `pnpm run bench -- loop` 在 2026-09-19 至 2026-09-28 之间无人值守地运行了 16 次迭代：6 组冻结配对，其中 1 组是决定性的，以及 10 次单臂运行，其中 9 次是未作改动的夜间基线。它所测试的改动没有一项被采纳。
+
+![Proving Ground 仪表板：按层级的认证率及其 Wilson 区间、配对比较所显示的内容，以及每个配对判定及其区间](data/proving-ground/dashboard.png)
 
 执行 `pnpm run build` 之后，可以列出已签入的计划、从中运行一组冻结配对实验，或在你自己的 Claude Code 登录上、无需 API key 地通过 harness 运行一个任务：
 
@@ -85,6 +90,8 @@ pnpm run poc                                             # the feed on :4711 and
 ```
 
 ## 社区与支持
+
+以下是上游 DeepSeek Harness 项目的渠道，面向 harness 本身；Daliesk、企业、指挥台以及本分叉中的记录在[本分叉的仓库](https://github.com/LBJLincoln/deepseek-harness)中讨论。
 
 - 欢迎通过 [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions) 提交反馈或 bug 报告。
 - 为你的插件仓库添加 [`dsh-plugin`](https://github.com/topics/dsh-plugin) 话题，便于被发现。

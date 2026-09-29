@@ -21,7 +21,7 @@ Status: implemented
 - *观象台*：会话统计观察员把其所属包真实的 `sessionStats` 投影单元折叠在每个已记录会话上——已提交记录以及 `data/enterprise/shifts/` 下的任何班次记录——并发布 `data/enterprise/telemetry.json`：最近 24 小时与总计的会话数与 token，该单元的轮次、步数、模型与工具耗时，以及按规则在当下台账（含本次运行此前的行）上计得的按事业部在岗与活跃席位。其余五个观察员席位空缺，原因是各自包的职能需要运行中的后端、collector、存储或注册表，而这里没有任何东西在已提交记录上组合它们。
 - *策展与数据*：记分员把记分员包的会话事实与记分板折叠在同一批会话上，写入 `data/enterprise/scoreboard.json`。笔记与夹具策展员空缺：策展是工单化的工作。
 
-**公开视图读取记录。** `pnpm run enterprise:publish` 从花名册、台账与工单队列重新生成指挥台的静态数据：作为逐字节副本的花名册 fixture，以及企业视图的台账标签页所展示的 `enterprise.json`——按事业部的在岗与活跃席位、当天按状态分列的工单、当天按班次的职能运行，以及最近已交付提交及其上记录的 CI 裁决。指挥台按同一规则点亮席位（`isOccupied` 读取会话与台账行），通过花名册已带的状态为活跃席位加环，并以 `defined · occupied · active today` 为标题。报告是其输入的纯函数，只在字节变化时重写；`deck-pages.yml` 在指挥台分支上每一次触及 `apps/command-deck/**` 的推送时重新发布 Pages 站点。
+**公开视图读取记录。** `pnpm run enterprise:publish` 从花名册、台账与工单队列重新生成指挥台的静态数据：作为逐字节副本的花名册 fixture，以及企业视图的台账标签页所展示的 `enterprise.json`——按事业部的在岗与活跃席位、当天按状态分列的工单、当天按班次的职能运行，以及最近已交付提交及其上记录的 CI 裁决。指挥台按同一规则点亮席位（`isOccupied` 读取会话与台账行），通过花名册已带的状态为活跃席位加环，并先陈述时间窗内交付了什么，再陈述已定义、在岗与活跃的席位，活跃席位按其交付物的工作类型拆分（[标题数字笔记](../process/2026-09-29-headline-figures-and-daliesk-identity.md)）。报告是其输入的纯函数，只在字节变化时重写；`deck-pages.yml` 在指挥台分支上每一次触及 `apps/command-deck/**` 的推送时重新发布 Pages 站点。
 
 ## Verification
 

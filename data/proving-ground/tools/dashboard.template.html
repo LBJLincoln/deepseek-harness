@@ -52,9 +52,12 @@ section{display:grid;gap:.75rem}
 .verdict[data-verdict="reject"]{border-left-color:var(--critical)}
 .verdict[data-verdict="inconclusive"]{border-left-color:var(--neutral)}
 .verdict[data-verdict="running"]{border-left-color:var(--running)}
-.verdict .top{display:flex;justify-content:space-between;gap:.5rem;align-items:flex-start}
+.verdict .top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem;align-items:flex-start}
+.verdict .top>div{flex:1 1 11rem;min-width:0}
 .verdict .name{font-weight:600}
-.verdict .arms{color:var(--muted);font-size:.82rem;line-height:1.4}
+.verdict>*{min-width:0}
+.verdict .arms{color:var(--muted);font-size:.82rem;line-height:1.4;overflow-wrap:anywhere}
+.verdict .question{font-weight:600;overflow-wrap:anywhere}
 .verdict .arms b{color:var(--ink);font-weight:500}
 .verdict .counts{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.82rem}
 .verdict .counts .num{font-size:1.15rem;font-weight:500;display:block}
@@ -120,7 +123,7 @@ table.records tr.detail td{background:var(--surface-2);padding:.75rem .75rem 1re
 .attempts i{display:inline-block;width:.45rem;height:.7rem;margin-right:2px;background:var(--line-strong);vertical-align:middle;border-radius:1px}
 .attempts i.pass{background:var(--good)}
 .kind{display:inline-block;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:0 .4rem;border-radius:3px;border:1px solid var(--line-strong);color:var(--muted)}
-.kind[data-kind="experiment"]{border-color:var(--s1);color:var(--s1)}.kind[data-kind="fleet"]{border-color:var(--s2);color:var(--s2)}
+.kind[data-kind="experiment"]{border-color:var(--s1);color:var(--s1)}.kind[data-kind="fleet"]{border-color:var(--line-strong);color:var(--muted)}
 .kind[data-kind="district"]{border-color:var(--s3);color:var(--s3)}.kind[data-kind="program"]{border-color:var(--s6);color:var(--s6)}
 .kind[data-kind="live"]{border-color:var(--running);color:var(--running)}.kind[data-kind="partial"]{border-style:dashed}
 .badge-running{color:var(--running);font-weight:600}
@@ -131,32 +134,52 @@ table.plain td.num,table.plain th.num{text-align:right;font-family:"IBM Plex Mon
 .notes{display:grid;gap:.5rem;font-size:.9rem;max-width:80ch}
 .notes p{margin:0}
 footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
+/* headline */
+table.tiers{border-collapse:collapse;width:100%;font-size:.86rem}
+table.tiers th,table.tiers td{padding:.4rem .55rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.tiers th{font-weight:600;color:var(--muted);font-size:.76rem;letter-spacing:.02em}
+table.tiers td.num,table.tiers th.num{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.tiers tr.lead td{font-weight:600;background:var(--surface-2)}
+table.tiers td.who{color:var(--muted);font-size:.8rem;overflow-wrap:anywhere}
+.findings{display:grid;gap:.45rem;margin:0;padding-left:1.1rem;max-width:90ch}
+table.records.loop{min-width:0}
+table.loop td.when,table.loop td.num{white-space:nowrap}
+table.tiers td:first-child{white-space:nowrap}
+table.loop td.what{min-width:16rem}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 @media (prefers-reduced-motion:no-preference){.pulse{animation:pulse 1.6s ease-in-out infinite}@keyframes pulse{50%{opacity:.35}}}
 </style>
 <header>
-  <div class="eyebrow">DeepSeek Harness · Daliesk</div>
+  <div class="eyebrow">Daliesk · Proving Ground</div>
   <h1>Proving Ground</h1>
-  <p class="lede">Every recorded run of the bench on the operator's subscription, folded from the session logs on disk: what certified, at which attempt, at what cost, and which comparisons hold above the bench's own noise.</p>
+  <p class="lede">Every recorded run of the bench, coding tasks judged by test cases the implementer never sees, folded from the session logs on disk. Claude Haiku, Sonnet and Opus ran on one Claude Code login; free open-weight models ran on tier 2 only, through OpenRouter. The page states what certified, at which attempt, at what cost, and which comparisons hold above the bench's own noise.</p>
   <div class="stats" id="stats"></div>
 </header>
 <main>
+  <section class="panel">
+    <div class="section-head"><h2>How often a task is solved, by tier</h2><p>A cell is one task run once by one arm; it certifies when every hidden test case passes. Each row pools every model and loop that ran the tier, with a 95 % Wilson interval. Sealed rows ran confined to their workspace, and sealed tier 5, the hardest audited tier, leads.</p></div>
+    <div id="tiers"></div>
+  </section>
+  <section class="panel">
+    <div class="section-head"><h2>What the paired comparisons show</h2></div>
+    <ul class="findings" id="findings"></ul>
+  </section>
   <section id="live-section" hidden>
     <div class="section-head"><h2>Running now</h2><p>Folded from the run directory's session logs at build time; a run in flight has no verdict yet.</p></div>
     <div class="verdicts" id="live"></div>
   </section>
-  <section id="loop-section" hidden>
-    <div class="section-head"><h2>Loop</h2><p>One row per <span class="mono">bench loop</span> iteration, in the order they ran, read from the machine-written <span class="mono">loop/ledger.jsonl</span>. The decision rule is fixed: promote adopts the candidate, reject and inconclusive keep the baseline, a fleet is only recorded. Adopting a candidate is a decision, not an edit — the composition change stays a human act.</p></div>
-    <div class="table-wrap"><table class="records" id="loop"></table></div>
-  </section>
   <section>
-    <div class="section-head"><h2>Verdicts</h2><p>Each card is one paired comparison: certificates per arm, the paired delta with its bootstrap interval, and the verdict rule read on that interval. Frozen pairs ran as one experiment; offline folds pair two separately recorded runs.</p></div>
+    <div class="section-head"><h2>Every paired comparison, newest first</h2><p>Each card asks whether a change (the candidate) certifies more cells than the current setting (the baseline) on the same tasks at the same seeds: cells certified per arm, the difference in certification rate with its 95 % bootstrap interval, and the verdict. A frozen pair ran as one experiment, and its verdict is decisive only when the whole interval clears zero; an offline fold pairs two separately recorded runs and is evidence only.</p></div>
     <div class="toggles" id="verdict-filters"></div>
     <div class="verdicts" id="verdicts"></div>
   </section>
+  <section id="loop-section" hidden>
+    <div class="section-head"><h2>Improvement loop</h2><p>One row per unattended iteration of <span class="mono">bench loop</span>, in the order they ran, read from the machine-written <span class="mono">loop/ledger.jsonl</span>. A paired experiment whose candidate is better is marked for adoption, any other keeps the baseline, and a single-arm run is only recorded. Applying a marked change is a person's edit, and the improvement log states whether it was made.</p></div>
+    <div class="table-wrap"><table class="records loop" id="loop"></table></div>
+  </section>
   <div class="two">
     <section class="panel">
-      <div class="section-head"><h2>Product models on sealed tier 5</h2><p>Plain single-model arms on the harness loop over the eight audited tasks, two repetitions at seed 2, three attempts; every sealed run of the same arm is pooled.</p></div>
+      <div class="section-head"><h2>Models on sealed tier 5</h2><p>Each Claude model alone on the harness loop over the eight audited tier-5 tasks, three attempts per cell; every sealed run of the same arm is pooled.</p></div>
       <div id="models"></div>
     </section>
     <section class="panel">
@@ -213,11 +236,30 @@ footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
   const linkRecord = (name) => `${D.linkBase}data/proving-ground/${name}/manifest.json`
 
   // ---- stats
+  const H = D.headline
+  const lead = H.tiers[0]
+  const pctOf = (x) => `${(x * 100).toFixed(1)} %`
   $('stats').innerHTML = [
-    [D.summary.records, 'records'], [D.summary.cells, 'cells run'], [D.summary.certified, 'certificates'],
-    [D.summary.experiments, 'frozen experiments'], [D.summary.folds, 'offline folds'], [D.summary.environments, 'environments'],
-  ].map(([n, l]) => `<div class="stat"><b>${fmt(n)}</b><span>${l}</span></div>`).join('')
+    ...(lead ? [[`${fmt(lead.certified)} of ${fmt(lead.cells)}`, `${lead.sealed ? 'sealed ' : ''}tier ${lead.tier} cells certified, ${pctOf(lead.interval.lower)} to ${pctOf(lead.interval.upper)}`]] : []),
+    [`${H.frozen.decisive} of ${H.frozen.pairs}`, 'frozen pairs decisive'],
+    [`${H.product.harness} vs ${H.product.product}`, `of ${H.product.cells} cells, harness loop vs Claude Code loop`],
+    [`${H.loop.adopted} of ${H.loop.iterations}`, 'loop iterations that changed a default'],
+    [D.summary.records, 'records'], [D.summary.environments, 'environments'],
+  ].map(([n, l]) => `<div class="stat"><b>${typeof n === 'number' ? fmt(n) : esc(n)}</b><span>${esc(l)}</span></div>`).join('')
     + `<div class="stat"><b class="mono" style="font-size:1rem">${esc(D.head.slice(0, 9))}</b><span>head · built ${esc(when(D.builtAt))}</span></div>`
+
+  // ---- tiers: rate, Wilson interval, who ran, and the cells kept out
+  const tierRow = (t, isLead) => `<tr class="${isLead ? 'lead' : ''}"><td>${t.sealed ? 'sealed' : 'unsealed'} tier ${t.tier}</td><td class="num">${fmt(t.certified)} of ${fmt(t.cells)}</td><td class="num">${pctOf(t.rate)}</td><td class="num">${pctOf(t.interval.lower)} to ${pctOf(t.interval.upper)}</td><td class="who" title="${esc(t.routes.join('; '))}">${esc(t.models.join(', '))} · ${esc(t.loops.join(', '))} · ${t.records} record${t.records === 1 ? '' : 's'}</td></tr>`
+  $('tiers').innerHTML = `<table class="tiers"><thead><tr><th>Tier</th><th class="num">Certified</th><th class="num">Rate</th><th class="num">95 % interval</th><th>Models and loops pooled</th></tr></thead><tbody>${H.tiers.map((t, i) => tierRow(t, i === 0)).join('')}</tbody></table>`
+    + `<p style="color:var(--muted);font-size:.8rem;margin:.6rem 0 0">Kept out of every tier: ${fmt(H.district.cells)} cells of ${H.district.records} district records (${fmt(H.district.certified)} certified), which run a village of trivial tasks rather than the bench, and suites without a tier: ${H.other.map(o => `${esc(o.label)}, ${o.certified} of ${o.cells}`).join('; ')}. Unsealed rows ran before ${esc(when(D.sealedSince))}, when a cell could still read outside its workspace.</p>`
+
+  const verdictWords = { promote: 'the candidate certified more', reject: 'the candidate certified fewer', inconclusive: 'no clear difference' }
+  const decided = H.frozen.decided.map(d => `${esc(d.question)}, tier ${esc(d.tier)} on ${esc(String(d.date).slice(0, 10))}: ${esc(verdictWords[d.verdict])}, ${d.candidate.certified} against ${d.baseline.certified} of ${d.baseline.cells}`).join('; ')
+  $('findings').innerHTML = [
+    `Of ${H.frozen.pairs} frozen paired experiments, ${H.frozen.decisive} reached a decisive verdict: ${decided}. ${H.frozen.adopted === 0 ? 'None of them changed a default setting of the harness, as the improvement log records.' : `${H.frozen.adopted} changed a default setting.`}`,
+    `Claude Code's own loop against the harness loop, both on Sonnet: ${H.product.pairs} pairs, ${H.product.harness} against ${H.product.product} of ${H.product.cells} cells certified by the harness loop and by Claude Code, ${H.product.decisive === 0 ? 'no decisive verdict: the harness is not shown to certify more tasks than the product it wraps' : `${H.product.decisive} decisive`}.`,
+    `The improvement loop ran ${H.loop.iterations} iterations unattended from ${esc(String(H.loop.first).slice(0, 10))} to ${esc(String(H.loop.last).slice(0, 10))}: ${H.loop.experiments} paired experiments and ${H.loop.fleets} single-arm runs, ${H.loop.baselineFleets} of them the unchanged nightly baseline. ${H.loop.decisive} verdict was decisive, ${H.loop.adoptCandidates} change was marked for adoption, and ${H.loop.adopted === 0 ? 'none' : H.loop.adopted} was applied.`,
+  ].map(line => `<li>${line}</li>`).join('')
 
   // ---- interval bar (SVG): axis -1..1 clipped to the widest interval, 0 line, minimum-delta tick
   function intervalSvg(delta, interval, minimumDelta) {
@@ -236,20 +278,23 @@ footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
   }
 
   // ---- verdict cards
-  const verdictLabel = { promote: 'promote', reject: 'reject', inconclusive: 'inconclusive', running: 'running' }
+  const verdictLabel = { promote: 'candidate better', reject: 'candidate worse', inconclusive: 'no clear difference', running: 'running' }
   function verdictCard(e) {
     const v = e.verdict ?? 'running'
     const count = (arm) => arm && arm.cells ? `<span class="num">${arm.certified} <small>of ${arm.cells}</small></span>` : '<span class="num">–</span>no cell ran'
     const counts = `<div class="counts"><div>${count(e.baseline)}baseline</div><div>${count(e.candidate)}candidate</div></div>`
+    const standing = e.method === 'frozen pair'
+      ? (e.decisive ? '<span class="tag">decisive</span>' : '<span class="tag">not decisive</span>') + (v === 'promote' && !e.adopted ? ' <span class="tag">not adopted</span>' : '')
+      : '<span class="tag">evidence only</span>'
     return `<article class="verdict" data-verdict="${v}" data-method="${esc(e.method)}">
-      <div class="top"><div><div class="name">${esc(e.label)}</div><div class="arms"><b>${esc(e.baselineLabel)}</b> vs <b>${esc(e.candidateLabel)}</b></div></div><span class="pill ${v}">${verdictLabel[v]}</span></div>
-      <div class="arms"><span class="tag">${esc(e.method)}</span> <span class="tag">tier ${esc(e.tier ?? '–')}</span> <span class="tag">${e.seedsPaired ?? 0} paired</span> ${e.errors ? `<span class="tag">${e.errors} cell errors</span>` : ''}</div>
+      <div class="top"><div><div class="question">${esc(e.question)}</div><div class="arms">${e.tier && e.tier !== '–' ? `tier ${esc(e.tier)} · ` : ''}${esc(String(e.date).slice(0, 10))}</div></div><span class="pill ${v}">${verdictLabel[v]}</span></div>
+      <div class="arms">baseline <b>${esc(e.baselineLabel)}</b> · candidate <b>${esc(e.candidateLabel)}</b></div>
+      <div class="arms"><span class="tag">${esc(e.method)}</span> <span class="tag">${e.seedsPaired ?? 0} pairs</span> ${standing} ${e.errors ? `<span class="tag">${e.errors} cell errors</span>` : ''}</div>
       ${counts}
-      <div class="interval">${e.delta === undefined ? '' : intervalSvg(e.delta, e.interval, e.minimumDelta)}<div class="arms">Δ ${e.delta === undefined ? '–' : signed(e.delta)}${e.interval ? ` [${signed(e.interval.lower)}, ${signed(e.interval.upper)}]` : ''} · <a href="${esc(e.href)}">${esc(e.source)}</a></div></div>
+      <div class="interval">${e.delta === undefined ? '' : intervalSvg(e.delta, e.interval, e.minimumDelta)}<div class="arms">difference ${e.delta === undefined ? '–' : signed(e.delta)}${e.interval ? `, 95 % interval ${signed(e.interval.lower)} to ${signed(e.interval.upper)}` : ''} · <a href="${esc(e.href)}" title="${esc(e.source)}">record</a></div></div>
     </article>`
   }
-  const order = { promote: 0, reject: 1, inconclusive: 2 }
-  const exps = [...D.experiments].sort((a, b) => (order[a.verdict] - order[b.verdict]) || b.date.localeCompare(a.date))
+  const exps = [...D.experiments].sort((a, b) => String(b.date).localeCompare(String(a.date)))
   const methods = [...new Set(exps.map(e => e.method))]
   let methodFilter = null
   function renderVerdicts() {
@@ -273,20 +318,23 @@ footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
   // ---- loop ledger
   if (D.loop.length) {
     $('loop-section').hidden = false
-    const reading = (l) => l.delta === null ? '–' : `${signed(l.delta)}${l.interval ? ` [${signed(l.interval.lower)}, ${signed(l.interval.upper)}]` : ''}`
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const short = (iso) => iso ? `${Number(iso.slice(8, 10))} ${MONTHS[Number(iso.slice(5, 7)) - 1]} ${iso.slice(11, 16)}` : '–'
+    const reading = (l) => l.delta === null ? '–' : `${signed(l.delta)}${l.interval ? `, ${signed(l.interval.lower)} to ${signed(l.interval.upper)}` : ''}`
     // A verdict on a line written before the ledger named its statistic was read by paired-bootstrap/0.
-    const statistic = (l) => l.verdict === null ? '' : ` <span class="tag">${esc(l.statistic ?? 'paired-bootstrap/0')}</span>`
-    const arms = (l) => l.certified.map(a => `${esc(a.arm)} ${a.certified}/${a.cells}`).join(' · ') || '–'
+    const statistic = (l) => l.verdict === null ? '' : `statistic ${l.statistic ?? 'paired-bootstrap/0'}`
+    const arms = (l) => l.certified.map(a => `${esc(a.arm === 'fleet' ? 'certified' : a.arm)} ${a.certified} of ${a.cells}`).join(' · ') || '–'
+    const decision = { 'keep-baseline': 'kept the baseline', recorded: 'recorded only', 'adopt-candidate': 'marked for adoption' }
     const source = (l) => l.record === null
       ? `<span class="badge-running">${esc(l.reason ?? 'failed')}</span>`
-      : `<a href="${esc(linkRecord(l.record))}">${esc(l.record)}</a>${l.outcome === 'failed' ? ` <span class="tag">${esc(l.reason ?? 'failed')}</span>` : ''}`
-    $('loop').innerHTML = '<thead><tr><th>ran</th><th>queue</th><th>plan</th><th>overlay</th><th>kind</th><th>certified</th>'
-      + '<th class="num">delta [interval] statistic</th><th>verdict</th><th>decision</th><th class="num">wall</th><th>record</th></tr></thead><tbody>'
-      + D.loop.map(l => `<tr><td>${esc(when(l.ranAt))}</td><td>${esc(l.queue)} <span class="tag">${l.index}</span></td><td>${esc(l.plan)}</td>`
-        + `<td>${esc(l.overlay ?? 'base')}</td><td><span class="kind" data-kind="${esc(l.kind)}">${esc(l.kind)}</span></td>`
-        + `<td>${arms(l)}</td><td class="num">${esc(reading(l))}${statistic(l)}</td>`
-        + `<td>${l.verdict ? `<span class="pill ${esc(l.verdict)}">${esc(l.verdict)}</span>` : ''}</td>`
-        + `<td>${esc(l.decision)}</td><td class="num">${secs(l.elapsedSeconds)}</td><td>${source(l)}</td></tr>`).join('')
+      : `<a href="${esc(linkRecord(l.record))}" title="${esc(l.record)}">record</a>${l.outcome === 'failed' ? ` <span class="tag">${esc(l.reason ?? 'failed')}</span>` : ''}`
+    $('loop').innerHTML = '<thead><tr><th>ran (UTC)</th><th>what it tested</th><th>cells certified</th>'
+      + '<th class="num">difference, 95 % interval</th><th>verdict</th><th>decision</th><th class="num">took</th><th>source</th></tr></thead><tbody>'
+      + D.loop.map(l => `<tr><td class="when">${esc(short(l.ranAt))}</td>`
+        + `<td class="what" title="${esc(`plan ${l.plan} · queue ${l.queue} #${l.index} · overlay ${l.overlay ?? 'base'}`)}">${esc(l.question)} <span class="kind" data-kind="${esc(l.kind)}">${l.kind === 'fleet' ? 'single arm' : 'paired'}</span></td>`
+        + `<td>${arms(l)}</td><td class="num" title="${esc(statistic(l))}">${esc(reading(l))}</td>`
+        + `<td>${l.verdict ? `<span class="pill ${esc(l.verdict)}">${esc(verdictLabel[l.verdict] ?? l.verdict)}</span>` : ''}</td>`
+        + `<td>${esc(decision[l.decision] ?? l.decision)}${l.decision === 'adopt-candidate' ? (l.adopted ? ', applied' : ', not applied') : ''}</td><td class="num">${secs(l.elapsedSeconds)}</td><td>${source(l)}</td></tr>`).join('')
       + '</tbody>'
   }
 

@@ -6,12 +6,14 @@
 // `dashboard.template.html` beside this file; this tool computes the data the
 // page embeds and writes the page.
 //
-// Usage: node build-dashboard.mjs [--out <path>] [--live <run dir>]... [--fragment]
+// Usage: node build-dashboard.mjs [--out <path>] [--branch <name>] [--live <run dir>]... [--fragment]
 //
 //   --out <path>      where to write the page (default data/proving-ground/dashboard.html)
 //   --live <run dir>  a driver's run directory not yet recorded (cell logs under
 //                     .sessions/, plan.json, run.log); shown as running unless its
 //                     run.log carries a result line; repeatable
+//   --branch <name>   the branch the page's links point into (default the checkout's
+//                     branch), for a build in a worktree whose branch is not published
 //   --fragment        write the template's fragment (title, styles, body) without
 //                     the document wrapper, for hosts that supply their own
 //
@@ -33,15 +35,119 @@ const BENCH = join(REPO_DIR, 'examples', 'headless-agent', 'tests', 'fixtures', 
 const FIXTURES_PREFIX = 'examples/headless-agent/tests/fixtures/'
 const SEALED_SINCE = '2026-09-08T09:25:00Z'
 const MODEL_SLOTS = { haiku: 0, sonnet: 1, opus: 2 }
+/** Record kinds whose cells measure capability; a district certifies a village's trivial tasks and a program has no cells. */
+const CAPABILITY_KINDS = new Set(['experiment', 'fleet', 'partial'])
+/** What the cells of a suite without a tier are, as the page names them. */
+const OTHER_SUITES = {
+  polyglot: 'Polyglot exercises, a public suite',
+  code: 'Completion and public-smoke tasks, no tier assigned',
+  smoke: 'Smoke tasks on a mocked model',
+}
+/** The normal quantile for a two-sided 95 % interval. */
+const Z95 = 1.959964
+
+/**
+ * The Wilson score interval of a binomial proportion.
+ * @param {number} successes - certified cells.
+ * @param {number} trials - cells run.
+ * @returns {{ lower: number, upper: number }} the 95 % interval, 0 to 1.
+ */
+function wilson(successes, trials) {
+  if (trials === 0) return { lower: 0, upper: 1 }
+  const p = successes / trials, z2 = Z95 * Z95
+  const centre = (p + z2 / (2 * trials)) / (1 + z2 / trials)
+  const half = (Z95 * Math.sqrt((p * (1 - p)) / trials + z2 / (4 * trials * trials))) / (1 + z2 / trials)
+  return { lower: Math.max(0, centre - half), upper: Math.min(1, centre + half) }
+}
+
+/** How an implementer reads on the page: the harness's own loop, the Claude Code product's loop, or a fresh child session per attempt. */
+const IMPLEMENTER_TEXT = { route: 'harness loop', 'claude-code': 'Claude Code loop', spawn: 'fresh session per attempt' }
+
+/**
+ * A route label in words: a model's name stays, a same-model ladder of n rungs
+ * reads `sonnet, n attempts`, a mixed ladder names each rung in order, and the
+ * implementer follows in words.
+ */
+function plainArm(label) {
+  const [route, implementer] = String(label).split(' · ')
+  const rungs = route.split('›')
+  const same = rungs.every(rung => rung === rungs[0])
+  const times = /^(.*) ×(\d+)$/.exec(route)
+  const model = times
+    ? `${times[1]}, ${times[2]} attempt${times[2] === '1' ? '' : 's'}`
+    : rungs.length > 1 ? (same ? `${rungs[0]}, ${rungs.length} attempts` : rungs.join(', then ')) : route
+  return implementer === undefined ? model : `${model} · ${IMPLEMENTER_TEXT[implementer] ?? implementer}`
+}
+
+/**
+ * What each checked-in plan asks, in words, by the plan id's family; a plan no
+ * entry names reads as its id. The loop table and the verdict cards show these.
+ */
+const PLAN_QUESTIONS = [
+  [/^e1-haiku-vs-sonnet/, 'Haiku instead of Sonnet'],
+  [/^e1-sonnet-vs-opus|^e8-sonnet-vs-opus/, 'Opus instead of Sonnet'],
+  [/^e2-harness-vs-product|^polyglot-harness-vs-product/, 'Claude Code\'s own loop instead of the harness loop'],
+  [/^e3-attempts/, 'One attempt instead of three'],
+  [/^e5-downshift/, 'Opus first, then Haiku, instead of Opus throughout'],
+  [/^e5-handoff-tax/, 'Haiku first, then Opus, instead of Opus throughout'],
+  [/^e5-handoff-drop|^e5-drop/, 'A fresh session at the hand-off instead of keeping the transcript'],
+  [/^e6-cascade-share/, 'A cheap first attempt held to a fifth of the budget'],
+  [/^e7-attempts-5|^e7-pooled/, 'Five attempts instead of three'],
+  [/^e9-preset-craft/, 'Three craft skills as a preset instead of none'],
+  [/^e12-self-review/, 'A self-review turn before each check'],
+  [/^e13-probe-review/, 'A sentence-by-sentence probe review before each check'],
+  [/^attempts1-counterfactual/, 'One attempt instead of three, re-read from a recorded run'],
+  [/^e4-knowledge-pack/, 'A knowledge pack as the skill catalog'],
+  [/^h4-craft-skills/, 'Three craft skills mounted as the only skills'],
+  [/^h3-baseline/, 'Nightly baseline, unchanged: a drift monitor, not a test of a change'],
+  [/^h1-fleet-openrouter/, 'Free open-weight models through OpenRouter, smoke run'],
+]
+
+/**
+ * @param {string} plan - a plan id, record name or fold name.
+ * @returns {string} the plan's question in words, or the id itself.
+ */
+function planQuestion(plan) {
+  const bare = String(plan).replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/^bench-/, '')
+  return PLAN_QUESTIONS.find(([pattern]) => pattern.test(bare))?.[1] ?? plan
+}
+
+/**
+ * The improvement log's "Default changed" cell by every record and fold its
+ * row cites: whether that iteration changed a default.
+ */
+function improvementLog() {
+  const byRecord = new Map()
+  const path = join(PROVING_GROUND, 'improvement-log.md')
+  if (!existsSync(path)) return byRecord
+  for (const line of readFileSync(path, 'utf8').split('\n')) {
+    if (!/^\| 2026-/.test(line)) continue
+    const cells = line.split(' | ')
+    const changed = cells[cells.length - 1].replace(/ ?\|$/, '').trim()
+    for (const [, name] of line.matchAll(/\]\((?:folds\/)?([0-9]{4}-[0-9]{2}-[0-9]{2}-[^/)]+?)(?:\/manifest\.json|\.json)\)/g)) {
+      if (!byRecord.has(name)) byRecord.set(name, changed)
+    }
+  }
+  return byRecord
+}
+
+/**
+ * @param {string | undefined} changed - a log row's "Default changed" cell.
+ * @returns {boolean | undefined} whether it records a changed default; `undefined` when no row cites the record.
+ */
+function changedDefault(changed) {
+  return changed === undefined ? undefined : !/^None\b/.test(changed)
+}
 
 function parseArgs(argv) {
-  const options = { out: join(PROVING_GROUND, 'dashboard.html'), live: [], fragment: false }
+  const options = { out: join(PROVING_GROUND, 'dashboard.html'), live: [], fragment: false, branch: undefined }
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]
     if (arg === '--out') options.out = resolve(argv[++index])
     else if (arg === '--live') options.live.push(resolve(argv[++index]))
     else if (arg === '--fragment') options.fragment = true
-    else throw new Error(`unknown argument ${arg}; usage: build-dashboard.mjs [--out <path>] [--live <run dir>]... [--fragment]`)
+    else if (arg === '--branch') options.branch = argv[++index]
+    else throw new Error(`unknown argument ${arg}; usage: build-dashboard.mjs [--out <path>] [--branch <name>] [--live <run dir>]... [--fragment]`)
   }
   return options
 }
@@ -256,21 +362,23 @@ function loadRecord(name, environments, notes) {
 }
 
 /** A frozen experiment's card. */
-function experimentCard(record) {
+function experimentCard(record, log) {
   const baseline = record.arms.find(arm => arm.key === 'baseline'), candidate = record.arms.find(arm => arm.key === 'candidate')
   const experiment = record.experiment
   return {
     id: record.name, label: humanize(record.name), date: record.ranAt ?? '', tier: record.tierLabel, method: 'frozen pair',
-    baselineLabel: baseline?.label.replace(/^baseline: /, '') ?? 'baseline', candidateLabel: candidate?.label.replace(/^candidate: /, '') ?? 'candidate',
+    baselineLabel: plainArm(baseline?.label.replace(/^baseline: /, '') ?? 'baseline'), candidateLabel: plainArm(candidate?.label.replace(/^candidate: /, '') ?? 'candidate'),
     baseline: baseline ? { certified: baseline.totals.certified, cells: baseline.totals.cells } : undefined,
     candidate: candidate ? { certified: candidate.totals.certified, cells: candidate.totals.cells } : undefined,
     delta: experiment.delta, interval: experiment.interval, verdict: experiment.verdict, minimumDelta: experiment.thresholds?.minimumDelta,
     seedsPaired: experiment.seedsPaired, errors: experiment.errors, source: record.name, href: `data/proving-ground/${record.name}/result.json`,
+    question: planQuestion(record.name), decisive: experiment.verdict === 'promote' || experiment.verdict === 'reject',
+    adopted: experiment.verdict === 'promote' && changedDefault(log.get(record.name)) === true,
   }
 }
 
 /** An offline fold's card. */
-function foldCard(file, fold) {
+function foldCard(file, fold, log) {
   const name = basename(file, '.json')
   const tier = /-t(\d)\.json$/.exec(file)?.[1] ?? null
   const cells = fold.result?.cells ?? []
@@ -283,6 +391,7 @@ function foldCard(file, fold) {
     baseline: { certified: count('baselineRate'), cells: perArm }, candidate: { certified: count('candidateRate'), cells: perArm },
     delta: fold.result?.delta, interval: fold.result?.interval, verdict: fold.result?.verdict, minimumDelta: fold.result?.thresholds?.minimumDelta,
     seedsPaired: fold.result?.seedsPaired, errors: 0, source: name, href: `data/proving-ground/folds/${name}.json`,
+    question: planQuestion(name.replace(/-against-.*$/, '')), decisive: false, adopted: fold.result?.verdict === 'promote' && changedDefault(log.get(name)) === true,
   }
 }
 
@@ -337,6 +446,77 @@ function loadLive(directory, environments) {
   }
 }
 
+/**
+ * The figures the page leads with. Capability is the certification rate of
+ * every cell of the experiment, fleet and partial records, by tier and by
+ * whether the run was sealed, with its Wilson interval and the model routes
+ * pooled in it; sealed tier 5 comes first. District cells, which certify a
+ * village's trivial tasks, and suites without a tier (smoke, polyglot,
+ * completion, public) are counted apart and never enter a tier's rate. The
+ * frozen pairs are counted by whether their verdict was decisive, the
+ * harness-against-product pairs are summed arm by arm, and the loop's
+ * iterations by kind and by whether a change was adopted.
+ */
+function capabilityHeadline(records, environments, experiments, loop) {
+  const groups = new Map()
+  const other = new Map()
+  const district = { records: 0, cells: 0, certified: 0 }
+  for (const record of records) {
+    if (record.kind === 'district') {
+      district.records += 1
+      district.cells += record.cells
+      district.certified += record.certified
+    }
+    if (!CAPABILITY_KINDS.has(record.kind)) continue
+    for (const row of record.rows) {
+      const tier = environments.get(row.environment)?.tier ?? null
+      const target = tier === null ? other : groups
+      const key = tier === null ? String(row.environment).split(':')[0] : `${record.sealed ? 'sealed' : 'unsealed'}:${tier}`
+      const group = target.get(key) ?? { key, tier, sealed: record.sealed, cells: 0, certified: 0, routes: new Set(), records: new Set() }
+      group.cells += 1
+      if (row.certified) group.certified += 1
+      group.routes.add(plainArm(`${row.route} · ${row.implementer}`))
+      group.records.add(record.name)
+      target.set(key, group)
+    }
+  }
+  const finish = group => ({
+    ...group, rate: group.cells ? group.certified / group.cells : 0, interval: wilson(group.certified, group.cells),
+    routes: [...group.routes].sort(), records: group.records.size, label: OTHER_SUITES[group.key] ?? group.key,
+    models: [...new Set([...group.routes].flatMap(route => route.split(' · ')[0].replace(/, \d+ attempts?$/, '').split(', then ')))].sort(),
+    loops: [...new Set([...group.routes].map(route => route.split(' · ')[1]))].sort(),
+  })
+  const tiers = [...groups.values()].map(finish)
+    .sort((a, b) => Number(b.sealed) - Number(a.sealed) || (a.tier === 5 ? -1 : b.tier === 5 ? 1 : b.tier - a.tier))
+  const frozen = experiments.filter(card => card.method === 'frozen pair')
+  const productPairs = frozen.filter(card => /Claude Code's own loop/.test(card.question))
+  const sum = (cards, arm, key) => cards.reduce((total, card) => total + (card[arm]?.[key] ?? 0), 0)
+  return {
+    tiers,
+    other: [...other.values()].map(finish).sort((a, b) => b.cells - a.cells),
+    district,
+    frozen: {
+      pairs: frozen.length, decisive: frozen.filter(card => card.decisive).length, adopted: frozen.filter(card => card.adopted === true).length,
+      decided: frozen.filter(card => card.decisive).map(card => ({ question: card.question, tier: card.tier, date: card.date, verdict: card.verdict, baseline: card.baseline, candidate: card.candidate })),
+    },
+    product: {
+      pairs: productPairs.length, cells: sum(productPairs, 'baseline', 'cells'),
+      harness: sum(productPairs, 'baseline', 'certified'), product: sum(productPairs, 'candidate', 'certified'),
+      decisive: productPairs.filter(card => card.decisive).length,
+    },
+    loop: {
+      iterations: loop.length,
+      experiments: loop.filter(line => line.kind === 'experiment').length,
+      fleets: loop.filter(line => line.kind === 'fleet').length,
+      baselineFleets: loop.filter(line => line.kind === 'fleet' && /^h3-baseline/.test(line.plan)).length,
+      decisive: loop.filter(line => line.verdict === 'promote' || line.verdict === 'reject').length,
+      adoptCandidates: loop.filter(line => line.decision === 'adopt-candidate').length,
+      adopted: loop.filter(line => line.adopted === true).length,
+      first: loop[0]?.ranAt, last: loop[loop.length - 1]?.ranAt,
+    },
+  }
+}
+
 function build(options) {
   const environments = benchEnvironments()
   // A record has a manifest and either a driver result or session logs; a directory with a manifest alone holds a record's attachments.
@@ -344,14 +524,16 @@ function build(options) {
     && existsSync(join(PROVING_GROUND, name, 'manifest.json'))
     && (existsSync(join(PROVING_GROUND, name, 'result.json')) || existsSync(join(PROVING_GROUND, name, 'sessions')))).sort()
   const notes = readmeNotes()
+  const log = improvementLog()
   const records = recordNames.map(name => loadRecord(name, environments, notes))
   const foldsDir = join(PROVING_GROUND, 'folds')
   const foldFiles = existsSync(foldsDir) ? readdirSync(foldsDir).filter(name => name.endsWith('.json')).sort() : []
   const folds = foldFiles.map(name => ({ file: name, fold: readJson(join(foldsDir, name)) }))
   const experiments = [
-    ...records.filter(record => record.kind === 'experiment').map(experimentCard),
-    ...folds.filter(({ fold }) => fold.type === 'offline-fold').map(({ file, fold }) => foldCard(file, fold)),
+    ...records.filter(record => record.kind === 'experiment').map(record => experimentCard(record, log)),
+    ...folds.filter(({ fold }) => fold.type === 'offline-fold').map(({ file, fold }) => foldCard(file, fold, log)),
   ]
+  const loop = loopLedger().map(line => ({ ...line, question: planQuestion(line.plan), adopted: line.decision === 'adopt-candidate' && line.record !== null && changedDefault(log.get(line.record)) === true }))
   const routing = folds.find(({ fold }) => fold.type === 'offline-routing')?.fold
   const repeatability = folds.find(({ fold }) => fold.type === 'offline-repeatability')?.fold
 
@@ -392,7 +574,7 @@ function build(options) {
     ...records.map(record => ({ name: record.name, kind: record.kind, start: record.ranAt, end: record.endedAt, note: record.certifiedLabel })),
     ...live.map(item => ({ name: item.name, kind: 'live', start: item.startedAt, end: item.lastEvent ?? new Date().toISOString(), note: item.finished ? 'finished' : 'running' })),
   ]
-  const branch = git('rev-parse', '--abbrev-ref', 'HEAD')
+  const branch = options.branch ?? git('rev-parse', '--abbrev-ref', 'HEAD')
   const head = git('rev-parse', 'HEAD')
   const linkBase = `https://github.com/LBJLincoln/deepseek-harness/blob/${branch}/`
   const summary = {
@@ -403,17 +585,19 @@ function build(options) {
     folds: experiments.filter(card => card.method !== 'frozen pair').length,
     environments: environments.size,
   }
+  const headline = capabilityHeadline(records, environments, experiments, loop)
   const pageNotes = [
     'A <b>cell</b> is one task, one repetition, one arm. The runner restores the fixture, lets the implementer work, runs the task\'s checks itself after each attempt, issues a directive for what failed, and <b>certifies</b> when every hidden case passes. Certificates, attempts, and usage on this page are read from the cells\' own session logs.',
     `<b>Sealed</b> marks runs since ${SEALED_SINCE.replace('T', ' ').slice(0, 16)} UTC on the bench composition: bubblewrap mounts an empty parent over the run directory with only the cell's workspace bound in, and the read barrier denies the parent; escapes are counted, not assumed away. Earlier records ran unconfined, and the census column counts the cells that left their workspace.`,
-    'A <b>frozen pair</b> is one experiment whose plan was digested before any cell ran; both arms ran the same cells at the same seeds. An <b>offline fold</b> pairs two separately recorded runs with the same statistics and is evidence, never a promotion. The verdict rule reads the bootstrap interval of the paired certificate-rate delta: promote when its lower bound exceeds the minimum delta, reject when its upper bound is below zero, inconclusive otherwise.',
-    'The <b>noise floor</b> is one to two flips in sixteen between two sealed runs of the same arm, so a paired delta of 0.0625 on sixteen cells is inside one arm\'s own variation. Arms of an experiment ran one after the other, so an arm is confounded with its hour on the shared subscription; interleaving is queued.',
+    'A <b>tier</b> is a difficulty band of the bench: tiers 2 to 4 are single-file programs, tier 5 the audited single-file tasks judged by hidden cases, tier 6 the pilot multi-file repositories. The <b>harness loop</b> runs the model through this harness\'s own agent loop; the <b>Claude Code loop</b> hands the whole cell to the Claude Code product; <b>attempts</b> are the tries a cell gets, each after the checks name what failed, and a ladder such as <i>haiku, then opus</i> changes the model between attempts.',
+    'A <b>frozen pair</b> is one experiment whose plan was digested before any cell ran; both arms ran the same cells at the same seeds. An <b>offline fold</b> pairs two separately recorded runs with the same statistics and is evidence, never a promotion. The verdict reads the bootstrap interval of the paired difference in certification rate: <i>candidate better</i> (the ledger\'s <span class="mono">promote</span>) when its lower bound exceeds the minimum difference, <i>candidate worse</i> (<span class="mono">reject</span>) when its upper bound is below zero, and <i>no clear difference</i> (<span class="mono">inconclusive</span>) otherwise; only the first two are decisive.',
+    'The <b>noise floor</b> is one to two flips in sixteen between two sealed runs of the same arm, so a paired delta of 0.0625 on sixteen cells is inside one arm\'s own variation. Arms of the earlier experiments ran one after the other, so an arm is confounded with its hour on the shared Claude Code login; E6 on 2026-09-18 was the first pair to interleave its arms.',
     'Held-out environments are withheld from every observatory page by rule; the held-out fleet is read here from its fleet report and session logs and stands as the untuned estimate.',
     `Sources: <a href="${linkBase}data/proving-ground/README.md">the records README</a> (one paragraph per record), <a href="${linkBase}.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md">the results note</a>, <a href="${linkBase}data/proving-ground/improvement-log.md">the improvement log</a> (one row per improvement iteration, with the decision each verdict earned), and the record directories linked from each row.`,
   ]
   return {
-    builtAt: new Date().toISOString(), head, branch, linkBase, summary,
-    records, experiments, tier5Models, routeSlots: MODEL_SLOTS, matrix, timeline, live, loop: loopLedger(),
+    builtAt: new Date().toISOString(), head, branch, linkBase, summary, sealedSince: SEALED_SINCE,
+    headline, records, experiments, tier5Models, routeSlots: MODEL_SLOTS, matrix, timeline, live, loop,
     dataset: dataset ? { name: dataset.name, counts: dataset.manifest.counts, distributions: dataset.manifest.distributions, tokens: dataset.manifest.tokens, files: dataset.manifest.files, records: (dataset.manifest.records ?? []).length, builtAt: dataset.manifest.builtAt } : undefined,
     readings: { routing: routing ? { note: routing.note, results: routing.results } : undefined, repeatability: repeatability ? { note: repeatability.note, pairs: repeatability.pairs } : undefined },
     notes: pageNotes,
@@ -435,7 +619,9 @@ function main() {
   const data = build(options)
   writeFileSync(options.out, render(data, options.fragment))
   const live = data.live.length ? `, ${data.live.length} live run(s)` : ''
-  console.log(`wrote ${options.out}: ${data.summary.records} records, ${data.summary.cells} cells, ${data.summary.certified} certificates, ${data.experiments.length} comparisons${live}`)
+  const { tiers, frozen, loop } = data.headline
+  const lead = tiers[0] === undefined ? '' : `; ${tiers[0].sealed ? 'sealed ' : ''}tier ${tiers[0].tier} ${tiers[0].certified} of ${tiers[0].cells}, 95 % [${(tiers[0].interval.lower * 100).toFixed(1)}, ${(tiers[0].interval.upper * 100).toFixed(1)}]`
+  console.log(`wrote ${options.out}: ${data.summary.records} records, ${data.summary.cells} cells, ${data.summary.certified} certificates, ${data.experiments.length} comparisons${lead}; ${frozen.decisive} of ${frozen.pairs} frozen pairs decisive; the loop ${loop.iterations} iterations, ${loop.adopted} adopted${live}`)
 }
 
 if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main()

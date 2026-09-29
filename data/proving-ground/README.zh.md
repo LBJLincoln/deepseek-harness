@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-真实 Proving Ground 运行的记录：该区对一个实现者（implementer）在已注册环境上的经认证测量，完全按 harness 折叠和导出的原样保存。一个运行目录就是一次 fleet 计划的输出：cell 会话日志、导出的会话事实、trajectory 导出（由 curator 写出时还有 curator 的导出 manifest）、observatory 快照与页面、驱动器的报告，以及带有每个文件摘要的 manifest。运行目录中的任何内容在运行之后都不再编辑；下表由这些文件读出。
+真实 Proving Ground 运行的记录：该区对一个实现者（implementer）在已注册环境上的经认证测量，完全按 harness 折叠和导出的原样保存。一个运行目录就是一次 fleet 计划的输出：cell 会话日志、导出的会话事实、trajectory 导出（由 curator 写出时还有 curator 的导出 manifest）、observatory 快照与页面、驱动器的报告，以及带有每个文件摘要的 manifest。运行目录中的任何内容在运行之后都不再编辑；下表由这些文件读出，列出每一份由人记录的记录。无人值守的循环自 2026-09-21 起写出的记录（截至 2026-09-28 共十一份）不在表中：每一份都在 [`loop/ledger.jsonl`](loop/ledger.jsonl) 中有它的一行，并在仪表板的改进循环表中有它的一行，二者读取的是同样的文件。
 
 一行自身的 `curation` 块说明是哪一种导出写出了它。bench 驱动器经 `ctx.curator.export()` 导出，因此它们的行经过脱敏、带有该块，并与 `export-manifest.json` 并排；`village-live` 与 `village-claude-implementer` 驱动器，以及在 bench 驱动器改用 curator 之前导出的每一份记录，带的则是未经脱敏的导出，其行没有该块。在 2026-09-22，这里的每一份记录都是如此：42 份记录中的 1,044 行没有一行带有 `curation` 块。
 
