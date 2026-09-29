@@ -211,6 +211,13 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(failed.shipped).toBeNull()
 
     const outside = lineOf(observed, 'T-0004')
+    // The T-0004 department also tried to push its branch, through `origin` and
+    // by the remote's URL; its worktree sends every push to a URL nothing serves,
+    // so the remote holds the one branch the engine pushed.
+    expect(git(remote, 'for-each-ref', '--format=%(refname)')).toBe('refs/heads/main')
+    const pushAttempts = git(remote, 'show', `main:${observed.record}/sessions/${outside.department.sessionId ?? ''}.jsonl`)
+    expect(pushAttempts).toContain('push-attempts')
+    expect(pushAttempts.match(/remote-no-push/g)?.length).toBeGreaterThanOrEqual(2)
     expect(outside.department.outcome).toBe('failed')
     expect(outside.checks.find(check => check.id === 'counts')?.ok).toBe(true)
     expect(outside.checks.find(check => check.id === 'engine-scope')?.ok).toBe(false)

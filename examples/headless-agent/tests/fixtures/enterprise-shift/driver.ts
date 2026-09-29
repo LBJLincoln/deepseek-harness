@@ -107,6 +107,17 @@ const RATIONALE_MAX_CHARS = 2000
 /** The subagent provider `--implementer subagent` delegates to. */
 const SUBAGENT_PROVIDER = 'claude-code'
 
+/** The URL every push from a department's worktree is sent to, which no transport serves. */
+const DEPARTMENT_PUSH_URL = 'no-push://a-department-does-not-push'
+
+/**
+ * The URL prefixes a push could name a remote by: a local path, and every
+ * transport git speaks. A department worktree rewrites each to
+ * {@link DEPARTMENT_PUSH_URL} for pushing, so a push by URL fails as a push
+ * through `origin` does.
+ */
+const PUSH_URL_PREFIXES = ['/', 'file://', 'https://', 'http://', 'ssh://', 'git://', 'git@']
+
 /** Rounds the push loop takes when the tip keeps moving. */
 const PUSH_ROUNDS = 3
 
@@ -238,7 +249,7 @@ function cloneTip(config: ShiftConfig): { repo: string; base: string } {
   // authored and committed as the repository's rule names; the enterprise is
   // named in the message body. Every worktree shares this config: a department that pushes through
   // `origin` reaches nothing, and the shift pushes by the remote's own URL.
-  git(repo, 'config', 'remote.origin.pushurl', 'no-push://a-department-does-not-push')
+  git(repo, 'config', 'remote.origin.pushurl', DEPARTMENT_PUSH_URL)
   git(repo, 'config', 'user.name', 'Claude')
   git(repo, 'config', 'user.email', 'noreply@anthropic.com')
   return { repo, base: git(repo, 'rev-parse', 'HEAD') }
@@ -348,12 +359,18 @@ function programSpec(
 /**
  * Add every worktree of the program before it starts and install each from the
  * store, so a department's acceptance commands find the workspace installed
- * and the program reuses the directory it finds.
+ * and the program reuses the directory it finds. Each worktree's own config
+ * rewrites a push to any URL to {@link DEPARTMENT_PUSH_URL}, so only the
+ * engine, pushing from the clone's own checkout, reaches the remote; fetching
+ * is untouched. It stops a department's push, not a department set on
+ * undoing its own config.
  */
 function prepareWorktrees(repo: string, programId: string, keys: readonly string[], base: string): void {
+  git(repo, 'config', 'extensions.worktreeConfig', 'true')
   for (const key of [...keys, '@integration']) {
     const workspace = join(repo, programId, key)
     git(repo, 'worktree', 'add', '-B', `program/${programId}/${key}`, workspace, base)
+    for (const prefix of PUSH_URL_PREFIXES) git(workspace, 'config', '--worktree', '--add', `url.${DEPARTMENT_PUSH_URL}.pushInsteadOf`, prefix)
     installOffline(workspace)
   }
 }

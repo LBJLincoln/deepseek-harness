@@ -64,18 +64,31 @@ function commit(ticket: string): Step {
 
 /**
  * Move the remote branch tip by one commit that carries the tip's own tree, so
- * the shift finds the tip moved when it pushes and rebases onto it cleanly. The
- * push stands in for another writer of the branch, which the clone's hooks do
- * not run for.
+ * the shift finds the tip moved when it pushes and rebases onto it cleanly. It
+ * stands in for another writer of the branch: a department's worktree cannot
+ * push, so the commit is written into the seeded bare remote directly.
  */
-const MOVE_TIP = 'git fetch -q origin main && git push -q --no-verify "$(git config remote.origin.url)" "$(git commit-tree -p FETCH_HEAD -m \'the tip moved during the shift\' "$(git rev-parse \'FETCH_HEAD^{tree}\')")":refs/heads/main'
+const MOVE_TIP = [
+  'r="$(git config remote.origin.url)"',
+  't="$(git --git-dir="$r" rev-parse \'main^{tree}\')"',
+  'c="$(git --git-dir="$r" -c user.name=writer -c user.email=writer@example.test commit-tree -p main -m \'the tip moved during the shift\' "$t")"',
+  'git --git-dir="$r" update-ref refs/heads/main "$c"',
+].join(' && ')
+
+/** A department's attempts to push its branch: through `origin`, and by the remote's own URL. Both must be refused. */
+const PUSH_ATTEMPTS = 'git push -q origin HEAD:refs/heads/department-push; git push -q "$(git config remote.origin.url)" HEAD:refs/heads/department-push; true'
 
 /** What each seeded ticket's department does, in order, before it answers. */
 const SCRIPTS: Readonly<Record<string, readonly Step[]>> = {
   'T-0001': [write('tools/greet.mjs', "console.log('hello')\n"), commit('T-0001')],
   'T-0002': [write('tools/answer.mjs', 'console.log(41)\n'), commit('T-0002')],
   'T-0003': [write('tools/bye.mjs', "console.log('bye')\n"), commit('T-0003')],
-  'T-0004': [write('tools/count.mjs', 'console.log(3)\n'), write('NOTES.md', 'a note outside the scope\n'), commit('T-0004')],
+  'T-0004': [
+    write('tools/count.mjs', 'console.log(3)\n'),
+    write('NOTES.md', 'a note outside the scope\n'),
+    commit('T-0004'),
+    bash('push-attempts', PUSH_ATTEMPTS, 'Try to push the branch.'),
+  ],
   'T-0005': [write('tools/echo.mjs', "console.log('echo')\n"), bash('move-tip', MOVE_TIP, 'Move the remote tip.'), commit('T-0005')],
 }
 
