@@ -1,89 +1,89 @@
 {
   "schema": 2,
-  "generatedAt": "2026-09-29T09:41:37.120Z",
+  "generatedAt": "2026-09-29T11:10:22.627Z",
   "producer": "cycle",
   "window": {
-    "since": "2026-09-28T09:41:37.120Z",
-    "until": "2026-09-29T09:41:37.120Z"
+    "since": "2026-09-28T11:10:22.627Z",
+    "until": "2026-09-29T11:10:22.627Z"
   },
   "sources": [
     {
       "id": "roster",
       "state": "ok",
       "detail": "147 seats in 10 divisions",
-      "asOf": "2026-09-29T09:41:21.384Z"
+      "asOf": "2026-09-29T11:10:10.313Z"
     },
     {
       "id": "ledger",
       "state": "ok",
-      "detail": "165 lines",
-      "asOf": "2026-09-29T09:37:20.461Z"
+      "detail": "191 lines",
+      "asOf": "2026-09-29T11:10:04.733Z"
     },
     {
       "id": "tickets",
       "state": "ok",
       "detail": "41 tickets in the queue",
-      "asOf": "2026-09-29T09:37:20.461Z"
+      "asOf": "2026-09-29T11:10:04.733Z"
     },
     {
       "id": "cycle-logs",
       "state": "ok",
-      "detail": "7 cycle logs in <home>/enterprise-cycles",
-      "asOf": "2026-09-29T09:41:37.120Z"
+      "detail": "8 cycle logs in <home>/enterprise-cycles",
+      "asOf": "2026-09-29T11:10:22.627Z"
     },
     {
       "id": "cycle-history",
       "state": "ok",
-      "detail": "4 cycles committed to the branch and 4 cycle records in the window",
-      "asOf": "2026-09-29T09:37:20.461Z"
+      "detail": "5 cycles committed to the branch and 6 cycle records in the window",
+      "asOf": "2026-09-29T11:10:04.733Z"
     },
     {
       "id": "scheduler",
       "state": "ok",
       "detail": "scheduler runs (pid 1481)",
-      "asOf": "2026-09-29T09:41:37.120Z"
+      "asOf": "2026-09-29T11:10:22.627Z"
     },
     {
       "id": "shifts",
       "state": "ok",
-      "detail": "1 scratch run; 3 sessions, 0 working",
-      "asOf": "2026-09-29T09:41:37.120Z"
+      "detail": "2 scratch runs; 8 sessions, 0 working",
+      "asOf": "2026-09-29T11:10:22.627Z"
     },
     {
       "id": "department-transcripts",
       "state": "ok",
       "detail": "no working department to match a transcript to",
-      "asOf": "2026-09-29T09:41:37.120Z"
+      "asOf": "2026-09-29T11:10:22.627Z"
     },
     {
       "id": "operator-agents",
       "state": "ok",
-      "detail": "13 transcripts touched in the window, 1 working",
-      "asOf": "2026-09-29T09:41:37.120Z"
+      "detail": "17 transcripts touched in the window, 3 working",
+      "asOf": "2026-09-29T11:10:22.627Z"
     },
     {
       "id": "bench",
       "state": "ok",
       "detail": "no bench loop runs; 0 live runs, 16 cells, 1 records in the window",
-      "asOf": "2026-09-29T09:41:37.120Z"
+      "asOf": "2026-09-29T11:10:22.627Z"
     },
     {
       "id": "ci",
       "state": "ok",
-      "detail": "50 Branch CI runs read 0 s ago",
-      "asOf": "2026-09-29T09:41:37.120Z"
+      "detail": "50 Branch CI runs read 56 s ago",
+      "asOf": "2026-09-29T11:09:27.062Z"
     },
     {
       "id": "host",
       "state": "ok",
       "detail": "1 filesystem",
-      "asOf": "2026-09-29T09:41:37.120Z"
+      "asOf": "2026-09-29T11:10:22.627Z"
     },
     {
       "id": "requests",
       "state": "ok",
       "detail": "0 owner requests, 0 open",
-      "asOf": "2026-09-29T09:37:20.461Z"
+      "asOf": "2026-09-29T11:10:04.733Z"
     }
   ],
   "heartbeats": [
@@ -91,143 +91,158 @@
       "id": "scheduler",
       "label": "Cycle scheduler",
       "state": "alive",
-      "lastRunAt": "2026-09-29T08:13:00.000Z",
+      "lastRunAt": "2026-09-29T10:13:00.000Z",
       "everySeconds": 7200,
-      "detail": "pid 1481; last ran 89 minutes ago"
+      "detail": "pid 1481; last ran 57 minutes ago"
     },
     {
       "id": "transcript-capture",
       "label": "Transcript capture",
       "state": "alive",
-      "lastRunAt": "2026-09-29T09:34:57.000Z",
+      "lastRunAt": "2026-09-29T11:10:02.000Z",
       "everySeconds": 300,
-      "detail": "pid 1116; last ran 7 minutes ago"
+      "detail": "pid 1116; last ran 21 s ago; pushed fc5a00f54",
+      "lastPush": {
+        "at": "2026-09-29T11:10:02.000Z",
+        "commit": "fc5a00f54"
+      }
     },
     {
       "id": "ops-loop",
       "label": "Operations loop",
       "state": "alive",
-      "lastRunAt": "2026-09-29T09:41:35.125Z",
+      "lastRunAt": "2026-09-29T11:10:08.597Z",
       "everySeconds": 15,
-      "detail": "pid 30807; last ran 2 s ago"
+      "detail": "pid 30807; last ran 14 s ago"
     }
   ],
   "agents": [
     {
-      "id": "cycle:cycle-20260929T081300Z",
+      "id": "cycle:cycle-20260929T101300Z",
       "kind": "cycle-step",
-      "label": "cycle-20260929T081300Z · publish",
-      "doing": "running the cycle's publish step",
-      "startedAt": "2026-09-29T09:41:21.000Z",
-      "lastEventAt": "2026-09-29T09:41:36.997Z",
-      "run": "cycle-20260929T081300Z",
+      "label": "cycle-20260929T101300Z · push",
+      "doing": "running the cycle's push step",
+      "startedAt": "2026-09-29T11:09:56.000Z",
+      "lastEventAt": "2026-09-29T11:10:22.477Z",
+      "run": "cycle-20260929T101300Z",
       "evidence": {
-        "label": "cycle-20260929T081300Z"
+        "label": "cycle-20260929T101300Z",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T101300Z.json"
       },
-      "elapsedSeconds": 16,
+      "elapsedSeconds": 27,
       "idleSeconds": 0,
       "state": "working"
     },
     {
-      "id": "operator:f53f80cc",
+      "id": "operator:ac36a37716da272df",
       "kind": "operator-agent",
-      "label": "operator session",
-      "doing": "Bash: Escape the shell expansion cleanly and rerun the e2e",
-      "startedAt": "2026-09-28T20:15:54.024Z",
-      "lastEventAt": "2026-09-29T09:41:22.673Z",
-      "tokens": 148047718,
+      "label": "WP-14 tamper-evident ledger",
+      "doing": "Bash: Make the e2e check non-vacuous and re-run it",
+      "startedAt": "2026-09-29T09:50:22.879Z",
+      "lastEventAt": "2026-09-29T11:10:05.917Z",
+      "tokens": 58080465,
       "run": "operator",
       "evidence": {
-        "label": "f53f80cc-1f77-5d02-a862-99d59ffabdce.jsonl transcript"
+        "label": "agent-ac36a37716da272df.jsonl transcript"
       },
-      "elapsedSeconds": 48343,
-      "idleSeconds": 14,
+      "elapsedSeconds": 4800,
+      "idleSeconds": 17,
+      "state": "working"
+    },
+    {
+      "id": "operator:aba79af0f80a76844",
+      "kind": "operator-agent",
+      "label": "WP-16 review independence visible",
+      "doing": "Bash",
+      "startedAt": "2026-09-29T09:50:43.481Z",
+      "lastEventAt": "2026-09-29T11:10:22.073Z",
+      "tokens": 81260783,
+      "run": "operator",
+      "evidence": {
+        "label": "agent-aba79af0f80a76844.jsonl transcript"
+      },
+      "elapsedSeconds": 4779,
+      "idleSeconds": 1,
+      "state": "working"
+    },
+    {
+      "id": "operator:ae532b68d6ff1be4c",
+      "kind": "operator-agent",
+      "label": "/ops live view: actionable and epic",
+      "doing": "Bash: Fast-forward ops-live to include the latest collector",
+      "startedAt": "2026-09-29T09:51:28.922Z",
+      "lastEventAt": "2026-09-29T11:10:22.153Z",
+      "tokens": 63506426,
+      "run": "operator",
+      "evidence": {
+        "label": "agent-ae532b68d6ff1be4c.jsonl transcript"
+      },
+      "elapsedSeconds": 4734,
+      "idleSeconds": 0,
       "state": "working"
     }
   ],
   "attention": [
     {
-      "id": "ci-red:36547032016",
-      "kind": "ci-red",
-      "severity": "high",
-      "title": "Branch CI is red on c6dbef4b5",
-      "detail": "Failing job: node 24 / snapshots and artifacts.",
-      "at": "2026-09-29T09:23:55Z",
-      "evidence": [
-        {
-          "label": "CI run 36547032016",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016"
-        },
-        {
-          "label": "node 24 / snapshots and artifacts",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016/job/109336643164"
-        },
-        {
-          "label": "commit c6dbef4b5",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/c6dbef4b5f5124fc6a892f51a273df0a66bdf40f"
-        }
-      ],
-      "next": "Open the node 24 / snapshots and artifacts log, find the gate it names, and fix it or file a ticket for it; the judges record the verdict at the next cycle."
-    },
-    {
-      "id": "cycle-step:cycle-20260929T061300Z:push",
+      "id": "cycle-step:cycle-20260929T101300Z:pull-after-shift",
       "kind": "cycle-step-failed",
       "severity": "high",
-      "title": "cycle-20260929T061300Z: push exited 1",
-      "detail": "The cycle carried on after the failed push step; its closing line names the first failure.",
-      "at": "2026-09-29T06:18:01.000Z",
-      "evidence": [
-        {
-          "label": "cycle-20260929T061300Z",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T061300Z.json"
-        }
-      ],
-      "next": "The cycle's commit is local only: push it by hand from the cycle checkout."
-    },
-    {
-      "id": "cycle-step:cycle-20260929T061300Z:pull-after-shift",
-      "kind": "cycle-step-failed",
-      "severity": "high",
-      "title": "cycle-20260929T061300Z: pull-after-shift exited 128",
+      "title": "cycle-20260929T101300Z: pull-after-shift exited 1",
       "detail": "The cycle carried on after the failed pull-after-shift step; its closing line names the first failure.",
-      "at": "2026-09-29T06:14:43.000Z",
+      "at": "2026-09-29T11:06:40.000Z",
       "evidence": [
         {
-          "label": "cycle-20260929T061300Z",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T061300Z.json"
+          "label": "cycle-20260929T101300Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T101300Z.json"
+        },
+        {
+          "label": "commit 73b323d47",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/73b323d475ae191da8880a0d884d467c60c06b16"
         }
       ],
       "next": "The checkout could not take the shift's push: check it for local commits."
     },
     {
-      "id": "cycle-step:cycle-20260929T061300Z:intake-push",
+      "id": "cycle-step:cycle-20260929T101300Z:shift",
       "kind": "cycle-step-failed",
       "severity": "high",
-      "title": "cycle-20260929T061300Z: intake-push exited 1",
-      "detail": "The cycle carried on after the failed intake-push step; its closing line names the first failure.",
-      "at": "2026-09-29T06:13:40.000Z",
+      "title": "cycle-20260929T101300Z: shift exited 1",
+      "detail": "The cycle carried on after the failed shift step; its closing line names the first failure.",
+      "at": "2026-09-29T11:06:40.000Z",
       "evidence": [
         {
-          "label": "cycle-20260929T061300Z",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T061300Z.json"
+          "label": "cycle-20260929T101300Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T101300Z.json"
+        },
+        {
+          "label": "commit 73b323d47",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/73b323d475ae191da8880a0d884d467c60c06b16"
         }
       ],
-      "next": "The intake's commit did not reach the branch: push it by hand from the cycle checkout."
+      "next": "Read the shift's run.log under /tmp/dsh-enterprise/<shift>/ and its record under data/enterprise/shifts/."
     },
     {
-      "id": "cycle-step:cycle-20260929T061300Z:pull",
-      "kind": "cycle-step-failed",
+      "id": "ci-red:36557706627",
+      "kind": "ci-red",
       "severity": "high",
-      "title": "cycle-20260929T061300Z: pull exited 128",
-      "detail": "The cycle carried on after the failed pull step; its closing line names the first failure.",
-      "at": "2026-09-29T06:13:01.000Z",
+      "title": "Branch CI is red on 995c14cd3",
+      "detail": "Failing job: node 24 / static.",
+      "at": "2026-09-29T11:02:00Z",
       "evidence": [
         {
-          "label": "cycle-20260929T061300Z",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T061300Z.json"
+          "label": "CI run 36557706627",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36557706627"
+        },
+        {
+          "label": "node 24 / static",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36557706627/job/109370759564"
+        },
+        {
+          "label": "commit 995c14cd3",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/commit/995c14cd3ac068b8795441981638314c00e03901"
         }
       ],
-      "next": "The checkout could not fast-forward: check it for local commits or a rewritten branch before the next slot."
+      "next": "Open the node 24 / static log, find the gate it names, and fix it or file a ticket for it; the judges record the verdict at the next cycle."
     },
     {
       "id": "shift-failed:081308-24b5",
@@ -576,28 +591,12 @@
       "rejected": 0
     },
     "cycles": {
-      "last24h": 7,
-      "lastStartedAt": "2026-09-29T08:13:00.000Z",
-      "running": "cycle-20260929T081300Z"
+      "last24h": 8,
+      "lastStartedAt": "2026-09-29T10:13:00.000Z",
+      "running": "cycle-20260929T101300Z"
     },
     "throughput": {
       "hours": [
-        {
-          "hour": "2026-09-28T10:00:00.000Z",
-          "shipped": 0,
-          "rejected": 0,
-          "halted": 0,
-          "functions": 0,
-          "runs": 0
-        },
-        {
-          "hour": "2026-09-28T11:00:00.000Z",
-          "shipped": 0,
-          "rejected": 0,
-          "halted": 0,
-          "functions": 0,
-          "runs": 0
-        },
         {
           "hour": "2026-09-28T12:00:00.000Z",
           "shipped": 0,
@@ -649,8 +648,8 @@
         {
           "hour": "2026-09-28T18:00:00.000Z",
           "shipped": 0,
-          "rejected": 0,
-          "halted": 0,
+          "rejected": 1,
+          "halted": 1,
           "functions": 2,
           "runs": 9
         },
@@ -682,7 +681,7 @@
           "hour": "2026-09-28T22:00:00.000Z",
           "shipped": 0,
           "rejected": 0,
-          "halted": 2,
+          "halted": 4,
           "functions": 1,
           "runs": 27
         },
@@ -772,11 +771,27 @@
           "rejected": 0,
           "halted": 2,
           "functions": 22,
-          "runs": 28
+          "runs": 34
+        },
+        {
+          "hour": "2026-09-29T10:00:00.000Z",
+          "shipped": 0,
+          "rejected": 0,
+          "halted": 0,
+          "functions": 6,
+          "runs": 13
+        },
+        {
+          "hour": "2026-09-29T11:00:00.000Z",
+          "shipped": 0,
+          "rejected": 0,
+          "halted": 0,
+          "functions": 16,
+          "runs": 24
         }
       ],
       "shippedPerHour": 0.13,
-      "deliverablesPerHour": 6.63
+      "deliverablesPerHour": 7.71
     },
     "shipped": [
       {
@@ -785,9 +800,9 @@
         "tickets": [
           "T-0007"
         ],
-        "ci": "cancelled",
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36532784608",
-        "ciCommit": "7bd419444b3b76df4ffdfddf0c9693da84f2bad2"
+        "ci": "fail",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36532805308",
+        "ciCommit": "dae1babd0af593b1786c0e1a5296cb3c4dda53a3"
       },
       {
         "commit": "1d6a5d3430aef9893b1a28adfea1f1841238c866",
@@ -795,9 +810,9 @@
         "tickets": [
           "T-0012"
         ],
-        "ci": "cancelled",
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36502165796",
-        "ciCommit": "4237eee689a557f21d393dd6591c35751ca020c4"
+        "ci": "fail",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36469749793",
+        "ciCommit": "52c56001db9a56d046f0fe8f4efdb3859ddd2ae7"
       },
       {
         "commit": "cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38",
@@ -805,40 +820,78 @@
         "tickets": [
           "T-0019"
         ],
-        "ci": "cancelled",
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36502165796",
-        "ciCommit": "4237eee689a557f21d393dd6591c35751ca020c4"
+        "ci": "fail",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36469749793",
+        "ciCommit": "52c56001db9a56d046f0fe8f4efdb3859ddd2ae7"
+      }
+    ],
+    "shippedTickets": [
+      {
+        "ticket": "T-0007",
+        "title": "Pin the documented error codes of the LLM provider directory and model discovery",
+        "seat": "harness-core-llm-steward",
+        "division": "harness-core",
+        "shift": "001527-881f",
+        "at": "2026-09-29T02:04:38.491Z",
+        "commit": "cba8e46823c6fa946e5ee4f86d3945590a3fb1bc",
+        "ci": "fail",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36532805308",
+        "ciCommit": "dae1babd0af593b1786c0e1a5296cb3c4dda53a3"
+      },
+      {
+        "ticket": "T-0012",
+        "title": "Drop the test-only supportedProtocols root export from dsh-llm-pi-ai",
+        "seat": "harness-core-llm-pi-ai-steward",
+        "division": "harness-core",
+        "shift": "182951-78a6",
+        "at": "2026-09-28T19:04:29.582Z",
+        "commit": "1d6a5d3430aef9893b1a28adfea1f1841238c866",
+        "ci": "fail",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36469749793",
+        "ciCommit": "52c56001db9a56d046f0fe8f4efdb3859ddd2ae7"
+      },
+      {
+        "ticket": "T-0019",
+        "title": "Drop the test-only STRUCTURED_OUTPUT_INSTRUCTION root export from the in-process driver",
+        "seat": "harness-core-subagent-in-process-driver-steward",
+        "division": "harness-core",
+        "shift": "182951-78a6",
+        "at": "2026-09-28T19:04:29.582Z",
+        "commit": "cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38",
+        "ci": "fail",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36469749793",
+        "ciCommit": "52c56001db9a56d046f0fe8f4efdb3859ddd2ae7"
       }
     ],
     "ci": {
       "branch": "claude/coding-agent-harness-u9l4gt",
       "latest": {
-        "commit": "c6dbef4b5f5124fc6a892f51a273df0a66bdf40f",
+        "commit": "995c14cd3ac068b8795441981638314c00e03901",
         "conclusion": "failure",
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016",
-        "at": "2026-09-29T09:23:55Z",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36557706627",
+        "at": "2026-09-29T11:02:00Z",
         "failingJobs": [
           {
-            "name": "node 24 / snapshots and artifacts",
-            "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016/job/109336643164"
+            "name": "node 24 / static",
+            "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36557706627/job/109370759564"
           }
         ]
       },
       "running": {
-        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d",
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36550330735",
-        "startedAt": "2026-09-29T09:37:11Z"
+        "commit": "26648e7615bf79e9d7c55d917c760cb7bcc43f98",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36559529492",
+        "startedAt": "2026-09-29T11:04:58Z"
       }
     },
     "host": {
       "disks": [
         {
           "mount": "/",
-          "usedPct": 51.2
+          "usedPct": 61.2
         }
       ],
-      "memoryAvailablePct": 87,
-      "swapUsedPct": 0.6
+      "memoryAvailablePct": 85.7,
+      "swapUsedPct": 0.7
     }
   },
   "seats": [
@@ -2217,7 +2270,7 @@
       "label": "review of T-0012",
       "startedAt": "2026-09-28T18:16:52.745Z",
       "endedAt": "2026-09-28T18:18:13.299Z",
-      "outcome": "unknown"
+      "outcome": "ok"
     },
     {
       "id": "session:review-t-0019-e3dd7355",
@@ -2225,7 +2278,7 @@
       "label": "review of T-0019",
       "startedAt": "2026-09-28T18:18:13.316Z",
       "endedAt": "2026-09-28T18:19:44.624Z",
-      "outcome": "unknown"
+      "outcome": "failed"
     },
     {
       "id": "session:program-bc31d3e692c2ba1950ef2c528acf7a62f984b5ad174c9e05a820dd6c02372777-@integration",
@@ -2292,7 +2345,8 @@
       "kind": "operator-agent",
       "label": "operator session",
       "startedAt": "2026-09-28T20:15:54.024Z",
-      "outcome": "running"
+      "endedAt": "2026-09-29T11:10:21.837Z",
+      "outcome": "ok"
     },
     {
       "id": "operator:a30e0edc1751ce8aa",
@@ -4195,314 +4249,1869 @@
       "kind": "cycle-step",
       "label": "20260929T081300Z publish",
       "startedAt": "2026-09-29T09:41:21.000Z",
+      "endedAt": "2026-09-29T09:42:03.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T081300Z:record",
+      "kind": "cycle-step",
+      "label": "20260929T081300Z record",
+      "startedAt": "2026-09-29T09:42:03.000Z",
+      "endedAt": "2026-09-29T09:42:05.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T081300Z:push",
+      "kind": "cycle-step",
+      "label": "20260929T081300Z push",
+      "startedAt": "2026-09-29T09:42:05.000Z",
+      "endedAt": "2026-09-29T09:42:09.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "operator:ac36a37716da272df",
+      "kind": "operator-agent",
+      "label": "WP-14 tamper-evident ledger",
+      "startedAt": "2026-09-29T09:50:22.879Z",
+      "outcome": "running"
+    },
+    {
+      "id": "operator:aba79af0f80a76844",
+      "kind": "operator-agent",
+      "label": "WP-16 review independence visible",
+      "startedAt": "2026-09-29T09:50:43.481Z",
+      "outcome": "running"
+    },
+    {
+      "id": "operator:abcc302ff82f6ea6a",
+      "kind": "operator-agent",
+      "label": "WP-10 contain unattended agents",
+      "startedAt": "2026-09-29T09:51:06.428Z",
+      "endedAt": "2026-09-29T10:53:54.757Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "operator:ae532b68d6ff1be4c",
+      "kind": "operator-agent",
+      "label": "/ops live view: actionable and epic",
+      "startedAt": "2026-09-29T09:51:28.922Z",
+      "outcome": "running"
+    },
+    {
+      "id": "cycle:cycle-20260929T101300Z:pull",
+      "kind": "cycle-step",
+      "label": "20260929T101300Z pull",
+      "startedAt": "2026-09-29T10:13:00.000Z",
+      "endedAt": "2026-09-29T10:13:02.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T101300Z:intake",
+      "kind": "cycle-step",
+      "label": "20260929T101300Z intake",
+      "startedAt": "2026-09-29T10:13:02.000Z",
+      "endedAt": "2026-09-29T10:13:03.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T101300Z:intake-push",
+      "kind": "cycle-step",
+      "label": "20260929T101300Z intake-push",
+      "startedAt": "2026-09-29T10:13:03.000Z",
+      "endedAt": "2026-09-29T10:13:07.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T101300Z:shift",
+      "kind": "cycle-step",
+      "label": "20260929T101300Z shift",
+      "startedAt": "2026-09-29T10:13:07.000Z",
+      "endedAt": "2026-09-29T11:06:40.000Z",
+      "outcome": "failed"
+    },
+    {
+      "id": "ledger:184",
+      "kind": "function-gate",
+      "label": "ci-coverage · Ci Coverage Judge",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "startedAt": "2026-09-29T10:14:28.000Z",
+      "endedAt": "2026-09-29T10:26:03.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:185",
+      "kind": "function-gate",
+      "label": "ci-static · Ci Static Judge",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "startedAt": "2026-09-29T10:14:28.000Z",
+      "endedAt": "2026-09-29T10:17:57.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:186",
+      "kind": "function-gate",
+      "label": "ci-consumers · Ci Consumers Judge",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "startedAt": "2026-09-29T10:14:28.000Z",
+      "endedAt": "2026-09-29T10:29:24.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:187",
+      "kind": "function-gate",
+      "label": "ci-lint-contracts-ready · Ci Lint Contracts Ready Judge",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "startedAt": "2026-09-29T10:14:28.000Z",
+      "endedAt": "2026-09-29T10:29:24.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:188",
+      "kind": "function-gate",
+      "label": "ci-snapshot · Ci Snapshot Judge",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "startedAt": "2026-09-29T10:14:28.000Z",
+      "endedAt": "2026-09-29T10:29:24.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:189",
+      "kind": "function-gate",
+      "label": "ci-artifacts · Ci Artifacts Judge",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "startedAt": "2026-09-29T10:14:28.000Z",
+      "endedAt": "2026-09-29T10:29:24.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f-t-0020",
+      "kind": "department",
+      "label": "T-0020 · Subagent Steward",
+      "seat": "harness-core-subagent-steward",
+      "division": "harness-core",
+      "startedAt": "2026-09-29T10:14:48.799Z",
+      "endedAt": "2026-09-29T10:30:17.842Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f-t-0021",
+      "kind": "department",
+      "label": "T-0021 · Subagent Acp Steward",
+      "seat": "harness-core-subagent-acp-steward",
+      "division": "harness-core",
+      "startedAt": "2026-09-29T10:30:17.878Z",
+      "endedAt": "2026-09-29T10:46:36.188Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f-@integration",
+      "kind": "department",
+      "label": "integration",
+      "startedAt": "2026-09-29T10:46:40.176Z",
+      "endedAt": "2026-09-29T11:01:10.284Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:review-t-0020-c3b2dc5a",
+      "kind": "reviewer",
+      "label": "review of T-0020",
+      "startedAt": "2026-09-29T11:01:10.355Z",
+      "endedAt": "2026-09-29T11:01:18.683Z",
+      "outcome": "unknown"
+    },
+    {
+      "id": "session:review-t-0021-f02dd27f",
+      "kind": "reviewer",
+      "label": "review of T-0021",
+      "startedAt": "2026-09-29T11:01:18.702Z",
+      "endedAt": "2026-09-29T11:01:24.983Z",
+      "outcome": "unknown"
+    },
+    {
+      "id": "cycle:cycle-20260929T101300Z:functions",
+      "kind": "cycle-step",
+      "label": "20260929T101300Z functions",
+      "startedAt": "2026-09-29T11:06:40.000Z",
+      "endedAt": "2026-09-29T11:09:10.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T101300Z:pull-after-shift",
+      "kind": "cycle-step",
+      "label": "20260929T101300Z pull-after-shift",
+      "startedAt": "2026-09-29T11:06:40.000Z",
+      "endedAt": "2026-09-29T11:06:40.000Z",
+      "outcome": "failed"
+    },
+    {
+      "id": "ledger:170",
+      "kind": "function-gate",
+      "label": "verify-agent-note-classification · Agent Note Classification Verifier",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:06:42.872Z",
+      "endedAt": "2026-09-29T11:06:43.872Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:171",
+      "kind": "function-gate",
+      "label": "verify-agent-note-format · Agent Note Format Verifier",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:06:43.876Z",
+      "endedAt": "2026-09-29T11:06:45.076Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:172",
+      "kind": "function-gate",
+      "label": "verify-archived-agent-notes · Archived Agent Notes Verifier",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:06:45.075Z",
+      "endedAt": "2026-09-29T11:06:46.175Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:173",
+      "kind": "function-gate",
+      "label": "verify-client-domain-graph · Client Domain Graph Verifier",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:06:46.219Z",
+      "endedAt": "2026-09-29T11:06:47.319Z",
+      "outcome": "failed"
+    },
+    {
+      "id": "ledger:174",
+      "kind": "function-gate",
+      "label": "verify-config-source-ownership · Config Source Ownership Verifier",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:06:47.309Z",
+      "endedAt": "2026-09-29T11:06:48.309Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:175",
+      "kind": "function-gate",
+      "label": "verify-cordis-config · Cordis Config Verifier",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:06:48.346Z",
+      "endedAt": "2026-09-29T11:06:51.746Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:176",
+      "kind": "function-gate",
+      "label": "verify-doc-budgets · Doc Budgets Verifier",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:06:51.777Z",
+      "endedAt": "2026-09-29T11:06:52.877Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:177",
+      "kind": "function-gate",
+      "label": "verify-doc-refs · Doc Refs Verifier",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:06:52.848Z",
+      "endedAt": "2026-09-29T11:06:54.748Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:178",
+      "kind": "function-gate",
+      "label": "verify-doc-site-fragments · Doc Site Fragments Verifier",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:06:54.779Z",
+      "endedAt": "2026-09-29T11:07:47.679Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:179",
+      "kind": "function-gate",
+      "label": "verify-dsh-package-licenses · Dsh Package Licenses Verifier",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:07:47.643Z",
+      "endedAt": "2026-09-29T11:07:48.743Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:180",
+      "kind": "function-gate",
+      "label": "verify-export-jsdoc · Export Jsdoc Verifier",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:07:48.709Z",
+      "endedAt": "2026-09-29T11:07:57.309Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:181",
+      "kind": "function-gate",
+      "label": "verify-md-links · Md Links Verifier",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:07:57.287Z",
+      "endedAt": "2026-09-29T11:08:19.287Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:182",
+      "kind": "function-gate",
+      "label": "verify-md-wrap · Md Wrap Verifier",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:08:19.241Z",
+      "endedAt": "2026-09-29T11:08:35.041Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:183",
+      "kind": "function-gate",
+      "label": "verify-mermaid · Mermaid Verifier",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "startedAt": "2026-09-29T11:08:35.032Z",
+      "endedAt": "2026-09-29T11:08:56.232Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:190",
+      "kind": "function-gate",
+      "label": "session-stats · Session Stats Observer",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "startedAt": "2026-09-29T11:09:05.684Z",
+      "endedAt": "2026-09-29T11:09:10.784Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:191",
+      "kind": "function-gate",
+      "label": "scoreboard · Usage Scorekeeper",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "startedAt": "2026-09-29T11:09:05.697Z",
+      "endedAt": "2026-09-29T11:09:10.797Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T101300Z:roster",
+      "kind": "cycle-step",
+      "label": "20260929T101300Z roster",
+      "startedAt": "2026-09-29T11:09:10.000Z",
+      "endedAt": "2026-09-29T11:09:15.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T101300Z:publish",
+      "kind": "cycle-step",
+      "label": "20260929T101300Z publish",
+      "startedAt": "2026-09-29T11:09:15.000Z",
+      "endedAt": "2026-09-29T11:09:54.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T101300Z:record",
+      "kind": "cycle-step",
+      "label": "20260929T101300Z record",
+      "startedAt": "2026-09-29T11:09:54.000Z",
+      "endedAt": "2026-09-29T11:09:56.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T101300Z:push",
+      "kind": "cycle-step",
+      "label": "20260929T101300Z push",
+      "startedAt": "2026-09-29T11:09:56.000Z",
       "outcome": "running"
     }
   ],
   "activity": [
     {
-      "ts": 1790674561568,
-      "seq": 1992,
+      "ts": 1790679632319,
+      "seq": 649,
       "kind": "tool",
-      "label": "Bash: Remove the headline agent's worktree and check the cycle",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash: Run knip and duplication under the heavy lock",
+      "sessionId": "operator:ac36a37716da272df"
     },
     {
-      "ts": 1790674561605,
-      "seq": 1993,
+      "ts": 1790679633515,
+      "seq": 792,
       "kind": "tool",
-      "label": "TaskUpdate",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
     },
     {
-      "ts": 1790674573488,
-      "seq": 1999,
+      "ts": 1790679642712,
+      "seq": 825,
       "kind": "tool",
-      "label": "Bash: See which stage the 08:13 shift is in",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash: Un-export ProgramGoal, typecheck and rerun knip",
+      "sessionId": "operator:ae532b68d6ff1be4c"
     },
     {
-      "ts": 1790674580415,
-      "seq": 2003,
+      "ts": 1790679713308,
+      "seq": 653,
       "kind": "tool",
-      "label": "Bash: Wait for the 08:13 shift to finish and summarize its outcome",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash: Commit the knip fix and refusal-line spec",
+      "sessionId": "operator:ac36a37716da272df"
     },
     {
-      "ts": 1790674626598,
-      "seq": 142,
-      "sessionId": "ledger",
-      "agentId": "harness-core-subagent-steward",
-      "kind": "refusal",
-      "label": "T-0014 halted"
+      "ts": 1790679719223,
+      "seq": 796,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
     },
     {
-      "ts": 1790674626598,
-      "seq": 143,
-      "sessionId": "ledger",
-      "agentId": "harness-core-tool-subagent-steward",
-      "kind": "refusal",
-      "label": "T-0016 halted"
+      "ts": 1790679720720,
+      "seq": 656,
+      "kind": "tool",
+      "label": "Bash: Push the second increment under the push lock",
+      "sessionId": "operator:ac36a37716da272df"
     },
     {
-      "ts": 1790674639000,
+      "ts": 1790679743755,
+      "seq": 830,
+      "kind": "tool",
+      "label": "Bash: Lint, test and duplication-check increment 2",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790679775758,
+      "seq": 833,
+      "kind": "tool",
+      "label": "Bash: Commit increment 2",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790679782411,
+      "seq": 660,
+      "kind": "tool",
+      "label": "Bash: List recent Branch CI runs",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679784340,
+      "seq": 664,
+      "kind": "tool",
+      "label": "ToolSearch",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679785614,
+      "seq": 836,
+      "kind": "tool",
+      "label": "Bash: Rebase and push increment 2 under the push lock",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790679786674,
+      "seq": 668,
+      "kind": "tool",
+      "label": "mcp__github__actions_list",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679807905,
+      "seq": 672,
+      "kind": "tool",
+      "label": "Bash: Re-run engine and enterprise specs on the pushed tip",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679840533,
+      "seq": 800,
+      "kind": "tool",
+      "label": "ToolSearch",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679841277,
+      "seq": 675,
+      "kind": "tool",
+      "label": "Bash: Re-run the briefing and report specs alone",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679848083,
+      "seq": 804,
+      "kind": "tool",
+      "label": "SendMessage",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679864341,
+      "seq": 679,
+      "kind": "tool",
+      "label": "Bash: Find briefing review-record logic",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679866055,
+      "seq": 682,
+      "kind": "tool",
+      "label": "Bash: Read the briefing review record function",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679872213,
+      "seq": 686,
+      "kind": "tool",
+      "label": "Bash: Look for hard-coded text about the crashed shift's reviews",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679874264,
+      "seq": 808,
+      "kind": "tool",
+      "label": "SendMessage",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679877786,
+      "seq": 812,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679879391,
+      "seq": 690,
+      "kind": "tool",
+      "label": "Bash: Check report CLI options",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679881887,
+      "seq": 693,
+      "kind": "tool",
+      "label": "Bash: Read report entry point",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679882768,
+      "seq": 816,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679885178,
+      "seq": 697,
+      "kind": "tool",
+      "label": "Bash: Read report sources interface and GitHub reader",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679889942,
+      "seq": 700,
+      "kind": "tool",
+      "label": "Bash: Render the report offline over the last 24 hours",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679893244,
+      "seq": 820,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679895399,
+      "seq": 824,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679899615,
+      "seq": 842,
+      "kind": "tool",
+      "label": "Bash: Run knip on the pushed tree",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790679901185,
+      "seq": 828,
+      "kind": "tool",
+      "label": "SendMessage",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679978227,
+      "seq": 832,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679982182,
+      "seq": 835,
+      "kind": "tool",
+      "label": "SendMessage",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679984824,
+      "seq": 847,
+      "kind": "tool",
+      "label": "Bash: Check time, worktree state and ops-live state",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790679985692,
+      "seq": 839,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679989542,
+      "seq": 842,
+      "kind": "tool",
+      "label": "Read enterprise-ledger.ts",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679990305,
+      "seq": 844,
+      "kind": "tool",
+      "label": "Read enterprise-ledger.ts",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790679992893,
+      "seq": 851,
+      "kind": "tool",
+      "label": "Bash: Check loops alive and relay freshness",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790679996147,
+      "seq": 705,
+      "kind": "tool",
+      "label": "Bash: Find how the report builds shift record lines",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790679998695,
+      "seq": 710,
+      "kind": "tool",
+      "label": "Bash: Check time, worktree state, and upstream after restart",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680000000,
       "seq": 4,
-      "sessionId": "cycle:cycle-20260929T081300Z",
-      "kind": "step",
-      "label": "shift exit=0"
+      "sessionId": "cycle:cycle-20260929T101300Z",
+      "kind": "refusal",
+      "label": "shift exit=1"
     },
     {
-      "ts": 1790674640000,
+      "ts": 1790680000000,
       "seq": 5,
-      "sessionId": "cycle:cycle-20260929T081300Z",
-      "kind": "step",
-      "label": "pull-after-shift exit=0"
+      "sessionId": "cycle:cycle-20260929T101300Z",
+      "kind": "refusal",
+      "label": "pull-after-shift exit=1"
     },
     {
-      "ts": 1790674643451,
-      "seq": 2011,
+      "ts": 1790680000250,
+      "seq": 856,
       "kind": "tool",
-      "label": "Bash: Read the 08:13 shift's outcome",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash: Compare the loop's proxy with the current proxy",
+      "sessionId": "operator:ae532b68d6ff1be4c"
     },
     {
-      "ts": 1790674644022,
-      "seq": 144,
+      "ts": 1790680003872,
+      "seq": 170,
       "sessionId": "ledger",
       "agentId": "verification-verify-agent-note-classification",
       "kind": "certificate",
       "label": "verify-agent-note-classification pass"
     },
     {
-      "ts": 1790674645234,
-      "seq": 145,
+      "ts": 1790680005076,
+      "seq": 171,
       "sessionId": "ledger",
       "agentId": "verification-verify-agent-note-format",
       "kind": "certificate",
       "label": "verify-agent-note-format pass"
     },
     {
-      "ts": 1790674646414,
-      "seq": 146,
+      "ts": 1790680006175,
+      "seq": 172,
       "sessionId": "ledger",
       "agentId": "verification-verify-archived-agent-notes",
       "kind": "certificate",
       "label": "verify-archived-agent-notes pass"
     },
     {
-      "ts": 1790674647749,
-      "seq": 147,
+      "ts": 1790680007319,
+      "seq": 173,
       "sessionId": "ledger",
       "agentId": "verification-verify-client-domain-graph",
       "kind": "refusal",
       "label": "verify-client-domain-graph fail"
     },
     {
-      "ts": 1790674648753,
-      "seq": 148,
+      "ts": 1790680008309,
+      "seq": 174,
       "sessionId": "ledger",
       "agentId": "verification-verify-config-source-ownership",
       "kind": "certificate",
       "label": "verify-config-source-ownership pass"
     },
     {
-      "ts": 1790674652173,
-      "seq": 149,
+      "ts": 1790680011746,
+      "seq": 175,
       "sessionId": "ledger",
       "agentId": "verification-verify-cordis-config",
       "kind": "certificate",
       "label": "verify-cordis-config pass"
     },
     {
-      "ts": 1790674653219,
-      "seq": 150,
+      "ts": 1790680012877,
+      "seq": 176,
       "sessionId": "ledger",
       "agentId": "verification-verify-doc-budgets",
       "kind": "certificate",
       "label": "verify-doc-budgets pass"
     },
     {
-      "ts": 1790674655556,
-      "seq": 151,
+      "ts": 1790680013013,
+      "seq": 714,
+      "kind": "tool",
+      "label": "ToolSearch",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680014748,
+      "seq": 177,
       "sessionId": "ledger",
       "agentId": "verification-verify-doc-refs",
       "kind": "certificate",
       "label": "verify-doc-refs pass"
     },
     {
-      "ts": 1790674659377,
-      "seq": 2019,
+      "ts": 1790680020857,
+      "seq": 718,
       "kind": "tool",
-      "label": "Bash: Compute the engine's current queue order",
-      "sessionId": "operator:f53f80cc"
+      "label": "SendMessage",
+      "sessionId": "operator:ac36a37716da272df"
     },
     {
-      "ts": 1790674665651,
-      "seq": 2024,
+      "ts": 1790680021498,
+      "seq": 861,
       "kind": "tool",
-      "label": "Bash: Read T-0016's full integration failure reason",
-      "sessionId": "operator:f53f80cc"
+      "label": "ToolSearch",
+      "sessionId": "operator:ae532b68d6ff1be4c"
     },
     {
-      "ts": 1790674682851,
-      "seq": 2030,
+      "ts": 1790680022815,
+      "seq": 722,
       "kind": "tool",
-      "label": "Bash: Check the next tickets' checks and find the engine's recertification code",
-      "sessionId": "operator:f53f80cc"
+      "label": "mcp__github__actions_list",
+      "sessionId": "operator:ac36a37716da272df"
     },
     {
-      "ts": 1790674688614,
-      "seq": 2038,
+      "ts": 1790680024804,
+      "seq": 866,
       "kind": "tool",
-      "label": "Bash: Read the engine's recertify function",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash: Check which enterprise loops carry the old proxy port",
+      "sessionId": "operator:ae532b68d6ff1be4c"
     },
     {
-      "ts": 1790674701406,
-      "seq": 2045,
+      "ts": 1790680025123,
+      "seq": 725,
       "kind": "tool",
-      "label": "Bash: Read the driver's imports and every use of the program worktrees",
-      "sessionId": "operator:f53f80cc"
+      "label": "mcp__github__actions_get",
+      "sessionId": "operator:ac36a37716da272df"
     },
     {
-      "ts": 1790674703229,
-      "seq": 2052,
+      "ts": 1790680039629,
+      "seq": 849,
       "kind": "tool",
-      "label": "Bash: Read how the program worktrees are laid out",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
     },
     {
-      "ts": 1790674708720,
-      "seq": 152,
+      "ts": 1790680040616,
+      "seq": 871,
+      "kind": "tool",
+      "label": "SendMessage",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790680046848,
+      "seq": 874,
+      "kind": "tool",
+      "label": "Write proxy_forward.py",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790680051651,
+      "seq": 878,
+      "kind": "tool",
+      "label": "Bash: Start the loopback proxy forwarder and test it",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790680057979,
+      "seq": 729,
+      "kind": "tool",
+      "label": "mcp__github__actions_list",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680059240,
+      "seq": 881,
+      "kind": "tool",
+      "label": "Bash: Wait until the loop pushes a fresh payload again",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790680062087,
+      "seq": 733,
+      "kind": "tool",
+      "label": "mcp__github__actions_list",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680065342,
+      "seq": 737,
+      "kind": "tool",
+      "label": "mcp__github__get_job_logs",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680067287,
+      "seq": 886,
+      "kind": "tool",
+      "label": "Bash: Check the finished shift's push outcome",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790680067679,
+      "seq": 178,
       "sessionId": "ledger",
       "agentId": "verification-verify-doc-site-fragments",
       "kind": "certificate",
       "label": "verify-doc-site-fragments pass"
     },
     {
-      "ts": 1790674709891,
-      "seq": 153,
+      "ts": 1790680068743,
+      "seq": 179,
       "sessionId": "ledger",
       "agentId": "verification-verify-dsh-package-licenses",
       "kind": "certificate",
       "label": "verify-dsh-package-licenses pass"
     },
     {
-      "ts": 1790674714727,
-      "seq": 2058,
+      "ts": 1790680069497,
+      "seq": 889,
       "kind": "tool",
-      "label": "Bash: Read the integration call site of recertify",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash: Read the current cycle log and shift run log",
+      "sessionId": "operator:ae532b68d6ff1be4c"
     },
     {
-      "ts": 1790674717963,
-      "seq": 154,
+      "ts": 1790680072123,
+      "seq": 741,
+      "kind": "tool",
+      "label": "Bash: Show the range CI's gate checked and re-run it locally",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680077309,
+      "seq": 180,
       "sessionId": "ledger",
       "agentId": "verification-verify-export-jsdoc",
       "kind": "certificate",
       "label": "verify-export-jsdoc pass"
     },
     {
-      "ts": 1790674722366,
-      "seq": 2063,
+      "ts": 1790680080136,
+      "seq": 854,
       "kind": "tool",
-      "label": "Bash: Remove the program worktrees before recertifying at the clone root",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
     },
     {
-      "ts": 1790674727504,
-      "seq": 2071,
+      "ts": 1790680082475,
+      "seq": 894,
       "kind": "tool",
-      "label": "Bash: Run the shift engine's keyless e2e with the change",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash: Find the engine's finalize-failure handling",
+      "sessionId": "operator:ae532b68d6ff1be4c"
     },
     {
-      "ts": 1790674739674,
-      "seq": 155,
+      "ts": 1790680092992,
+      "seq": 858,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680099091,
+      "seq": 900,
+      "kind": "tool",
+      "label": "Bash: List the forwarder process and its live connections",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790680099287,
+      "seq": 181,
       "sessionId": "ledger",
       "agentId": "verification-verify-md-links",
       "kind": "certificate",
       "label": "verify-md-links pass"
     },
     {
-      "ts": 1790674811444,
-      "seq": 2077,
+      "ts": 1790680103862,
+      "seq": 745,
       "kind": "tool",
-      "label": "Bash: Read the failing e2e case's error",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash: Inspect the e2e's remote setup and cleanup",
+      "sessionId": "operator:ac36a37716da272df"
     },
     {
-      "ts": 1790674825023,
-      "seq": 156,
+      "ts": 1790680107268,
+      "seq": 905,
+      "kind": "tool",
+      "label": "Bash: Restart the forwarder with the requested log and pid file",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790680108619,
+      "seq": 749,
+      "kind": "tool",
+      "label": "Bash: Read the e2e header and setup",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680110115,
+      "seq": 751,
+      "kind": "tool",
+      "label": "Bash: Find e2e test blocks and remote helpers",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680112142,
+      "seq": 754,
+      "kind": "tool",
+      "label": "Bash: Read the rejection/reset and rebase e2e cases",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680113018,
+      "seq": 910,
+      "kind": "tool",
+      "label": "Bash: Write the forwarder's real pid to the pid file",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790680115041,
+      "seq": 182,
       "sessionId": "ledger",
       "agentId": "verification-verify-md-wrap",
       "kind": "certificate",
       "label": "verify-md-wrap pass"
     },
     {
-      "ts": 1790674848283,
-      "seq": 2082,
+      "ts": 1790680126495,
+      "seq": 915,
       "kind": "tool",
-      "label": "Bash: Read how the e2e proves worktree installs",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash: Wait for the next capture round and check the relay",
+      "sessionId": "operator:ae532b68d6ff1be4c"
     },
     {
-      "ts": 1790674851865,
-      "seq": 2087,
+      "ts": 1790680126572,
+      "seq": 758,
       "kind": "tool",
-      "label": "Bash: Read the e2e's seeded package.json setup",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash: Rebase and read e2e call sites",
+      "sessionId": "operator:ac36a37716da272df"
     },
     {
-      "ts": 1790674864046,
-      "seq": 157,
+      "ts": 1790680130880,
+      "seq": 862,
+      "kind": "tool",
+      "label": "Edit enterprise-ledger.ts",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680136183,
+      "seq": 762,
+      "kind": "tool",
+      "label": "Bash: Assert the gate over the e2e remote's pushes",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680136232,
+      "seq": 183,
       "sessionId": "ledger",
       "agentId": "verification-verify-mermaid",
       "kind": "certificate",
       "label": "verify-mermaid pass"
     },
     {
-      "ts": 1790674873219,
-      "seq": 2095,
+      "ts": 1790680143239,
+      "seq": 867,
       "kind": "tool",
-      "label": "Bash: Prove worktree installs through a log and assert the worktrees are removed",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
     },
     {
-      "ts": 1790674876000,
+      "ts": 1790680145062,
+      "seq": 765,
+      "kind": "tool",
+      "label": "Bash: Run the e2e with the gate assertions",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680147471,
+      "seq": 872,
+      "kind": "tool",
+      "label": "Edit enterprise-ledger.ts",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680148733,
+      "seq": 874,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680150000,
       "seq": 6,
-      "sessionId": "cycle:cycle-20260929T081300Z",
+      "sessionId": "cycle:cycle-20260929T101300Z",
       "kind": "step",
       "label": "functions exit=0"
     },
     {
-      "ts": 1790674876219,
-      "seq": 164,
+      "ts": 1790680150784,
+      "seq": 190,
       "sessionId": "ledger",
       "agentId": "observatory-session-stats-observer",
       "kind": "certificate",
       "label": "session-stats pass"
     },
     {
-      "ts": 1790674876231,
-      "seq": 165,
+      "ts": 1790680150797,
+      "seq": 191,
       "sessionId": "ledger",
       "agentId": "curation-data-scorekeeper",
       "kind": "certificate",
       "label": "scoreboard pass"
     },
     {
-      "ts": 1790674881000,
+      "ts": 1790680155000,
       "seq": 7,
-      "sessionId": "cycle:cycle-20260929T081300Z",
+      "sessionId": "cycle:cycle-20260929T101300Z",
       "kind": "step",
       "label": "roster exit=0"
     },
     {
-      "ts": 1790674882584,
-      "seq": 2100,
+      "ts": 1790680157979,
+      "seq": 879,
       "kind": "tool",
-      "label": "Bash: Escape the shell expansion cleanly and rerun the e2e",
-      "sessionId": "operator:f53f80cc"
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680165695,
+      "seq": 883,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680179006,
+      "seq": 886,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680185231,
+      "seq": 890,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680192603,
+      "seq": 893,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680194000,
+      "seq": 8,
+      "sessionId": "cycle:cycle-20260929T101300Z",
+      "kind": "step",
+      "label": "publish exit=0"
+    },
+    {
+      "ts": 1790680196000,
+      "seq": 9,
+      "sessionId": "cycle:cycle-20260929T101300Z",
+      "kind": "step",
+      "label": "record exit=0"
+    },
+    {
+      "ts": 1790680199267,
+      "seq": 897,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680202107,
+      "seq": 900,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680205901,
+      "seq": 769,
+      "kind": "tool",
+      "label": "Bash: Make the e2e check non-vacuous and re-run it",
+      "sessionId": "operator:ac36a37716da272df"
+    },
+    {
+      "ts": 1790680216094,
+      "seq": 904,
+      "kind": "tool",
+      "label": "Bash",
+      "sessionId": "operator:aba79af0f80a76844"
+    },
+    {
+      "ts": 1790680218857,
+      "seq": 920,
+      "kind": "tool",
+      "label": "SendMessage",
+      "sessionId": "operator:ae532b68d6ff1be4c"
+    },
+    {
+      "ts": 1790680220787,
+      "seq": 922,
+      "kind": "tool",
+      "label": "Bash: Fast-forward ops-live to include the latest collector",
+      "sessionId": "operator:ae532b68d6ff1be4c"
     }
-  ]
+  ],
+  "cycles": [
+    {
+      "cycle": "cycle-20260929T101300Z",
+      "startedAt": "2026-09-29T10:13:00.000Z",
+      "outcome": "running",
+      "source": "log",
+      "steps": [
+        {
+          "name": "pull",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T10:13:02.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "intake",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T10:13:03.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "intake-push",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T10:13:07.000Z",
+          "seconds": 4
+        },
+        {
+          "name": "shift",
+          "state": "failed",
+          "exit": 1,
+          "at": "2026-09-29T11:06:40.000Z",
+          "seconds": 3213
+        },
+        {
+          "name": "pull-after-shift",
+          "state": "failed",
+          "exit": 1,
+          "at": "2026-09-29T11:06:40.000Z",
+          "seconds": 0
+        },
+        {
+          "name": "functions",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T11:09:10.000Z",
+          "seconds": 150
+        },
+        {
+          "name": "roster",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T11:09:15.000Z",
+          "seconds": 5
+        },
+        {
+          "name": "publish",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T11:09:54.000Z",
+          "seconds": 39
+        },
+        {
+          "name": "record",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T11:09:56.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "push",
+          "state": "running",
+          "at": "2026-09-29T11:09:56.000Z",
+          "seconds": 27
+        }
+      ],
+      "shift": "101309-c95c",
+      "tickets": {
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 0
+      },
+      "functions": {
+        "pass": 21,
+        "fail": 1,
+        "error": 0
+      },
+      "evidence": {
+        "label": "cycle-20260929T101300Z",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T101300Z.json"
+      }
+    },
+    {
+      "cycle": "cycle-20260929T081300Z",
+      "startedAt": "2026-09-29T08:13:00.000Z",
+      "endedAt": "2026-09-29T09:42:05.334Z",
+      "outcome": "clean",
+      "exit": 0,
+      "source": "log",
+      "steps": [
+        {
+          "name": "pull",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T08:13:01.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "intake",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T08:13:03.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "intake-push",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T08:13:06.000Z",
+          "seconds": 3
+        },
+        {
+          "name": "shift",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T09:37:19.000Z",
+          "seconds": 5053
+        },
+        {
+          "name": "pull-after-shift",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T09:37:20.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "functions",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T09:41:16.000Z",
+          "seconds": 236
+        },
+        {
+          "name": "roster",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T09:41:21.000Z",
+          "seconds": 5
+        },
+        {
+          "name": "publish",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T09:42:03.000Z",
+          "seconds": 42
+        },
+        {
+          "name": "record",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T09:42:05.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "push",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T09:42:09.000Z",
+          "seconds": 4
+        }
+      ],
+      "shift": "081308-24b5",
+      "tickets": {
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 2
+      },
+      "functions": {
+        "pass": 18,
+        "fail": 4,
+        "error": 0
+      },
+      "evidence": {
+        "label": "cycle-20260929T081300Z",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T081300Z.json"
+      }
+    },
+    {
+      "cycle": "cycle-20260929T061300Z",
+      "startedAt": "2026-09-29T06:13:00.000Z",
+      "endedAt": "2026-09-29T06:17:24.613Z",
+      "outcome": "failed",
+      "exit": 128,
+      "source": "log",
+      "steps": [
+        {
+          "name": "pull",
+          "state": "failed",
+          "exit": 128,
+          "at": "2026-09-29T06:13:01.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "intake",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T06:13:03.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "intake-push",
+          "state": "failed",
+          "exit": 1,
+          "at": "2026-09-29T06:13:40.000Z",
+          "seconds": 37
+        },
+        {
+          "name": "shift",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T06:14:42.000Z",
+          "seconds": 62
+        },
+        {
+          "name": "pull-after-shift",
+          "state": "failed",
+          "exit": 128,
+          "at": "2026-09-29T06:14:43.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "functions",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T06:16:50.000Z",
+          "seconds": 127
+        },
+        {
+          "name": "roster",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T06:16:54.000Z",
+          "seconds": 4
+        },
+        {
+          "name": "publish",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T06:17:23.000Z",
+          "seconds": 29
+        },
+        {
+          "name": "record",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T06:17:24.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "push",
+          "state": "failed",
+          "exit": 1,
+          "at": "2026-09-29T06:18:01.000Z",
+          "seconds": 37
+        }
+      ],
+      "shift": "061342-191b",
+      "tickets": {
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 0
+      },
+      "functions": {
+        "pass": 15,
+        "fail": 1,
+        "error": 0
+      },
+      "evidence": {
+        "label": "cycle-20260929T061300Z",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T061300Z.json"
+      }
+    },
+    {
+      "cycle": "cycle-20260929T041300Z",
+      "startedAt": "2026-09-29T04:13:00.000Z",
+      "endedAt": "2026-09-29T04:17:09.580Z",
+      "outcome": "failed",
+      "exit": 128,
+      "source": "log",
+      "steps": [
+        {
+          "name": "pull",
+          "state": "failed",
+          "exit": 128,
+          "at": "2026-09-29T04:13:01.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "intake",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T04:13:03.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "intake-push",
+          "state": "failed",
+          "exit": 1,
+          "at": "2026-09-29T04:13:39.000Z",
+          "seconds": 36
+        },
+        {
+          "name": "shift",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T04:14:32.000Z",
+          "seconds": 53
+        },
+        {
+          "name": "pull-after-shift",
+          "state": "failed",
+          "exit": 128,
+          "at": "2026-09-29T04:14:33.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "functions",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T04:16:36.000Z",
+          "seconds": 123
+        },
+        {
+          "name": "roster",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T04:16:40.000Z",
+          "seconds": 4
+        },
+        {
+          "name": "publish",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T04:17:08.000Z",
+          "seconds": 28
+        },
+        {
+          "name": "record",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T04:17:09.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "push",
+          "state": "failed",
+          "exit": 1,
+          "at": "2026-09-29T04:17:46.000Z",
+          "seconds": 37
+        }
+      ],
+      "shift": "041341-222d",
+      "tickets": {
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 0
+      },
+      "functions": {
+        "pass": 15,
+        "fail": 1,
+        "error": 0
+      },
+      "evidence": {
+        "label": "cycle-20260929T041300Z",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T041300Z.json"
+      }
+    },
+    {
+      "cycle": "cycle-20260929T021318Z",
+      "startedAt": "2026-09-29T02:13:18.000Z",
+      "endedAt": "2026-09-29T02:17:16.635Z",
+      "outcome": "failed",
+      "exit": 128,
+      "source": "log",
+      "steps": [
+        {
+          "name": "pull",
+          "state": "failed",
+          "exit": 128,
+          "at": "2026-09-29T02:13:19.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "intake",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:13:20.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "intake-push",
+          "state": "failed",
+          "exit": 1,
+          "at": "2026-09-29T02:13:55.000Z",
+          "seconds": 35
+        },
+        {
+          "name": "shift",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:14:49.000Z",
+          "seconds": 54
+        },
+        {
+          "name": "pull-after-shift",
+          "state": "failed",
+          "exit": 128,
+          "at": "2026-09-29T02:14:50.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "functions",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:16:47.000Z",
+          "seconds": 117
+        },
+        {
+          "name": "roster",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:16:51.000Z",
+          "seconds": 4
+        },
+        {
+          "name": "publish",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:17:15.000Z",
+          "seconds": 24
+        },
+        {
+          "name": "record",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:17:16.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "push",
+          "state": "failed",
+          "exit": 1,
+          "at": "2026-09-29T02:17:52.000Z",
+          "seconds": 36
+        }
+      ],
+      "shift": "021357-6546",
+      "tickets": {
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 0
+      },
+      "functions": {
+        "pass": 15,
+        "fail": 1,
+        "error": 0
+      },
+      "evidence": {
+        "label": "cycle-20260929T021318Z",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T021318Z.json"
+      }
+    },
+    {
+      "cycle": "cycle-20260929T001517Z",
+      "startedAt": "2026-09-29T00:15:17.000Z",
+      "endedAt": "2026-09-29T02:12:42.225Z",
+      "outcome": "failed",
+      "source": "log",
+      "steps": [
+        {
+          "name": "pull",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T00:15:18.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "intake",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T00:15:21.000Z",
+          "seconds": 3
+        },
+        {
+          "name": "intake-push",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T00:15:25.000Z",
+          "seconds": 4
+        },
+        {
+          "name": "shift",
+          "state": "failed",
+          "exit": 2,
+          "at": "2026-09-29T02:04:40.000Z",
+          "seconds": 6555
+        },
+        {
+          "name": "pull-after-shift",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:04:41.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "functions",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:12:11.000Z",
+          "seconds": 450
+        },
+        {
+          "name": "roster",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:12:15.000Z",
+          "seconds": 4
+        },
+        {
+          "name": "publish",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:12:40.000Z",
+          "seconds": 25
+        },
+        {
+          "name": "record",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T02:12:42.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "push",
+          "state": "failed",
+          "exit": 1,
+          "at": "2026-09-29T02:13:18.000Z",
+          "seconds": 36
+        }
+      ],
+      "shift": "001527-881f",
+      "tickets": {
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 0
+      },
+      "functions": {
+        "pass": 21,
+        "fail": 1,
+        "error": 0
+      },
+      "evidence": {
+        "label": "cycle-20260929T001517Z",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260929T001517Z.json"
+      }
+    },
+    {
+      "cycle": "cycle-20260929T001300Z",
+      "startedAt": "2026-09-29T00:13:00.000Z",
+      "outcome": "refused",
+      "exit": 5,
+      "source": "log",
+      "steps": [],
+      "detail": "the checkout has uncommitted changes",
+      "evidence": {
+        "label": "cycle-20260929T001300Z"
+      }
+    },
+    {
+      "cycle": "cycle-20260928T221301Z",
+      "startedAt": "2026-09-28T22:13:00.000Z",
+      "endedAt": "2026-09-29T00:11:04.000Z",
+      "outcome": "failed",
+      "exit": 2,
+      "source": "log",
+      "steps": [
+        {
+          "name": "pull",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-28T22:13:02.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "intake",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-28T22:13:03.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "intake-push",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-28T22:15:19.000Z",
+          "seconds": 136
+        },
+        {
+          "name": "shift",
+          "state": "failed",
+          "exit": 2,
+          "at": "2026-09-28T22:55:04.000Z",
+          "seconds": 2385
+        },
+        {
+          "name": "pull-after-shift",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-28T22:55:05.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "functions",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T00:10:26.000Z",
+          "seconds": 4521
+        },
+        {
+          "name": "roster",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T00:10:30.000Z",
+          "seconds": 4
+        },
+        {
+          "name": "publish",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T00:10:32.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "push",
+          "state": "failed",
+          "exit": 1,
+          "at": "2026-09-29T00:11:04.000Z",
+          "seconds": 32
+        }
+      ],
+      "shift": "221520-e979",
+      "evidence": {
+        "label": "cycle-20260928T221301Z"
+      }
+    },
+    {
+      "cycle": "cycle-20260928T201148Z",
+      "startedAt": "2026-09-28T20:11:51.000Z",
+      "endedAt": "2026-09-28T20:11:51.000Z",
+      "outcome": "unknown",
+      "source": "history",
+      "steps": [],
+      "evidence": {
+        "label": "commit 7ec9cecb3",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/commit/7ec9cecb3fc64f51032ec40648ba73f15bcbfc78"
+      }
+    }
+  ],
+  "shift": {
+    "shift": "101309-c95c",
+    "state": "ended",
+    "startedAt": "2026-09-29T10:14:48.784Z",
+    "endedAt": "2026-09-29T11:06:40.197Z",
+    "source": "scratch",
+    "tickets": [
+      {
+        "ticket": "T-0020",
+        "title": "Self-skip the subagent search-permission cwd test when the process runs as root",
+        "seat": "harness-core-subagent-steward",
+        "division": "harness-core",
+        "stage": "shipped",
+        "since": "2026-09-29T11:06:40.197Z",
+        "commit": "a44d985d77cd877e9f80dc11f7e2bb74a62bed78"
+      },
+      {
+        "ticket": "T-0021",
+        "title": "Self-skip the ACP search-permission cwd test when the process runs as root",
+        "seat": "harness-core-subagent-acp-steward",
+        "division": "harness-core",
+        "stage": "shipped",
+        "since": "2026-09-29T11:06:40.197Z",
+        "commit": "e7800b9ae7d3a6917de32920240faa36c01707ff"
+      }
+    ],
+    "evidence": {
+      "label": "shift 101309-c95c run.log"
+    }
+  }
 }

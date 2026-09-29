@@ -1,23 +1,23 @@
 {
   "window": {
-    "since": "2026-09-28T09:41:21.384Z",
-    "until": "2026-09-29T09:41:21.384Z"
+    "since": "2026-09-28T11:10:10.313Z",
+    "until": "2026-09-29T11:10:10.313Z"
   },
   "head": {
-    "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d",
-    "committedAt": "2026-09-29T09:37:06.000Z"
+    "commit": "fc5a00f5440e72f4ffa2cf4fa815847eb8e7f4ea",
+    "committedAt": "2026-09-29T11:09:58.000Z"
   },
   "cycles": {
-    "count": 7,
-    "recorded": 4,
-    "gitOnly": 3,
-    "clean": 0,
-    "failed": 4,
+    "count": 8,
+    "recorded": 6,
+    "gitOnly": 2,
+    "clean": 1,
+    "failed": 5,
     "failedByStep": {
       "intake-push": 3,
       "pull": 3,
-      "pull-after-shift": 3,
-      "shift": 1
+      "pull-after-shift": 4,
+      "shift": 2
     },
     "list": [
       {
@@ -196,24 +196,86 @@
             "fail": 1,
             "error": 0
           },
-          "recordOnRemote": "unknown"
+          "recordOnRemote": true
         }
       },
       {
         "cycle": "cycle-20260929T081300Z",
         "startedAt": "2026-09-29T08:13:00.000Z",
-        "source": "git",
-        "outcome": "unknown",
+        "source": "record",
+        "outcome": "clean",
         "startedBy": {
-          "by": "unknown",
-          "basis": "the cycle has no record"
+          "by": "scheduler",
+          "basis": "the cycle record"
         },
         "commits": [
           {
             "commit": "608c758574c176a0d8401d6f42f7b1fc77e8c46a",
             "carries": "intake"
+          },
+          {
+            "commit": "12e32731eb1b588504d691ab8540f00e8bcb8cab",
+            "carries": "functions, roster and deck"
           }
-        ]
+        ],
+        "record": {
+          "endedAt": "2026-09-29T09:42:05.334Z",
+          "firstFailure": null,
+          "failedSteps": [],
+          "shifts": [
+            "081308-24b5"
+          ],
+          "tickets": {
+            "shipped": 0,
+            "rejected": 0,
+            "halted": 2
+          },
+          "functions": {
+            "pass": 18,
+            "fail": 4,
+            "error": 0
+          },
+          "recordOnRemote": true
+        }
+      },
+      {
+        "cycle": "cycle-20260929T101300Z",
+        "startedAt": "2026-09-29T10:13:00.000Z",
+        "source": "record",
+        "outcome": "failed",
+        "startedBy": {
+          "by": "scheduler",
+          "basis": "the cycle record"
+        },
+        "commits": [
+          {
+            "commit": "73b323d475ae191da8880a0d884d467c60c06b16",
+            "carries": "intake"
+          }
+        ],
+        "record": {
+          "endedAt": "2026-09-29T11:09:56.498Z",
+          "firstFailure": {
+            "step": "shift",
+            "exit": 1
+          },
+          "failedSteps": [
+            "shift",
+            "pull-after-shift"
+          ],
+          "shifts": [],
+          "tickets": {
+            "shipped": 0,
+            "rejected": 0,
+            "halted": 0
+          },
+          "functions": {
+            "pass": 21,
+            "fail": 1,
+            "error": 0
+          },
+          "recordOnRemote": "unknown"
+        }
       }
     ]
   },
@@ -244,15 +306,15 @@
     },
     {
       "shift": "201448-94fd",
-      "startedAt": "2026-09-28T20:14:48.000Z",
-      "source": "lost",
-      "outcome": "lost: no ledger line and no record",
+      "startedAt": null,
+      "source": "ledger",
+      "outcome": "no shift record in the checkout",
       "tickets": {
         "shipped": 0,
         "rejected": 0,
-        "halted": 0
+        "halted": 2
       },
-      "evidence": "data/transcripts/LOSSES.md"
+      "evidence": "data/enterprise/ledger.jsonl"
     },
     {
       "shift": "221520-e979",
@@ -328,11 +390,11 @@
     }
   ],
   "tickets": {
-    "lines": 14,
+    "lines": 18,
     "byStatus": {
       "shipped": 3,
-      "rejected": 0,
-      "halted": 11
+      "rejected": 1,
+      "halted": 14
     },
     "byDivision": [
       {
@@ -351,10 +413,10 @@
       },
       {
         "division": "harness-core",
-        "lines": 9,
+        "lines": 13,
         "shipped": 3,
-        "rejected": 0,
-        "halted": 6
+        "rejected": 1,
+        "halted": 9
       },
       {
         "division": "knowledge",
@@ -372,9 +434,9 @@
       }
     ],
     "reviews": {
-      "approved": 4,
-      "rejected": 0,
-      "notReached": 10
+      "approved": 5,
+      "rejected": 1,
+      "notReached": 12
     },
     "shipped": [
       {
@@ -472,7 +534,7 @@
     }
   ],
   "seats": {
-    "at": "2026-09-29T09:41:21.384Z",
+    "at": "2026-09-29T11:10:10.313Z",
     "defined": 147,
     "occupied": 55,
     "active": 46,
@@ -612,7 +674,7 @@
     ]
   },
   "functions": {
-    "lines": 145,
+    "lines": 167,
     "byDivision": [
       {
         "division": "code-safety",
@@ -622,19 +684,19 @@
       },
       {
         "division": "curation-data",
-        "pass": 7,
+        "pass": 8,
         "fail": 0,
         "error": 0
       },
       {
         "division": "judging",
-        "pass": 18,
+        "pass": 24,
         "fail": 6,
         "error": 0
       },
       {
         "division": "observatory",
-        "pass": 7,
+        "pass": 8,
         "fail": 0,
         "error": 0
       },
@@ -646,8 +708,8 @@
       },
       {
         "division": "verification",
-        "pass": 91,
-        "fail": 7,
+        "pass": 104,
+        "fail": 8,
         "error": 0
       }
     ]
@@ -656,7 +718,7 @@
     {
       "covers": "ticket lines: the engine's count for each ticket a shift worked, its department's and its review's sessions",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 14,
+      "items": 18,
       "tokens": 3506358,
       "seconds": 12597
     },
@@ -726,25 +788,24 @@
     {
       "covers": "function lines: the seconds each seat's gate, verdict read or fold took; no model is called",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 145,
+      "items": 167,
       "tokens": null,
-      "seconds": 27252.8
+      "seconds": 31884.4
     },
     {
       "covers": "recorded cycles: each one's wall time from its start to its record",
       "source": "data/enterprise/cycles/*.json",
-      "items": 4,
+      "items": 6,
       "tokens": null,
-      "seconds": 7799
+      "seconds": 16560
     }
   ],
-  "headline": "Pilot, 2026-09-28T09:41:21.384Z to 2026-09-29T09:41:21.384Z: 7 cycles started (0 clean, 4 failed, 3 without a record); 9 shifts (8 recorded, 1 lost); 14 ticket lines (3 shipped, 0 rejected, 11 halted); reviews 4 approved, 0 rejected, 10 not reached; 3 tickets shipped in 3 commits, Branch CI 3 failure (3 from a later run containing the commit); 145 function runs (132 pass, 13 fail, 0 error).",
+  "headline": "Pilot, 2026-09-28T11:10:10.313Z to 2026-09-29T11:10:10.313Z: 8 cycles started (1 clean, 5 failed, 2 without a record); 9 shifts (8 recorded, 1 shown by ledger lines only); 18 ticket lines (3 shipped, 1 rejected, 14 halted); reviews 5 approved, 1 rejected, 12 not reached; 3 tickets shipped in 3 commits, Branch CI 3 failure (3 from a later run containing the commit); 167 function runs (153 pass, 14 fail, 0 error).",
   "unknowns": [
-    "3 cycles are seen only in git history (cycle-20260928T201148Z, cycle-20260928T221301Z, cycle-20260929T081300Z): their steps, outcome and ledger lines are unknown",
+    "2 cycles are seen only in git history (cycle-20260928T201148Z, cycle-20260928T221301Z): their steps, outcome and ledger lines are unknown",
     "who started cycle-20260928T221301Z is unknown: the cycle has no record",
     "who started cycle-20260929T001517Z is unknown: its record predates the startedBy field",
-    "whether cycle-20260929T061300Z's record reached the remote branch is unknown until a later cycle's record states it",
-    "who started cycle-20260929T081300Z is unknown: the cycle has no record",
-    "the tickets, sessions and spend of shift 201448-94fd are unknown: data/transcripts/LOSSES.md records it as lost, and it left no ledger line and no record"
+    "whether cycle-20260929T101300Z's record reached the remote branch is unknown until a later cycle's record states it",
+    "4 ticket lines state no token count; the ticket lines' token total leaves them out"
   ]
 }
