@@ -1833,6 +1833,11 @@ function collectShiftRecords(c: Collection, scratchRuns: readonly ScratchRun[]):
   for (const run of scratchRuns) {
     if (run.live || run.intake || names.some(name => name.endsWith(`-${run.id}`))) continue
     const last = Math.max(mtimeOf(run.dir) ?? 0, mtimeOf(join(run.dir, 'run.log')) ?? 0)
+    const result = runLogResult(run.dir)
+    if (typeof result?.error === 'string' && last >= c.since) {
+      flagUnpushed(c, run, result, result.error, last)
+      continue
+    }
     if (last < c.since || c.now - last < c.inputs.abandonMs) continue
     c.flag({
       id: `shift-abandoned:${run.id}`,
@@ -1845,6 +1850,36 @@ function collectShiftRecords(c: Collection, scratchRuns: readonly ScratchRun[]):
       next: `Read ${homePath(join(run.dir, 'run.log'))} for its last lines; its tickets stay open and the next shift takes them again.`,
     })
   }
+}
+
+/**
+ * Flag a shift whose run log closes with an error: it could not finalize or
+ * push, so nothing it did reached the branch or the ledger, and what it
+ * assembled is only in its kept clone.
+ * @param c - The collection.
+ * @param run - The shift's scratch run.
+ * @param result - Its run log's closing result.
+ * @param error - The result's error.
+ * @param at - When the run log was last written, epoch milliseconds.
+ */
+function flagUnpushed(c: Collection, run: ScratchRun, result: Record<string, unknown>, error: string, at: number): void {
+  const assembled = (Array.isArray(result.tickets) ? result.tickets.filter(isRecord) : [])
+    .flatMap(entry => (typeof entry.ticket === 'string' && isRecord(entry.shipped) ? [entry.ticket] : []))
+  const clone = typeof result.repo === 'string' ? homePath(result.repo) : homePath(join(run.dir, 'repo'))
+  c.flag({
+    id: `shift-unpushed:${run.id}`,
+    kind: 'shift-failed',
+    severity: 'high',
+    title: assembled.length === 0
+      ? `Shift ${run.id} failed before it recorded`
+      : `Shift ${run.id} assembled ${assembled.join(', ')} but did not push`,
+    detail: `${publicLine(error, 200)}. No ledger line and no shift record reached the branch${assembled.length === 0 ? '' : `, so ${assembled.length === 1 ? 'the ticket is' : 'the tickets are'} still open`}.`,
+    at: iso(at),
+    evidence: [{ label: `shift ${run.id} run.log`, path: homePath(join(run.dir, 'run.log')) }],
+    next: assembled.length === 0
+      ? `Read ${homePath(join(run.dir, 'run.log'))} for the failure; the next shift works its tickets again.`
+      : `Decide now: finalize and push the kept clone (${clone}) by hand, or leave ${assembled.join(', ')} open for the next shift, which works ${assembled.length === 1 ? 'it' : 'them'} again from the start.`,
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -1865,7 +1900,9 @@ function ticketFacts(id: string, tickets: Map<string, TicketFile> | undefined, t
 /**
  * The tickets of a shift's result, as its committed record or its run log's
  * closing line states them: shipped with its commit, rejected by its review,
- * else halted with the reason.
+ * else halted with the reason. A result carrying `error` is a shift that could
+ * not finalize or push, so a ticket it assembled reached the kept clone and not
+ * the branch: it is halted at integration, with that error as its reason.
  * @param result - The decoded result.
  * @param tickets - The queue, for titles and seats.
  * @param since - When the shift ended, epoch milliseconds, when known.
@@ -1877,24 +1914,27 @@ function resultTickets(
   since: number | undefined,
 ): OpsShiftTicket[] | undefined {
   if (!Array.isArray(result.tickets)) return undefined
+  const unpushed = typeof result.error === 'string' ? result.error : undefined
   return result.tickets.filter(isRecord).flatMap((entry) => {
     if (typeof entry.ticket !== 'string') return []
-    const shipped = isRecord(entry.shipped) && typeof entry.shipped.commit === 'string' ? entry.shipped.commit : undefined
+    const assembled = isRecord(entry.shipped) && typeof entry.shipped.commit === 'string' ? entry.shipped.commit : undefined
+    const shipped = unpushed === undefined ? assembled : undefined
     const verdict = isRecord(entry.review) && typeof entry.review.verdict === 'string' ? entry.review.verdict.trim().toLowerCase() : undefined
     const stage: OpsShiftTicket['stage'] = shipped !== undefined ? 'shipped' : verdict === 'reject' ? 'rejected' : 'halted'
     const integration = isRecord(entry.integration) ? entry.integration.outcome : undefined
     const department = isRecord(entry.department) ? entry.department.outcome : undefined
-    const reached: OpsShiftTicket['reached'] = integration !== undefined && integration !== 'skipped' ? 'integration'
+    const reached: OpsShiftTicket['reached'] = assembled !== undefined || (integration !== undefined && integration !== 'skipped') ? 'integration'
       : verdict === 'approve' || verdict === 'reject' ? 'review'
         : department === 'certified' ? 'certified'
           : 'working'
+    const reason = assembled !== undefined && unpushed !== undefined ? `assembled, but the shift did not push it: ${unpushed}` : entry.reason
     return [{
       ticket: entry.ticket,
       ...ticketFacts(entry.ticket, tickets, undefined),
       stage,
       ...stage === 'shipped' ? {} : { reached },
       ...since === undefined ? {} : { since: iso(since) },
-      ...stage !== 'shipped' && typeof entry.reason === 'string' ? { reason: publicLine(entry.reason, 160) } : {},
+      ...stage !== 'shipped' && typeof reason === 'string' ? { reason: publicLine(reason, 160) } : {},
       ...shipped === undefined ? {} : { commit: shipped },
     }]
   })

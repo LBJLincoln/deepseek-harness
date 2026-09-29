@@ -13,7 +13,7 @@ Status: implemented
 **采集器报告周期、班次与已交付工单。** [`scripts/enterprise-ops.ts`](../../../../scripts/enterprise-ops.ts) 为 `OpsSnapshot`（[`contract.ts`](../../../../apps/command-deck/deck/contract.ts)）增加三个可选字段。较早的采集器写出的快照没有这些字段，deck 仍然读取它，因此模式版本仍为 2。这些字段是：
 
 - `cycles`：窗口内的每个周期，最新的在前，取自它的日志，没有时取自已提交的记录，再没有时取自它的提交。每一步带有退出码和耗时。正在运行的周期还加上它正在运行的步骤，以及尚未到达的步骤。调度器的 `<cycle> exit=<n>` 行把在已记录步骤之后终止的周期标为失败。
-- `shift`：持有班次锁的班次，没有时取最新的班次。正在运行的班次从它的暂存运行中读取。program 账本的 `program/goal` 事件给出每个部门的阶段，审查会话的 `verdict:` 行把已认证的工单推进到审查、集成或被拒。已结束的班次从已提交的 `result.json` 读取，并给出每个未交付工单到达的最远阶段。
+- `shift`：持有班次锁的班次，没有时取最新的班次。正在运行的班次从它的暂存运行中读取。program 账本的 `program/goal` 事件给出每个部门的阶段，审查会话的 `verdict:` 行把已认证的工单推进到审查、集成或被拒。已结束的班次从已提交的 `result.json` 读取，并给出每个未交付工单到达的最远阶段。运行日志末尾的结果带有 `error` 时，该班次无法完成收尾或推送。它组装好的工单停在集成阶段，以该错误为原因，绝不算作已交付；关注队列标出该班次（`shift-unpushed:<id>`），附上保留的克隆和它需要的决定：手工推送该克隆，或把这些工单留给下一个班次。
 - `big.shippedTickets`：最新交付的工单，各自附带其提交和 Branch CI 结论。
 
 **同一条结论规则。** 当周期的 24 小时报告（`fixtures/enterprise-day.json`，即 `enterprise:verdicts` 给出的答案）对某个已交付提交给出了结论时，就采用该结论。否则，结论依据同一规则从采集器读取的运行中得出：提交自身最新的运行；没有时取头部包含该提交、且给出 `success` 或 `failure` 的最早后续运行，被取消的运行不给出结论。`running` 表示仍有一个包含该提交的后续运行正在进行。
@@ -36,4 +36,4 @@ Status: implemented
 
 ## Verification
 
-`pnpm exec vitest run scripts/enterprise-ops.spec.ts` 覆盖调度器退出码、捕获日志、program 账本、审查结论，覆盖包含运行中、已记录、被拒绝启动和被调度器判为失败的周期的时间线，覆盖运行中与已记录的班次，覆盖包含被取消运行、报告答案和进行中的后续运行的结论规则，以及捕获的推送。`pnpm exec vitest run apps/command-deck/tests/ops.spec.ts` 覆盖倒计时、外圈进度与班次轨道。
+`pnpm exec vitest run scripts/enterprise-ops.spec.ts` 覆盖调度器退出码、捕获日志、program 账本、审查结论，覆盖包含运行中、已记录、被拒绝启动和被调度器判为失败的周期的时间线，覆盖运行中、已记录与未能推送的班次，覆盖包含被取消运行、报告答案和进行中的后续运行的结论规则，以及捕获的推送。`pnpm exec vitest run apps/command-deck/tests/ops.spec.ts` 覆盖倒计时、外圈进度与班次轨道。

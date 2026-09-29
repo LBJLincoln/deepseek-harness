@@ -741,6 +741,38 @@ describe('collectOps', () => {
     expect(none.shift).toBeNull()
   })
 
+  it('flags a shift that assembled tickets but could not push, and never counts them as shipped', async () => {
+    const inputs = machine()
+    const run = join(inputs.scratch, '221520-e979')
+    write(join(run, 'run.log'), [
+      '=== 2026-09-28T22:15:20.000Z shift=221520-e979 ===',
+      JSON.stringify({
+        type: 'result',
+        shift: '221520-e979',
+        error: 'the shift could not finalize or push: Command failed: git fetch --quiet origin\nfatal: unable to access the remote',
+        repo: `${run}/repo`,
+        tickets: [
+          { type: 'ticket', ticket: 'T-0004', shipped: { commit: TIP }, review: { verdict: 'approve' }, integration: { outcome: 'assembled' }, reason: 'approved and assembled' },
+          { type: 'ticket', ticket: 'T-0005', shipped: null, department: { outcome: 'blocked' }, reason: 'budget-exhausted' },
+        ],
+      }),
+    ].join('\n'))
+    const snapshot = await collectOps({ ...inputs, alive: () => false })
+    const item = snapshot.attention.find(entry => entry.id === 'shift-unpushed:221520-e979')
+    expect(item).toMatchObject({ kind: 'shift-failed', severity: 'high', title: 'Shift 221520-e979 assembled T-0004 but did not push', evidence: [{ label: 'shift 221520-e979 run.log' }] })
+    expect(item?.detail).toContain('the ticket is still open')
+    expect(item?.next).toContain('leave T-0004 open for the next shift')
+    // The same scratch run is not also flagged as abandoned once its silence passes the threshold.
+    const later = await collectOps({ ...inputs, alive: () => false, now: new Date(NOW.getTime() + 3_600_000) })
+    expect(later.attention.filter(entry => entry.id.endsWith(':221520-e979')).map(entry => entry.id)).toEqual(['shift-unpushed:221520-e979'])
+    expect(snapshot.shift).toMatchObject({ shift: '221520-e979', state: 'ended', source: 'scratch' })
+    expect(snapshot.shift?.tickets.map(entry => [entry.ticket, entry.stage, entry.reached, entry.commit])).toEqual([
+      ['T-0004', 'halted', 'integration', undefined],
+      ['T-0005', 'halted', 'working', undefined],
+    ])
+    expect(snapshot.shift?.tickets[0]?.reason).toMatch(/^assembled, but the shift did not push it: the shift could not finalize or push/)
+  })
+
   it('lists each shipped ticket with its commit and the verdict enterprise:verdicts gives it', async () => {
     const inputs = machine()
     // A run cancelled on the commit itself renders no verdict; the first later run that rendered one does.
