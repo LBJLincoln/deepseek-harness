@@ -864,10 +864,24 @@ describe('FleetService', () => {
   it('stops both plans of a paired run once either plan\'s route is refused at its limit', async () => {
     const { ctx, plan } = await harness({ maxConcurrent: 2 })
     const failure = { message: 'llm-claude-code: the query failed: insufficient_quota', code: 'QUOTA' }
+    // Pair 1's cells overlap by construction rather than by timers: `a` hits
+    // the wall only once `b` has started, and `b` completes only once the
+    // fleet has settled `a`, so no later cell starts before the wall is up.
+    let partnerStarted = (): void => {}
+    const partnerInFlight = new Promise<void>((resolve) => { partnerStarted = resolve })
+    let wallSettled = (): void => {}
+    const walledCellSettled = new Promise<void>((resolve) => { wallSettled = resolve })
+    ctx.on('fleet/cell', (payload) => {
+      if (payload.cell.model.model === 'a' && payload.cell.repetition === 1) wallSettled()
+    })
     StubRuns.current.script = async (request) => {
-      await new Promise(resolve => setTimeout(resolve, 1))
-      if (request.model?.model === 'a' && request.repetition === 1) {
+      if (request.repetition === 1 && request.model?.model === 'a') {
+        await partnerInFlight
         throw new EnvironmentRouteLimitError({ provider: 'mock', model: 'a' }, 2, failure, undefined)
+      }
+      if (request.repetition === 1 && request.model?.model === 'b') {
+        partnerStarted()
+        await walledCellSettled
       }
       return report(request, { certified: true })
     }
