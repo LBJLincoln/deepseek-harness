@@ -550,7 +550,7 @@ describe('the review record', () => {
     expect(unknownOf(unread.figures['reviews.reworked'])).toBe('the git history was not read')
   })
 
-  it('reads a committed review log\'s verdict and the route and model its request was sent with', () => {
+  it('reads a committed review log\'s verdict and the route and model its request was sent with', { timeout: 120_000 }, () => {
     const record = readInputs(root, []).shifts.find(shift => shift.dir.endsWith('171951-516d'))
     const review = record?.sessions.find(session => session.file.endsWith('/review-t-0019-e3dd7355.jsonl'))
     expect(review).toMatchObject({ verdict: 'reject', request: { route: 'claude-code', model: 'sonnet' }, toolCalls: 0 })

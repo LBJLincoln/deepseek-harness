@@ -65,7 +65,7 @@ export interface ShipmentCi {
 }
 
 /** One later commit that reworked a shipped change. */
-export interface FollowUpCommit {
+interface FollowUpCommit {
   commit: string
   at: string
   subject: string
