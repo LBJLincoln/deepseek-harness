@@ -395,6 +395,23 @@ function prepareWorktrees(repo: string, programId: string, keys: readonly string
   }
 }
 
+/**
+ * Remove the program's worktrees before the assembled tree is recertified at
+ * the clone's root. They live inside the clone's directory, and a
+ * repository-wide gate that walks the filesystem, such as doc-sync's
+ * translation pairing, would otherwise check every department's copy as part
+ * of the assembled tree and fail on it. The departments' work is on their
+ * branches and their sessions are recorded under the scratch root, so nothing
+ * the shift reads afterwards is lost.
+ */
+function removeProgramWorktrees(repo: string, programId: string): void {
+  const dir = join(repo, programId)
+  if (!existsSync(dir)) return
+  for (const key of readdirSync(dir)) tryGit(repo, 'worktree', 'remove', '--force', join(dir, key))
+  rmSync(dir, { recursive: true, force: true })
+  tryGit(repo, 'worktree', 'prune')
+}
+
 /** The text blocks of the last assistant message of one session, joined. */
 function lastAnswer(events: readonly SessionEvent[]): string {
   const last = events.findLast(event => event.type === 'assistant/message')
@@ -851,6 +868,7 @@ if (prepared !== undefined) {
           }
         }
         if (head !== base) {
+          removeProgramWorktrees(repo, programId)
           const failed = recertify(repo, candidates, base, policy, config.heavyLock)
           if (failed !== undefined) head = unship(repo, base, candidates, 'checks-failed', `acceptance failed over the assembled tree: ${failed}`)
         }

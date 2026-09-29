@@ -17,7 +17,7 @@
  */
 
 import { execFileSync, spawnSync } from 'node:child_process'
-import { chmodSync, cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { chmodSync, cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { hostname, tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -47,6 +47,13 @@ const SEED_LINT_RUN = [
 
 /** The file the seed's postinstall writes once the repository's install hook accepted the checkout. */
 const INSTALL_GUARD_PASSED = 'node_modules/.install-guard-passed'
+/**
+ * Every seeded install appends its directory here, so the installs of a
+ * program's worktrees stay provable after the engine removes the worktrees
+ * before it recertifies the assembled tree.
+ */
+const INSTALL_LOG = join(tmpdir(), `enterprise-shift-installs-${process.pid}.log`)
+process.env['DSH_E2E_INSTALL_LOG'] = INSTALL_LOG
 
 /** Several departments, their reviews, an assembly and a push outrun the default window. */
 const PHASE_TIMEOUT_MS = 300_000
@@ -99,7 +106,7 @@ async function seedRemote(): Promise<{ remote: string; base: string }> {
   writeFileSync(join(work, 'package.json'), `${JSON.stringify({
     name: 'enterprise-seed',
     private: true,
-    scripts: { postinstall: `node '${installHook}' --check && mkdir -p node_modules && touch ${INSTALL_GUARD_PASSED}` },
+    scripts: { postinstall: `node '${installHook}' --check && mkdir -p node_modules && touch ${INSTALL_GUARD_PASSED} && pwd >> "$\{DSH_E2E_INSTALL_LOG:-/dev/null}"` },
   }, null, 2)}\n`)
   writeFileSync(join(work, 'pnpm-lock.yaml'), "lockfileVersion: '9.0'\n\nsettings:\n  autoInstallPeers: true\n  excludeLinksFromLockfile: false\n\nimporters:\n\n  .: {}\n")
   writeFileSync(join(work, '.gitignore'), 'node_modules/\n')
@@ -249,9 +256,13 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     // carries the worktree-config extension the departments' push block needs.
     expect(git(observed.repo, 'config', 'core.repositoryFormatVersion')).toBe('1')
     expect(git(observed.repo, 'config', 'extensions.worktreeConfig')).toBe('true')
+    const installed = readFileSync(INSTALL_LOG, 'utf8')
     for (const key of ['t-0001', 't-0002', 't-0004', '@integration']) {
-      expect(existsSync(join(observed.repo, observed.programId, key, INSTALL_GUARD_PASSED)), key).toBe(true)
+      expect(installed, key).toContain(join(observed.programId, key))
     }
+    // The worktrees were removed before the assembled tree was recertified at
+    // the clone's root, so a gate that walks the filesystem sees only that tree.
+    expect(existsSync(join(observed.repo, observed.programId))).toBe(false)
     expect(existsSync(join(observed.repo, INSTALL_GUARD_PASSED))).toBe(true)
 
     const outside = lineOf(observed, 'T-0004')
