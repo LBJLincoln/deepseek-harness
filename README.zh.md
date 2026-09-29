@@ -2,28 +2,13 @@
 
 [English](README.md) | 中文
 
-Daliesk 是一个试点性质的 AI 智能体组织：它通过工单队列修改代码库，每项改动在发布前都由一位独立评审者批准，每一步都记录在本仓库中。[指挥台](https://lbjlincoln.github.io/deepseek-harness/) · [简报](https://lbjlincoln.github.io/deepseek-harness/briefing/) · [执行摘要](docs/client/daliesk-executive-summary.md) · [数据处理](docs/client/data-handling.md)
+Daliesk 是一个试点性质的 AI 智能体组织：它通过工单队列修改代码库，每项改动在发布前都由一个单独的评审会话批准（与各部门使用同一模型，只拿到差异与检查输出，看不到做出改动的会话），每一步都记录在本仓库中。[指挥台](https://lbjlincoln.github.io/deepseek-harness/) · [简报](https://lbjlincoln.github.io/deepseek-harness/briefing/) · [执行摘要](docs/client/daliesk-executive-summary.md) · [数据处理](docs/client/data-handling.md)
 
 **来源。** 本仓库 [LBJLincoln/deepseek-harness](https://github.com/LBJLincoln/deepseek-harness) 是 [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness) 的分叉；后者是 DeepSeek AI 开发的开源 agent harness。GitHub 账户 LBJLincoln 在该 harness 之上运营 Daliesk：企业、指挥台、Proving Ground 与代码安全审查都是在这个分叉的 `claude/coding-agent-harness-u9l4gt` 分支上写成的，DeepSeek AI 既未构建、未审查，也未认可它们。harness 保留它自己的名称、`@deepseek-ai/dsh-*` 包及其 [MIT 许可证](LICENSE)。
 
 ## 记录显示了什么
 
-这里的每个数字都读自 2026-09-29 07:07 UTC 盖戳的 [`data/enterprise/roster.json`](data/enterprise/roster.json)，以及它所计入的 [`ledger.jsonl`](data/enterprise/ledger.jsonl) 的 141 行，即 [`enterprise.json`](apps/command-deck/public/fixtures/enterprise.json) 所发布的内容；窗口是该时间戳之前的 24 小时。指挥台显示当前数字及其时长，[花名册的 README](data/enterprise/README.md#occupancy) 陈述计数规则。
-
-| 窗口内交付 | 数量 |
-| --- | --- |
-| 作为经评审的提交发布到分支上的工单 | 3 |
-| 由模型处理过但未发布任何内容的工单 | 3 |
-| 在任何模型运行之前就停止的工单（某次 shift 无法准备它的 worktree） | 4 |
-| 通过的代码安全审查席位：对本仓库的一次审查中的六个部门与负责人 | 7 / 7 |
-| 通过的 intake 协调员，每位把请求转成排队的工单 | 2 / 2 |
-| 通过的自动检查：`verify-*` 关卡、Branch CI 裁决、会话折叠 | 105 / 114 |
-
-| 席位 | 数量 | 规则 |
-| --- | --- | --- |
-| 已定义 | 147 | 本仓库定义的一个角色；定义并不是一个正在运行的 agent |
-| 已占据（有证据） | 53：27 个模型驱动，22 个自动检查，4 个仅在任何模型运行之前就停止 | 某条已记录的会话或台账行指名该席位 |
-| 窗口内活跃 | 44：18 个模型驱动，22 个自动检查，4 个在任何模型运行之前就停止 | 这些交付物之一的日期落在窗口内 |
+本页不自带任何数字，因此不会落后于记录。数字只在由记录重新生成的地方给出：每个周期之后更新的[指挥台](https://lbjlincoln.github.io/deepseek-harness/)、为每个数字注明来源的[客户简报](https://lbjlincoln.github.io/deepseek-harness/briefing/)，以及由简报生成的[执行摘要](docs/client/daliesk-executive-summary.md)。`pnpm run enterprise:report -- --since <时间>` 从 [`ledger.jsonl`](data/enterprise/ledger.jsonl)、班次与周期记录、git 和 Branch CI 重新计算这些数字，[花名册的 README](data/enterprise/README.md#occupancy) 陈述计数规则。
 
 **运行了哪些模型。** 企业的每条工单行记录的都是 `Claude Code sonnet` 或根本没有模型，每次 intake 与代码安全审查都运行在 Claude Code 上。在 `data/proving-ground` 与 `data/code-safety` 下记录的 1,912 个会话中，1,283 个运行在 Claude Code 上，29 个在 Proving Ground 的第 2 层经 OpenRouter 运行免费的开放权重模型（DeepSeek V4 Flash、Nex N2.5 Pro、Nemotron 3 Super、Laguna S 2.1 与 Qwen 3.8），600 个没有发出模型请求。花名册为 DeepSeek API 路由定义了 74 个席位、为 Codex 定义了 25 个；没有任何已记录的会话在这两者上运行过。
 

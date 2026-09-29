@@ -2,28 +2,13 @@
 
 English | [中文](README.zh.md)
 
-Daliesk is a pilot organisation of AI agents that changes a codebase through a ticket queue, has an independent reviewer approve each change before it ships, and records every step in this repository. [Command deck](https://lbjlincoln.github.io/deepseek-harness/) · [briefing](https://lbjlincoln.github.io/deepseek-harness/briefing/) · [executive summary](docs/client/daliesk-executive-summary.md) · [data handling](docs/client/data-handling.md)
+Daliesk is a pilot organisation of AI agents that changes a codebase through a ticket queue, has a separate reviewer session approve each change before it ships (the same model as the departments, given the diff and the check output but not the session that made the change), and records every step in this repository. [Command deck](https://lbjlincoln.github.io/deepseek-harness/) · [briefing](https://lbjlincoln.github.io/deepseek-harness/briefing/) · [executive summary](docs/client/daliesk-executive-summary.md) · [data handling](docs/client/data-handling.md)
 
 **Provenance.** This repository, [LBJLincoln/deepseek-harness](https://github.com/LBJLincoln/deepseek-harness), is a fork of [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness), the open-source agent harness DeepSeek AI develops. The GitHub account LBJLincoln operates Daliesk on that harness: the enterprise, the command deck, the Proving Ground and the code-safety review were written in this fork, on the branch `claude/coding-agent-harness-u9l4gt`, and DeepSeek AI has not built, reviewed or endorsed them. The harness keeps its own name, its `@deepseek-ai/dsh-*` packages and its [MIT licence](LICENSE).
 
 ## What the records show
 
-Every figure here is read from [`data/enterprise/roster.json`](data/enterprise/roster.json) as stamped at 2026-09-29 07:07 UTC and from the 141 lines of [`ledger.jsonl`](data/enterprise/ledger.jsonl) it counts, as [`enterprise.json`](apps/command-deck/public/fixtures/enterprise.json) publishes them; the window is the 24 hours before that stamp. The command deck shows the current figures with their age, and [the roster's README](data/enterprise/README.md#occupancy) states the counting rules.
-
-| Delivered in the window | Count |
-| --- | --- |
-| Tickets shipped as a reviewed commit on the branch | 3 |
-| Tickets a model worked that shipped nothing | 3 |
-| Tickets halted before any model ran (a shift could not prepare its worktrees) | 4 |
-| Code-safety review seats that passed: six departments and the lead, in one review of this repository | 7 of 7 |
-| Intake coordinators that passed, each turning requests into queued tickets | 2 of 2 |
-| Automated checks that passed: `verify-*` gates, Branch CI verdicts, session folds | 105 of 114 |
-
-| Seats | Count | Rule |
-| --- | --- | --- |
-| Defined | 147 | a role this repository defines; a definition is not a running agent |
-| Occupied, with evidence | 53: 27 model-driven, 22 automated checks, 4 only halted before any model ran | a recorded session or ledger line names the seat |
-| Active in the window | 44: 18 model-driven, 22 automated checks, 4 halted before any model ran | one of those deliverables is dated inside the window |
+This page carries no figure of its own, so it cannot fall behind the records. The figures live where they are regenerated from them: the [command deck](https://lbjlincoln.github.io/deepseek-harness/) after every cycle, the [client briefing](https://lbjlincoln.github.io/deepseek-harness/briefing/) with a numbered source for each figure, and the [executive summary](docs/client/daliesk-executive-summary.md) generated from the briefing. `pnpm run enterprise:report -- --since <time>` recomputes them from [`ledger.jsonl`](data/enterprise/ledger.jsonl), the shift and cycle records, git and Branch CI, and [the roster's README](data/enterprise/README.md#occupancy) states the counting rules.
 
 **Which models ran.** Every enterprise ticket line records `Claude Code sonnet` or no model at all, and every intake and code-safety review ran on Claude Code. Of the 1,912 sessions recorded under `data/proving-ground` and `data/code-safety`, 1,283 ran on Claude Code, 29 ran free open-weight models through OpenRouter on the Proving Ground's tier 2 (DeepSeek V4 Flash, Nex N2.5 Pro, Nemotron 3 Super, Laguna S 2.1 and Qwen 3.8), and 600 made no model request. The roster defines 74 seats for the DeepSeek API route and 25 for Codex; no recorded session has run on either.
 
