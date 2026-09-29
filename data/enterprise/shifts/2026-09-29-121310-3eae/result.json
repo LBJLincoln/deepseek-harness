@@ -1,0 +1,208 @@
+{
+  "type": "result",
+  "shift": "121310-3eae",
+  "startedAt": "2026-09-29T12:13:11.643Z",
+  "base": "e60920113bf10d932df24e476595488954c279b3",
+  "remote": "https://github.com/LBJLincoln/deepseek-harness",
+  "branch": "claude/coding-agent-harness-u9l4gt",
+  "implementer": "route",
+  "model": "Claude Code sonnet",
+  "programId": "program-5de8555a550704ae3db67facbe87f5236ac5eba861e4343d218f4bf8d792418f",
+  "report": {
+    "programId": "program-5de8555a550704ae3db67facbe87f5236ac5eba861e4343d218f4bf8d792418f",
+    "sessionId": "program-5de8555a550704ae3db67facbe87f5236ac5eba861e4343d218f4bf8d792418f",
+    "outcome": "released",
+    "mergedRevision": "e7df347498694b6e59b387c6b552de3924aedde9",
+    "goals": [
+      {
+        "key": "t-0040",
+        "status": "merged",
+        "sessionId": "program-5de8555a550704ae3db67facbe87f5236ac5eba861e4343d218f4bf8d792418f-t-0040",
+        "revision": "590039bbb529daa02d5786e925b97da86ff6c26b",
+        "tree": "59ff2289cde06dd967b589d3960bc4e60665b1af"
+      },
+      {
+        "key": "t-0003",
+        "status": "merged",
+        "sessionId": "program-5de8555a550704ae3db67facbe87f5236ac5eba861e4343d218f4bf8d792418f-t-0003",
+        "revision": "007fa34edc98c0e240cdac0379b5ee252e37e5c9",
+        "tree": "1fc7bfb91a439ddb317a9a5625d7c9cc1bc729ba"
+      }
+    ]
+  },
+  "halt": null,
+  "decisions": [
+    {
+      "transition": "spec-freeze",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 121310-3eae"
+      },
+      "artefactSha256": "8209c129df7b8b6ec200a946cb2a9f1161b589759c3aa3ab5bd879b357b38f0d"
+    },
+    {
+      "transition": "release",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 121310-3eae"
+      },
+      "artefactSha256": "8209c129df7b8b6ec200a946cb2a9f1161b589759c3aa3ab5bd879b357b38f0d"
+    }
+  ],
+  "tickets": [
+    {
+      "type": "ticket",
+      "at": "2026-09-29T13:37:07.184Z",
+      "shift": "121310-3eae",
+      "ticket": "T-0040",
+      "seat": "harness-core-subagent-codex-steward",
+      "division": "harness-core",
+      "programId": "program-5de8555a550704ae3db67facbe87f5236ac5eba861e4343d218f4bf8d792418f",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-5de8555a550704ae3db67facbe87f5236ac5eba861e4343d218f4bf8d792418f-t-0040"
+      },
+      "checks": [
+        {
+          "id": "resolution-spec",
+          "ok": true
+        },
+        {
+          "id": "no-bare-codex",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "doc-sync",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-lint",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0040-89ca51a7"
+      },
+      "reviewer": {
+        "sessionId": "review-t-0040-89ca51a7",
+        "route": "claude-code",
+        "model": "sonnet",
+        "verdict": "approve"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5"
+      },
+      "reason": "approved and assembled",
+      "tokens": 1223335,
+      "seconds": 1626,
+      "rationale": "- **Resolution in `start`:** `CodexProvider.start` now calls `this.ctx.subprocess.resolveExecutable('codex', this.config.env, request.signal)`. On win32 it does the same for `cmd.exe`. Both calls come after `assertOutOfProcessAllowed` and the cwd check, and before `startCodexRun` and its `spawn`. A failed resolution rejects before any spawn, and a test covers that case.\n- **Absolute paths carried through:** `CodexRunSpec` gains `executables`, and `codexAppServerArgv(executables, platform)` builds the argv from them. On win32 it is `[cmd, '/d', '/s', '/c', codex, 'app-server', '--stdio']`, and on POSIX `[codex, 'app-server', '--stdio']`. Every other element is constant, so no task or config text enters the argv. A win32 call without `cmd` throws instead of falling back to the bare name. The `no-bare-codex` grep check passes.\n- **Tests:**\n  - The existing argv test in `subagent-codex.spec.ts` is updated to the new signature, and the other call sites of the spec and the `spawn` assertions are adjusted to match.\n  - The new `executable-resolution.spec.ts` covers (a) win32 argv elements exactly equal to the absolute paths passed in, (b) the POSIX first element equal to the absolute path passed in, and (c) `start` over a recording stub calling `resolveExecutable` before its first `spawn`, on both platforms.\n  - The coverage gate passes at 100% statements and branches.\n- **Docs:** The README configuration paragraph and its Chinese counterpart both state that `codex`, and on Windows `cmd.exe`, are resolved from PATH to absolute paths before the spawn. The `README.i18n.yaml` hashes are re-recorded, and the translation-pairing gate reports all 1108 pairs consistent.\n- **Generated docs:** The `config-catalog` changes only shift the source line from 32 to 33, which follows from the added import. That path is in the ticket's generated list, and the `doc-sync` gate passes.\n- **Scope and constraints:** Every changed path is under `packages/subagent/subagent-codex/` or is a listed…"
+    },
+    {
+      "type": "ticket",
+      "at": "2026-09-29T13:37:07.184Z",
+      "shift": "121310-3eae",
+      "ticket": "T-0003",
+      "seat": "harness-core-agent-default-model-steward",
+      "division": "harness-core",
+      "programId": "program-5de8555a550704ae3db67facbe87f5236ac5eba861e4343d218f4bf8d792418f",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-5de8555a550704ae3db67facbe87f5236ac5eba861e4343d218f4bf8d792418f-t-0003"
+      },
+      "checks": [
+        {
+          "id": "spec",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "doc-sync",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-lint",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0003-9462100b"
+      },
+      "reviewer": {
+        "sessionId": "review-t-0003-9462100b",
+        "route": "claude-code",
+        "model": "sonnet",
+        "verdict": "approve"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "e086cb101806019afe126869b15e67c765c62333"
+      },
+      "reason": "approved and assembled",
+      "tokens": 365109,
+      "seconds": 1191,
+      "rationale": "- **Behaviour:** `saveSelection()` now checks `ctx.get('settings')` first. When it is undefined, it logs one `this.ctx.logger.warn` per instance, guarded by a `warnedWithoutSettings` flag, and returns normally. The message names `AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE` and says the selection applies to this process only because no settings provider is loaded. The settings-present path is unchanged. The return type, settings schema and apiproxy consumer are untouched.\n- **Wording:** The warning says the selection \"applies to this process only\", but the README and the test show that without a provider the composition entry stays current and nothing is stored. The ticket dictated that phrasing, so this is not a reason to reject.\n- **README:** Both the `saveSelection()` bullet and the Known Limitations bullet were updated in English and Chinese. `README.i18n.yaml` was re-recorded, and the translation-pairing gate reports all 1108 pairs consistent.\n- **Generated files:** The changes to `docs/subsystems/core.md`, `core.zh.md`, `core.i18n.yaml` and `packages/extensions/tool-cordis/src/api-catalog.ts` only mirror the changed JSDoc. They fall under the ticket's `generated` paths, so they are within scope.\n- **Tests:** The new spec has two cases:\n  - Without `dsh-settings`, two calls produce exactly one warning containing the namespace, and `currentSelection()` stays on the composition entry.\n  - With a real `SettingsProvider` subclass, no warning is logged and the saved selection is read back.\n- **Checks:** `spec`, `coverage` (100% statements, branches, functions and lines), `typecheck`, `doc-sync` (29 of 29 gates), and the engine-committed, scope, whitespace, lint and documentation checks all passed.\n- **Commit:** The message carries the attribution trailers required by the reminder."
+    }
+  ],
+  "held": [],
+  "redacted": 12
+}
