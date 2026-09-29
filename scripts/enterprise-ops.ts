@@ -56,7 +56,7 @@ import {
   type Severity,
 } from '../apps/command-deck/deck/contract.ts'
 import { readCycleRecords, type CycleRecord } from './enterprise-cycle-record.ts'
-import { parseLedgerLine, ticketStatus, type LedgerLine, type TicketLine } from './enterprise-ledger.ts'
+import { parseLedgerLine, ticketStandings, ticketStatus, type LedgerLine, type TicketLine, type TicketStanding } from './enterprise-ledger.ts'
 import {
   claudeProjectName,
   currentCycleStep,
@@ -657,8 +657,8 @@ function shiftTicketCounts(ledger: { lines: NumberedLine[] } | undefined, shifts
   const counts = { shipped: 0, rejected: 0, halted: 0 }
   let any = false
   for (const shift of shifts) {
-    for (const line of shiftLines(ledger, shift).values()) {
-      counts[ticketStatus(line)] += 1
+    for (const standing of shiftStandings(ledger, shift).values()) {
+      counts[standing.status] += 1
       any = true
     }
   }
@@ -842,7 +842,7 @@ function collectCycles(
     // A failed step matters while it is the newest word on its step: in the newest finished cycle, or in the newest cycle while it runs.
     const current = log === newest || log === newestDone
     // A shift step that failed after its work was assembled is settled once someone records the shift's lines after the fact.
-    const recordedLines = log.shift === undefined ? [] : [...shiftLines(ledger, log.shift).values()]
+    const recordedLines = log.shift === undefined ? [] : [...shiftStandings(ledger, log.shift).values()].map(standing => standing.line)
     const settled = recordedLines.find(line => line.recordedBy !== undefined)
     for (const step of current ? log.steps : []) {
       if (step.exit === 0) continue
@@ -1571,17 +1571,14 @@ async function collectCi(c: Collection, ledger: { lines: NumberedLine[] } | unde
 function shippedCommits(c: Collection, lines: readonly NumberedLine[], ci: CiReading | undefined): OpsShipped[] {
   const reported = reportVerdicts(c.inputs.root)
   const byCommit = new Map<string, OpsShipped>()
-  const shippedLines = lines.filter((entry): entry is { line: number; entry: TicketLine } => entry.entry.type === 'ticket' && entry.entry.shipped !== null)
-  for (const { entry } of shippedLines.sort((a, b) => b.entry.at.localeCompare(a.entry.at))) {
-    const commit = entry.shipped?.commit
-    if (commit === undefined) continue
+  for (const { commit, line } of shippedStandings(lines)) {
     const known = byCommit.get(commit)
     if (known !== undefined) {
-      if (!known.tickets.includes(entry.ticket)) known.tickets.push(entry.ticket)
+      known.tickets.push(line.ticket)
       continue
     }
     if (byCommit.size >= SHIPPED_LIMIT) break
-    byCommit.set(commit, { commit, at: entry.at, tickets: [entry.ticket], ...reported.get(commit) ?? shippedVerdict(c, commit, ci) })
+    byCommit.set(commit, { commit, at: line.at, tickets: [line.ticket], ...reported.get(commit) ?? shippedVerdict(c, commit, ci) })
   }
   return [...byCommit.values()]
 }
@@ -1671,14 +1668,8 @@ function shippedTickets(
   ci: CiReading | undefined,
 ): OpsShippedTicket[] {
   const verdicts = reportVerdicts(c.inputs.root)
-  const seen = new Set<string>()
   const shipped: OpsShippedTicket[] = []
-  const newestFirst = lines.flatMap(({ entry }) => (entry.type === 'ticket' && entry.shipped !== null ? [entry] : [])).sort((a, b) => b.at.localeCompare(a.at))
-  for (const entry of newestFirst) {
-    const commit = entry.shipped?.commit
-    if (commit === undefined || seen.has(entry.ticket)) continue
-    if (shipped.length >= SHIPPED_LIMIT) break
-    seen.add(entry.ticket)
+  for (const { commit, line: entry } of shippedStandings(lines).slice(0, SHIPPED_LIMIT)) {
     let verdict = verdicts.get(commit)
     if (verdict === undefined) {
       verdict = shippedVerdict(c, commit, ci)
@@ -1893,7 +1884,7 @@ function collectShiftRecords(c: Collection, scratchRuns: readonly ScratchRun[], 
   }
   for (const run of scratchRuns) {
     // A shift whose record or ledger lines reached the branch recorded its work, however its own run ended.
-    if (run.live || run.intake || names.some(name => name.endsWith(`-${run.id}`)) || shiftLines(ledger, run.id).size > 0) continue
+    if (run.live || run.intake || names.some(name => name.endsWith(`-${run.id}`)) || shiftStandings(ledger, run.id).size > 0) continue
     const last = Math.max(mtimeOf(run.dir) ?? 0, mtimeOf(join(run.dir, 'run.log')) ?? 0)
     const result = runLogResult(run.dir)
     if (typeof result?.error === 'string' && last >= c.since) {
@@ -1972,15 +1963,20 @@ function reachedOf(entry: { integration?: unknown; verdict?: string; department?
 }
 
 /**
- * One shift ticket as the ledger's newest line for it in that shift states it:
- * the ledger is what reached the branch, so it overrides the scratch run.
- * @param line - The ledger line.
- * @param prior - The ticket as the scratch run states it, for its title.
- * @param tickets - The queue, for a title the scratch run did not give.
+ * One shift ticket as its standing in that shift states it: the ledger is what
+ * reached the branch, so it overrides the scratch run and the record.
+ * @param standing - The ticket's standing in the shift.
+ * @param prior - The ticket as the scratch run or the record states it, for its title.
+ * @param tickets - The queue, for a title neither gave.
  * @returns The ticket.
  */
-function ledgerTicket(line: TicketLine, prior: OpsShiftTicket | undefined, tickets: Map<string, TicketFile> | undefined): OpsShiftTicket {
-  const stage = ticketStatus(line)
+function ledgerTicket(
+  standing: TicketStanding,
+  prior: OpsShiftTicket | undefined,
+  tickets: Map<string, TicketFile> | undefined,
+): OpsShiftTicket {
+  const { line } = standing
+  const stage = standing.status
   const verdict = line.review?.verdict.trim().toLowerCase()
   const reached = reachedOf({
     integration: line.integration?.outcome,
@@ -1997,43 +1993,79 @@ function ledgerTicket(line: TicketLine, prior: OpsShiftTicket | undefined, ticke
     ...stage === 'shipped' ? {} : { reached },
     since: line.at,
     ...stage !== 'shipped' && line.reason !== undefined ? { reason: publicLine(line.reason, 160) } : {},
-    ...line.shipped === null ? {} : { commit: line.shipped.commit },
+    ...standing.status === 'shipped' ? { commit: standing.commit } : {},
     ...line.recordedBy === undefined ? {} : { recordedBy: line.recordedBy },
   }
 }
 
 /**
  * A shift's tickets as its scratch run or record states them, each replaced by
- * the ledger's line for it in that shift when there is one, and every ticket
- * the ledger holds for the shift that the statement lacks, appended.
+ * its standing in the shift when the ledger holds a line for it, and every
+ * ticket the ledger holds for the shift that the statement lacks, appended.
  * @param stated - The tickets as the scratch run or the record states them.
- * @param recorded - The ledger's lines for the shift, by ticket id.
+ * @param recorded - The tickets' standings in the shift, by ticket id.
  * @param tickets - The queue, for titles.
  * @returns The tickets.
  */
 function withLedger(
   stated: readonly OpsShiftTicket[],
-  recorded: Map<string, TicketLine>,
+  recorded: Map<string, TicketStanding>,
   tickets: Map<string, TicketFile> | undefined,
 ): OpsShiftTicket[] {
   const merged = stated.map((ticket) => {
-    const line = recorded.get(ticket.ticket)
-    return line === undefined ? ticket : ledgerTicket(line, ticket, tickets)
+    const standing = recorded.get(ticket.ticket)
+    return standing === undefined ? ticket : ledgerTicket(standing, ticket, tickets)
   })
-  for (const [id, line] of recorded) if (!stated.some(ticket => ticket.ticket === id)) merged.push(ledgerTicket(line, undefined, tickets))
+  for (const [id, standing] of recorded) {
+    if (!stated.some(ticket => ticket.ticket === id)) merged.push(ledgerTicket(standing, undefined, tickets))
+  }
   return merged
 }
 
 /**
- * The ledger's newest ticket line per ticket for one shift.
+ * Each ticket's standing within one shift: the ledger's one status rule
+ * ({@link ticketStandings}) over that shift's ticket lines.
  * @param ledger - The ledger, when it was read.
  * @param shift - The shift's id.
- * @returns The lines by ticket id; empty when the shift reached no line.
+ * @returns The standings by ticket id; empty when the shift reached no line.
  */
-function shiftLines(ledger: { lines: NumberedLine[] } | undefined, shift: string): Map<string, TicketLine> {
-  const found = new Map<string, TicketLine>()
-  for (const { entry } of ledger?.lines ?? []) if (entry.type === 'ticket' && entry.shift === shift) found.set(entry.ticket, entry)
-  return found
+function shiftStandings(ledger: { lines: NumberedLine[] } | undefined, shift: string): Map<string, TicketStanding> {
+  return ticketStandings((ledger?.lines ?? []).flatMap(({ entry }) => (entry.type === 'ticket' && entry.shift === shift ? [entry] : [])))
+}
+
+/** A ticket's standing under the ledger's one status rule, with the file line number of the line that states it. */
+interface NumberedStanding {
+  standing: TicketStanding
+  line: number
+}
+
+/**
+ * Every ticket's standing under the ledger's one status rule
+ * ({@link ticketStandings}): shipped once any line shipped it, else its latest
+ * line's status.
+ * @param lines - The ledger's readable lines, in file order.
+ * @returns The standings by ticket id, in the order the tickets first appear.
+ */
+function standingsOf(lines: readonly NumberedLine[]): Map<string, NumberedStanding> {
+  const numbers = new Map<TicketLine, number>()
+  for (const { line, entry } of lines) if (entry.type === 'ticket') numbers.set(entry, line)
+  const standings = new Map<string, NumberedStanding>()
+  for (const [ticket, standing] of ticketStandings([...numbers.keys()])) {
+    standings.set(ticket, { standing, line: numbers.get(standing.line) ?? 0 })
+  }
+  return standings
+}
+
+/**
+ * The shipped standings, newest shipping line first.
+ * @param lines - The ledger's readable lines, in file order.
+ * @returns The standings of the shipped tickets.
+ */
+function shippedStandings(lines: readonly NumberedLine[]): Extract<TicketStanding, { status: 'shipped' }>[] {
+  return [...standingsOf(lines).values()]
+    .map(({ standing }) => standing)
+    .filter((standing): standing is Extract<TicketStanding, { status: 'shipped' }> => standing.status === 'shipped')
+    .sort((a, b) => b.line.at.localeCompare(a.line.at))
 }
 
 /**
@@ -2123,7 +2155,7 @@ function scratchShift(
   const result = run.live ? undefined : runLogResult(run.dir)
   const endedAt = result === undefined ? undefined : mtimeOf(join(run.dir, 'run.log'))
   const final = result === undefined ? undefined : resultTickets(result, tickets, endedAt)
-  const recorded = shiftLines(ledger, run.id)
+  const recorded = shiftStandings(ledger, run.id)
   if (program === undefined && final === undefined && recorded.size === 0) return undefined
   const reviews = new Map<string, { verdict?: 'approve' | 'reject'; startedAt?: number; lastAt?: number }>()
   for (const file of files) {
@@ -2216,7 +2248,7 @@ function collectShift(
     startedAt: iso(startedAt),
     ...endedAt === undefined ? {} : { endedAt: iso(endedAt) },
     source: 'record',
-    tickets: withLedger(resultTickets(result, tickets, endedAt) ?? [], shiftLines(ledger, shift), tickets),
+    tickets: withLedger(resultTickets(result, tickets, endedAt) ?? [], shiftStandings(ledger, shift), tickets),
     evidence: blobLink(c.inputs.branch, `data/enterprise/shifts/${newestRecord}/result.json`),
   }
 }
@@ -2363,21 +2395,10 @@ function collectHeartbeats(
 // Tickets and stuck agents
 // ---------------------------------------------------------------------------
 
-function newestTicketLines(lines: readonly NumberedLine[]): Map<string, { line: number; entry: TicketLine }> {
-  const newest = new Map<string, { line: number; entry: TicketLine }>()
-  for (const numbered of lines) {
-    if (numbered.entry.type !== 'ticket') continue
-    const known = newest.get(numbered.entry.ticket)
-    if (known !== undefined && numbered.entry.at < known.entry.at) continue
-    newest.set(numbered.entry.ticket, { line: numbered.line, entry: numbered.entry })
-  }
-  return newest
-}
-
 function flagTickets(c: Collection, ledger: { lines: NumberedLine[] } | undefined, tickets: Map<string, TicketFile> | undefined): void {
   if (ledger === undefined) return
-  for (const { line, entry } of newestTicketLines(ledger.lines).values()) {
-    const status = ticketStatus(entry)
+  for (const { standing, line } of standingsOf(ledger.lines).values()) {
+    const { status, line: entry } = standing
     if (status === 'shipped') continue
     if (status === 'rejected' && Date.parse(entry.at) < c.since) continue
     const title = tickets?.get(entry.ticket)?.title
@@ -2471,19 +2492,18 @@ function seatCounts(roster: RosterRead | undefined, agents: readonly OpsAgent[])
 
 function ticketCounts(c: Collection, ledger: { lines: NumberedLine[] } | undefined, tickets: Map<string, TicketFile> | undefined): OpsBigPicture['tickets'] {
   if (ledger === undefined || tickets === undefined) return null
-  const newest = newestTicketLines(ledger.lines)
+  const standings = standingsOf(ledger.lines)
   let halted = 0
   let shipped = 0
   let rejected = 0
-  for (const { entry } of newest.values()) {
-    const status = ticketStatus(entry)
-    if (status === 'halted') halted += 1
-    else if (Date.parse(entry.at) >= c.since) {
-      if (status === 'shipped') shipped += 1
+  for (const { standing } of standings.values()) {
+    if (standing.status === 'halted') halted += 1
+    else if (Date.parse(standing.line.at) >= c.since) {
+      if (standing.status === 'shipped') shipped += 1
       else rejected += 1
     }
   }
-  const queued = [...tickets.keys()].filter(id => !newest.has(id)).length
+  const queued = [...tickets.keys()].filter(id => !standings.has(id)).length
   return { queued, halted, shipped, rejected }
 }
 

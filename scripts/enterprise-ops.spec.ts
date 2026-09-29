@@ -822,6 +822,21 @@ describe('collectOps', () => {
     expect(settled.cycles?.find(cycle => cycle.cycle === 'cycle-20260928T223000Z')?.tickets).toEqual({ shipped: 1, rejected: 0, halted: 0 })
   })
 
+  it('reads every ticket\'s status with the ledger\'s one rule: shipped once any line shipped it', async () => {
+    const inputs = machine()
+    // A later shift took T-0001 before the line that shipped it reached the branch, and halted it.
+    const later = {
+      type: 'ticket', at: '2026-09-28T20:00:00.000Z', shift: '200000-beef', ticket: 'T-0001', seat: 'harness-core-agent-steward', division: 'harness-core',
+      checks: [], shipped: null, reason: 'budget-exhausted',
+    }
+    writeFileSync(join(inputs.root, 'data/enterprise/ledger.jsonl'), `${readFileSync(join(inputs.root, 'data/enterprise/ledger.jsonl'), 'utf8')}${JSON.stringify(later)}\n`)
+    const snapshot = await collectOps(inputs)
+    expect(snapshot.attention.some(item => item.id.startsWith('ticket:T-0001'))).toBe(false)
+    expect(snapshot.big.tickets).toEqual({ queued: 2, halted: 1, shipped: 1, rejected: 1 })
+    expect(snapshot.big.shippedTickets?.map(entry => [entry.ticket, entry.commit, entry.shift])).toEqual([['T-0001', SHIPPED, '182951-78a6']])
+    expect(snapshot.big.shipped?.map(entry => [entry.commit, entry.tickets])).toEqual([[SHIPPED, ['T-0001']]])
+  })
+
   it('lists each shipped ticket with its commit and the verdict enterprise:verdicts gives it', async () => {
     const inputs = machine()
     // A run cancelled on the commit itself renders no verdict; the first later run that rendered one does.
