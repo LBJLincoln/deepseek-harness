@@ -53,7 +53,7 @@ interface TicketCheck {
 }
 
 /** The reviewer a ticket line names: its session, the route and model it ran on, and its verdict. */
-export interface TicketReviewer {
+interface TicketReviewer {
   sessionId: string
   /** The provider route, such as `claude-code`. */
   route: string

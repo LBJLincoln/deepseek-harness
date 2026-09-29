@@ -137,6 +137,25 @@ describe('verifyLedgerHistory', () => {
     expect(verify(root, base)).toEqual({ violations: [], commits: 2, added: 2 })
   })
 
+  it('accepts the engine\'s refusal line, which names no commit', () => {
+    const root = repository()
+    const base = commitLedger(root, [ticket('T-0001', null)])
+    const refusal = {
+      ...JSON.parse(ticket('T-0002', null)) as object,
+      programId: '',
+      implementer: 'route',
+      model: 'none',
+      department: { outcome: 'blocked', sessionId: null },
+      review: { verdict: 'none', sessionId: null },
+      integration: { outcome: 'skipped' },
+      reason: 'refused: acceptance check "a" runs a command outside the queue\'s forms; the ticket must be rewritten before a shift works it',
+      tokens: 0,
+      seconds: 0,
+    }
+    commitLedger(root, [ticket('T-0001', null), JSON.stringify(refusal)])
+    expect(verify(root, base)).toEqual({ violations: [], commits: 1, added: 1 })
+  })
+
   it('checks the first ledger a range creates as all added lines', () => {
     const root = repository()
     const base = git(root, 'rev-parse', 'HEAD')
