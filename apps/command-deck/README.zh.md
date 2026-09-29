@@ -138,7 +138,7 @@ deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期�
 - `public/fixtures/programs.json`——feed 的 `GET /programs`：七次已记录的项目运行，即五次代码安全审查与两个 Proving Ground 项目。
 - `public/fixtures/runs.json`——五条已提交记录：2026-09-19 记录的两次代码安全审查（第二次 NodeGoat 运行、Java 的 dvja 运行）、一次 tier-5 fleet、一个配对实验，以及 csv-tools program。
 - `public/fixtures/events/<run>.jsonl`——每条记录的会话日志经 feed 折叠成指挥台跟随的事件流：NodeGoat 审查有 1,079 条事件，从各部门的开场指令、它们的工具调用，到四张证书与两次合并。
-- `public/fixtures/safety/<run>.json`——feed 对每次审查的 `GET /safety/:id`：NodeGoat 审查的 111 个文件与 38 条经验证的发现、dvja 审查的 174 个文件与 40 条，各自带有部门、证书与双语报告。
+- `public/fixtures/safety/<run>.json`——feed 对每次审查的 `GET /safety/:id`：NodeGoat 审查的 111 个文件与 38 条经验证的发现、dvja 审查的 174 个文件与 40 条，各自带有部门、证书与双语报告。这些 fixture 在每条发现所在的行引用被审查的代码，并随静态导出一起发布，因此客户的审查从不被快照进来（[数据处理](../../docs/client/data-handling.md)）。
 - `public/fixtures/ops.json`——企业周期的发布步骤写出的运营快照（`pnpm run enterprise:publish` 最后运行 `scripts/enterprise-ops.ts --fixture`），每个周期重写一次；没有 feed 以实时快照回答 `/ops` 时，运营视图把它作为 `recent` 显示并注明时长。
 
 已记录的审查正是 [`data/code-safety/README.md`](../../data/code-safety/README.md) 据以读取召回率的那几次，因此回放展示的与现场运行所展示的完全一致。
