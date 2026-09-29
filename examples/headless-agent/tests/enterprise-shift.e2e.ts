@@ -233,6 +233,9 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     ])
     expect(shipped.review.verdict).toBe('approve')
     expect(shipped.review.sessionId).toMatch(/^review-t-0001-/)
+    // The line names the reviewer: its own session, and the route and model the
+    // composition's reviewer entry resolved, which are not the departments'.
+    expect(shipped.reviewer).toEqual({ sessionId: shipped.review.sessionId, route: 'cli-mock', model: 'cli-mock-reviewer', verdict: 'approve' })
     expect(shipped.integration.outcome).toBe('merged')
     expect(shipped.shipped?.commit).toMatch(/^[0-9a-f]{40}$/)
     expect(shipped.seat).toBe('seed-tools-steward')
@@ -248,6 +251,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(failed.checks.find(check => check.id === 'engine-lint')?.ok).toBe(false)
     expect(git(remote, 'show', `main:${observed.record}/sessions/${failed.department.sessionId ?? ''}.jsonl`)).toContain('no-debugger')
     expect(failed.review).toEqual({ verdict: 'none', sessionId: null })
+    expect(failed.reviewer).toBeUndefined()
     expect(failed.integration.outcome).toBe('skipped')
     expect(failed.shipped).toBeNull()
 
@@ -309,6 +313,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(log[0]?.message).toContain('Daliesk shift e2e-mixed')
     expect(ticketCommit).toContain(`Program: ${observed.programId}`)
     expect(ticketCommit).toContain(`Department session: ${shipped.department.sessionId ?? ''}`)
+    expect(ticketCommit).toContain(`Review session: ${shipped.review.sessionId ?? ''}\nReviewer: cli-mock-reviewer on cli-mock`)
     expect(ticketCommit.split('\n').slice(-2)).toEqual(TRAILERS)
     expect(log[0]?.message.split('\n')[0]).toBe('chore(enterprise): shift e2e-mixed, shipped T-0001')
     expect(log[0]?.message.split('\n').slice(-2)).toEqual(TRAILERS)
@@ -375,6 +380,10 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     const header = reviewLog.find(event => event.type === 'request/header')
     expect(header, 'the reviewer made no request').toBeDefined()
     expect(header?.data['tools']).toBeUndefined()
+    // The reviewer's request went out on the reviewer's model, the department's on its own.
+    expect((header?.data['header'] as { config: unknown }).config).toEqual({ provider: 'cli-mock', model: 'cli-mock-reviewer' })
+    const departmentHeader = departmentLog.find(event => event.type === 'request/header')?.data['header'] as { config: unknown } | undefined
+    expect(departmentHeader?.config).toEqual({ provider: 'cli-mock', model: 'cli-mock' })
     const reviewMessages = reviewLog.filter(event => event.type === 'assistant/message')
     expect(reviewMessages).toHaveLength(1)
     const blocks = (reviewMessages[0]?.data['message'] as { content: { type: string }[] }).content
@@ -400,6 +409,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(observed.report.outcome).toBe('released')
     expect(line.department.outcome).toBe('certified')
     expect(line.review.verdict).toBe('reject')
+    expect(line.reviewer).toEqual({ sessionId: line.review.sessionId, route: 'cli-mock', model: 'cli-mock-reviewer', verdict: 'reject' })
     expect(line.rationale).toContain('rejects T-0003')
     expect(line.integration.outcome).toBe('not-shipped')
     expect(line.shipped).toBeNull()
@@ -412,6 +422,20 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(ledger[0]?.reason.startsWith(`abandoned: container reset: shift e2e-crashed started at ${crashed.at} on a-container-since-reset over ${base}`)).toBe(true)
     expect([...ticketStatuses(ledger).entries()]).toEqual([['T-0002', 'open'], ['T-0003', 'rejected']])
     expect(remoteStarts(remote).map(start => start.shift)).toEqual(['e2e-crashed', 'e2e-running', 'e2e-reject'])
+  }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('refuses a reviewer model its route does not declare before any department runs, and records why on every ticket', async () => {
+    const { remote } = await seedRemote()
+    const observed = await runShift(remote, { DSH_ENTERPRISE_TICKETS: 'T-0001', DSH_ENTERPRISE_SHIFT: 'e2e-no-reviewer', DSH_ENTERPRISE_REVIEW_MODEL: 'cli-mock-absent' })
+    const line = lineOf(observed, 'T-0001')
+    // The program never started, so the shift has no report.
+    expect(observed.report as unknown).toBeNull()
+    expect(line.department).toEqual({ outcome: 'failed', sessionId: null })
+    expect(line.reason).toBe('the shift\'s reviewer route does not resolve: enterprise-llm: provider route "cli-mock" has no configured model "cli-mock-absent"')
+    expect(line.review).toEqual({ verdict: 'none', sessionId: null })
+    expect(line.reviewer).toBeUndefined()
+    expect(line.shipped).toBeNull()
+    expect(remoteLedger(remote).map(entry => [entry.ticket, entry.shift, entry.department.outcome])).toEqual([['T-0001', 'e2e-no-reviewer', 'failed']])
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
 
   it('rebases onto a tip that moved during the shift, recertifies, and ships', async () => {

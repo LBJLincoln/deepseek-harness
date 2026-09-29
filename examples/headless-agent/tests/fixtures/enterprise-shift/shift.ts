@@ -48,6 +48,20 @@ export type DepartmentOutcome = 'certified' | 'failed' | 'blocked' | 'abandoned'
 /** What the independent reviewer decided; `none` when no review ran. */
 export type ReviewVerdict = 'approve' | 'reject' | 'none'
 
+/**
+ * The reviewer that decided one ticket: its session, the route and the model
+ * the composition resolved for reviewer sessions, and its verdict. A line
+ * written before the engine recorded it lacks the field.
+ */
+export interface ReviewerRecord {
+  readonly sessionId: string
+  /** The provider route the reviewer session ran on, such as `claude-code`. */
+  readonly route: string
+  /** The model id on that route, such as `sonnet`. */
+  readonly model: string
+  readonly verdict: 'approve' | 'reject'
+}
+
 /** What the shift's integration did with one ticket. */
 export type IntegrationOutcome =
   | 'merged'
@@ -76,6 +90,8 @@ export interface TicketLedgerLine {
   readonly department: { readonly outcome: DepartmentOutcome; readonly sessionId: string | null }
   readonly checks: readonly { readonly id: string; readonly ok: boolean }[]
   readonly review: { readonly verdict: ReviewVerdict; readonly sessionId: string | null }
+  /** The reviewer, on every line a review decided; absent where no review decided and on lines written before the engine recorded it. */
+  readonly reviewer?: ReviewerRecord
   readonly integration: { readonly outcome: IntegrationOutcome }
   readonly shipped: { readonly commit: string } | null
   readonly reason: string
@@ -241,6 +257,41 @@ export function ticketStatuses(lines: readonly TicketLedgerLine[]): Map<string, 
     statuses.set(line.ticket, line.shipped !== null ? 'shipped' : line.review.verdict === 'reject' ? 'rejected' : 'open')
   }
   return statuses
+}
+
+/** The prefix of the reason a ticket its reviewer rejected is held with. */
+export const TRIAGE_HOLD_REASON = 'held for human triage'
+
+/** One ticket selection skips because its reviewer rejected it, and why. */
+export interface HeldTicket {
+  readonly ticket: string
+  readonly reason: string
+}
+
+/**
+ * The queue's tickets {@link ticketStatuses} closes as rejected, which no
+ * shift takes again: the engine never has a rejected change re-reviewed, by
+ * the same model or any other, so a person decides what becomes of it. Each
+ * reason names the newest rejection of the ticket — its shift, its review
+ * session, and the reviewer's route and model, or that the line predates the
+ * reviewer's record.
+ * @param tickets - the validated queue.
+ * @param lines - the ledger so far.
+ * @returns the held tickets in queue order.
+ */
+export function heldForTriage(tickets: readonly Ticket[], lines: readonly TicketLedgerLine[]): HeldTicket[] {
+  const statuses = ticketStatuses(lines)
+  return tickets.flatMap((ticket) => {
+    if (statuses.get(ticket.id) !== 'rejected') return []
+    const rejections = lines.filter(candidate => candidate.ticket === ticket.id && candidate.review.verdict === 'reject')
+    const line = rejections.reduce<TicketLedgerLine | undefined>(
+      (newest, candidate) => (newest === undefined || Date.parse(candidate.at) >= Date.parse(newest.at) ? candidate : newest),
+      undefined,
+    )
+    if (line === undefined) return []
+    const reviewer = line.reviewer === undefined ? 'reviewer not recorded' : `reviewer ${line.reviewer.model} on ${line.reviewer.route}`
+    return [{ ticket: ticket.id, reason: `${TRIAGE_HOLD_REASON}: review ${line.review.sessionId ?? 'unrecorded'} rejected it in shift ${line.shift} (${reviewer}); the engine does not review a rejected ticket again` }]
+  })
 }
 
 /**
@@ -601,7 +652,7 @@ export interface CommitTrailers {
  * @param shift - the shift that shipped it.
  * @param programId - the program whose department delivered it.
  * @param departmentSessionId - that department's session.
- * @param reviewSessionId - the review that approved it.
+ * @param reviewer - the review that approved it: its session, route and model.
  * @param trailers - the two trailer lines.
  * @returns the full message, ending with the trailers.
  */
@@ -610,7 +661,7 @@ export function shippedCommitMessage(
   shift: string,
   programId: string,
   departmentSessionId: string,
-  reviewSessionId: string,
+  reviewer: Pick<ReviewerRecord, 'sessionId' | 'route' | 'model'>,
   trailers: CommitTrailers,
 ): string {
   return [
@@ -620,7 +671,8 @@ export function shippedCommitMessage(
     `Seat: ${ticket.seat} (${ticket.division})`,
     `Program: ${programId}`,
     `Department session: ${departmentSessionId}`,
-    `Review session: ${reviewSessionId}`,
+    `Review session: ${reviewer.sessionId}`,
+    `Reviewer: ${reviewer.model} on ${reviewer.route}`,
     `Source: ${ticket.source.path} — ${ticket.source.anchor}`,
     '',
     `Co-Authored-By: ${trailers.coAuthor}`,

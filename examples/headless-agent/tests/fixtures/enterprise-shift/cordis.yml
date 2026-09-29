@@ -78,6 +78,16 @@
     provider: cli-mock
     model: cli-mock
 
+# The route every reviewer session is created with instead, configured apart
+# from the departments' so a shift can review on another model than it
+# implements with; the ledger line of every reviewed ticket names it. The model
+# reads the variable the overlay reads, so a smoke can name one the route refuses.
+- id: enterprise-review-model
+  name: './review-model.ts'
+  config:
+    provider: cli-mock
+    model: !!js process.env.DSH_ENTERPRISE_REVIEW_MODEL ?? 'cli-mock-reviewer'
+
 # Village rule: a composition that runs unattended sessions carries a session
 # budget. A department's own caps are its ticket's budget, appended to its
 # session by the program and tightened against these, so these are the ceiling

@@ -66,6 +66,7 @@ import {
   documentationCheck,
   lintCheck,
   engineDecisions,
+  heldForTriage,
   LEDGER_PATH,
   LIMIT_HALT_REASON,
   parseLedger,
@@ -94,11 +95,13 @@ import type {
   ImplementerKind,
   IntegrationOutcome,
   ReviewedCheck,
+  ReviewerRecord,
   ReviewVerdict,
   Ticket,
   TicketLedgerLine,
   TicketSelection,
 } from './shift.ts'
+import type {} from './review-model.ts'
 
 /** The operator's session, which every commit of the enterprise names. */
 const CLAUDE_SESSION = 'https://claude.ai/code/session_01HEXjzxR7CyMizem5kFAB4C'
@@ -152,6 +155,8 @@ interface TicketRun {
   checks: { id: string; ok: boolean }[]
   reviewed: ReviewedCheck[]
   review: { verdict: ReviewVerdict; sessionId: string | null; rationale: string }
+  /** The reviewer once a review decided, which the ledger line names. */
+  reviewer: ReviewerRecord | null
   integration: IntegrationOutcome
   commit: string | null
   reason: string
@@ -426,14 +431,37 @@ function spanSeconds(events: readonly SessionEvent[]): number {
   return first === undefined || last === undefined ? 0 : Math.round((last - first) / 1000)
 }
 
+/** The route and model every reviewer session of the shift runs on, as the composition resolved them. */
+interface ReviewRoute {
+  readonly route: string
+  readonly model: string
+}
+
+/**
+ * The reviewer's route and model: the composition's `enterprise-review-model`
+ * entry, resolved through the LLM registry so a model the route does not
+ * declare is refused before any department runs.
+ * @returns the resolved route and model.
+ * @throws when the entry is not composed or the registry refuses the pair.
+ */
+async function reviewRoute(ctx: Awaited<ReturnType<typeof boot>>): Promise<ReviewRoute> {
+  const selection = ctx.get('enterpriseReviewModel')?.selection
+  const llm = ctx.get('llm')
+  if (selection === undefined || llm === undefined) throw new Error('enterprise-shift driver requires the enterprise-review-model entry and the llm service')
+  const resolved = await llm.resolveModelInfo(selection.provider, selection.model)
+  return { route: resolved.provider, model: resolved.id }
+}
+
 /**
  * Review one certified department in a session that never saw it: a fresh id,
  * no parent, no seed, the reviewing preset, no tool at all, an empty working
- * directory of its own, and a derived history of the standing instruction,
- * the ticket, and the evidence. The deployment's tools are global rows, so
- * the reviewer's scope restricts them all away: a reviewer with a shell could
- * read the department's worktree, which is exactly what it must not reach.
+ * directory of its own, the reviewer's own route and model, and a derived
+ * history of the standing instruction, the ticket, and the evidence. The
+ * deployment's tools are global rows, so the reviewer's scope restricts them
+ * all away: a reviewer with a shell could read the department's worktree,
+ * which is exactly what it must not reach.
  * @param reviewRoot - the directory the reviewer's empty working directories are made under.
+ * @param route - the reviewer's route and model.
  */
 async function review(
   ctx: Awaited<ReturnType<typeof boot>>,
@@ -442,18 +470,18 @@ async function review(
   commits: string,
   reviewRoot: string,
   policy: QueuePolicy,
-): Promise<{ verdict: 'approve' | 'reject'; sessionId: string; rationale: string; tokens: number; seconds: number }> {
+  route: ReviewRoute,
+): Promise<{ reviewer: ReviewerRecord; rationale: string; tokens: number; seconds: number }> {
   const agents = ctx.get('agents')
   const presets = ctx.get('agentPresets')
-  const model = ctx.get('agentDefaultModel')?.currentSelection()
-  if (agents === undefined || presets === undefined || model === undefined) throw new Error('enterprise-shift driver requires the agents, presets and default-model services')
+  if (agents === undefined || presets === undefined) throw new Error('enterprise-shift driver requires the agents and presets services')
   const sessionId = SessionId(`review-${run.key}-${randomBytes(4).toString('hex')}`)
   const cwd = join(reviewRoot, sessionId)
   mkdirSync(cwd, { recursive: true })
   const handle = await agents.create({
     sessionId,
     meta: { cwd },
-    agentOptions: { provider: model.provider, model: model.model },
+    agentOptions: { provider: route.route, model: route.model },
     setup: async (agentCtx) => {
       await presets.mount(agentCtx, REVIEW_PRESET)
       agentCtx.tools.restrict({ allow: [] })
@@ -468,7 +496,12 @@ async function review(
     const events = handle.agent.session.events
     const { verdict, rationale } = readReviewVerdict(lastAnswer(events), RATIONALE_MAX_CHARS)
     await ctx.sessions.flush(handle.agent.session)
-    return { verdict, sessionId, rationale, tokens: foldBudgetSpend(events, {}).totalTokens, seconds: spanSeconds(events) }
+    return {
+      reviewer: { sessionId, route: route.route, model: route.model, verdict },
+      rationale,
+      tokens: foldBudgetSpend(events, {}).totalTokens,
+      seconds: spanSeconds(events),
+    }
   } finally {
     await handle.dispose()
   }
@@ -552,6 +585,7 @@ function ledgerLine(
     department: { outcome: run.outcome, sessionId: run.sessionId },
     checks: run.checks,
     review: { verdict: run.review.verdict, sessionId: run.review.sessionId },
+    ...run.reviewer === null ? {} : { reviewer: run.reviewer },
     integration: { outcome: run.integration },
     shipped: run.commit === null ? null : { commit: run.commit },
     reason: run.reason,
@@ -582,7 +616,7 @@ function assemble(
 ): string {
   git(repo, 'reset', '-q', '--hard', base)
   for (const run of runs) {
-    if (run.revision === undefined || run.review.sessionId === null) continue
+    if (run.revision === undefined || run.reviewer === null) continue
     const merged = tryGit(repo, 'merge', '--squash', run.revision)
     if (!merged.ok) {
       tryGit(repo, 'merge', '--abort')
@@ -592,7 +626,7 @@ function assemble(
       continue
     }
     const message = join(repo, '.git', `enterprise-${run.key}.msg`)
-    writeFileSync(message, `${shippedCommitMessage(run.ticket, shift, programId, run.sessionId ?? '', run.review.sessionId, trailers)}\n`)
+    writeFileSync(message, `${shippedCommitMessage(run.ticket, shift, programId, run.sessionId ?? '', run.reviewer, trailers)}\n`)
     // The engine's own commits bypass the clone's git hooks: the change was
     // certified by the ticket's acceptance and the hooks are the contributor's.
     git(repo, 'commit', '-q', '--no-verify', '-F', message)
@@ -688,8 +722,10 @@ const abandoned = abandonedLines(
 )
 const ledgerBefore = [...ledgerRead, ...abandoned]
 const selected = selectTickets(tickets, ledgerBefore, config.selection)
+// The tickets a review rejected, which selection skips; the result line and the shift's record state why.
+const held = heldForTriage(tickets, ledgerBefore)
 if (selected.length === 0) {
-  process.stdout.write(`${JSON.stringify({ type: 'result', shift: config.shift, base: tip, selected: [], reason: 'no open ticket' })}\n`)
+  process.stdout.write(`${JSON.stringify({ type: 'result', shift: config.shift, base: tip, selected: [], held, reason: 'no open ticket' })}\n`)
   if (!config.keep) rmSync(config.scratch, { recursive: true, force: true })
   process.exit(0)
 }
@@ -722,6 +758,7 @@ const runs: TicketRun[] = selected.map(ticket => ({
   checks: [],
   reviewed: [],
   review: { verdict: 'none', sessionId: null, rationale: '' },
+  reviewer: null,
   integration: 'skipped',
   commit: null,
   reason: '',
@@ -811,14 +848,24 @@ if (prepared !== undefined) {
       })
     }, { global: true })
 
+    // The reviewer's route resolves before any department runs, so a model its
+    // route does not declare fails the shift before a department spends its budget.
+    let reviewer: ReviewRoute | undefined
     try {
-      report = await programs.start(spec)
-      for (const run of runs) {
-        const goal = report.goals.find(candidate => candidate.key === run.key)
-        if (goal !== undefined) await foldDepartment(persistence, run, goal)
-      }
+      reviewer = await reviewRoute(ctx)
     } catch (error: unknown) {
-      failUnfinished(runs, `the shift's program failed: ${describeError(error)}`)
+      failUnfinished(runs, `the shift's reviewer route does not resolve: ${describeError(error)}`)
+    }
+    if (reviewer !== undefined) {
+      try {
+        report = await programs.start(spec)
+        for (const run of runs) {
+          const goal = report.goals.find(candidate => candidate.key === run.key)
+          if (goal !== undefined) await foldDepartment(persistence, run, goal)
+        }
+      } catch (error: unknown) {
+        failUnfinished(runs, `the shift's program failed: ${describeError(error)}`)
+      }
     }
     if (halt !== undefined) {
       const reset = halt.resetsAt === null ? 'no reset stated' : `resets at ${halt.resetsAt}`
@@ -831,16 +878,18 @@ if (prepared !== undefined) {
     }
 
     for (const run of runs) {
-      if (run.outcome !== 'certified' || run.revision === undefined || halt !== undefined) continue
+      if (run.outcome !== 'certified' || run.revision === undefined || halt !== undefined || reviewer === undefined) continue
       try {
         const diff = git(repo, 'diff', base, run.revision)
         const commits = git(repo, 'log', '--format=%H%n%B', `${base}..${run.revision}`)
-        const reviewed = await review(ctx, run, diff, commits, join(config.scratch, 'review'), policy)
-        run.review = { verdict: reviewed.verdict, sessionId: reviewed.sessionId, rationale: reviewed.rationale }
+        const reviewed = await review(ctx, run, diff, commits, join(config.scratch, 'review'), policy, reviewer)
+        const { verdict, sessionId } = reviewed.reviewer
+        run.review = { verdict, sessionId, rationale: reviewed.rationale }
+        run.reviewer = reviewed.reviewer
         run.tokens += reviewed.tokens
         run.seconds += reviewed.seconds
-        run.reason = `${reviewed.verdict}: ${reviewed.rationale}`
-        if (reviewed.verdict === 'reject') run.integration = 'not-shipped'
+        run.reason = `${verdict}: ${reviewed.rationale}`
+        if (verdict === 'reject') run.integration = 'not-shipped'
       } catch (error: unknown) {
         run.integration = 'not-shipped'
         run.reason = `the review failed: ${describeError(error)}`
@@ -925,6 +974,7 @@ const finalize = async (assembledHead: string, shippedBase: string): Promise<str
       ...ledgerLine(run, at, config.shift, programId, config.implementer, modelName),
       rationale: run.review.rationale,
     })),
+    held,
     redacted: logs.reduce((sum, log) => sum + log.redacted, 0),
   }
   const resultText = redactCredentials(JSON.stringify(result, null, 2)).text
@@ -1044,6 +1094,7 @@ process.stdout.write(`${JSON.stringify({
     ...ledgerLine(run, startedAt.toISOString(), config.shift, programId, config.implementer, modelName),
     rationale: run.review.rationale,
   })),
+  held,
   shiftCommit,
   pushed,
   pushReason: shipReason,

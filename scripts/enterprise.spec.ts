@@ -23,7 +23,8 @@ describe('the shift command line', () => {
     expect(command).toMatchObject({ kind: 'shift', next: 2, tickets: undefined, implementer: 'route', push: true, branch: DEVELOPMENT_BRANCH, composition: REAL_COMPOSITION, scratch: '/tmp/x', keep: false })
     expect(parseCommand(['shift', '--tickets', 'T-0012,T-0019', '--implementer', 'subagent', '--model', 'opus']))
       .toMatchObject({ tickets: 'T-0012,T-0019', implementer: 'subagent', model: 'opus', push: false })
-    expect(parseCommand(['--', 'shift', '--next', '1'])).toMatchObject({ next: 1 })
+    expect(parseCommand(['--', 'shift', '--next', '1'])).toMatchObject({ next: 1, reviewModel: undefined })
+    expect(parseCommand(['shift', '--next', '1', '--review-model', 'opus'])).toMatchObject({ model: undefined, reviewModel: 'opus' })
   })
 
   it('refuses a missing or doubled selection, a bad count, and an unknown implementer or subcommand', () => {
@@ -31,12 +32,14 @@ describe('the shift command line', () => {
     expect(() => parseCommand(['shift', '--next', '1', '--tickets', 'T-0001'])).toThrow(/exactly one of --next/)
     expect(() => parseCommand(['shift', '--next', '0'])).toThrow(/positive integer/)
     expect(() => parseCommand(['shift', '--next', '1', '--implementer', 'human'])).toThrow(/route or subagent/)
+    expect(() => parseCommand(['shift', '--next', '1', '--review-model', ' '])).toThrow(/--review-model takes a model id/)
+    expect(() => parseCommand(['shift', '--next', '1', '--model', ''])).toThrow(/--model takes a model id/)
     expect(() => parseCommand(['run'])).toThrow(/unknown subcommand/)
     expect(() => parseCommand([])).toThrow(/usage:/)
   })
 
   it('hands the driver the selection, the branch, the push flag and the shift under the scratch root', () => {
-    const command = parseCommand(['shift', '--tickets', 'T-0012', '--push', '--model', 'sonnet', '--keep'], { DSH_ENTERPRISE_SCRATCH: '/tmp/x' })
+    const command = parseCommand(['shift', '--tickets', 'T-0012', '--push', '--model', 'sonnet', '--review-model', 'opus', '--keep'], { DSH_ENTERPRISE_SCRATCH: '/tmp/x' })
     const env = driverEnvironment(command, '120000-abcd')
     expect(env).toMatchObject({
       DSH_ENTERPRISE_BRANCH: DEVELOPMENT_BRANCH,
@@ -45,11 +48,13 @@ describe('the shift command line', () => {
       DSH_ENTERPRISE_TICKETS: 'T-0012',
       DSH_ENTERPRISE_PUSH: '1',
       DSH_ENTERPRISE_MODEL: 'sonnet',
+      DSH_ENTERPRISE_REVIEW_MODEL: 'opus',
       DSH_ENTERPRISE_KEEP: '1',
       DSH_ENTERPRISE_IMPLEMENTER: 'route',
     })
     expect(env['DSH_ENTERPRISE_REMOTE']).toMatch(/deepseek-harness/)
     expect(env).not.toHaveProperty('DSH_ENTERPRISE_NEXT')
+    expect(driverEnvironment(parseCommand(['shift', '--next', '1']), '120000-abcd')).not.toHaveProperty('DSH_ENTERPRISE_REVIEW_MODEL')
     expect(shiftId(new Date('2026-09-28T18:45:01Z'))).toMatch(/^184501-[0-9a-f]{4}$/)
   })
 })

@@ -46,6 +46,16 @@ interface TicketCheck {
   ok: boolean
 }
 
+/** The reviewer a ticket line names: its session, the route and model it ran on, and its verdict. */
+export interface TicketReviewer {
+  sessionId: string
+  /** The provider route, such as `claude-code`. */
+  route: string
+  /** The model id on that route, such as `sonnet`. */
+  model: string
+  verdict: string
+}
+
 /** A ticket line: one worked ticket, as the engine records it. */
 export interface TicketLine {
   type: 'ticket'
@@ -65,6 +75,8 @@ export interface TicketLine {
   checks: TicketCheck[]
   /** The independent review's verdict, and its session. */
   review?: { verdict: string; sessionId?: string }
+  /** The reviewer that decided the ticket; lines written before the engine recorded it lack it. */
+  reviewer?: TicketReviewer
   integration?: { outcome: string }
   /** The commit the ticket shipped as, or `null` when nothing merged. */
   shipped: { commit: string } | null
@@ -175,6 +187,17 @@ function parseOutcomeRecord(value: unknown, key: 'outcome' | 'verdict'): { outco
   return sessionId === undefined ? { outcome } : { outcome, sessionId }
 }
 
+/**
+ * Read a ticket line's `reviewer`.
+ * @returns the reviewer, or `undefined` when the line carries none or one missing a field.
+ */
+function parseReviewer(value: unknown): TicketReviewer | undefined {
+  if (!isRecord(value)) return undefined
+  const [sessionId, route, model, verdict] = [value.sessionId, value.route, value.model, value.verdict].map(optionalString)
+  if (sessionId === undefined || route === undefined || model === undefined || verdict === undefined) return undefined
+  return { sessionId, route, model, verdict }
+}
+
 function parseTicketLine(raw: Record<string, unknown>): TicketLine | string {
   const common = commonFields(raw)
   if (typeof common === 'string') return common
@@ -195,6 +218,8 @@ function parseTicketLine(raw: Record<string, unknown>): TicketLine | string {
   if (review !== undefined) {
     line.review = review.sessionId === undefined ? { verdict: review.outcome } : { verdict: review.outcome, sessionId: review.sessionId }
   }
+  const reviewer = parseReviewer(raw.reviewer)
+  if (reviewer !== undefined) line.reviewer = reviewer
   if (integration !== undefined) line.integration = { outcome: integration.outcome }
   const reason = optionalString(raw.reason)
   if (reason !== undefined) line.reason = reason

@@ -20,6 +20,7 @@ import {
   ENGINE_CHECKS,
   ENGINE_PRINCIPAL_ID,
   engineDecisions,
+  heldForTriage,
   LIMIT_HALT_REASON,
   lintCheck,
   parseLedger,
@@ -37,6 +38,7 @@ import {
   ticketChecks,
   ticketScope,
   ticketStatuses,
+  TRIAGE_HOLD_REASON,
 } from './fixtures/enterprise-shift/shift.ts'
 import type { ShiftStartLine, Ticket, TicketLedgerLine } from './fixtures/enterprise-shift/shift.ts'
 
@@ -138,6 +140,30 @@ describe('ticket selection', () => {
   })
 })
 
+describe('a ticket its reviewer rejected', () => {
+  const queue = [ticket('T-0001', 1), ticket('T-0002', 1), ticket('T-0003', 1)]
+  const reviewer = { sessionId: 'review-t-0001-1', route: 'claude-code', model: 'sonnet', verdict: 'reject' as const }
+  const rejected = { ...line('T-0001', null, 'reject'), shift: 'shift-9', review: { verdict: 'reject' as const, sessionId: 'review-t-0001-1' }, reviewer }
+  const unrecorded = { ...line('T-0002', null, 'reject'), shift: 'shift-8', review: { verdict: 'reject' as const, sessionId: 'review-t-0002-1' } }
+
+  it('is held for human triage: no shift takes it again, so no model reviews it a second time', () => {
+    expect(selectTickets(queue, [rejected, unrecorded], { kind: 'next', count: 3 }).map(entry => entry.id)).toEqual(['T-0003'])
+    expect(() => selectTickets(queue, [rejected], { kind: 'tickets', ids: ['T-0001'] })).toThrow(/T-0001 is rejected/)
+  })
+
+  it('is held with a reason naming the rejecting shift, the review session and the reviewer, or that the reviewer is not recorded', () => {
+    expect(heldForTriage(queue, [unrecorded, rejected, line('T-0003', null, 'none')])).toEqual([
+      { ticket: 'T-0001', reason: `${TRIAGE_HOLD_REASON}: review review-t-0001-1 rejected it in shift shift-9 (reviewer sonnet on claude-code); the engine does not review a rejected ticket again` },
+      { ticket: 'T-0002', reason: `${TRIAGE_HOLD_REASON}: review review-t-0002-1 rejected it in shift shift-8 (reviewer not recorded); the engine does not review a rejected ticket again` },
+    ])
+  })
+
+  it('is not held when a later line reopened it', () => {
+    expect(heldForTriage(queue, [rejected, { ...line('T-0001', null, 'none'), reason: 'abandoned' }])).toEqual([])
+    expect(heldForTriage(queue, [])).toEqual([])
+  })
+})
+
 describe('the standard a ticket compiles to', () => {
   it('runs the acceptance, then requires a commit, the scope, and a clean diff', () => {
     const checks = ticketChecks(ticket('T-0007', 1), 'abc123', OPEN_QUEUE_POLICY, undefined)
@@ -232,8 +258,9 @@ describe('the reviewer verdict', () => {
 })
 
 describe('the shipped commit message', () => {
-  it('names the shift, the ticket, the seat, the program, both sessions, and ends with the trailers', () => {
-    const message = shippedCommitMessage(ticket('T-0001', 1), '184501-ab12', 'program-abc', 'program-abc-t-0001', 'review-t-0001-1', {
+  it('names the shift, the ticket, the seat, the program, both sessions, the reviewer\'s model and route, and ends with the trailers', () => {
+    const reviewer = { sessionId: 'review-t-0001-1', route: 'claude-code', model: 'opus' }
+    const message = shippedCommitMessage(ticket('T-0001', 1), '184501-ab12', 'program-abc', 'program-abc-t-0001', reviewer, {
       coAuthor: 'Claude Code sonnet <noreply@anthropic.com>',
       session: 'https://claude.ai/code/session_x',
     })
@@ -245,6 +272,7 @@ describe('the shipped commit message', () => {
       'Program: program-abc',
       'Department session: program-abc-t-0001',
       'Review session: review-t-0001-1',
+      'Reviewer: opus on claude-code',
       'Source: tools/README.md — tools',
       '',
       'Co-Authored-By: Claude Code sonnet <noreply@anthropic.com>',

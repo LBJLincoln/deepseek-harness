@@ -5,7 +5,9 @@
  * department does is fixed by the ticket id, so one seed exercises the shift's
  * paths — a ticket that ships, one whose checks fail, one the reviewer rejects,
  * one that changes a path outside its scope, and one whose department moves
- * the remote tip before the shift pushes. `DSH_TEST_ENTERPRISE_LIMIT=1` makes
+ * the remote tip before the shift pushes. The route declares two models, the
+ * departments' `cli-mock` and the reviewer's `cli-mock-reviewer`, and refuses
+ * any other as the product route does. `DSH_TEST_ENTERPRISE_LIMIT=1` makes
  * every department turn fail with the seam's `QUOTA` code and a stated reset,
  * which is the route's own usage-limit notice as the seam classifies it.
  */
@@ -95,6 +97,9 @@ const SCRIPTS: Readonly<Record<string, readonly Step[]>> = {
 /** The ticket the reviewer rejects; every other review approves. */
 const REJECTED_TICKET = 'T-0003'
 
+/** The models the scripted route declares: the departments' and the reviewer's. Any other is refused as the product route refuses one. */
+const MODELS: ReadonlySet<string> = new Set(['cli-mock', 'cli-mock-reviewer'])
+
 /** Where in one session's turn the adapter is: the turn's text and the tool results it already has. */
 interface Position {
   readonly text: string
@@ -131,6 +136,7 @@ function history(options: GenerateOptions): string {
 
 class EnterpriseAdapter extends LlmAdapter {
   override async resolveModel(provider: string, model: string): Promise<LlmResolvedModelInfo> {
+    if (!MODELS.has(model)) throw new LlmError(`enterprise-llm: provider route "${provider}" has no configured model "${model}"`, 'UNKNOWN_MODEL')
     return { provider, id: model, name: model }
   }
 

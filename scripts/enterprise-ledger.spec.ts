@@ -224,3 +224,12 @@ describe('the work a deliverable was', () => {
     expect(countWork(['model', undefined, 'check', 'model'])).toEqual({ model: 2, check: 1, halted: 0 })
   })
 })
+
+describe('the reviewer a ticket line names', () => {
+  it('is read with its session, route, model and verdict, and is absent on a line that lacks it or one of its fields', () => {
+    const reviewer = { sessionId: 'review-1', route: 'claude-code', model: 'opus', verdict: 'approve' }
+    expect(parseLedgerLine({ ...SHIPPED, reviewer })).toEqual({ ...SHIPPED, reviewer })
+    expect(parseLedgerLine({ ...SHIPPED, reviewer: { ...reviewer, model: undefined } })).toEqual(SHIPPED)
+    expect(parseLedgerLine({ ...SHIPPED, reviewer: 'opus' })).toEqual(SHIPPED)
+  })
+})

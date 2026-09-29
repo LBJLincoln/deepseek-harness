@@ -6,8 +6,8 @@
  * review, or shipping logic of its own — the driver owns the shift.
  *
  *   pnpm run enterprise -- shift [--next <n> | --tickets <id,...>] [--implementer route|subagent]
- *                                [--model <id>] [--push] [--branch <name>] [--composition <path>]
- *                                [--scratch <dir>] [--keep]
+ *                                [--model <id>] [--review-model <id>] [--push] [--branch <name>]
+ *                                [--composition <path>] [--scratch <dir>] [--keep]
  *
  * One shift clones the development branch tip from `origin`, runs one program
  * whose departments are the selected tickets, reviews, assembles, recertifies,
@@ -39,6 +39,8 @@ export interface ShiftCommand {
   readonly tickets: string | undefined
   readonly implementer: 'route' | 'subagent'
   readonly model: string | undefined
+  /** The reviewer's product model, which the composition reads as `DSH_ENTERPRISE_REVIEW_MODEL`. */
+  readonly reviewModel: string | undefined
   readonly push: boolean
   readonly branch: string
   readonly composition: string
@@ -46,7 +48,7 @@ export interface ShiftCommand {
   readonly keep: boolean
 }
 
-const USAGE = `usage: pnpm run enterprise -- shift [--next <n> | --tickets <id,...>] [--implementer route|subagent] [--model <id>] [--push] [--branch <name>] [--composition <path>] [--scratch <dir>] [--keep]
+const USAGE = `usage: pnpm run enterprise -- shift [--next <n> | --tickets <id,...>] [--implementer route|subagent] [--model <id>] [--review-model <id>] [--push] [--branch <name>] [--composition <path>] [--scratch <dir>] [--keep]
 
 shift runs one enterprise shift: it clones the tip of the development branch, works the selected open tickets through one program, reviews and assembles the approved ones, recertifies the assembled tree, and with --push ships it fast-forward with the shift's ledger lines and record.
 `
@@ -71,6 +73,7 @@ export function parseCommand(argv: readonly string[], env: NodeJS.ProcessEnv = p
       tickets: { type: 'string' },
       implementer: { type: 'string', default: 'route' },
       model: { type: 'string' },
+      'review-model': { type: 'string' },
       push: { type: 'boolean', default: false },
       branch: { type: 'string', default: DEVELOPMENT_BRANCH },
       composition: { type: 'string', default: REAL_COMPOSITION },
@@ -82,12 +85,16 @@ export function parseCommand(argv: readonly string[], env: NodeJS.ProcessEnv = p
   const next = values.next === undefined ? undefined : Number(values.next)
   if (next !== undefined && (!Number.isInteger(next) || next < 1)) throw new Error('--next takes a positive integer')
   if (values.implementer !== 'route' && values.implementer !== 'subagent') throw new Error(`--implementer must be route or subagent, got ${values.implementer}`)
+  for (const [option, value] of [['--model', values.model], ['--review-model', values['review-model']]] as const) {
+    if (value !== undefined && value.trim() === '') throw new Error(`${option} takes a model id`)
+  }
   return {
     kind: 'shift',
     next,
     tickets: values.tickets,
     implementer: values.implementer,
     model: values.model,
+    reviewModel: values['review-model'],
     push: values.push,
     branch: values.branch,
     composition: resolve(process.cwd(), values.composition),
@@ -197,6 +204,7 @@ export function driverEnvironment(command: ShiftCommand, shift: string): Record<
     ...command.next === undefined ? {} : { DSH_ENTERPRISE_NEXT: String(command.next) },
     ...command.tickets === undefined ? {} : { DSH_ENTERPRISE_TICKETS: command.tickets },
     ...command.model === undefined ? {} : { DSH_ENTERPRISE_MODEL: command.model },
+    ...command.reviewModel === undefined ? {} : { DSH_ENTERPRISE_REVIEW_MODEL: command.reviewModel },
     ...command.push ? { DSH_ENTERPRISE_PUSH: '1' } : {},
     ...command.keep ? { DSH_ENTERPRISE_KEEP: '1' } : {},
   }

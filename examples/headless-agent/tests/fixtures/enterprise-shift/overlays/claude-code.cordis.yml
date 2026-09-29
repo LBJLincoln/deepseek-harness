@@ -2,7 +2,8 @@
 # route every department and reviewer is driven through: the real shift, and
 # the only file that differs from the keyless composition beside it.
 #
-# `DSH_ENTERPRISE_MODEL` names the product model (`sonnet` when unset); the
+# `DSH_ENTERPRISE_MODEL` names the departments' product model and
+# `DSH_ENTERPRISE_REVIEW_MODEL` the reviewer's (each `sonnet` when unset); the
 # subagent seam and its Claude Code provider are composed so that
 # `--implementer subagent` can delegate each department to the product itself.
 - id: base
@@ -53,3 +54,9 @@
         config:
           provider: claude-code
           model: !!js process.env.DSH_ENTERPRISE_MODEL ?? 'sonnet'
+      # The reviewer's model is chosen apart from the departments': one of the
+      # route's `models` above, `sonnet` when `DSH_ENTERPRISE_REVIEW_MODEL` is unset.
+      - id: enterprise-review-model
+        config:
+          provider: claude-code
+          model: !!js process.env.DSH_ENTERPRISE_REVIEW_MODEL ?? 'sonnet'

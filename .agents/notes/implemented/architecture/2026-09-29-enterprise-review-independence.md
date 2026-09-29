@@ -1,0 +1,33 @@
+# Agent Note: Review independence on the record: the reviewer each ticket line names, and a rejection held for triage
+
+Status: implemented
+
+English | [中文](2026-09-29-enterprise-review-independence.zh.md)
+
+## Problem
+
+The [shift engine](2026-09-28-enterprise-shift-engine.md) reviews every certified department in a session that never saw it, but its ledger line recorded only the verdict and the review session's id. A reader of the ledger — the Command Deck, the client briefing, an auditor — could not see which route and model reviewed, nor that the reviewer was chosen apart from the implementer: both ran on the composition's one `agent-default-model` selection, so every review so far ran on the product model of the department it judged. The record shows what that hides. In shift `171951-516d` the `T-0019` reviewer (`review-t-0019-e3dd7355`, `sonnet` on `claude-code` by its log's request header) rejected a correct change: the ticket asked for a test import the tree already had. The shift crashed before it wrote any ledger line, so the rejection never reached the ledger; the next shift, `182951-78a6`, took `T-0019` again, a reviewer on the same route and model (`review-t-0019-da50c0af`) approved it, and it shipped as `cfe0a75f7`. In that shift the `T-0012` reviewer approved `1d6a5d343`, which left its README pair unrecorded; the operator reworked it in `2f7ba31d7`.
+
+## Decision
+
+**Every line a review decided names the reviewer.** A ticket line gains the optional `reviewer: { sessionId, route, model, verdict }`: the review session, the route and model the composition resolved for reviewer sessions, and the verdict. The engine writes it whenever a review returned a verdict and omits it where none did; lines written before it lack it, and readers show them as `reviewer not recorded`. [`scripts/enterprise-ledger.ts`](../../../../scripts/enterprise-ledger.ts) reads the field, and a shipped commit's message names the reviewer beside its session (`Reviewer: <model> on <route>`).
+
+**The reviewer's route and model are composed apart from the departments'.** The shift's compositions carry an `enterprise-review-model` entry ([`review-model.ts`](../../../../examples/headless-agent/tests/fixtures/enterprise-shift/review-model.ts)) whose `provider` and `model` are required and non-empty, so an empty one fails the load. The keyless composition names `cli-mock-reviewer`, a second model its scripted route declares; the Claude Code overlay reads `DSH_ENTERPRISE_REVIEW_MODEL`, `sonnet` when unset, which `pnpm run enterprise -- shift --review-model <id>` sets. The driver resolves the pair through the LLM registry right after the composition boots and before the program starts, so a model the route does not declare fails every ticket of the shift with `the shift's reviewer route does not resolve: <the registry's reason>` before a department spends its budget. The default is the departments' default, so the unattended cycle reviews as before until the operator names another model.
+
+**A rejected ticket is held for human triage and never reviewed again.** The ledger closes a ticket whose latest line is a rejection, so no shift takes it again, by the same model or any other; what the engine lacked was a visible reason. `heldForTriage` in [`shift.ts`](../../../../examples/headless-agent/tests/fixtures/enterprise-shift/shift.ts) lists every queue ticket closed as rejected with a reason naming its newest rejection: the shift, the review session, and the reviewer's model and route or `reviewer not recorded`. The driver prints the list as `held` in its result line, the one for a shift that found no open ticket included, and writes it into the shift record's `result.json`. A person decides what becomes of the ticket: the intake admits a rejected ticket's source again as a new ticket.
+
+## Alternatives considered
+
+**An alternate reviewer model on the next attempt.** A rejected ticket would have to reopen, which changes the closing rule the briefing, the report, the intake's admission and the request states share, and the next attempt re-runs a department on its full budget for a change a reviewer already refused. The alternate's own rejection would then need a third model. Holding the ticket makes the existing closing rule visible and costs nothing.
+
+**The driver reading the reviewer's model from the environment.** The selection would live in the driver rather than in the composition that owns every route, and the keyless composition could not state its own. A composition entry keeps the choice in `cordis.yml`, validated where it is loaded.
+
+**A different default reviewer model.** Defaulting the reviewer to `opus` makes model independence the default, but it changes what the unattended cycle spends against the subscription's usage limit without the operator deciding it. The default stays the departments' model and the choice is one option away.
+
+## Consequences
+
+A reader of the ledger sees who reviewed each ticket from the first shift that runs this engine, and older lines stay marked as not recorded rather than inferred. A reviewer model the route refuses costs a shift its start push and its worktree installs, and every ticket of that shift a failed line that counts as an attempt. A false rejection, such as `T-0019`'s, keeps its ticket closed until a person re-files it; the engine never trades a second review for that. Reviewer and departments still share a route and, by default, a model: the independence the engine guarantees is a separate session with no tool, no parent and no access to the department's worktree, and a model of its own is a configuration the operator chooses.
+
+## Verification
+
+[`enterprise-shift.spec.ts`](../../../../examples/headless-agent/tests/enterprise-shift.spec.ts) holds a rejected ticket out of selection and states its reason with and without a recorded reviewer, and pins the shipped commit's reviewer line; [`scripts/enterprise-ledger.spec.ts`](../../../../scripts/enterprise-ledger.spec.ts) reads the field; [`scripts/enterprise.spec.ts`](../../../../scripts/enterprise.spec.ts) parses `--review-model`. [`enterprise-shift.e2e.ts`](../../../../examples/headless-agent/tests/enterprise-shift.e2e.ts) proves the shipped and the rejected ticket's lines name the reviewer on `cli-mock-reviewer`, the reviewer's request went out on that model while the department's went out on `cli-mock`, and a reviewer model the route does not declare fails the shift's ticket before any department runs.
