@@ -391,6 +391,12 @@ export interface ShipmentCi {
   base: CiRunDetail | null
   /** The earliest successful run whose commit contains the shipped commit. */
   firstGreen: CiRun | null
+  /**
+   * The run whose verdict answers for the shipped commit, by the rule `pnpm run enterprise:verdicts` applies: the newest run
+   * on exactly that commit that passed or failed, else the earliest run containing it that passed or failed. A run a later
+   * push cancelled reached no verdict and never answers. `null` when no such run exists yet; absent from an older briefing.
+   */
+  verdict?: CiRun | null
   /** Gates failing on the carrying run that did not fail on the base run. */
   introduced: string[]
   /** Gates failing on the carrying run that already failed on the base run. */
@@ -452,6 +458,7 @@ export interface FailedTicket {
   status: 'halted' | 'rejected'
   /** The ids of the acceptance and engine checks the line records as failed. */
   failedChecks: string[]
+  /** The line's cause in a few words, from the opening clause of its `reason`; the full `reason` stays in the ledger. */
   reason: string | null
 }
 
@@ -890,6 +897,55 @@ function cycleStarter(
   }
 }
 
+/** The reader's cause for each engine clause a halted or rejected ledger line's `reason` opens with. */
+const HALT_CAUSES: Readonly<Record<string, string>> = {
+  'the shift could not prepare its worktrees': 'the workspace install failed before any model ran',
+  'budget-exhausted': 'the session budget ran out',
+  'acceptance failed over the assembled tree': 'the acceptance checks failed over the assembled tree',
+  'the assembly failed': 'the assembly failed after approval',
+  reject: 'rejected by review',
+  'abandoned: container reset': 'abandoned in the container reset',
+}
+
+/** The longest cause kept from a `reason` whose opening clause {@link HALT_CAUSES} does not name. */
+const CAUSE_CHARACTERS = 80
+
+/**
+ * The cause a reader sees for a halted or rejected ticket line: the cause {@link HALT_CAUSES} gives the `reason`'s opening
+ * clause, else that clause cut to {@link CAUSE_CHARACTERS}. The rest of the `reason`, such as a command's captured output
+ * with host paths, stays in the ledger line the briefing cites.
+ * @param reason - the line's `reason`, or `null` when it has none.
+ * @param status - the line's status.
+ * @returns the cause.
+ */
+function haltCause(reason: string | null, status: FailedTicket['status']): string {
+  if (reason === null || reason.trim() === '') return status === 'rejected' ? HALT_CAUSES.reject ?? 'rejected' : 'halted'
+  const clauses = reason.split(': ')
+  const head = clauses[0] ?? reason
+  const cause = HALT_CAUSES[`${head}: ${clauses[1] ?? ''}`] ?? HALT_CAUSES[head]
+  if (cause !== undefined) return cause
+  return head.length <= CAUSE_CHARACTERS ? head : `${head.slice(0, CAUSE_CHARACTERS).replace(/\s+\S*$/, '')}…`
+}
+
+/** A shift id, `HHMMSS-xxxx`, which names the UTC time the shift started. */
+const SHIFT_ID = /^(\d{2})(\d{2})(\d{2})-[0-9a-f]{4}$/
+
+/**
+ * The start of a shift that left neither a record nor a start line, from the time its id names: the latest such time at or
+ * before its earliest ledger line.
+ * @param shift - the shift id.
+ * @param lines - the shift's ticket lines.
+ * @returns the start, or `null` when the id names no time.
+ */
+function inferredShiftStart(shift: string, lines: readonly TicketLine[]): string | null {
+  const match = SHIFT_ID.exec(shift)
+  const first = Math.min(...lines.map(line => ms(line.at)))
+  if (match === null || !Number.isFinite(first)) return null
+  const day = new Date(first).toISOString().slice(0, 10)
+  const same = ms(`${day}T${match[1]}:${match[2]}:${match[3]}.000Z`)
+  return new Date(same <= first ? same : same - 86_400_000).toISOString()
+}
+
 /**
  * The ledger's account of a set of shifts: shipped tickets, failed tickets, tokens, and the tickets their records name
  * that no line of theirs records.
@@ -913,7 +969,7 @@ function shiftAccount(
       const status = ticketStatus(line)
       if (status === 'shipped') return []
       const failedChecks = line.checks.filter(check => !check.ok).map(check => check.id)
-      return [{ ticket: line.ticket, status, failedChecks, reason: line.reason ?? null }]
+      return [{ ticket: line.ticket, status, failedChecks, reason: haltCause(line.reason ?? null, status) }]
     }),
     lost: shifts.reduce((sum, shift) => sum + shift.tickets.filter(ticket => !recorded.has(`${shift.shift} ${ticket}`)).length, 0),
     tokens: tokens.length === 0 ? null : tokens.reduce((sum, line) => sum + (line.tokens ?? 0), 0),
@@ -954,7 +1010,19 @@ export function pilotRows(
     redacted: null,
     seconds: null,
   }))
-  const shifts = [...recorded, ...started]
+  const lines = ticketLines(inputs.ledger)
+  const orphans = new Map<string, TicketLine[]>()
+  for (const line of lines) {
+    if (known.has(line.shift) || started.some(start => start.shift === line.shift)) continue
+    orphans.set(line.shift, [...orphans.get(line.shift) ?? [], line])
+  }
+  const inferred: ShiftRow[] = [...orphans].flatMap(([shift, own]) => {
+    const startedAt = inferredShiftStart(shift, own)
+    return startedAt === null
+      ? []
+      : [{ shift, dir: LEDGER_PATH, type: 'ledger', startedAt, endedAt: null, tickets: [...new Set(own.map(line => line.ticket))], shipped: [], reason: null, redacted: null, seconds: null }]
+  })
+  const shifts = [...recorded, ...started, ...inferred]
   const records = new Map(inputs.cycleRecords.map(record => [record.cycle, record]))
   const closing = new Set<string>()
   const ids = new Set<string>([...records.keys(), ...logs.steps.keys()])
@@ -971,7 +1039,6 @@ export function pilotRows(
       return startedAt === undefined ? [] : [{ id, startedAt }]
     })
     .sort((left, right) => ms(left.startedAt) - ms(right.startedAt))
-  const lines = ticketLines(inputs.ledger)
   const claimed = new Set<string>()
   const windows: { id: string; start: number; until: number }[] = []
   const rows: PilotRow[] = cycles.map(({ id, startedAt }, index) => {
@@ -1584,6 +1651,14 @@ function failedGatesOf(run: CiRunDetail | null): string[] {
 }
 
 /**
+ * @param run - a Branch CI run.
+ * @returns whether it completed with a verdict: passed or failed, not cancelled before one.
+ */
+function rendered(run: CiRun): boolean {
+  return run.status === 'completed' && (run.conclusion === 'success' || run.conclusion === 'failure')
+}
+
+/**
  * The Branch CI runs that bear on one shipped commit: a run on exactly that commit, the containing run of the push that
  * carried it, the run on the shift's base, and the first successful run containing it, with the containing run's failed
  * gates split by whether the base run failed them too.
@@ -1614,6 +1689,7 @@ export async function shipmentCi(
     carrying,
     base: baseDetail,
     firstGreen: containing.find(run => run.conclusion === 'success') ?? null,
+    verdict: onCommit.filter(rendered).at(-1) ?? containing.find(rendered) ?? null,
     introduced: failing.filter(gate => !before.has(gate)),
     preExisting: failing.filter(gate => before.has(gate)),
   }

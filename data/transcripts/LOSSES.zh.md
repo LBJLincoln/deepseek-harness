@@ -16,7 +16,7 @@
 
 ## 被重置打断的 shift
 
-cycle `cycle-20260928T201148Z` 在 20:11:51Z 推送了它的 intake（提交 `7ec9cecb3`，`data/enterprise/intake/2026-09-28-201151-a5d5/result.json`），并在 20:14:48Z 以 `T-0001` 和 `T-0005` 启动了 shift `201448-94fd`，恢复后的编排会话日志如此记录（“The first shift is still working on T-0001 and T-0005”；“Cycle 1 (20:11Z) was lost to the 22:07Z container reset mid-shift (T-0001/T-0005 unrecorded)”）。一个 shift 只在结束时才提交它的账本行和记录（含会话日志）。`data/enterprise/ledger.jsonl` 中没有 `201448-94fd` 的任何一行，`data/enterprise/shifts/` 中也没有它的记录，因此它在 `/tmp/dsh-enterprise/201448-94fd/.sessions` 下的部门、评审和集成会话日志、其部门的 Claude Code 会话、它的 `run.log`，以及 cycle 日志 `cycle-20260928T201148Z.log` 全部消失。两张工单都保持打开，因为没有任何一行关闭它们，下一个 cycle 又领取了 `T-0001`。
+cycle `cycle-20260928T201148Z` 在 20:11:51Z 推送了它的 intake（提交 `7ec9cecb3`，`data/enterprise/intake/2026-09-28-201151-a5d5/result.json`），并在 20:14:48Z 以 `T-0001` 和 `T-0005` 启动了 shift `201448-94fd`，恢复后的编排会话日志如此记录（“The first shift is still working on T-0001 and T-0005”；“Cycle 1 (20:11Z) was lost to the 22:07Z container reset mid-shift (T-0001/T-0005 unrecorded)”）。一个 shift 只在结束时才提交它的账本行和记录（含会话日志）。`data/enterprise/shifts/` 中没有 `201448-94fd` 的记录；监督者事后追加了它的两条账本行（`data/enterprise/ledger.jsonl` 第 168 与 169 行，提交 `580d9e688`），以 `recordedBy: supervisor` 把 `T-0001` 和 `T-0005` 记为在容器重置中放弃。它在 `/tmp/dsh-enterprise/201448-94fd/.sessions` 下的部门、评审和集成会话日志、其部门的 Claude Code 会话、它的 `run.log`，以及 cycle 日志 `cycle-20260928T201148Z.log` 全部消失。在这两行之前两张工单都保持打开，下一个 cycle 又领取了 `T-0001`。
 
 ## 2026-09-28 约 02:34Z 的重启
 

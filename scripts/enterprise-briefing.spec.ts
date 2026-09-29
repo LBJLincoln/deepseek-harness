@@ -352,7 +352,7 @@ describe('enterprise figures', () => {
       const statedRow = stated.find(row => row.id === record.cycle)
       expect(statedRow?.startedBy).toBe('operator')
       expect(statedRow?.basis).toContain('Its cycle record states operator')
-      const running = pilotRows({ commits, ledger, cycleRecords: [], logs: [{ ...logs[1], text: 'enterprise-cycle: cycle-20260928T221301Z intake exit=0 at 22:14:00Z\n' } as (typeof logs)[number]], scripts: SCRIPTS }, [])
+      const running = pilotRows({ commits, ledger: { lines: [], skipped: [] }, cycleRecords: [], logs: [{ ...logs[1], text: 'enterprise-cycle: cycle-20260928T221301Z intake exit=0 at 22:14:00Z\n' } as (typeof logs)[number]], scripts: SCRIPTS }, [])
       expect(running.find(row => row.id === 'cycle-20260928T221301Z')).toMatchObject({ attempted: null, lost: null, finished: false })
       expect(rows.find(row => row.id === 'cycle-20260928T221301Z')?.basis).toContain('reports running the cycle whose log it stamped 2026-09-28T22:13:00.000Z')
     })
@@ -416,11 +416,39 @@ describe('enterprise figures', () => {
         kind: 'shift',
         startedBy: 'operator',
         attempted: 2,
-        failed: [{ ticket: 'T-0005', status: 'halted', failedChecks: [], reason: 'abandoned: container reset' }],
+        failed: [{ ticket: 'T-0005', status: 'halted', failedChecks: [], reason: 'abandoned in the container reset' }],
         lost: 1,
         tokens: null,
         paths: ['data/enterprise/ledger.jsonl', 'data/enterprise/shift-starts.jsonl'],
       }])
+    })
+
+    it('stands a shift that left only ledger lines for its shift, started at the time its id names, in the cycle running then', () => {
+      const abandoned = (ticket: string): TicketLine => {
+        const line = ticketLine({ shift: '201448-94fd', ticket, shipped: null, reason: 'abandoned: container reset: shift 201448-94fd started at 2026-09-28T20:14:48.387Z over /tmp/x', checks: [], at: '2026-09-28T22:07:53.300Z' })
+        delete line.review
+        delete line.tokens
+        return line
+      }
+      const rows = pilotRows({ commits, ledger: { lines: [abandoned('T-0001'), abandoned('T-0005')], skipped: [] }, cycleRecords: [], logs: [], scripts: SCRIPTS }, [])
+      expect(rows.find(row => row.id === 'cycle-20260928T201148Z')).toMatchObject({
+        shifts: ['201448-94fd'],
+        attempted: 2,
+        failed: [
+          { ticket: 'T-0001', status: 'halted', failedChecks: [], reason: 'abandoned in the container reset' },
+          { ticket: 'T-0005', status: 'halted', failedChecks: [], reason: 'abandoned in the container reset' },
+        ],
+        lost: 0,
+      })
+    })
+
+    it('gives a halted line the cause its reason opens with, never the captured output after it', () => {
+      const install = ticketLine({ shift: '221520-e979', ticket: 'T-0001', at: '2026-09-28T22:53:59.804Z', shipped: null, checks: [], reason: 'the shift could not prepare its worktrees: pnpm install failed in /tmp/dsh-enterprise/x: [ELIFECYCLE] exit 1' })
+      const rejected = ticketLine({ shift: '221520-e979', ticket: 'T-0022', at: '2026-09-28T22:53:59.804Z', shipped: null, checks: [], review: { verdict: 'reject' }, reason: 'reject: the diff drops the root re-export' })
+      const ledgerRead: LedgerRead = { lines: [install, rejected], skipped: [] }
+      const rows = pilotRows({ commits, ledger: ledgerRead, cycleRecords: [], logs, scripts: SCRIPTS }, shiftRows(records))
+      const causes = rows.find(row => row.id === 'cycle-20260928T221301Z')?.failed.map(entry => entry.reason)
+      expect(causes).toEqual(['the workspace install failed before any model ran', 'rejected by review'])
     })
 
     it('reassembles the scheduler\'s log from the committed live capture', { timeout: 120_000 }, () => {
@@ -754,8 +782,12 @@ describe('the briefing', () => {
       + 'Shift 101309-c95c, started by the scheduler\'s cycle-20260929T101300Z, shipped T-0020 and T-0021; its push was completed by the supervisor, '
       + 'and their ledger lines are marked `recordedBy: supervisor`.')
     expect(renderSummary(completed, 'zh')).toContain('班次 101309-c95c（由调度器的 cycle-20260929T101300Z 启动）交付了 T-0020 与 T-0021；它的推送由 supervisor 补全')
-    expect(en).toContain('| shift `182951-78a6` | 28 September 2026, 18:29 UTC | operator | 1 | 1 (T-0012) | 0 | 0 | exact commit: 0 of 1 run; containing run: failed | 1,000,000 |')
-    expect(en).toContain('No Branch CI run tested any of these exact commits. The containing run of the push that carried them failed: the push introduced a failure of `translation pairing`')
+    expect(renderSummary(completed, 'en')).toContain('Cycles the scheduler started shipped 2 tickets (T-0020 and T-0021), each push completed by the supervisor. '
+      + 'No ticket has yet reached the branch without an operator or supervisor step.')
+    expect(en).toContain('No cycle the scheduler started has shipped a ticket yet.')
+    expect(en).toContain('| shift `182951-78a6` | 28 September 2026, 18:29 UTC | operator | 1 | 1 (T-0012) | 0 | 0 | exact commit: 0 of 1 run; verdict: failed | 1,000,000 |')
+    expect(en).toContain('No Branch CI run tested any of these exact commits. By the first Branch CI run containing each commit that reached a verdict '
+      + '(a run a later push cancelled has none; the rule of `pnpm run enterprise:verdicts`), 1 failed (T-0012).')
     for (const text of [en, zh]) {
       for (const phrase of ['unattended cycles ship', 'CI-verified', 'never leaves', '(human)']) expect(text).not.toContain(phrase)
     }

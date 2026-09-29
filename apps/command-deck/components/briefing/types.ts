@@ -60,6 +60,12 @@ export interface ShipmentCi {
   carrying: CiRunDetail | null
   base: CiRunDetail | null
   firstGreen: CiRun | null
+  /**
+   * The run whose verdict answers for the shipped commit (the rule of `pnpm run enterprise:verdicts`): the newest run on the
+   * exact commit that passed or failed, else the earliest containing run that did; `null` when none has; absent from an
+   * older briefing.
+   */
+  verdict?: CiRun | null
   introduced: string[]
   preExisting: string[]
 }

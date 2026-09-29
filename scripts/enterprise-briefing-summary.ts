@@ -48,6 +48,9 @@ const STARTER: Record<Starter, Both> = {
 /** The UTC day whose container resets `data/transcripts/LOSSES.md` accounts for. */
 const LOSSES_DAY = '2026-09-28'
 
+/** The cause the briefing gives a ticket line the 22:07Z container reset abandoned. */
+const RESET_CAUSE = 'abandoned in the container reset'
+
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 function count(value: number): string {
@@ -132,16 +135,47 @@ function unitCi(briefing: Briefing, row: PilotRow, locale: Locale): string {
   if (verdicts.some(verdict => verdict === null)) return zh ? '未知' : 'unknown'
   const known = verdicts as ShipmentCi[]
   const exact = known.filter(verdict => verdict.exact !== null).length
-  const conclusions = [...new Set(known.map(verdict => verdict.carrying?.conclusion ?? 'none'))]
   const outcome = (conclusion: string): string => {
     if (conclusion === 'success') return zh ? '通过' : 'passed'
     if (conclusion === 'failure') return zh ? '失败' : 'failed'
+    if (conclusion === 'cancelled') return zh ? '在得出结论前被取消' : 'cancelled before a verdict'
     if (conclusion === 'none') return zh ? '尚无' : 'none yet'
     return conclusion
   }
+  if (known.every(verdict => verdict.verdict !== undefined)) {
+    const answers = [...new Set(known.map(verdict => verdict.verdict?.conclusion ?? 'none'))]
+    return zh
+      ? `确切提交：${exact}/${known.length} 有运行；结论：${answers.map(outcome).join('、')}`
+      : `exact commit: ${exact} of ${known.length} run; verdict: ${answers.map(outcome).join(', ')}`
+  }
+  const conclusions = [...new Set(known.map(verdict => verdict.carrying?.conclusion ?? 'none'))]
   return zh
     ? `确切提交：${exact}/${known.length} 有运行；包含运行：${conclusions.map(outcome).join('、')}`
     : `exact commit: ${exact} of ${known.length} run; containing run: ${conclusions.map(outcome).join(', ')}`
+}
+
+/** The Chinese side of each cause the briefing gives a halted or rejected line; a cause absent here prints in English. */
+const CAUSE_ZH: Readonly<Record<string, string>> = {
+  'the workspace install failed before any model ran': '工作区安装失败，模型尚未运行',
+  'the session budget ran out': '会话预算耗尽',
+  'the acceptance checks failed over the assembled tree': '组装后的代码树未通过验收检查',
+  'the assembly failed after approval': '批准后组装失败',
+  'rejected by review': '被审阅驳回',
+  'abandoned in the container reset': '在容器重置中被放弃',
+  halted: '已中止',
+}
+
+/**
+ * @param entry - a halted or rejected ticket of a unit.
+ * @param locale - the side being rendered.
+ * @returns the entry's cause as the briefing states it, with the checks its line records as failed.
+ */
+function failedLabel(entry: PilotRow['failed'][number], locale: Locale): string {
+  const cause = entry.reason ?? (entry.status === 'rejected' ? 'rejected by review' : 'halted')
+  const rounds = /^no certificate after (\d+) rounds$/.exec(cause)
+  const phrase = locale === 'en' ? cause : rounds?.[1] !== undefined ? `${rounds[1]} 轮后仍无证书` : CAUSE_ZH[cause] ?? cause
+  if (entry.failedChecks.length === 0) return phrase
+  return locale === 'en' ? `${phrase}, ${code(entry.failedChecks).join(', ')} failing` : `${phrase}，${code(entry.failedChecks).join('、')} 未通过`
 }
 
 /**
@@ -159,8 +193,8 @@ function pilotTable(briefing: Briefing, locale: Locale): string[] {
     : ['| Unit | Started | Started by | Attempted | Shipped | Failed or halted | Lost | Branch CI | Model tokens |', '| --- | --- | --- | --- | --- | --- | --- | --- | --- |']
   for (const row of rows) {
     const unit = row.kind === 'cycle' ? `\`${row.id}\`` : `${zh ? '班次' : 'shift'} \`${row.id}\``
-    const checks = [...new Set(row.failed.flatMap(entry => entry.failedChecks))]
-    const failed = row.failed.length === 0 ? '0' : `${row.failed.length} (${checks.length === 0 ? (zh ? '审阅' : 'review') : code(checks).join(', ')})`
+    const causes = [...new Set(row.failed.map(entry => failedLabel(entry, locale)))]
+    const failed = row.failed.length === 0 ? '0' : `${row.failed.length} (${causes.join(zh ? '；' : '; ')})`
     const shipped = row.shipped.length === 0 ? '0' : `${row.shipped.length} (${row.shipped.join(', ')})`
     lines.push(`| ${unit} | ${moment(row.startedAt, locale)} | ${STARTER[row.startedBy][locale]} | ${row.attempted ?? unknown} | ${shipped} | ${failed} | ${row.lost ?? unknown} | ${unitCi(briefing, row, locale)} | ${row.tokens === null ? unknown : count(row.tokens)} |`)
   }
@@ -249,6 +283,19 @@ function shippedSentence(briefing: Briefing, locale: Locale): string {
   parts.push(zh
     ? `${exact === 0 ? '没有任何 Branch CI 运行单独测试过其中任何一个确切提交' : `${known.length} 个确切提交中有 ${exact} 个有 Branch CI 运行`}。`
     : `${exact === 0 ? 'No Branch CI run tested any of these exact commits' : `Branch CI ran on ${exact} of the ${known.length} exact commits`}.`)
+  const verdicts = shipped.map(row => ({ ticket: row.ticket, run: row.ci.value?.verdict }))
+  if (verdicts.every(entry => entry.run !== undefined)) {
+    const by = (conclusion: string | null): string[] => verdicts
+      .filter(entry => (entry.run?.conclusion ?? null) === conclusion)
+      .map(entry => entry.ticket)
+    const [passed, failed, pending] = [by('success'), by('failure'), by(null)]
+    const group = (tickets: readonly string[], en: string, zhWord: string): string[] => (tickets.length === 0 ? [] : [zh ? `${tickets.length} 张${zhWord}（${listed(tickets, locale)}）` : `${tickets.length} ${en} (${listed(tickets, locale)})`])
+    const groups = [...group(passed, 'passed', '通过'), ...group(failed, 'failed', '失败'), ...group(pending, 'have no verdict yet', '尚无结论')]
+    parts.push(zh
+      ? `以包含各提交且得出结论的第一次 Branch CI 运行为准（被后续推送取消的运行没有结论，与 \`pnpm run enterprise:verdicts\` 规则相同）：${groups.join('，')}。`
+      : `By the first Branch CI run containing each commit that reached a verdict (a run a later push cancelled has none; the rule of \`pnpm run enterprise:verdicts\`), ${listed(groups, locale)}.`)
+    return joined()
+  }
   const carrying = [...new Map(known.flatMap(value => (value.carrying === null ? [] : [[value.carrying.id, value] as const]))).values()]
   if (carrying.length !== 1 || known.some(value => value.carrying === null)) {
     const passed = carrying.filter(value => value.carrying?.conclusion === 'success').length
@@ -323,7 +370,22 @@ export function renderSummary(briefing: Briefing, locale: Locale): string {
   const routes = briefing.routes.value ?? []
   const pilot = briefing.pilot.value ?? []
   const cycles = pilot.filter(row => row.kind === 'cycle')
-  const lostCycle = cycles.find(row => row.attempted === null && row !== cycles.at(-1) && row.startedAt.startsWith(LOSSES_DAY))
+  const lostCycle = cycles.find(row => row !== cycles.at(-1) && row.startedAt.startsWith(LOSSES_DAY)
+    && (row.attempted === null || row.failed.some(entry => entry.reason === RESET_CAUSE)))
+  const schedulerShipping = pilot.filter(row => row.startedBy === 'scheduler' && row.shipped.length > 0)
+  const schedulerTickets = schedulerShipping.flatMap(row => row.shipped)
+  const supervised = schedulerShipping.filter(row => row.completedBy.length > 0).flatMap(row => row.shipped)
+  const unattended = schedulerShipping.filter(row => row.completedBy.length === 0).flatMap(row => row.shipped)
+  const lostSentence = lostCycle === undefined
+    ? ''
+    : lostCycle.attempted === null
+      ? (zh ? `\`${lostCycle.id}\` 的班次没有在分支上留下任何记录：[LOSSES.md](../../data/transcripts/LOSSES.md) 记载它在 22:07Z 的容器重置中丢失。` : `The cycle \`${lostCycle.id}\` left no record of its shift on the branch; [LOSSES.md](../../data/transcripts/LOSSES.md) states that the 22:07Z container reset erased it. `)
+      : (zh ? `22:07Z 的容器重置抹去了 \`${lostCycle.id}\` 班次的会话日志（[LOSSES.md](../../data/transcripts/LOSSES.md)）；其工单 ${listed(lostCycle.failed.map(entry => entry.ticket), locale)} 事后被记录为已放弃。` : `The 22:07Z container reset erased the session logs of the shift of \`${lostCycle.id}\` ([LOSSES.md](../../data/transcripts/LOSSES.md)); its tickets ${listed(lostCycle.failed.map(entry => entry.ticket), locale)} were recorded as abandoned after the fact. `)
+  const schedulerSentence = schedulerTickets.length === 0
+    ? (zh ? '调度器启动的周期尚未交付任何工单。' : 'No cycle the scheduler started has shipped a ticket yet.')
+    : zh
+      ? `调度器启动的周期交付了 ${schedulerTickets.length} 张工单（${listed(schedulerTickets, locale)}）${supervised.length === 0 ? '' : unattended.length === 0 ? '，其推送均由监督者完成' : `，其中 ${listed(supervised, locale)} 的推送由监督者完成`}。${unattended.length === 0 ? '尚无工单在没有操作员或监督者介入的情况下进入分支。' : ''}`
+      : `Cycles the scheduler started shipped ${schedulerTickets.length} ${schedulerTickets.length === 1 ? 'ticket' : 'tickets'} (${listed(schedulerTickets, locale)})${supervised.length === 0 ? '' : unattended.length === 0 ? `, ${schedulerTickets.length === 1 ? 'its' : 'each'} push completed by the supervisor` : `, ${listed(supervised, locale)} with the push completed by the supervisor`}.${unattended.length === 0 ? ' No ticket has yet reached the branch without an operator or supervisor step.' : ''}`
   const reviewsOf = (target: string): number => recall.filter(row => row.target === target).length
   const targets = [...new Set(recall.map(row => row.target))].sort((left, right) => reviewsOf(right) - reviewsOf(left))
   const visibility = shown(f['repository.visibility'], locale, value => String(value))
@@ -348,7 +410,7 @@ export function renderSummary(briefing: Briefing, locale: Locale): string {
     lines.push(...pilotTable(briefing, locale), '')
     lines.push('## 证据表明什么', '')
     lines.push(`- **已交付的工作。** ${shippedSentence(briefing, locale)}`)
-    lines.push(`- **无人值守的周期。** ${lostCycle === undefined ? '' : `\`${lostCycle.id}\` 的班次没有在分支上留下任何记录：[LOSSES.md](../../data/transcripts/LOSSES.md) 记载它在 22:07Z 的容器重置中丢失。`}调度器启动的周期尚未交付任何工单。`)
+    lines.push(`- **无人值守的周期。** ${lostSentence}${schedulerSentence}`)
     lines.push(`- **基准测试。** 在 ${n('bench.environments')} 个内部编写的环境上，${opus === undefined ? '' : `更大的模型在第 5 层级上胜过中间模型（${opus.pairs} 个单元中 ${opus.candidateCertified} 对 ${opus.baselineCertified}，${signed(opus.delta)}，区间 ${interval(opus.interval.lower, opus.interval.upper)}）；`}${sealed === undefined ? '' : `harness 循环与产品自身的循环持平（${sealed.pairs} 个中 ${sealed.baselineCertified} 对 ${sealed.candidateCertified}，无定论）；`}${attemptsPair === undefined ? '' : `把尝试次数从三次减到一次会降低认证率（${signed(attemptsPair.delta)}，区间 ${interval(attemptsPair.interval.lower, attemptsPair.interval.upper)}）。`}尚无冻结配对实验推动过 harness 的改动。`)
     lines.push(`- **安全审查。** 在 NodeGoat 同一修订版上的三层对比中（每层各运行一次），扫描器、单个模型的单次审查与本企业${enterpriseRecord === null ? '' : `记录 \`${enterpriseRecord}\``}分别找到 ${tiers[0]?.knownIssues ?? '未知'} 个已记录问题中的 ${listed([tier('semgrep'), tier('single-model'), tier('enterprise')], locale)}，均以发现落在问题行范围三行以内为准；单次审查的发现未经行级验证，其运行间波动也未测量。${withChecklists.length === 0 ? '' : `依据对本企业在该应用上漏报的诊断编写检查清单后，两次运行分别找到 ${listed(withChecklists, locale)} 个，未使用时为 ${listed(withoutChecklists, locale)} 个；这是样本内读数，这些清单能否迁移到其他代码库尚未验证。`}${dvja === undefined ? '' : `在 dvja 上找到 ${dvja.knownIssues} 个中的 ${dvja.found} 个。`}`)
     lines.push('')
@@ -390,7 +452,7 @@ export function renderSummary(briefing: Briefing, locale: Locale): string {
     lines.push(...pilotTable(briefing, locale), '')
     lines.push('## What the evidence shows', '')
     lines.push(`- **Shipped work.** ${shippedSentence(briefing, locale)}`)
-    lines.push(`- **Unattended cycles.** ${lostCycle === undefined ? '' : `The cycle \`${lostCycle.id}\` left no record of its shift on the branch; [LOSSES.md](../../data/transcripts/LOSSES.md) states that the 22:07Z container reset erased it. `}No cycle the scheduler started has shipped a ticket yet.`)
+    lines.push(`- **Unattended cycles.** ${lostSentence}${schedulerSentence}`)
     lines.push(`- **Benchmark.** On ${n('bench.environments')} in-house environments, ${opus === undefined ? '' : `a larger model beat the middle one on tier 5 (${opus.candidateCertified} against ${opus.baselineCertified} of ${opus.pairs} cells, ${signed(opus.delta)}, interval ${interval(opus.interval.lower, opus.interval.upper)}); `}${sealed === undefined ? '' : `the harness loop and the product's own loop were level (${sealed.baselineCertified} against ${sealed.candidateCertified} of ${sealed.pairs}, inconclusive); `}${attemptsPair === undefined ? '' : `cutting the attempts from three to one lowered certification (${signed(attemptsPair.delta)}, interval ${interval(attemptsPair.interval.lower, attemptsPair.interval.upper)}). `}No frozen pair has promoted a harness change.`)
     lines.push(`- **Security review.** In the three-tier comparison on one NodeGoat revision, one run each, a scanner, one model in one pass and the enterprise${enterpriseRecord === null ? '' : ` record \`${enterpriseRecord}\``} found ${tier('semgrep')}, ${tier('single-model')} and ${tier('enterprise')} documented issues, counting a finding within three lines of an issue; the single pass's findings are not line-verified and its run-to-run spread is not measured.${withChecklists.length === 0 ? '' : ` Checklists written from a diagnosis of the enterprise's misses on this application gave ${listed(withChecklists, locale)} in the two runs with them, against ${listed(withoutChecklists, locale)} without; that reading is in-sample, and whether they transfer to another codebase is untested.`}${dvja === undefined ? '' : ` On dvja the review found ${dvja.found} of ${dvja.knownIssues}.`}`)
     lines.push('')

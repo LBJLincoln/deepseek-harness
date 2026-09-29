@@ -5,7 +5,7 @@ import { Controls } from './Controls.tsx'
 import { DataFlow, FlowDiagram, OrgChart, type Flow } from './diagrams.tsx'
 import { clock, commitUrl, count, duration, interval, listed, minutes, moment, numberOf, pathUrl, percent, short, shown, signed, tierCost, tierTime } from './format.ts'
 import { Cite, Notes, SourceNotes, type Note } from './notes.tsx'
-import type { Briefing as BriefingData, ExperimentRow, Figure, PilotRow, ReviewRecordRow, ShipmentCi, ShippedRow, Source, Starter } from './types.ts'
+import type { Briefing as BriefingData, CiRun, ExperimentRow, Figure, PilotRow, ReviewRecordRow, ShipmentCi, ShippedRow, Source, Starter } from './types.ts'
 
 /*
  * The client briefing: an executive account of the enterprise's pilot in eight
@@ -238,24 +238,28 @@ function ShipmentCallout({ shipment, note, cause, branch }: ShipmentCalloutProps
           ? <>No Branch CI run tested {rows.map(row => short(row.commit)).join(rows.length === 2 ? ' or ' : ', ')} on its own.</>
           : <>{exact.length} of {rows.length} shipped commits had a run on exactly that commit.</>}
       </p>
+      {ci.verdict === undefined ? null : (
+        <p>
+          <b className="bf-callout__label">Verdict.</b>{' '}
+          {ci.verdict === null ? 'No run containing these commits has reached a verdict yet.' : <VerdictRun run={ci.verdict} />}
+        </p>
+      )}
       {run === null ? <p><b className="bf-callout__label">Containing run.</b> No Branch CI run contains these commits yet.</p> : (
         <>
           <p>
             <b className="bf-callout__label">Containing run.</b> Run <a href={run.url}>{run.id}</a> on{' '}
             <a href={commitUrl(run.head)}><code>{short(run.head)}</code></a>, the push that carried them, started {moment(run.createdAt)}:{' '}
-            <b className={passed ? 'bf-status bf-status--good' : 'bf-status bf-status--bad'}>
-              {passed ? '✓ passed' : run.status === 'completed' ? '✕ failed' : '• running'}
+            <b className={passed ? 'bf-status bf-status--good' : run.conclusion === 'failure' ? 'bf-status bf-status--bad' : 'bf-status'}>
+              {verdictOf(run)}
             </b>.
           </p>
           <ul className="bf-lanes">
             {run.jobs.map(job => (
               <li key={job.name}>
                 <span className="bf-lane">
-                  <span className={job.conclusion === 'success' ? 'bf-status bf-status--good' : 'bf-status bf-status--bad'}>
-                    {job.conclusion === 'success' ? '✓' : '✕'}
-                  </span>
+                  <span className={laneOf(job.conclusion).tone}>{laneOf(job.conclusion).mark}</span>
                   <a href={job.url}>{job.name.replace(/^node \d+ \/ /, '')}</a>
-                  <span className="bf-lane__verdict">{job.conclusion === 'success' ? 'passed' : 'failed'}</span>
+                  <span className="bf-lane__verdict">{laneOf(job.conclusion).word}</span>
                 </span>
                 {job.failedGates.length === 0 ? null : (
                   <ul className="bf-gates">
@@ -277,7 +281,7 @@ function ShipmentCallout({ shipment, note, cause, branch }: ShipmentCalloutProps
               approved<Cite note={cause} branch={branch} />.
             </p>
           )}
-          {passed ? null : ci.firstGreen === null ? <p>No fully successful run contains these commits yet.</p> : (
+          {passed || ci.verdict !== undefined ? null : ci.firstGreen === null ? <p>No fully successful run contains them yet.</p> : (
             <p>
               The first fully successful run containing them,
               on <a href={commitUrl(ci.firstGreen.head)}><code>{short(ci.firstGreen.head)}</code></a>,
@@ -292,6 +296,43 @@ function ShipmentCallout({ shipment, note, cause, branch }: ShipmentCalloutProps
 }
 
 /**
+ * @param conclusion - a Branch CI job's conclusion.
+ * @returns its mark, word and status class: a job a later push cancelled reads cancelled, not failed.
+ */
+function laneOf(conclusion: string | null): { mark: string; word: string; tone: string } {
+  if (conclusion === 'success') return { mark: '✓', word: 'passed', tone: 'bf-status bf-status--good' }
+  if (conclusion === 'cancelled') return { mark: '•', word: 'cancelled', tone: 'bf-status' }
+  return { mark: '✕', word: 'failed', tone: 'bf-status bf-status--bad' }
+}
+
+/**
+ * @param props - the run whose verdict answers for a push's shipped commits.
+ * @returns the run, its commit and its verdict, with the rule that chose it.
+ */
+function VerdictRun({ run }: { run: CiRun }): ReactNode {
+  const tone = run.conclusion === 'success' ? 'bf-status bf-status--good' : 'bf-status bf-status--bad'
+  return (
+    <>
+      Run <a href={run.url}>{run.id}</a> on <a href={commitUrl(run.head)}><code>{short(run.head)}</code></a>, the first run
+      containing them that passed or failed (a run a later push cancelled reached no verdict):{' '}
+      <b className={tone}>{verdictOf(run)}</b>.
+    </>
+  )
+}
+
+/**
+ * @param run - a Branch CI run's status and conclusion.
+ * @returns its verdict for a reader; a run a later push cancelled reached no verdict, so it reads neither passed nor failed.
+ */
+function verdictOf(run: { status: string; conclusion: string | null }): string {
+  if (run.status !== 'completed') return '• running'
+  if (run.conclusion === 'success') return '✓ passed'
+  if (run.conclusion === 'failure') return '✕ failed'
+  if (run.conclusion === 'cancelled') return '• cancelled before a verdict'
+  return run.conclusion ?? 'no conclusion'
+}
+
+/**
  * @param row - a pilot unit.
  * @param shipped - every shipped ticket.
  * @returns the unit's Branch CI cell: what ran on its shipped commits, or that it shipped nothing.
@@ -303,15 +344,16 @@ function PilotCi({ row, shipped }: { row: PilotRow; shipped: readonly ShippedRow
   if (verdicts.some(verdict => verdict === null)) return <span className="bf-unknown">unknown</span>
   const known = verdicts as ShipmentCi[]
   const exact = known.filter(verdict => verdict.exact !== null).length
-  const conclusions = [...new Set(known.map(verdict => verdict.carrying?.conclusion ?? 'none'))]
+  const answered = known.every(verdict => verdict.verdict !== undefined)
+  const conclusions = [...new Set(known.map(verdict => (answered ? verdict.verdict?.conclusion : verdict.carrying?.conclusion) ?? 'none'))]
   return (
     <>
       <span className="bf-pilot__ci">Exact commit: {exact === 0 ? `no run on ${known.length === 1 ? 'it' : `either of ${known.length}`}` : `${exact} of ${known.length}`}</span>
       <span className="bf-pilot__ci">
-        Containing run:{' '}
+        {answered ? 'Verdict' : 'Containing run'}:{' '}
         {conclusions.map(conclusion => (
-          <b key={conclusion} className={conclusion === 'success' ? 'bf-status bf-status--good' : 'bf-status bf-status--bad'}>
-            {conclusion === 'success' ? '✓ passed' : conclusion === 'failure' ? '✕ failed' : conclusion}
+          <b key={conclusion} className={conclusion === 'success' ? 'bf-status bf-status--good' : conclusion === 'failure' ? 'bf-status bf-status--bad' : 'bf-status'}>
+            {conclusion === 'none' ? 'none yet' : verdictOf({ status: 'completed', conclusion })}
           </b>
         ))}
       </span>
@@ -422,7 +464,8 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
   const ciRuns = data.ci.value?.runs ?? []
   const shipments = shipmentsOf(shipped)
   const ciGreen = f('ci.latestConclusion')?.value === 'success'
-  const failedPushes = shipments.filter(shipment => shipment.ci.carrying?.status === 'completed' && shipment.ci.carrying.conclusion !== 'success').length
+  const failedPushes = shipments.filter(shipment => shipment.ci.carrying?.status === 'completed' && shipment.ci.carrying.conclusion === 'failure').length
+  const cancelledPushes = shipments.filter(shipment => shipment.ci.carrying?.status === 'completed' && shipment.ci.carrying.conclusion === 'cancelled').length
   const ciUnknown = shipped.map(row => row.ci).flatMap(figure => ('unknown' in figure ? [figure.unknown] : [])).at(0)
   const unoccupied = divisions.filter(division => division.occupied === 0).map(division => division.name)
   const routeTotal = routes.reduce((sum, row) => sum + row.sessions, 0)
@@ -452,8 +495,11 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
   const latestScheduled = schedulerCycles.at(-1)
   const newestCycle = cycles.at(-1)
   const shippingUnits = pilot.filter(row => row.shipped.length > 0)
+  const unattendedShipped = shippingUnits.filter(row => row.startedBy === 'scheduler' && (row.completedBy ?? []).length === 0).flatMap(row => row.shipped)
   const lostCycles = cycles.filter(row => row.attempted === null && row !== newestCycle)
-  const resetCycles = lostCycles.filter(row => row.startedAt.startsWith(LOSSES_DAY))
+  // A cycle of the reset day whose shift left no line, or whose lines the supervisor wrote afterwards as abandoned in the reset.
+  const resetCycles = cycles.filter(row => row !== newestCycle && row.startedAt.startsWith(LOSSES_DAY)
+    && (row.attempted === null || row.failed.some(entry => entry.reason === 'abandoned in the container reset')))
   const lossUnits = pilot.filter(row => row.lost !== null && row.lost > 0)
   const partialShifts = shifts.filter(row => row.type === 'partial')
   const visibility = f('repository.visibility')
@@ -466,9 +512,13 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
       marked[shipment.ci.carrying.id] = String(markCaptions.length + 1)
       markCaptions.push({ label: String(markCaptions.length + 1), text: <>the containing run of the push that carried {tickets}</> })
     }
-    if (shipment.ci.firstGreen !== null && marked[shipment.ci.firstGreen.id] === undefined) {
-      marked[shipment.ci.firstGreen.id] = String(markCaptions.length + 1)
-      markCaptions.push({ label: String(markCaptions.length + 1), text: <>the first fully successful run containing {tickets}</> })
+    const answer = shipment.ci.verdict === undefined ? shipment.ci.firstGreen : shipment.ci.verdict
+    if (answer !== null && marked[answer.id] === undefined) {
+      marked[answer.id] = String(markCaptions.length + 1)
+      const caption = shipment.ci.verdict === undefined
+        ? <>the first fully successful run containing {tickets}</>
+        : <>the first run containing {tickets} that reached a verdict</>
+      markCaptions.push({ label: String(markCaptions.length + 1), text: caption })
     }
   }
   const failedOf = (row: PilotRow): ReactNode => {
@@ -567,10 +617,10 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
     terms: n5.cite({ paths: [DATA_USE, 'packages/governance/curator/README.md'], computation: 'Data-use terms pinned to a session at creation (client, agreement, purposes, residency, retention, redaction profile); the curator refuses to export without a redaction profile and withholds sessions whose terms do not admit the purpose.' }),
     sandbox: n5.cite({ paths: ['packages/sandbox/sandbox-local/README.md', 'packages/sandbox/sandbox-policy/README.md'], computation: 'The local sandbox provider: bubblewrap, then Landlock on Linux, Seatbelt on macOS, a restricted token on Windows; an unusable runner fails with SANDBOX_UNAVAILABLE rather than running unconfined.' }),
     sealed: n5.cite({ paths: [RESULTS_NOTE, 'data/proving-ground/README.md'], computation: 'Since 2026-09-08 09:25 UTC every bench cell is sealed: an empty directory is mounted over the run directory with only the cell’s workspace bound back in.' }),
-    shiftIsolation: n5.cite({ paths: [SHIFT_COMPOSITION, SHIFT_OVERLAY, SHIFT_NOTE], computation: 'The shift composition runs shell commands through the local bash provider, not the sandbox; each department works in its own worktree of a scratch clone and pushes through an origin whose push URL is unreachable; the Claude Code overlay states the edits and version-control commands a department may run without a prompt.' }),
+    shiftIsolation: n5.cite({ paths: [SHIFT_COMPOSITION, SHIFT_OVERLAY, SHIFT_NOTE, 'examples/headless-agent/tests/fixtures/enterprise-shift/README.md'], computation: 'The shift README’s section on what is confined states that the unreachable push URL contains a mistaken push and is not a sandbox, that nothing controls network egress, and that a department’s shell reads whatever the host user can. The shift composition runs shell commands through the local bash provider, not the sandbox; each department works in its own worktree of a scratch clone and pushes through an origin whose push URL is unreachable; the Claude Code overlay states the edits and version-control commands a department may run without a prompt.' }),
     barrier: n5.cite({ paths: ['packages/verification/read-barrier/README.md', 'packages/fs/fs-read-barrier/README.md'], computation: 'The read barrier: implementer and judge sessions are denied the validator-owned tree; the filesystem capability enforces the decision where it opens a path.' }),
     refusals: n5.cite(f('safety.barrierRefusals') ?? data.safety.recall),
-    reviewer: n5.cite({ paths: [SHIFT_NOTE, REVIEW_NOTE, 'packages/verification/judge/README.md'], computation: 'The shift’s reviewer: a fresh session with no parent and no seed, the judge preset, an empty working directory, and a history of the ticket and the evidence only; since the second shift every tool is restricted away from it; it runs on the route and model of the composition’s enterprise-review-model entry, configured apart from the departments’, and a rejected ticket is held for a person rather than reviewed again.' }),
+    reviewer: n5.cite({ paths: [SHIFT_NOTE, REVIEW_NOTE, 'packages/verification/judge/README.md', 'data/enterprise/ledger.jsonl'], computation: 'Commit 3291b6402 (29 Sep 2026, 10:15 UTC) holds a rejected ticket for triage; ledger line 167 records T-0019 rejected on 28 Sep at 18:19 UTC, before that commit, and a later line records it shipped; every review session ran sonnet through Claude Code, as the departments did. The shift’s reviewer: a fresh session with no parent and no seed, the judge preset, an empty working directory, and a history of the ticket and the evidence only; since the second shift every tool is restricted away from it; it runs on the route and model of the composition’s enterprise-review-model entry, configured apart from the departments’, and a rejected ticket is held for a person rather than reviewed again.' }),
     reviews: n5.cite(data.governance.reviews),
     reviewRecord: n5.cite(data.governance.reviewRecord ?? data.governance.reviews),
     approved: n5.cite(f('reviews.approved') ?? data.governance.reviews),
@@ -591,7 +641,7 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
     secrets: n5.cite({ paths: [SAFETY_README, README, TRANSCRIPTS_README], computation: 'Code-safety records replace private key material and example cloud keys before commit and list the files touched under redactions; a shift record cuts credential-shaped strings from its session logs and counts them; the live capture masks credential-shaped strings.' }),
     redaction: n5.cite(f('safety.redactedRecords') ?? data.safety.recall),
     shiftRedaction: n5.cite(f('shifts.redacted') ?? data.shifts),
-    audit: n5.cite({ paths: [README, SHIFT_NOTE, 'AGENTS.md'], computation: 'The ledger is appended and never rewritten; a shift record holds result.json, manifest.json with every file’s SHA-256 and every session log; each ticket commit names the shift, ticket, seat, program and sessions; model-visible input is logged.' }),
+    audit: n5.cite({ paths: [README, SHIFT_NOTE, 'AGENTS.md', 'data/enterprise/ledger.jsonl', 'data/transcripts/LOSSES.md'], computation: 'The ledger gate refuses a push that edits, removes or inserts a committed ledger line from commit 580d9e688 (29 Sep 2026, 10:54 UTC); its commit message lists the edits before it: commit dae1babd0 (29 Sep 2026, 06:45 UTC) rewrote the shipped commit of T-0007 in place, and d46e02bd9, d1aec806b, 1f669dbf9 and 8a4dd9c02 inserted lines (git log -p data/enterprise/ledger.jsonl). A shift record holds result.json, manifest.json with every file’s SHA-256 and every session log; each ticket commit names the shift, ticket, seat, program and sessions; model-visible input is logged, except the sessions LOSSES.md records as lost.' }),
     ledger: n5.cite(f('ledger.lines') ?? data.shifts),
     sessions: n5.cite(f('sessions.recorded') ?? data.divisions),
     dataHandling: n5.cite({ paths: [DATA_HANDLING], computation: 'The full data flow of a review: each movement of the data with the file that shows it, the terms of each destination, what the repository does not record about them, and what a client engagement needs first.' }),
@@ -650,6 +700,7 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
     operatorShipped: n7.cite(f('pilot.operatorShipped') ?? data.pilot),
     schedulerShipped: n7.cite(f('pilot.schedulerShipped') ?? data.pilot),
     losses: n7.cite({ paths: [LOSSES], computation: 'What the container resets of 2026-09-28 erased, stated from commits and files on the branch.' }),
+    provenance: n7.cite({ paths: ['README.md', 'LICENSE', 'data/enterprise/ledger.jsonl'], computation: 'The README\'s provenance paragraph and its account of which models ran: every enterprise ticket line records Claude Code or no model, every intake and code-safety review ran on Claude Code, and the bench\'s tier 2 ran free open-weight models through OpenRouter.' }),
     isolation: n7.cite({ paths: [SHIFT_COMPOSITION, SHIFT_OVERLAY], computation: 'The shift composition names the local bash and subprocess providers and no sandbox provider.' }),
     ci: n7.cite(f('ci.success') ?? data.ci),
     exact: n7.cite(f('ci.exactShipped') ?? data.shipped),
@@ -686,8 +737,8 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
   const units = shippingUnits.map((row) => {
     const started = row.startedBy === 'unknown' ? 'whose starter the records do not state' : `started by the ${row.startedBy}`
     const completedBy = row.completedBy ?? []
-    const completed = completedBy.length === 0 ? '' : `, whose push the ${listed(completedBy)} completed (its ledger lines are marked recordedBy ${completedBy.join(', ')})`
-    return `${row.kind} ${row.id}, ${started}${completed}`
+    const completed = completedBy.length === 0 ? '' : `, whose push the ${listed(completedBy)} completed (its ledger lines are recorded by the ${listed(completedBy)})`
+    return `${row.kind === 'cycle' ? row.id : `shift ${row.id}`}, ${started}${completed}`
   })
   // Each unit's phrase holds commas of its own, so the units are separated by semicolons.
   const shippedBy = units.length <= 1 ? units.join('') : `${units.slice(0, -1).join('; ')}; and ${units.at(-1) ?? ''}`
@@ -756,7 +807,14 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
             <div className="bf-kpis">
               <Kpi label="Tickets shipped" value={text(f('tickets.shipped'))} detail={`${text(f('pilot.operatorShipped'))} from work the operator started`} note={c1.shipped} detailNote={c1.operatorShipped} branch={branch} />
               <Kpi
-                label="Shipped by scheduled cycles"
+                label="Shipped with no human or supervisor step"
+                value={`${unattendedShipped.length} of ${shipped.length}`}
+                detail="started by the scheduler and pushed by the engine itself"
+                note={c1.pilot}
+                branch={branch}
+              />
+              <Kpi
+                label="Shipped from scheduler-started cycles"
                 value={text(f('pilot.schedulerShipped'))}
                 detail={`from the ${text(f('pilot.schedulerCycles'))} ${plural(scheduledCount, 'cycle', 'cycles')} the scheduler started`}
                 note={c1.schedulerShipped}
@@ -781,9 +839,14 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
               <Cite note={c1.pilot} branch={branch} />.{' '}
               {latestScheduled === undefined
                 ? 'The scheduler has not started a cycle yet.'
-                : <>The scheduler has started {text(f('pilot.schedulerCycles'))} {plural(scheduledCount, 'cycle', 'cycles')}, which shipped {text(f('pilot.schedulerShipped'))}<Cite note={c1.schedulerShipped} branch={branch} />. {schedulerCycles.map((row, index) => <span key={row.id}>{index === 0 ? 'Of these, ' : '; '}{cycleAccount(row)}</span>)}.</>}
+                : <>The scheduler has started {text(f('pilot.schedulerCycles'))} {plural(scheduledCount, 'cycle', 'cycles')}, which shipped {text(f('pilot.schedulerShipped'))}<Cite note={c1.schedulerShipped} branch={branch} />; {unattendedShipped.length === 0 ? 'no shipped ticket has yet reached the branch without an operator or supervisor step' : `${unattendedShipped.length} shipped ${plural(unattendedShipped.length, 'ticket', 'tickets')} reached the branch with no operator or supervisor step`}.</>}
               {' '}Section 3 sets out every unit of work.
             </p>
+            {schedulerCycles.length === 0 ? null : (
+              <ul>
+                {schedulerCycles.map(row => <li key={row.id}>{cycleAccount(row)}<Cite note={c1.pilot} branch={branch} />.</li>)}
+              </ul>
+            )}
           </Section>
 
           <Section
@@ -989,8 +1052,8 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
               </div>
               <div className="bf-controls-table__row" role="row">
                 <span role="cell" data-label="Control"><b>Execution isolation</b></span>
-                <span role="cell" data-label="Mechanism">The harness&rsquo;s sandbox confines commands at the operating system: bubblewrap, then Landlock on Linux; Seatbelt on macOS; a restricted token on Windows. An unusable sandbox stops the command instead of running it unconfined<Cite note={c5.sandbox} branch={branch} />.</span>
-                <span role="cell" data-label="Evidence">Every bench cell has run sealed since 8 Sep 2026, 09:25 UTC: only the cell&rsquo;s workspace is visible to it<Cite note={c5.sealed} branch={branch} />. Shift departments do not yet run under it: each works in its own worktree of a scratch clone whose push address is unreachable, and the product&rsquo;s permission list names the commands it may run<Cite note={c5.shiftIsolation} branch={branch} />.</span>
+                <span role="cell" data-label="Mechanism">Shift departments, reviewers, intake and code-safety reviews run unconfined, as the host user: each department works in its own worktree of a scratch clone whose push address is unreachable, which contains a mistaken push but is not a sandbox, and nothing yet limits their network or the host files and credentials they can read<Cite note={c5.shiftIsolation} branch={branch} />. The harness&rsquo;s operating-system sandbox (bubblewrap, then Landlock on Linux; Seatbelt on macOS; a restricted token on Windows) confines the Proving Ground bench only<Cite note={c5.sandbox} branch={branch} />.</span>
+                <span role="cell" data-label="Evidence">Every bench cell has run sealed since 8 Sep 2026, 09:25 UTC: only the cell&rsquo;s workspace is visible to it<Cite note={c5.sealed} branch={branch} />. Running departments under that sandbox, without the host&rsquo;s credentials in their environment, is work to finish before any client engagement.</span>
               </div>
               <div className="bf-controls-table__row" role="row">
                 <span role="cell" data-label="Control"><b>Least privilege on reads</b></span>
@@ -999,7 +1062,7 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
               </div>
               <div className="bf-controls-table__row" role="row">
                 <span role="cell" data-label="Control"><b>Separation of duties</b></span>
-                <span role="cell" data-label="Mechanism">The reviewer of a change is a separate session with no parent and an empty directory, and has had no tools since the second shift; it sees the diff, the commit messages and the check output, not the implementer&rsquo;s work. It runs on a route and model configured apart from the departments&rsquo;, and a ticket it rejects is held for a person, never reviewed again<Cite note={c5.reviewer} branch={branch} />.</span>
+                <span role="cell" data-label="Mechanism">The reviewer of a change is a separate session with no parent and an empty directory, and has had no tools since the second shift; it sees the diff, the commit messages and the check output, not the implementer&rsquo;s work. Its route and model are configured apart from the departments&rsquo;, but every review so far ran the same model through the same Claude Code login as the departments. Since 29 Sep, 10:15 UTC (commit 3291b6402) a ticket it rejects is held for a person and not reviewed again; before that rule, T-0019 was rejected on 28 Sep at 18:19 UTC, reviewed again and shipped<Cite note={c5.reviewer} branch={branch} />.</span>
                 <span role="cell" data-label="Evidence">{reviews.length === 0 ? 'No review is on record.' : `${reviews.map(row => `Shift ${row.shift}: ${row.reviews} reviews, ${row.toolCalls} tool calls`).join('; ')}.`}<Cite note={c5.reviews} branch={branch} /></span>
               </div>
               <div className="bf-controls-table__row" role="row">
@@ -1032,15 +1095,15 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
               </div>
               <div className="bf-controls-table__row" role="row">
                 <span role="cell" data-label="Control"><b>Audit trail</b></span>
-                <span role="cell" data-label="Mechanism">The ledger is appended and never rewritten; each shift record keeps every session log with each file&rsquo;s SHA-256; each commit names its shift, ticket, seat, program and sessions. Anything that reaches a model is reconstructable from the session log<Cite note={c5.audit} branch={branch} />.</span>
+                <span role="cell" data-label="Mechanism">The ledger is append-only, enforced by a gate since commit 580d9e688 (29 Sep, 10:54 UTC). Before that gate the ledger was edited: commit dae1babd0 (29 Sep, 06:45 UTC) rewrote the shipped commit on T-0007&rsquo;s line in place, and commits d46e02bd9, d1aec806b, 1f669dbf9 and 8a4dd9c02 inserted lines mid-file; the gate&rsquo;s commit lists them. Each shift record keeps every session log with each file&rsquo;s SHA-256; each commit names its shift, ticket, seat, program and sessions. Anything that reached a model is reconstructable from the session logs, except the sessions the loss register (LOSSES.md) records as erased by a container reset<Cite note={c5.audit} branch={branch} />.</span>
                 <span role="cell" data-label="Evidence">Ledger lines: <V figure={f('ledger.lines')} note={c5.ledger} branch={branch} />; session logs in committed records: <V figure={f('sessions.recorded')} note={c5.sessions} branch={branch} />.</span>
               </div>
             </div>
 
             <h3>The review record<Cite note={c5.reviewRecord} branch={branch} /></h3>
             <p>
-              The ledger records {text(f('reviews.approved'))} approvals and {text(f('reviews.rejected'))} rejections by the independent
-              reviewer<Cite note={c5.approved} branch={branch} />
+              The ledger records {text(f('reviews.approved'))} {plural(numberOf(f('reviews.approved')), 'approval', 'approvals')} and {text(f('reviews.rejected'))} {plural(numberOf(f('reviews.rejected')), 'rejection', 'rejections')} by the separate
+              reviewer session<Cite note={c5.approved} branch={branch} />
               {numberOf(f('reviews.recordOnly')) === 0 ? null : <>, and the record of a shift that crashed before it wrote its ledger lines holds {text(f('reviews.recordOnly'))} more<Cite note={c5.recordOnly} branch={branch} /></>}.
               Each review ran in a session of its own that never saw the department&rsquo;s.
               {' '}{text(f('reviews.reviewerRecorded'))} of the ledger&rsquo;s reviews name the reviewer&rsquo;s model and route; the older
@@ -1133,7 +1196,7 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
           <Section index={7} notes={n7} branch={branch} lead={LEADS.limits}>
             <ol className="bf-risks">
               <li>
-                <b>{schedulerShippedCount === 0 ? 'A pilot, not yet unattended delivery.' : 'A pilot.'}</b> <V figure={f('tickets.shipped')} note={c7.operatorShipped} branch={branch} /> {plural(numberOf(f('tickets.shipped')), 'ticket has', 'tickets have')} shipped{shipped.length > 0 && shipped.length <= 3 ? ` (${listed(shipped.map(row => `“${row.title ?? row.ticket}”`))})` : ''}, {numberOf(f('pilot.operatorShipped')) === numberOf(f('tickets.shipped')) ? 'all' : `${text(f('pilot.operatorShipped'))} of them`} from work the operator started. The cycles the scheduler started have shipped <V figure={f('pilot.schedulerShipped')} note={c7.schedulerShipped} branch={branch} />{resetCycles.length === 0 ? '' : <>, and a container reset erased the shift of {listed(resetCycles.map(row => row.id))} before it recorded anything<Cite note={c7.losses} branch={branch} /></>}.
+                <b>{schedulerShippedCount === 0 ? 'A pilot, not yet unattended delivery.' : 'A pilot.'}</b> <V figure={f('tickets.shipped')} note={c7.operatorShipped} branch={branch} /> {plural(numberOf(f('tickets.shipped')), 'ticket has', 'tickets have')} shipped{shipped.length > 0 && shipped.length <= 3 ? ` (${listed(shipped.map(row => `“${row.title ?? row.ticket}”`))})` : ''}, {numberOf(f('pilot.operatorShipped')) === numberOf(f('tickets.shipped')) ? 'all' : `${text(f('pilot.operatorShipped'))} of them`} from work the operator started. The cycles the scheduler started have shipped <V figure={f('pilot.schedulerShipped')} note={c7.schedulerShipped} branch={branch} />{resetCycles.length === 0 ? '' : <>, and a container reset erased the session logs of the shift of {listed(resetCycles.map(row => row.id))} before it recorded its tickets, which the supervisor wrote to the ledger as abandoned afterwards<Cite note={c7.losses} branch={branch} /></>}.
               </li>
               <li>
                 <b>Shift work is not yet sandboxed.</b> A department runs its commands unconfined in a worktree of a scratch clone
@@ -1146,11 +1209,15 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
                   : <><b>Continuous integration is not green.</b>{' '}</>}
                 <V figure={f('ci.success')} note={c7.ci} branch={branch} /> of {text(f('ci.completed'))} completed Branch CI runs passed.
                 No run tested a shipped commit on its own (<V figure={f('ci.exactShipped')} note={c7.exact} branch={branch} /> of{' '}
-                {text(f('tickets.shipped'))}){failedPushes === 0
-                  ? '.'
-                  : shipments.length === 1
-                    ? ', and the containing run of the push that carried them failed.'
-                    : `, and the containing runs of ${failedPushes} of the ${shipments.length} pushes that carried them failed.`}
+                {text(f('tickets.shipped'))}). Of the {shipments.length} {plural(shipments.length, 'push', 'pushes')} that carried them,
+                the containing run of {failedPushes} failed{cancelledPushes === 0 ? '' : ` and of ${cancelledPushes} was cancelled by a later push before a verdict`}.
+              </li>
+              <li>
+                <b>The name DeepSeek is provenance, not a supplier.</b> This repository is a fork of an open-source agent harness
+                that DeepSeek AI publishes under the MIT licence, which is why its name and its package scope carry DeepSeek; DeepSeek
+                AI has not built, reviewed or endorsed Daliesk. No shift, review or intake request goes to a DeepSeek endpoint: they
+                go to Anthropic, as the next item states. Only the Proving Ground bench has run open-weight models, DeepSeek&rsquo;s
+                among them, through OpenRouter<Cite note={c7.provenance} branch={branch} />.
               </li>
               <li>
                 <b>A client&rsquo;s code would leave the machine.</b> Every model request, with the files a department reads, goes
