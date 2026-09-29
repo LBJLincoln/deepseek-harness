@@ -8,8 +8,10 @@ import { useDeck } from '@/deck/store'
 import { useOps } from '@/deck/ops-store'
 import { useNow } from '@/components/ops/Age'
 import { Opening } from './Opening.tsx'
+import { PresentMenu } from './PresentMenu.tsx'
 import { RollingNumber } from './RollingNumber.tsx'
 import { TitleCard } from './TitleCard.tsx'
+import { TourControls } from './TourControls.tsx'
 import { useEventRate } from './rate.ts'
 import { usePresentation } from './usePresentation.ts'
 import { VIEWS } from './views.ts'
@@ -31,8 +33,9 @@ function RosterStamp({ at }: { at: string }): ReactNode {
 }
 
 /**
- * The persistent frame around every view: header, status footer, global
- * keyboard shortcuts, and the one call that boots the feed.
+ * The persistent frame around every view: header with its Present menu,
+ * status footer, the tour bar, global keyboard shortcuts, and the one call
+ * that boots the feed.
  *
  * `data-presentation` on the root carries the mode the whole layout answers to:
  * in `focus` and `tour` the panel goes and the stage takes the frame. The view
@@ -59,7 +62,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
   const rate = useEventRate()
 
   useEffect(() => { void boot() }, [boot])
-  usePresentation()
+  const presenter = usePresentation()
 
   // The Operations view reads its own snapshot, so on /ops the badge says which of its modes it is in.
   const onOps = pathname === '/ops'
@@ -83,6 +86,8 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
             </Link>
           ))}
         </nav>
+
+        <PresentMenu presenter={presenter} mode={presentation} findings={pathname === '/safety'} />
 
         <div className="deck__spacer" />
 
@@ -115,6 +120,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         </div>
         <TitleCard />
         <Opening />
+        <TourControls presenter={presenter} />
       </main>
 
       <footer className="deck__footer">
@@ -135,7 +141,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         {source?.mode === 'replay' ? (
           <>
             <span>·</span>
-            <span>replaying committed fixtures{source.reason === undefined ? '' : ` — ${source.reason}`}</span>
+            <span>replay{source.reason === undefined ? '' : ` — ${source.reason}`}</span>
           </>
         ) : null}
         {error === undefined ? null : (
@@ -148,7 +154,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         {presentation === 'off' ? null : (
           <span className="deck__mode" data-mode={presentation}>{presentation}</span>
         )}
-        <span>1–5 views · o open · f focus · p tour{pathname === '/safety' ? ' · g findings' : ''} · esc deselect</span>
+        <span className="deck__keys">1–{VIEWS.length} views · O open · F focus · P tour{pathname === '/safety' ? ' · G findings' : ''} · Esc deselect</span>
       </footer>
     </div>
   )

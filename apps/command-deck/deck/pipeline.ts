@@ -72,7 +72,7 @@ export function stageOf(event: RunEvent, agent: Agent | undefined): number {
   if (division === 'verification') return 1
   if (division === 'judging') return 2
   if (division === 'governance') return 3
-  if (division === 'curation') return 3
+  if (division === 'curation-data') return 3
   if (actor.includes('integration') || actor.includes('release')) return 3
   return 0
 }

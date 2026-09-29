@@ -39,11 +39,17 @@ pnpm --dir apps/command-deck fixtures
 
 `Esc` 清除选择并让各舞台飞回原位：企业视图回到整张图，代码城市回到其静止高度。企业视图以一个定场镜头开场：相机从图的远处高空用两秒半缓入；代码城市以一段三秒的飞越开场，从其远端边缘的高空掠入。`prefers-reduced-motion: reduce` 让每个视图静止开场，停止流量、自动环绕、脉动与色差，把 bloom（泛光）固定在恒定强度，并对选中的 agent 直接切换而不是飞行；在流程视图中，它把相机固定在俯瞰整条流水线的一个角度，并把每条事件作为静止的光点立在自己的轨道上；在代码城市中，它跳过飞越、对选中的 finding 直接切换、把扫描线静止在中央，并停止窗户与光晕的呼吸。
 
-`F` 把整个画面交给舞台：侧面板隐藏，顶栏只保留标识、计数与实时徽标。`P` 开始一段巡览，每三十秒走过五个视图，每个视图以一张标题卡开场，卡上两行文字由指挥台实际读到的数据组成：已定义与被占据的席位数、当前运行及其事件数、被审查的目标及其发现数与是否已认证、工作流的会话数、边数、证书数与合并数、此刻正在工作的 agent 数与待处理事项数。任何按键或点击都会结束巡览。在 `prefers-reduced-motion: reduce` 下，动态标题、路由渐隐与计数器的补间也会关闭；每种模式仍然可用。
+`F` 把整个画面交给舞台：侧面板隐藏，顶栏只保留标识、计数与实时徽标。`P` 开始一段巡览，每三十秒走过五个视图，每个视图以一张标题卡开场，卡上两行文字由指挥台实际读到的数据组成：已定义与被占据的席位数、当前运行及其事件数、被审查的目标及其发现数与是否已认证、工作流的会话数、边数、证书数与合并数、此刻正在工作的 agent 数与待处理事项数。其他任何按键、或在演示控件之外的一次鼠标点击都会结束巡览；在触屏上轻点不会，由巡览控制栏来操控。在 `prefers-reduced-motion: reduce` 下，动态标题、路由渐隐与计数器的补间也会关闭；每种模式仍然可用。
 
 `O` 运行冷开场：舞台在 Daliesk 标识背后转为全黑，配一行只由指挥台实际读到的数据组成的宣言（已定义的席位数、被占据的席位数、已列出的运行数），随后企业按花名册顺序逐个 division 自行组装，顶栏计数器同时从零攀升，宣言在按键约十八秒后溶解到工作中的指挥台上。`P` 把它作为巡览的第一幕运行，每次页面加载只一次；再按一次 `P` 则直接开始巡览。任何按键或点击都会立刻结束它，且图是完整的而不是半亮的；在 `prefers-reduced-motion: reduce` 下，宣言在一张已静止的图上停留四秒。
 
-在代码安全视图按 `G`，会按从最严重开始的顺序走过已加载审查最严重的十二条 finding，每条四秒半：相机从一道光柱飞到下一道，挂出各自的标注，面板打开该 finding 的卡片，与点击一样。巡览在最后一条之后结束、相机飞回原位；任何其他按键或点击都会立刻结束它；运行期间面板的眉题写着 `findings tour`。与回放键一样，它只在该视图挂载期间绑定。
+在代码安全视图按 `G`，会按从最严重开始的顺序走过已加载审查最严重的十二条 finding，每条四秒半：相机从一道光柱飞到下一道，挂出各自的标注，面板打开该 finding 的卡片，与点击一样。巡览在最后一条之后结束、相机飞回原位；任何其他按键或鼠标点击都会立刻结束它（轻触不会）；运行期间面板的眉题写着 `findings tour`。与回放键一样，它只在该视图挂载期间绑定，离开该视图也会结束它。
+
+页头的 **Present**（演示）菜单无需按键就能启动上述每一项：冷开场、导览巡游、聚焦，以及在代码安全视图中的发现巡览，每项旁边标出它的按键。链接也能启动它们：`?present=open`、`?present=tour` 或 `?present=focus` 在读到花名册后启动对应的序列，因此会前发出的链接一打开就是故事本身。任一巡览运行时，舞台底部有一条控制栏，说明当前位置，并提供上一个、下一个和结束，方向键同样可以逐步推进；视图巡览从每个视图到达时起停留三十秒。
+
+指挥台上所有文字不小于 12 px，大写标签为 11 px，最浅的灰色在面板上的对比度为 6.3:1；宽度低于 1100 px 时，页头折到第二行，而不是把徽标挤出页面。发现表在颜色旁以文字标出每个严重程度（`CRIT`、`HIGH`、`MED`、`LOW`、`INFO`），每一行可点击的表格行都能获得键盘焦点，按 Enter 或空格打开，并显示指挥台的焦点框。在触屏上，快捷键提示隐去，每个舞台的提示改为触控手势，在舞台上滑动会滚动页面，轻点仍然选中；**Explore 3D**（探索 3D）把手指交给舞台的轨道控制，**Scroll the page**（滚动页面）再交还回来。在比设计镜头时所用的 1600×900 舞台更窄的舞台上，每个相机都会站得更远，所以笔记本上近乎正方形的舞台或竖握的手机都能框住整个图、整条流水线或整座城市。场景上绘制的标签彼此避开，也避开视图的标题和提示，每个标签取附近重叠最少的位置；手机上隐藏城市的街区名。
+
+标题、标题卡和运行选择器用主题、运行类型、日期和时长来称呼一次运行，例如 `OWASP NodeGoat · security review · 19 Sep 2026 · 20 min`（[`deck/display-name.ts`](deck/display-name.ts)）；运行的 id 仍保留在状态栏中。事件流把每一段连续的工具调用和步骤折叠为一行，列出其中最常见的调用，**Show every step**（显示每一步）则逐条列出；证书所在行写明其检查的结果，例如 `certificate · 3 of 3 checks pass`，证书的记录收在一个展开项后面。流程舞台下方的提示按各阶段自己的工作计数：证书虽由部门记录，但其检查在验证阶段执行，所以计在验证之下；某阶段在该运行中没有工作时，提示会说明。
 
 调色会随帧预算在三个质量档之间切换：`high`（像素比最高 1.75、SMAA、完整 bloom）、`medium`（1.25、SMAA、bloom 减少五分之一）与 `low`（1、无 SMAA、bloom 0.8）。连续两次下降降一档，连续四次上升升一档，任一变化后该档保持五秒，两次下降之后所到达的档位成为上限，因此一台陌生的笔记本只会适应一次而不会来回闪动。`?quality=high|medium|low` 固定某一档并停止监视器——演示机器就是在彩排之后这样设定的——状态栏会说明正在运行哪一档以及它是否被固定。
 
@@ -51,13 +57,15 @@ pnpm --dir apps/command-deck fixtures
 
 审查进行期间，某个部门每打开一个文件，该文件自己的楼就以该部门的颜色闪亮，并在约两秒半内淡去，同时一道短促的脉冲沿楼身向上跑过；之后该文件保留一层该颜色的淡淡色调，于是城市随着审查的阅读逐渐填满，面板也按同一套解析统计 `N of 111 files opened`——把工具事件中的路径按最长路径后缀与目标清单匹配（在已记录的 NodeGoat 审查上，634 条工具事件中有 124 条解析到 111 个文件中的 51 个）。在指挥台注视下启动的审查，以一段八秒的发射序列开场，六个部门依次点亮，各自写明它为什么而读代码。在指挥台注视下拿到证书的审查，播放一段十秒的裁决——CERTIFIED 或 NOT CERTIFIED，列出已认证的部门、证书点名的审查器及其各严重级别计数——同时一圈地面光环从城市中心向外扩散，经过每道光柱时使其迸发；以最终状态加载的审查两者都不播放，因为没有任何事发生在有人注视之时。在 `prefers-reduced-motion: reduce` 下，城市只对最后被触及的那个文件保持稳定高亮，发射序列是一张静态卡片，裁决是不带光环与迸发的卡片。六个部门在任何地方都是同一种颜色：流程车道与城市的阅读轨迹都从配色表取色。
 
-![企业视图：147 个已定义席位，19 个被记录会话占据，其余变暗](docs/enterprise.png)
+![1600×900 下的企业视图：花名册（时间戳 00:14 UTC）中 147 个已定义席位、47 个被占据、39 个活跃，每个分部各有其颜色，标签避开标题](docs/enterprise.png)
+
+![390×844 手机上的企业视图：页头折行，整个图都在画面内，附触控提示与 Explore 3D](docs/enterprise-phone.png)
 
 ![记录标签页：一次程序运行及其部门、证书与签核链](docs/record.png)
 
-![流程视图：departments、验证、裁决与集成](docs/process.png)
+![流程视图：以主题、日期与时长称呼的运行，departments、验证、裁决与集成，以及折叠成段的事件流](docs/process.png)
 
-![代码安全视图：代码城市中落在各自文件上的 finding](docs/safety.png)
+![代码安全视图：代码城市中落在各自文件上的 finding，以及以文字标出严重程度的发现表](docs/safety.png)
 
 ![工作流视图：运行的各会话构成的图，证书已封印，合并汇聚到集成节点](docs/workflow.png)
 
@@ -85,7 +93,7 @@ pnpm --dir apps/command-deck fixtures
 
 运营者的机器运行[运营循环](mirror/README.md#the-operations-loop)时，托管的 deck 是实时的；否则它显示上一个企业周期发布的快照。
 
-![1440×900 下的运营视图：速览卡片、运营大厅、关注队列与 24 小时泳道图](docs/ops.png)
+![1600×900 下的运营视图：速览卡片、运营大厅、关注队列与 24 小时泳道图](docs/ops.png)
 
 ![手机宽度下的运营视图](docs/ops-phone.png)
 
@@ -128,16 +136,16 @@ deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期�
 
 ## fixture
 
-`public/fixtures/` 保存着真实 feed 的一份快照，由 `scripts/snapshot-fixtures.ts` 生成（在 `pnpm run feed` 运行时执行 `pnpm --dir apps/command-deck fixtures`），以及 `pnpm run enterprise:publish` 在每个班次之后从花名册与台账重新生成的企业数据：其中没有任何虚构的内容，且快照脚本拒绝实时运行目录，因为只有已提交的记录才对密钥材料做过脱敏。
+`public/fixtures/` 保存着真实 feed 的一份快照，由 `scripts/snapshot-fixtures.ts` 生成（在 `pnpm run feed` 运行时执行 `pnpm --dir apps/command-deck fixtures`），以及 `pnpm run enterprise:publish` 在每个班次之后从花名册与台账重新生成的企业数据：其中没有任何虚构的内容，且快照脚本拒绝实时运行目录，因为只有已提交的记录才对密钥材料做过脱敏。它写入的每份载荷都经过 [`deck/host-paths.ts`](deck/host-paths.ts)，因此没有任何 fixture 点名记录它的机器上的路径（检出目录、审查目标或 agent 的草稿区），`tests/fixtures.spec.ts` 发现一个就会失败；若审查目标的检出不在执行快照的机器上，该审查保留已提交的 fixture，并以同样方式清理，因为此时 feed 只能列出记录自身的文件。
 
 - `public/fixtures/roster.json`——生成的 [`data/enterprise/roster.json`](../../data/enterprise/README.md) 的逐字节副本，由 `pnpm run enterprise:publish` 写出：十个 division 中的 147 个席位与 124 条关系，各自带有已提交记录赋予它的证据与指名它的台账行，在花名册时间窗内活跃的席位带有 `status: "active"`。
 - `public/fixtures/enterprise.json`——Ledger 标签页，由同一条命令从花名册、[`data/enterprise/ledger.jsonl`](../../data/enterprise/README.md#the-ledger) 与工单队列写出：所描述的时刻、时间窗、按 division 的在岗与活跃席位、当天按状态分列的工单、当天的职能运行，以及最近十个已交付提交及其 CI 裁决。指挥台在实时模式下也从 fixture 读取它，因为它是发布出来的记录而不是 feed 路径。
 - `public/fixtures/enterprise-day.json`——24 hours 标签页，由同一条命令写出：在截至花名册盖章时刻的 24 小时上的[企业报告](../../data/enterprise/README.md#the-report)的 JSON，读取自周期记录、台账、git 历史与 Branch CI。与 `enterprise.json` 一样，两种模式下都从 fixture 读取它，其他任何视图也可以读取同一个文件。
 - `public/fixtures/briefing.json`——客户简报的数据，由 `pnpm run enterprise:briefing` 从已提交的记录与 GitHub 报告的 Branch CI 运行写出：`/briefing` 页面展示的每个数值及其来源；无法计算的数值记为 `unknown` 并附原因。
 - `public/fixtures/briefing-claims.md`——简报的声明清单，由同一条命令依据在 `briefing.json` 上渲染的页面写出：每个句子及其引用的来源注释，然后是每条注释及其计算方法与读取的内容。
-- `public/fixtures/programs.json`——feed 的 `GET /programs`：七次已记录的项目运行，即五次代码安全审查与两个 Proving Ground 项目。
+- `public/fixtures/programs.json`——feed 的 `GET /programs`：十七次已记录的项目运行，即十四次代码安全审查与三个 Proving Ground 项目。
 - `public/fixtures/runs.json`——五条已提交记录：2026-09-19 记录的两次代码安全审查（第二次 NodeGoat 运行、Java 的 dvja 运行）、一次 tier-5 fleet、一个配对实验，以及 csv-tools program。
-- `public/fixtures/events/<run>.jsonl`——每条记录的会话日志经 feed 折叠成指挥台跟随的事件流：NodeGoat 审查有 1,079 条事件，从各部门的开场指令、它们的工具调用，到四张证书与两次合并。
+- `public/fixtures/events/<run>.jsonl`——每条记录的会话日志经 feed 折叠成指挥台跟随的事件流：NodeGoat 审查有 1,079 条事件，从各部门的开场指令、它们的工具调用，到七张证书与两次合并。
 - `public/fixtures/safety/<run>.json`——feed 对每次审查的 `GET /safety/:id`：NodeGoat 审查的 111 个文件与 38 条经验证的发现、dvja 审查的 174 个文件与 40 条，各自带有部门、证书与双语报告。这些 fixture 在每条发现所在的行引用被审查的代码，并随静态导出一起发布，因此客户的审查从不被快照进来（[数据处理](../../docs/client/data-handling.md)）。
 - `public/fixtures/ops.json`——企业周期的发布步骤写出的运营快照（`pnpm run enterprise:publish` 最后运行 `scripts/enterprise-ops.ts --fixture`），每个周期重写一次；没有 feed 以实时快照回答 `/ops` 时，运营视图把它作为 `recent` 显示并注明时长。
 

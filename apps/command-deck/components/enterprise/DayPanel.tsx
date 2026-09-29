@@ -59,7 +59,7 @@ function ShippedRow({ ticket, entry }: { ticket: DayShippedTicket; entry: DayShi
   return (
     <div className="routes__row" data-run="true">
       <span className="mono">{ticket.ticket}</span>
-      <b className="mono" style={{ fontWeight: 500, fontSize: 11 }}>{ticket.commit.slice(0, 10)}</b>
+      <b className="mono" style={{ fontWeight: 500, fontSize: 12 }}>{ticket.commit.slice(0, 10)}</b>
       <span>{source.url === undefined ? chip : <a href={source.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>{chip}</a>}</span>
     </div>
   )
@@ -117,7 +117,7 @@ export function DayPanel(): ReactNode {
               return (
                 <div className="routes__row" key={cycle.cycle} data-run={cycle.record !== undefined}>
                   <span className="mono">{stamp(cycle.startedAt)}</span>
-                  <b style={{ color: outcome.color, fontWeight: 500, fontSize: 11 }}>{outcome.text}</b>
+                  <b style={{ color: outcome.color, fontWeight: 500, fontSize: 12 }}>{outcome.text}</b>
                   <span title={cycle.startedBy?.basis}>
                     {cycle.startedBy === undefined || cycle.startedBy.by === 'unknown' ? 'starter unknown' : `by the ${cycle.startedBy.by}`}
                     {' · '}
@@ -140,7 +140,7 @@ export function DayPanel(): ReactNode {
               {day.shifts.map(shift => (
                 <div className="routes__row" key={shift.shift} data-run={shift.source === 'record'} title={shift.evidence}>
                   <span className="mono">{shift.shift}</span>
-                  <b style={{ color: shift.source === 'lost' ? 'var(--red)' : 'var(--ink-2)', fontWeight: 500, fontSize: 11 }}>{shift.outcome}</b>
+                  <b style={{ color: shift.source === 'lost' ? 'var(--red)' : 'var(--ink-2)', fontWeight: 500, fontSize: 12 }}>{shift.outcome}</b>
                   <span>{shift.tickets.shipped} shipped · {shift.tickets.rejected} rejected · {shift.tickets.halted} halted</span>
                 </div>
               ))}
@@ -160,7 +160,7 @@ export function DayPanel(): ReactNode {
           const shipped = day.tickets.shipped.filter(ticket => ticket.division === division)
           return (
             <div key={division} style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, color: divisionColor(division), marginBottom: 4 }}>{division} · {shipped.length}</div>
+              <div style={{ fontSize: 12, color: divisionColor(division), marginBottom: 4 }}>{division} · {shipped.length}</div>
               <div className="routes">
                 {shipped.map(ticket => <ShippedRow ticket={ticket} entry={verdicts.get(ticket.commit)} key={`${ticket.ticket}-${ticket.commit}`} />)}
               </div>
@@ -194,7 +194,7 @@ export function DayPanel(): ReactNode {
             {effort.map(total => (
               <div className="routes__row" key={`${total.source}-${total.covers}`} data-run={total.items > 0} title={total.covers}>
                 <span className="mono">{total.source}</span>
-                <b style={{ fontWeight: 500, fontSize: 11 }}>{total.tokens === null ? 'no tokens recorded' : `${total.tokens.toLocaleString('en-US')} tokens`}</b>
+                <b style={{ fontWeight: 500, fontSize: 12 }}>{total.tokens === null ? 'no tokens recorded' : `${total.tokens.toLocaleString('en-US')} tokens`}</b>
                 <span>{total.items} items · {total.seconds === null ? 'no seconds recorded' : `${total.seconds}s`}</span>
               </div>
             ))}
@@ -205,7 +205,7 @@ export function DayPanel(): ReactNode {
       {day.unknowns.length === 0 ? null : (
         <div className="section">
           <h3>Unknown</h3>
-          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11, color: 'var(--ink-2)' }}>
+          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: 'var(--ink-2)' }}>
             {day.unknowns.map(unknown => <li key={unknown}>{unknown}</li>)}
           </ul>
         </div>

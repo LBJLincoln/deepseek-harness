@@ -69,7 +69,7 @@ describe('SceneBoundary', () => {
     const { module } = await load('context')
     scene.fail = true
     const fallback = (error: Error, retry: () => void): ReactNode => createElement('button', { type: 'button', onClick: retry }, `stopped: ${error.message}`)
-    await act(async () => { render(createElement(module.SceneBoundary, { fallback }, createElement(Scene))) })
+    await act(async () => { render(createElement(module.SceneBoundary, { fallback, children: createElement(Scene) })) })
     expect(screen.queryByText('scene mounted')).toBeNull()
     const retry = screen.getByRole('button', { name: 'stopped: Error creating WebGL context.' })
     scene.fail = false

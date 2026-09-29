@@ -7,6 +7,8 @@ import { Vector3 } from 'three'
 import { easeInOutCubic } from '@/deck/easing'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { PIPELINE } from '@/deck/pipeline'
+import { useOrbitGestures } from '@/components/three/explore'
+import { aspectStretch } from '@/components/three/framing'
 
 /** One camera placement the director can hold. */
 export interface Pose {
@@ -50,6 +52,29 @@ const HANDOVER_MS = 12_000
 /** The reusable goal the director eases towards; nothing is allocated per frame. */
 const GOAL: Pose = { position: new Vector3(), target: new Vector3() }
 
+/** Scratch for a pose pulled back along its line of sight. */
+const PULLED = new Vector3()
+
+/**
+ * Half the pipeline's width and height, which the poses frame: the rails from
+ * end to end, and the gates from the floor grid to their top beams.
+ */
+const PIPELINE_HALF = {
+  width: (PIPELINE.railEnd - PIPELINE.railStart) / 2,
+  height: (PIPELINE.gateTop - PIPELINE.floorY) / 2,
+}
+
+/**
+ * Stand a camera position further back from its target along the same line.
+ * @param position - The designed position; overwritten.
+ * @param target - What it looks at.
+ * @param stretch - How much further back, `1` for as designed.
+ * @returns `position`, moved.
+ */
+function pullBack(position: Vector3, target: Vector3, stretch: number): Vector3 {
+  return position.sub(target).multiplyScalar(stretch).add(target)
+}
+
 /**
  * The camera over the pipeline.
  *
@@ -59,7 +84,10 @@ const GOAL: Pose = { position: new Vector3(), target: new Vector3() }
  * scrubber is off the head. Touching the controls hands the camera to the
  * viewer; it is taken back only after the viewer has let go of it. Under
  * reduced motion the camera holds one angle over the whole pipeline and never
- * moves.
+ * moves. Every pose stands further back on a stage narrower than the one it
+ * was designed on, so the rails stay in frame on a laptop's square stage or a
+ * phone, and on a touch screen the controls take gestures only after
+ * "Explore 3D".
  * @param props - Whether the run has finished, and the cursor's position in the
  * run when the timeline is off the head.
  * @returns The controls.
@@ -73,7 +101,10 @@ export function Director({
 }): ReactNode {
   const controls = useRef<ElementRef<typeof OrbitControls>>(null)
   const reduced = usePrefersReducedMotion()
-  const { camera } = useThree()
+  const { camera, size } = useThree()
+  const gestures = useOrbitGestures()
+  // Every pose was designed on the wide stage; a narrower one stands each further back from what it looks at.
+  const stretch = aspectStretch(PIPELINE_HALF.width, PIPELINE_HALF.height, size.height === 0 ? 1 : size.width / size.height)
   const opened = useRef(0)
   const touched = useRef(-Infinity)
   const held = useRef(0)
@@ -95,7 +126,7 @@ export function Director({
     const now = performance.now()
 
     if (reduced) {
-      camera.position.copy(STILL.position)
+      camera.position.copy(pullBack(PULLED.copy(STILL.position), STILL.target, stretch))
       control.target.copy(STILL.target)
       control.update()
       return
@@ -110,7 +141,7 @@ export function Director({
     const opening = (now - opened.current) / ESTABLISH_MS
     if (opening < 1) {
       const eased = easeInOutCubic(Math.max(0, opening))
-      camera.position.lerpVectors(ESTABLISH.position, WORKING.position, eased)
+      camera.position.lerpVectors(ESTABLISH.position, pullBack(PULLED.copy(WORKING.position), WORKING.target, stretch), eased)
       control.target.lerpVectors(ESTABLISH.target, WORKING.target, eased)
       control.update()
       return
@@ -136,7 +167,7 @@ export function Director({
     }
 
     const step = Math.min(1, delta * 1.3)
-    camera.position.lerp(GOAL.position, step)
+    camera.position.lerp(pullBack(GOAL.position, GOAL.target, stretch), step)
     control.target.lerp(GOAL.target, step)
     control.update()
   })
@@ -149,8 +180,9 @@ export function Director({
       dampingFactor={0.07}
       rotateSpeed={0.42}
       zoomSpeed={0.7}
+      enabled={gestures}
       minDistance={40}
-      maxDistance={420}
+      maxDistance={420 * stretch}
       maxPolarAngle={Math.PI * 0.495}
     />
   )

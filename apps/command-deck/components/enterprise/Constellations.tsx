@@ -19,7 +19,7 @@ import { divisionColor } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { FLOW_WINDOW_MS, sinceLast } from './activity.ts'
 import { isOccupied } from './evidence.ts'
-import { stageClamped } from './labels.ts'
+import { beginLabelFrame, createLabelField, fieldPlaced, stageClamped } from './labels.ts'
 import { buildIgnition, readIgnition } from './reveal.ts'
 import { createNebulaTexture } from './sprites.ts'
 import styles from './labels.module.css'
@@ -48,8 +48,22 @@ const LEADER_CLEARANCE = 0.85
 /** Opacity of the leader lines; they are a pointer, not part of the graph. */
 const LEADER_OPACITY = 0.75
 
-/** Half the division label's size, in pixels, for the stage clamp. */
-const LABEL = { width: 74, height: 20 }
+/** Where a label the field has no placement for sits: clamped to the stage, as before the field existed. */
+const UNPLACED = stageClamped(74, 20)
+
+/** The stage copy the division labels keep clear of: the view's title block and its hint. */
+const LABEL_KEEP_OUT = ['.stage__title', '.hint']
+
+/**
+ * Half one division label's size, in pixels: its name in spaced capitals over
+ * its count line, whichever is wider, and the two lines' height.
+ * @param name - The division's name.
+ * @param count - The count line.
+ * @returns The half width and half height.
+ */
+function labelHalf(name: string, count: string): { width: number; height: number } {
+  return { width: Math.max(name.length * 5, count.length * 3.8) + 6, height: 17 }
+}
 
 const SCRATCH_MATRIX = new Matrix4()
 const SCRATCH_SCALE = new Vector3()
@@ -194,7 +208,14 @@ export function Constellations({ roster, layout }: { roster: Roster; layout: Gra
     if (colors !== null) colors.needsUpdate = true
   })
 
-  const labelPosition = useMemo(() => stageClamped(LABEL.width, LABEL.height), [])
+  // The field is begun before any label's own frame runs, so each frame lays the names out afresh.
+  const field = useMemo(createLabelField, [])
+  useFrame(({ gl }) => beginLabelFrame(field, gl.domElement, LABEL_KEEP_OUT), -1)
+  const labelPositions = useMemo(() => new Map(clusters.map((cluster) => {
+    const name = roster.divisions.find(entry => entry.id === cluster.id)?.name ?? cluster.id
+    const half = labelHalf(name, `${cluster.count} seats · ${occupiedByDivision.get(cluster.id) ?? 0} occupied`)
+    return [cluster.id, fieldPlaced(field, half.width, half.height)]
+  })), [clusters, field, occupiedByDivision, roster.divisions])
 
   return (
     <group>
@@ -235,7 +256,7 @@ export function Constellations({ roster, layout }: { roster: Roster; layout: Gra
             position={[cluster.x, cluster.y, cluster.z]}
             center
             zIndexRange={[12, 4]}
-            calculatePosition={labelPosition}
+            calculatePosition={labelPositions.get(cluster.id) ?? UNPLACED}
             style={{ pointerEvents: 'none' }}
           >
             <div className={dimmed ? `${styles.division} ${styles.divisionDim}` : styles.division}>

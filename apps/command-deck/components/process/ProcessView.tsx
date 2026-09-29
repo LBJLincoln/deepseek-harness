@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { useMemo, type ChangeEvent, type ReactNode } from 'react'
 import { seatOf, type EventKind } from '@/deck/contract'
+import { displayName } from '@/deck/display-name'
 import { clock, duration, stamp } from '@/deck/format'
 import { discoverLanes, laneTotals, STAGES, stageOf } from '@/deck/pipeline'
 import { usePlayback } from '@/deck/playback'
@@ -51,10 +52,13 @@ export function ProcessView(): ReactNode {
   const lanes = useMemo(() => discoverLanes(ordered, agents), [ordered, agents])
   const laneCounts = useMemo(() => laneTotals(visible, agents, lanes), [visible, agents, lanes])
 
+  // Each stage's own work: a certificate is logged by the department it
+  // certifies, but executing the checks is Verification's, so it counts there;
+  // the scene's comets still fly from where the event was logged.
   const perStage = useMemo(() => {
     const totals = STAGES.map(() => 0)
     for (const event of visible) {
-      const index = stageOf(event, seatOf(event, agents))
+      const index = event.kind === 'certificate' ? 1 : stageOf(event, seatOf(event, agents))
       totals[index] = (totals[index] ?? 0) + 1
     }
     return totals
@@ -103,14 +107,14 @@ export function ProcessView(): ReactNode {
 
         <div className="stage__overlay">
           <div className="stage__title">
-            <h1>{run?.name ?? 'Process'}</h1>
+            <h1>{run === undefined ? 'Process' : displayName(run)}</h1>
             <p>
               Departments produce, Verification executes the checks, Judging scores, Integration merges.
               Each light is one logged event travelling to the next gate.
             </p>
           </div>
           <span className="hint">
-            {STAGES.map((stage, index) => `${stage.name} ${perStage[index] ?? 0}`).join('  ·  ')}
+            {STAGES.map((stage, index) => ((perStage[index] ?? 0) === 0 ? `no ${stage.name.toLowerCase()} in this run` : `${stage.name} ${perStage[index]}`)).join('  ·  ')}
           </span>
         </div>
       </div>
@@ -125,7 +129,7 @@ export function ProcessView(): ReactNode {
             aria-label="Run"
           >
             {runs.map(entry => (
-              <option key={entry.id} value={entry.id}>{entry.kind} — {entry.name}</option>
+              <option key={entry.id} value={entry.id}>{displayName(entry)}</option>
             ))}
           </select>
           <p className="panel__sub" style={{ marginTop: 8 }}>
@@ -158,7 +162,7 @@ export function ProcessView(): ReactNode {
                 Head
               </button>
             </div>
-            <p style={{ margin: '7px 0 0', fontSize: 11, color: 'var(--ink-3)' }}>
+            <p style={{ margin: '7px 0 0', fontSize: 12, color: 'var(--ink-3)' }}>
               {visible.length} of {ordered.length} events
               {head === undefined ? '' : ` · head ${clock(head.ts)}`}
             </p>
@@ -174,7 +178,7 @@ export function ProcessView(): ReactNode {
                 <div key={lane.key}>
                   <i style={{ background: lane.color }} />
                   {lane.label}
-                  <span style={{ marginLeft: 'auto', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', fontSize: 10.5 }}>
+                  <span style={{ marginLeft: 'auto', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
                     {laneCounts[index] ?? 0}
                   </span>
                 </div>

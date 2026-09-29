@@ -29,6 +29,9 @@ import { usePrefersReducedMotion } from '@/deck/motion'
 import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
 import { createGlowMaterial } from '@/components/three/glow'
 import { Stage } from '@/components/three/Stage'
+import { useOrbitGestures } from '@/components/three/explore'
+import { aspectStretch, DESIGN_ASPECT } from '@/components/three/framing'
+import { beginLabelFrame, createLabelField, fieldPlaced, stageClamped } from '@/components/enterprise/labels'
 import type { VerdictKind } from './moments.ts'
 import { useReadTrail, type ReadTrail } from './read-trail.ts'
 import styles from './safety-stage.module.css'
@@ -99,6 +102,12 @@ const FLARE_MARK = 0.13
 /** Seconds the opening fly-over takes. */
 const FLYOVER_SECONDS = 3
 
+/** Where a district name the field has no placement for sits. */
+const UNPLACED = stageClamped(80, 10)
+
+/** The stage copy the district names keep clear of. */
+const DISTRICT_KEEP_OUT = ['.stage__title', '.hint', '.finding-card']
+
 /** Seconds a flight to or from a selected finding takes. */
 const FOCUS_SECONDS = 1.2
 
@@ -122,13 +131,17 @@ const VERDICT_RING_SECONDS = 3.2
  * A wide repository is framed by its footprint; a narrow one by its tallest
  * beacon, which stands well above even the tallest file. Taking the larger of
  * the two keeps the critical shafts inside the frame whatever the target's
- * proportions, so height keeps reading as severity.
+ * proportions, so height keeps reading as severity. On a stage narrower than
+ * the one the distance was designed on, the camera stands further back by as
+ * much as the footprint's diagonal, the city's width from the oblique view,
+ * needs.
  * @param extent - Half-extent of the city footprint.
  * @param reach - Height of the tallest beacon above the ground.
+ * @param aspect - The stage's width over its height.
  * @returns The resting camera distance.
  */
-function cityDistance(extent: number, reach: number): number {
-  return Math.max(extent * 3.15, reach * 2.7)
+function cityDistance(extent: number, reach: number, aspect: number): number {
+  return Math.max(extent * 3.15, reach * 2.7) * aspectStretch(extent * Math.SQRT2, Math.max(extent, reach) * 0.6, aspect)
 }
 
 /**
@@ -136,11 +149,12 @@ function cityDistance(extent: number, reach: number): number {
  * stays inside the frame, looking at the towers rather than at the ground.
  * @param extent - Half-extent of the city footprint.
  * @param reach - Height of the tallest beacon above the ground.
+ * @param aspect - The stage's width over its height.
  * @returns The camera position and the point it looks at.
  */
-function cityView(extent: number, reach: number): { position: Vector3; target: Vector3 } {
+function cityView(extent: number, reach: number, aspect: number): { position: Vector3; target: Vector3 } {
   return {
-    position: new Vector3(0.58, 0.8, 1.28).normalize().multiplyScalar(cityDistance(extent, reach)),
+    position: new Vector3(0.58, 0.8, 1.28).normalize().multiplyScalar(cityDistance(extent, reach, aspect)),
     target: new Vector3(0, 15, 0),
   }
 }
@@ -150,11 +164,12 @@ function cityView(extent: number, reach: number): { position: Vector3; target: V
  * looking back across it.
  * @param extent - Half-extent of the city footprint.
  * @param reach - Height of the tallest beacon above the ground.
+ * @param aspect - The stage's width over its height.
  * @returns The camera position and the point it looks at.
  */
-function flyoverStart(extent: number, reach: number): { position: Vector3; target: Vector3 } {
+function flyoverStart(extent: number, reach: number, aspect: number): { position: Vector3; target: Vector3 } {
   return {
-    position: new Vector3(-0.5, 1.52, -1).normalize().multiplyScalar(cityDistance(extent, reach) * 1.27),
+    position: new Vector3(-0.5, 1.52, -1).normalize().multiplyScalar(cityDistance(extent, reach, aspect) * 1.27),
     target: new Vector3(0, 4, 0),
   }
 }
@@ -692,6 +707,13 @@ function Districts({
 }): ReactNode {
   const plates = useRef<InstancedMesh>(null)
   const outline = useRef<LineBasicMaterial>(null)
+  // The district names share one layout, clear of each other, the view's title block, its hint and a finding's card.
+  const labels = useMemo(createLabelField, [])
+  useFrame(({ gl }) => beginLabelFrame(labels, gl.domElement, DISTRICT_KEEP_OUT), -1)
+  const labelPositions = useMemo(
+    () => new Map(city.districts.map(district => [district.path, fieldPlaced(labels, (district.path.length * 4) + 10, 10)])),
+    [city.districts, labels],
+  )
 
   const outlineGeometry = useMemo(() => {
     const built = new BufferGeometry()
@@ -768,6 +790,7 @@ function Districts({
           key={district.path}
           center
           position={[district.x, 0.4, district.z + (district.depth / 2) + 1.8]}
+          calculatePosition={labelPositions.get(district.path) ?? UNPLACED}
           zIndexRange={[10, 3]}
           style={{ pointerEvents: 'none' }}
         >
@@ -1123,7 +1146,15 @@ function CityRig({
   reduced: boolean
 }): ReactNode {
   const controls = useRef<ElementRef<typeof OrbitControls>>(null)
-  const { camera } = useThree()
+  const { camera, size } = useThree()
+  const aspect = size.height === 0 ? 1 : size.width / size.height
+  const gestures = useOrbitGestures()
+  // A flight turns the controls off; when it lands they take the viewer's gestures only if a touch viewer has asked for them.
+  const handsOn = useRef(gestures)
+  handsOn.current = gestures
+  useEffect(() => {
+    if (controls.current !== null && flight.current === undefined) controls.current.enabled = gestures
+  }, [gestures])
   const flight = useRef<{
     fromPosition: Vector3
     fromTarget: Vector3
@@ -1137,13 +1168,13 @@ function CityRig({
   useEffect(() => {
     const control = controls.current
     if (control === null) return
-    const destination = focus === undefined ? cityView(city.extent, reach) : focusView(focus)
+    const destination = focus === undefined ? cityView(city.extent, reach, aspect) : focusView(focus)
     const opening = !opened.current
     opened.current = true
 
     if (reduced) {
       flight.current = undefined
-      control.enabled = true
+      control.enabled = handsOn.current
       camera.position.copy(destination.position)
       control.target.copy(destination.target)
       control.update()
@@ -1151,7 +1182,7 @@ function CityRig({
     }
 
     if (opening) {
-      const start = flyoverStart(city.extent, reach)
+      const start = flyoverStart(city.extent, reach, aspect)
       camera.position.copy(start.position)
       control.target.copy(start.target)
     }
@@ -1164,7 +1195,7 @@ function CityRig({
       elapsed: 0,
       duration: opening ? FLYOVER_SECONDS : FOCUS_SECONDS,
     }
-  }, [focus, city.extent, reach, reduced, camera])
+  }, [focus, city.extent, reach, reduced, camera, aspect])
 
   useFrame((_, delta) => {
     const control = controls.current
@@ -1178,7 +1209,7 @@ function CityRig({
       control.target.lerpVectors(current.fromTarget, current.toTarget, eased)
       if (progress >= 1) {
         flight.current = undefined
-        control.enabled = true
+        control.enabled = handsOn.current
       }
     }
     control.update()
@@ -1193,7 +1224,7 @@ function CityRig({
       rotateSpeed={0.45}
       zoomSpeed={0.75}
       minDistance={14}
-      maxDistance={cityDistance(city.extent, reach) * 1.35}
+      maxDistance={cityDistance(city.extent, reach, aspect) * 1.35}
       maxPolarAngle={Math.PI * 0.47}
     />
   )
@@ -1295,7 +1326,8 @@ export function SafetyStage({
     ),
     [placed, city],
   )
-  const view = useMemo(() => cityView(city.extent, reach), [city.extent, reach])
+  // The canvas opens before its size is known; the rig re-frames for the stage's shape once it is.
+  const view = useMemo(() => cityView(city.extent, reach, DESIGN_ASPECT), [city.extent, reach])
   const [hoveredBlock, setHoveredBlock] = useState<CityBlock | undefined>(undefined)
   const [hoveredFinding, setHoveredFinding] = useState<PlacedFinding | undefined>(undefined)
 

@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { displayName } from '@/deck/display-name'
 import { clock, duration, stamp } from '@/deck/format'
 import { layoutWorkflow } from '@/deck/layout-workflow'
 import { usePlayback } from '@/deck/playback'
@@ -74,7 +75,7 @@ export function WorkflowView(): ReactNode {
 
         <div className="stage__overlay">
           <div className="stage__title">
-            <h1>{run?.name ?? 'Workflow'}</h1>
+            <h1>{run === undefined ? 'Workflow' : displayName(run)}</h1>
             <p>
               Every session the run opened, tiered by who started whom. An edge grows as its session
               first reports, a ring seals a certified one, and the strands into integration are its merges.
@@ -97,7 +98,7 @@ export function WorkflowView(): ReactNode {
             aria-label="Run"
           >
             {runs.map(entry => (
-              <option key={entry.id} value={entry.id}>{entry.kind} — {entry.name}</option>
+              <option key={entry.id} value={entry.id}>{displayName(entry)}</option>
             ))}
           </select>
           <p className="panel__sub" style={{ marginTop: 8 }}>
@@ -111,7 +112,7 @@ export function WorkflowView(): ReactNode {
           <div className="section">
             <h3>Playback</h3>
             <PlaybackControls playback={playback} />
-            <p style={{ margin: '7px 0 0', fontSize: 11, color: 'var(--ink-3)' }}>
+            <p style={{ margin: '7px 0 0', fontSize: 12, color: 'var(--ink-3)' }}>
               {visible.length} of {events.length} events admitted · space plays, [ and ] step the speed
             </p>
           </div>

@@ -9,15 +9,18 @@
 
 import type { EdgeKind, Severity } from './contract.ts'
 
-/** Hex colour per division id, in roster order. */
-const DIVISION_COLOR: Record<string, string> = {
+/**
+ * Hex colour per division id, in roster order. The keys are the roster's own
+ * division ids (`data/enterprise/roster.json`); a division the palette does
+ * not name falls to the grey fallback, which `tests/palette.spec.ts` refuses
+ * for every division the committed roster defines.
+ */
+export const DIVISION_COLOR: Readonly<Record<string, string>> = {
   'harness-core': '#4fd8ff',
   'proving-ground': '#2fd4c8',
   verification: '#86e565',
   judging: '#e0d55e',
-  curation: '#ffb04c',
   'curation-data': '#ffb04c',
-  program: '#ff7a5c',
   'program-departments': '#ff7a5c',
   'code-safety': '#ff5f86',
   knowledge: '#c87dff',

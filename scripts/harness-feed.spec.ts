@@ -433,6 +433,14 @@ describe('the fold and mapping functions directly', () => {
     expect(certificate?.detail).not.toContain('/home/user')
   })
 
+  it('names a certificate by how its checks came out, read before the detail is cut', () => {
+    const state = { sessionId: 's1', callNameById: new Map<string, string>() }
+    const results = [{ checkId: 'tests-pass', status: 'pass', evidence: 'x'.repeat(900) }, { checkId: 'lint', status: 'pass' }, { checkId: 'types', status: 'fail' }]
+    expect(foldSessionEvent({ type: 'verification/certificate', seq: 1, time: 1, data: { certificate: { results } } }, state)?.label)
+      .toBe('certificate · 2 of 3 checks pass')
+    expect(foldSessionEvent({ type: 'verification/certificate', seq: 2, time: 1, data: { verifier: 'oxlint' } }, state)?.label).toBe('oxlint')
+  })
+
 })
 
 describe('GET /roster', () => {

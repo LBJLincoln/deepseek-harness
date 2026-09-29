@@ -69,7 +69,7 @@ function TicketRow({ ticket }: { ticket: TicketSummary }): ReactNode {
   return (
     <div className="routes__row" data-run={ticket.status !== 'queued'}>
       <span className="mono">{ticket.ticket}</span>
-      <b style={{ color: divisionColor(ticket.division), fontWeight: 500, fontSize: 11 }}>{shortSeat(ticket.seat, ticket.division)}</b>
+      <b style={{ color: divisionColor(ticket.division), fontWeight: 500, fontSize: 12 }}>{shortSeat(ticket.seat, ticket.division)}</b>
       <span>
         {ticket.status === 'queued'
           ? ticket.title ?? ''
@@ -133,7 +133,7 @@ export function LedgerPanel(): ReactNode {
           const tickets = report.tickets[status]
           return (
             <div key={status} style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, color: 'var(--ink-2)', marginBottom: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 4 }}>
                 <b style={{ color: 'var(--ink)' }}>{tickets.length}</b> {label}
                 <span style={{ color: 'var(--ink-3)' }}> · {meaning}</span>
               </div>
@@ -157,7 +157,7 @@ export function LedgerPanel(): ReactNode {
               <p className="evidence-lead">{report.functions.length} runs in {shifts.length} {shifts.length === 1 ? 'shift' : 'shifts'}: {tally(report.functions)}.</p>
               {shifts.map(([shift, runs], index) => (
                 <div key={shift} style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 11, color: 'var(--ink-2)', marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 4 }}>
                     <span className="mono">{shift}</span>
                     <span style={{ color: 'var(--ink-3)' }}> · {stamp(runs[0]?.at ?? report.asOf)} · {tally(runs)}</span>
                   </div>
@@ -174,12 +174,12 @@ export function LedgerPanel(): ReactNode {
           ? <div className="panel__empty">No ticket has shipped a commit yet.</div>
           : report.shipped.map(entry => (
             <div key={entry.commit} style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, color: 'var(--ink-2)', marginBottom: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 4 }}>
                 <span className="mono">{entry.commit.slice(0, 10)}</span>
                 <span style={{ color: 'var(--ink-3)' }}> · {stamp(entry.at)} · {entry.tickets.join(', ')} · {entry.seats.map(seat => shortSeat(seat, 'harness-core')).join(', ')}</span>
               </div>
               {entry.verdicts.length === 0
-                ? <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>no CI verdict recorded on this commit yet</div>
+                ? <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>no CI verdict recorded on this commit yet</div>
                 : (
                   <div className="chips">
                     {entry.verdicts.map(verdict => (

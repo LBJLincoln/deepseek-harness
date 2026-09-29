@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { useMemo, useState, type ReactNode } from 'react'
 import type { Agent, UnattributedReason } from '@/deck/contract'
+import { displayName } from '@/deck/display-name'
 import { stamp } from '@/deck/format'
 import { divisionColor } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
@@ -226,16 +227,16 @@ function OverviewPanel(): ReactNode {
                 <div>
                   <div style={{ fontSize: 12, color: 'var(--ink)' }}>
                     {division.name}
-                    <span style={{ color: 'var(--ink-3)', marginLeft: 7, fontSize: 10.5 }}>
+                    <span style={{ color: 'var(--ink-3)', marginLeft: 7, fontSize: 12 }}>
                       {counts.occupied} / {counts.defined}
                     </span>
                     {counts.active === 0 ? null : (
-                      <span style={{ color: 'var(--cyan)', marginLeft: 7, fontSize: 10.5 }}>
+                      <span style={{ color: 'var(--cyan)', marginLeft: 7, fontSize: 12 }}>
                         {counts.active} active
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--ink-3)', lineHeight: 1.45 }}>{division.purpose}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.45 }}>{division.purpose}</div>
                 </div>
               </div>
             )
@@ -246,7 +247,7 @@ function OverviewPanel(): ReactNode {
       <div className="section">
         <h3>Live activity</h3>
         {run === undefined ? null : (
-          <p style={{ margin: '-3px 0 9px', fontSize: 11, color: 'var(--ink-2)' }}>{run.name}</p>
+          <p style={{ margin: '-3px 0 9px', fontSize: 12, color: 'var(--ink-2)' }}>{displayName(run)}</p>
         )}
         <EventFeed events={events} agents={agentIndex} follow limit={40} />
       </div>
@@ -318,7 +319,10 @@ export function EnterpriseView(): ReactNode {
               A ringed node delivered inside the last day; a pulsing node is acting right now; a burst is a certificate just issued.
             </p>
           </div>
-          <span className="hint">drag to orbit · scroll to zoom · click a node</span>
+          <span className="hint">
+            <span className="hint__mouse">drag to orbit · scroll to zoom · click a node</span>
+            <span className="hint__touch">tap a node · Explore 3D to orbit and pinch</span>
+          </span>
         </div>
       </div>
 

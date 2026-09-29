@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import type { ProgramRecord } from '@/deck/contract'
 import { clock, duration, stamp } from '@/deck/format'
 import { useDeck } from '@/deck/store'
+import { onActivate } from '@/components/shell/activate'
 
 /** How many leading characters of a digest or revision the panel prints. */
 const SHORT_HASH = 12
@@ -93,6 +94,7 @@ function SessionRow({
       data-link={listed}
       title={listed ? `open ${sessionId} in the Workflow view` : where}
       onClick={listed ? open : undefined}
+      {...listed ? { tabIndex: 0, onKeyDown: onActivate(open) } : {}}
     >
       <td>
         <div>{name}</div>

@@ -8,6 +8,8 @@ import { easeInOutCubic } from '@/deck/easing'
 import type { GraphLayout } from '@/deck/layout-enterprise'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { useDeck } from '@/deck/store'
+import { useOrbitGestures } from '@/components/three/explore'
+import { aspectStretch } from '@/components/three/framing'
 
 /** Duration of the opening flight from the establishing shot down to rest, in milliseconds. */
 const ESTABLISH_MS = 2_500
@@ -36,13 +38,32 @@ interface Flight {
 }
 
 /**
+ * How much further back than designed the camera stands on this stage: the
+ * graph is as wide as its furthest seat or label from the vertical axis it
+ * orbits about, and as tall as its highest or lowest one.
+ * @param layout - The computed layout.
+ * @param aspect - The stage's width over its height.
+ * @returns The stretch, `1` on the stage the shots were designed on.
+ */
+function graphStretch(layout: GraphLayout, aspect: number): number {
+  let radial = 0
+  let height = 0
+  for (const point of [...layout.nodes, ...layout.clusters]) {
+    radial = Math.max(radial, Math.hypot(point.x, point.z))
+    height = Math.max(height, Math.abs(point.y))
+  }
+  return aspectStretch(radial, height, aspect)
+}
+
+/**
  * The shot the graph sits in when nothing is selected.
  * @param layout - The computed layout, whose extent frames the whole roster.
+ * @param stretch - How much further back the stage's shape asks for.
  * @returns The resting shot.
  */
-function restingShot(layout: GraphLayout): Shot {
+function restingShot(layout: GraphLayout, stretch: number): Shot {
   return {
-    position: new Vector3(0, layout.extent * 0.26, layout.extent * 2.2),
+    position: new Vector3(0, layout.extent * 0.26, layout.extent * 2.2).multiplyScalar(stretch),
     target: new Vector3(0, 0, 0),
   }
 }
@@ -51,11 +72,12 @@ function restingShot(layout: GraphLayout): Shot {
  * The shot the deck opens on: far enough out that the graph reads as one body
  * in the haze, and high enough that the flight down has somewhere to go.
  * @param layout - The computed layout, whose extent sets the distance.
+ * @param stretch - How much further back the stage's shape asks for.
  * @returns The establishing shot.
  */
-function establishingShot(layout: GraphLayout): Shot {
+function establishingShot(layout: GraphLayout, stretch: number): Shot {
   return {
-    position: new Vector3(layout.extent * 0.85, layout.extent * 1.35, layout.extent * 3),
+    position: new Vector3(layout.extent * 0.85, layout.extent * 1.35, layout.extent * 3).multiplyScalar(stretch),
     target: new Vector3(0, 0, 0),
   }
 }
@@ -93,6 +115,11 @@ function focusShot(x: number, y: number, z: number, from: Vector3): Shot {
  * The cold open borrows the same two shots: the camera holds the establishing
  * shot for the whole ignition, then flies down to rest as the claim dissolves,
  * which is the flight the deck opens on whether or not a sequence ran.
+ *
+ * Both shots stand further back on a stage narrower than the one they were
+ * designed on, so a phone held upright still frames every division; a resize
+ * flies the camera to the resting shot for the new shape. On a touch screen
+ * the controls take the viewer's gestures only after "Explore 3D".
  * @param props - The computed layout, which supplies every shot.
  * @returns The controls.
  */
@@ -101,7 +128,9 @@ export function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const selectedId = useDeck(state => state.selectedAgentId)
   const opening = useDeck(state => state.opening)
-  const { camera } = useThree()
+  const { camera, size } = useThree()
+  const gestures = useOrbitGestures()
+  const stretch = useMemo(() => graphStretch(layout, size.height === 0 ? 1 : size.width / size.height), [layout, size])
   const flight = useRef<Flight | undefined>(undefined)
   const opened = useRef(false)
   const [resting, setResting] = useState(false)
@@ -113,12 +142,15 @@ export function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   )
 
-  const resting3D = useMemo(() => restingShot(layout), [layout])
+  const resting3D = useMemo(() => restingShot(layout, stretch), [layout, stretch])
 
+  // The opening shot is placed once; a later resize re-frames through the resting shot instead.
+  const placed = useRef(false)
   useLayoutEffect(() => {
-    if (reducedAtMount) return
-    camera.position.copy(establishingShot(layout).position)
-  }, [camera, layout, reducedAtMount])
+    if (reducedAtMount || placed.current) return
+    placed.current = true
+    camera.position.copy(establishingShot(layout, stretch).position)
+  }, [camera, layout, reducedAtMount, stretch])
 
   // While the cold open assembles the graph the camera stands still at the
   // establishing shot; the flight down is the sequence's last beat, started by
@@ -126,13 +158,13 @@ export function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
   useEffect(() => {
     const control = controls.current
     if (control === null || opening !== 'playing' || reduced) return
-    const shot = establishingShot(layout)
+    const shot = establishingShot(layout, stretch)
     flight.current = undefined
     camera.position.copy(shot.position)
     control.target.copy(shot.target)
     opened.current = false
     setResting(false)
-  }, [camera, layout, opening, reduced])
+  }, [camera, layout, opening, reduced, stretch])
 
   useEffect(() => {
     const control = controls.current
@@ -185,8 +217,9 @@ export function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
       dampingFactor={0.06}
       rotateSpeed={0.5}
       zoomSpeed={0.7}
+      enabled={gestures}
       minDistance={18}
-      maxDistance={420}
+      maxDistance={Math.max(420, layout.extent * 3 * stretch)}
       // A drag takes the camera over: the opening flight is a shot, not a lock,
       // and the orbit it was flying into resumes from wherever the drag ends.
       onStart={() => {

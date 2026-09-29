@@ -2,6 +2,7 @@
 
 import { useViewPathname } from './pathname.ts'
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { displayName } from '@/deck/display-name'
 import { layoutWorkflow } from '@/deck/layout-workflow'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { eventsUpTo, useDeck } from '@/deck/store'
@@ -47,6 +48,7 @@ function useCard(pathname: string): Card {
   const events = useDeck(state => state.events)
   const cursor = useDeck(state => state.cursor)
   const safety = useDeck(state => state.safety)
+  const safetyRunId = useDeck(state => state.safetyRunId)
   const operations = useOps(state => state.reading?.snapshot)
 
   const workflow = useMemo(() => {
@@ -83,7 +85,7 @@ function useCard(pathname: string): Card {
     if (run === undefined) return { title: 'Process', lines: [] }
     return {
       title: 'Process',
-      lines: [run.name, `${events.length} events received, ${run.status}`],
+      lines: [displayName(run), `${events.length} events received, ${run.status}`],
     }
   }
 
@@ -92,7 +94,7 @@ function useCard(pathname: string): Card {
     const certified = safety.certificate.verified ? 'certified' : 'not certified'
     return {
       title: 'Code safety',
-      lines: [safety.target.name, `${safety.findings.length} findings, ${certified}`],
+      lines: [displayName(runs.find(run => run.id === safetyRunId) ?? { name: safety.target.name, kind: 'code-safety' }), `${safety.findings.length} findings, ${certified}`],
     }
   }
 

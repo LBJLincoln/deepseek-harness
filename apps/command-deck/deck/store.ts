@@ -104,6 +104,10 @@ export interface DeckState {
   qualityTier: QualityTier
   /** Whether a `?quality=` query pinned the tier, which also stops the performance monitor. */
   qualityPinned: boolean
+  /** The findings tour's current stop, an index into its route; `undefined` while no findings tour runs. */
+  findingsStop: number | undefined
+  /** Whether a touch viewer has handed the stage's gestures to its 3D controls ("Explore 3D"). */
+  explore: boolean
   boot: () => Promise<void>
   selectRun: (id: string) => void
   /** List a run the feed does not report yet, such as a review this deck just started. */
@@ -130,6 +134,12 @@ export interface DeckState {
   setQualityTier: (tier: QualityTier) => void
   /** Fix the tier a `?quality=` query named, which the performance monitor then never moves. */
   pinQualityTier: (tier: QualityTier) => void
+  /** Start the findings tour at its first stop; a no-op while no review with findings is loaded. */
+  startFindingsTour: () => void
+  /** Move the running findings tour by `delta` stops, never before the first; a no-op while none runs. */
+  stepFindingsTour: (delta: number) => void
+  stopFindingsTour: () => void
+  setExplore: (on: boolean) => void
 }
 
 let unsubscribe: (() => void) | undefined
@@ -186,6 +196,8 @@ export const useDeck = create<DeckState>((set, get) => ({
   openingFrame: { reveal: 1 },
   qualityTier: 'high',
   qualityPinned: false,
+  findingsStop: undefined,
+  explore: false,
 
   boot: async () => {
     if (get().booted) return
@@ -301,6 +313,14 @@ export const useDeck = create<DeckState>((set, get) => ({
 
   setQualityTier: tier => set({ qualityTier: tier }),
   pinQualityTier: tier => set({ qualityTier: tier, qualityPinned: true }),
+
+  startFindingsTour: () => {
+    if ((get().safety?.findings.length ?? 0) > 0) set({ findingsStop: 0 })
+  },
+  stepFindingsTour: delta =>
+    set(state => (state.findingsStop === undefined ? {} : { findingsStop: Math.max(0, state.findingsStop + delta) })),
+  stopFindingsTour: () => set({ findingsStop: undefined }),
+  setExplore: on => set({ explore: on }),
 }))
 
 /**

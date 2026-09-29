@@ -30,6 +30,9 @@ import { useDeck } from '@/deck/store'
 import { decay, sinceLast } from '@/components/enterprise/activity'
 import { createGlowMaterial } from '@/components/three/glow'
 import { Stage as Canvas3D } from '@/components/three/Stage'
+import { useOrbitGestures } from '@/components/three/explore'
+import { framingReach } from '@/components/three/framing'
+import { beginLabelFrame, createLabelField, fieldPlaced, stageClamped } from '@/components/enterprise/labels'
 import styles from './workflow.module.css'
 
 /** How long a node keeps its light after its seat's last event, in milliseconds. */
@@ -81,6 +84,12 @@ const MERGE_TONE = new Color('#ff8a6b')
 
 /** The wide shot the graph opens on before it is framed. */
 const ESTABLISH = new Vector3(96, 128, 270)
+
+/** The stage copy the session names keep clear of. */
+const SESSION_KEEP_OUT = ['.stage__title', '.hint']
+
+/** Where a session name the field has no placement for sits. */
+const UNPLACED = stageClamped(90, 10)
 
 /** Vertical field of view the canvas is opened with, in degrees. */
 const FOV = 42
@@ -601,6 +610,13 @@ function Labels({ graph, hovered }: { graph: WorkflowGraph; hovered: string | un
   const activity = useDeck(state => state.activity)
   const cursor = useDeck(state => state.cursor)
   const elements = useRef<(HTMLDivElement | null)[]>([])
+  // The session names share one layout, clear of each other, the view's title block and its hint.
+  const field = useMemo(createLabelField, [])
+  useFrame(({ gl }) => beginLabelFrame(field, gl.domElement, SESSION_KEEP_OUT), -1)
+  const positions = useMemo(
+    () => new Map(names.map(node => [node.id, fieldPlaced(field, (node.label.length * 4.6) + 34, 10)])),
+    [field, names],
+  )
 
   useFrame(() => {
     const now = performance.now()
@@ -622,6 +638,7 @@ function Labels({ graph, hovered }: { graph: WorkflowGraph; hovered: string | un
           key={node.id}
           center
           position={[node.x, node.y + NODE_RADIUS + 4.5, 0]}
+          calculatePosition={positions.get(node.id) ?? UNPLACED}
           zIndexRange={[11, 4]}
           style={{ pointerEvents: 'none' }}
         >
@@ -680,6 +697,7 @@ function Director({ extent, reach }: { extent: { x: number; y: number }; reach: 
   const controls = useRef<ElementRef<typeof OrbitControls>>(null)
   const reduced = usePrefersReducedMotion()
   const { camera, size } = useThree()
+  const gestures = useOrbitGestures()
   const opened = useRef(0)
   const touched = useRef(-Infinity)
 
@@ -700,7 +718,7 @@ function Director({ extent, reach }: { extent: { x: number; y: number }; reach: 
     const aspect = size.height === 0 ? 1 : size.width / size.height
     // Whichever of the two reaches needs the camera further back at this aspect
     // is the one that decides the framing, so a wide graph stays in frame.
-    const half = Math.max(extent.y, extent.x / aspect)
+    const half = framingReach(extent.x, extent.y, aspect)
     GOAL.set(0, extent.y * 0.22, framingDistance(half))
 
     if (reduced) {
@@ -729,6 +747,7 @@ function Director({ extent, reach }: { extent: { x: number; y: number }; reach: 
       dampingFactor={0.07}
       rotateSpeed={0.4}
       zoomSpeed={0.7}
+      enabled={gestures}
       minDistance={30}
       maxDistance={reach * 2.4}
       maxPolarAngle={Math.PI * 0.88}

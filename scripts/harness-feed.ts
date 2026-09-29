@@ -731,6 +731,22 @@ interface ToolResultMessage {
 }
 
 /**
+ * A certificate as one line a person reads: who certified it and how its
+ * checks came out, read from the whole certificate before its JSON is cut to
+ * the detail's length.
+ * @param data - The `verification/certificate` event's data.
+ * @returns For example `certificate · 3 of 3 checks pass`, or `oxlint` for a certificate that lists no checks.
+ */
+function certificateLine(data: Record<string, unknown>): string {
+  const certificate = data.certificate as { results?: unknown } | undefined
+  const results = Array.isArray(certificate?.results) ? certificate.results as { status?: unknown }[] : []
+  const name = stringField(data, 'verifier', 'certificate')
+  if (results.length === 0) return name
+  const passed = results.filter(result => result.status === 'pass').length
+  return `${name} · ${passed} of ${results.length} ${results.length === 1 ? 'check passes' : 'checks pass'}`
+}
+
+/**
  * Fold one decoded session-log line into a feed event, or `undefined` when
  * the line carries no product-visible event this stream reports: a line
  * without a string `type` (a header line, or a stray non-session record —
@@ -811,7 +827,7 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
     return {
       ...base,
       kind: 'certificate',
-      label: stringField(data, 'verifier', 'certificate'),
+      label: certificateLine(data),
       detail: hostlessText(JSON.stringify(data)).slice(0, 500),
     }
   }

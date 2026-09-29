@@ -28,6 +28,7 @@ import { FLASH_MS, useOps } from '@/deck/ops-store'
 import { divisionColor } from '@/deck/palette'
 import { createGlowMaterial } from '@/components/three/glow'
 import { Stage } from '@/components/three/Stage'
+import { useOrbitGestures } from '@/components/three/explore'
 import { beginLabelFrame, createLabelField, fieldPlaced, stageClamped, type LabelField } from '@/components/enterprise/labels'
 import styles from './ops.module.css'
 
@@ -155,10 +156,12 @@ export function OpsStage({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
 /**
  * The camera: a slow orbit the viewer can take over, held still under reduced
  * motion, and pulled back on a canvas taller than it is wide so the whole ring stays in frame.
+ * On a touch screen the controls take gestures only after "Explore 3D".
  */
 function Rig(): ReactNode {
   const reduced = usePrefersReducedMotion()
   const { camera, size } = useThree()
+  const gestures = useOrbitGestures()
   const narrow = size.width / Math.max(1, size.height) < 1.3
   useEffect(() => {
     camera.position.set(0, narrow ? 120 : 58, narrow ? 175 : 100)
@@ -166,6 +169,7 @@ function Rig(): ReactNode {
   return (
     <OrbitControls
       makeDefault
+      enabled={gestures}
       enablePan={false}
       enableDamping
       dampingFactor={0.08}

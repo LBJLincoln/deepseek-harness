@@ -2,6 +2,8 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { publicUrl } from '@/deck/public-url'
+import { useDeck } from '@/deck/store'
+import { useCoarsePointer } from './pointer.ts'
 import { SceneBoundary, supportsWebGL2 } from './scene-boundary.ts'
 
 /** Query parameter that asks every stage for its stand-in instead of the scene: `?flat`. */
@@ -83,6 +85,26 @@ function StandIn({
 }
 
 /**
+ * The touch screen's switch for a mounted scene: "Explore 3D" hands the
+ * fingers to the stage's orbit controls, "Scroll the page" gives them back
+ * (see `useOrbitGestures`). Leaving the view gives them back too. A mouse
+ * needs no switch, so none is drawn for one.
+ * @returns The switch on a touch screen, else nothing.
+ */
+function ExploreToggle(): ReactNode {
+  const coarse = useCoarsePointer()
+  const explore = useDeck(state => state.explore)
+  const setExplore = useDeck(state => state.setExplore)
+  useEffect(() => () => setExplore(false), [setExplore])
+  if (!coarse) return null
+  return (
+    <button type="button" className="btn explore" aria-pressed={explore} onClick={() => setExplore(!explore)}>
+      {explore ? 'Scroll the page' : 'Explore 3D'}
+    </button>
+  )
+}
+
+/**
  * The gate every stage mounts behind: the scene where the browser can draw it,
  * and a stand-in otherwise. It is the deck's one mechanism for a missing or
  * failed WebGL scene.
@@ -97,7 +119,8 @@ function StandIn({
  * including a canvas whose context the browser takes back (`Stage` raises
  * that), falls back to the same stand-in with a button that mounts the scene
  * again. The server render and the probe's own frame draw nothing here, since
- * neither can know the answer.
+ * neither can know the answer. Beside a mounted scene a touch screen gets the
+ * "Explore 3D" switch.
  *
  * Every view's stage mounts behind this gate: the four scene views pass their
  * poster, and `/ops` passes its flat floor.
@@ -126,12 +149,15 @@ export function WebGLGate({
   if (stop === undefined) return null
   if (stop !== 'scene') return <StandIn flat={flat} poster={poster} label={label} stop={stop} />
   return (
-    <SceneBoundary
-      fallback={(error, retry) => (
-        <StandIn flat={flat} poster={poster} label={label} stop={{ kind: 'failed', message: error.message }} onRetry={retry} />
-      )}
-    >
-      {children}
-    </SceneBoundary>
+    <>
+      <SceneBoundary
+        fallback={(error, retry) => (
+          <StandIn flat={flat} poster={poster} label={label} stop={{ kind: 'failed', message: error.message }} onRetry={retry} />
+        )}
+      >
+        {children}
+      </SceneBoundary>
+      <ExploreToggle />
+    </>
   )
 }

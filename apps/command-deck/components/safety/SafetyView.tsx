@@ -7,11 +7,13 @@ import remarkGfm from 'remark-gfm'
 import { SEVERITY_ORDER, type Comparison, type Severity } from '@/deck/contract'
 import { departmentOf } from '@/deck/departments'
 import { comparisonSlugFor, getComparison, startSafety } from '@/deck/feed'
+import { displayName } from '@/deck/display-name'
 import { bytes, stamp } from '@/deck/format'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
+import { onActivate } from '@/components/shell/activate'
 import { WebGLGate } from '@/components/three/WebGLGate'
 import { BenchmarkPanel } from './BenchmarkPanel'
 import { FilesOpened } from './FilesOpened'
@@ -31,6 +33,18 @@ const SafetyStage = dynamic(
 
 /** Which panel tab is open. */
 type Tab = 'findings' | 'certificate' | 'report' | 'benchmark'
+
+/**
+ * Each severity as the findings table prints it beside its colour, so the
+ * table reads without telling red from orange.
+ */
+const SEVERITY_SHORT: Record<Severity, string> = {
+  critical: 'crit',
+  high: 'high',
+  medium: 'med',
+  low: 'low',
+  info: 'info',
+}
 
 /** The models `pnpm run code-safety -- --model` accepts; the feed forwards the name unchanged. */
 const REVIEW_MODELS = ['sonnet', 'opus'] as const
@@ -65,7 +79,10 @@ export function SafetyView(): ReactNode {
   const selectRun = useDeck(state => state.selectRun)
   const addRun = useDeck(state => state.addRun)
   const reduced = usePrefersReducedMotion()
-  const moments = useSafetyMoments(safetyRunId, runs.find(run => run.id === safetyRunId), safety)
+  const safetyRun = runs.find(run => run.id === safetyRunId)
+  const moments = useSafetyMoments(safetyRunId, safetyRun, safety)
+  // The review's heading: its run when the deck lists it, else the target name the review records.
+  const heading = safety === undefined ? undefined : displayName(safetyRun ?? { name: safety.target.name, kind: 'code-safety' })
 
   const [tab, setTab] = useState<Tab>('findings')
   const [severity, setSeverity] = useState<Severity | 'all'>('all')
@@ -168,7 +185,7 @@ export function SafetyView(): ReactNode {
 
         <div className="stage__overlay">
           <div className="stage__title">
-            <h1>{safety?.target.name ?? 'Code safety'}</h1>
+            <h1>{heading ?? 'Code safety'}</h1>
             <p>
               Directories are districts, files are blocks scaled by size and coloured by language.
               Every beacon is a finding standing on the file that carries it; its height and colour are its severity.
@@ -182,7 +199,10 @@ export function SafetyView(): ReactNode {
               ))}
             </div>
           </div>
-          <span className="hint">drag to orbit · click a beacon or a building · esc flies back</span>
+          <span className="hint">
+            <span className="hint__mouse">drag to orbit · click a beacon or a building · esc flies back</span>
+            <span className="hint__touch">tap a beacon or a building · Explore 3D to orbit</span>
+          </span>
         </div>
 
         {selected === undefined ? null : (
@@ -194,7 +214,7 @@ export function SafetyView(): ReactNode {
         )}
 
         {moments.launch && safety !== undefined ? (
-          <LaunchSequence name={safety.target.name} files={safety.target.files.length} reduced={reduced} />
+          <LaunchSequence name={heading ?? safety.target.name} files={safety.target.files.length} reduced={reduced} />
         ) : null}
 
         {moments.verdict === undefined || safety === undefined ? null : (
@@ -208,7 +228,7 @@ export function SafetyView(): ReactNode {
             Code safety review
             {touring ? <span className="deck__mode" data-mode="tour">findings tour · g stops</span> : null}
           </div>
-          <h2 className="panel__title">{safety?.target.name ?? '—'}</h2>
+          <h2 className="panel__title">{heading ?? '—'}</h2>
           <p className="panel__sub">
             {safety === undefined
               ? '—'
@@ -278,9 +298,12 @@ export function SafetyView(): ReactNode {
                     <tr
                       key={finding.id}
                       data-selected={finding.id === selectedFindingId}
+                      tabIndex={0}
+                      aria-label={`${finding.severity}: ${finding.title}, ${finding.file}:${finding.line}`}
                       onClick={() => selectFinding(finding.id)}
+                      onKeyDown={onActivate(() => selectFinding(finding.id))}
                     >
-                      <td><span className="sev" data-s={finding.severity} /></td>
+                      <td><span className="sev" data-s={finding.severity}>{SEVERITY_SHORT[finding.severity]}</span></td>
                       <td>
                         <div>{finding.title}</div>
                         <div className="mono">{finding.file}:{finding.line}</div>
@@ -331,7 +354,7 @@ export function SafetyView(): ReactNode {
                   ))}
                 </div>
                 {safety.certificate.unverified.length === 0 ? null : (
-                  <p style={{ margin: '11px 0 0', fontSize: 11, color: 'var(--amber)' }}>
+                  <p style={{ margin: '11px 0 0', fontSize: 12, color: 'var(--amber)' }}>
                     Named unverified: {safety.certificate.unverified.join(', ')}
                   </p>
                 )}
@@ -342,7 +365,13 @@ export function SafetyView(): ReactNode {
                 <table className="table">
                   <tbody>
                     {safety.departments.map(entry => (
-                      <tr key={entry.id} onClick={() => { setDepartment(entry.id); setTab('findings') }}>
+                      <tr
+                        key={entry.id}
+                        tabIndex={0}
+                        aria-label={`${entry.name}: ${entry.findings} findings, show them`}
+                        onClick={() => { setDepartment(entry.id); setTab('findings') }}
+                        onKeyDown={onActivate(() => { setDepartment(entry.id); setTab('findings') })}
+                      >
                         <td>
                           <div>{entry.name}</div>
                           <div className="mono">{entry.status}</div>
@@ -367,7 +396,7 @@ export function SafetyView(): ReactNode {
                     </span>
                   ))}
                 </div>
-                <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--ink-3)' }}>
+                <p style={{ margin: '9px 0 0', fontSize: 12, color: 'var(--ink-3)' }}>
                   {safety.target.path} · {bytes(safety.target.files.reduce((total, file) => total + file.bytes, 0))} read
                 </p>
               </div>
@@ -425,10 +454,10 @@ export function SafetyView(): ReactNode {
                   {starting ? 'starting…' : 'Start review'}
                 </button>
                 {startError === undefined ? null : (
-                  <p style={{ margin: '8px 0 0', fontSize: 11, color: 'var(--red)' }}>{startError}</p>
+                  <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--red)' }}>{startError}</p>
                 )}
                 {source?.mode === 'replay' ? (
-                  <p style={{ margin: '8px 0 0', fontSize: 11, color: 'var(--ink-3)' }}>
+                  <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--ink-3)' }}>
                     In replay mode this reopens the recorded review instead of starting a new one.
                   </p>
                 ) : null}

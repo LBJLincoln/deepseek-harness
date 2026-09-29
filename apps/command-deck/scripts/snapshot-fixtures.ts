@@ -13,13 +13,24 @@
  *
  * Only committed record ids are eligible: a live `.code-safety/<id>` run is
  * refused, because its session logs are not redacted before they are recorded.
+ * Every payload passes through `deck/host-paths.ts` before it is written, so
+ * no published fixture names a path of the machine that recorded it: the feed
+ * folds event details that way already, and a review's target, its report and
+ * a program's objective are cleared here.
+ *
+ * A review's file list is read from its target's checkout. On a machine that
+ * does not hold the checkout the feed can list only the record's own files, so
+ * the committed review fixture, read where the checkout was, is kept instead,
+ * cleared the same way.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import type { ProgramRecord, Roster, Run, RunEvent, SafetyReview } from '../deck/contract.ts'
+import { hostlessJson } from '../deck/host-paths.ts'
 
 const here = dirname(new URL(import.meta.url).pathname)
 const fixtures = resolve(here, '..', 'public', 'fixtures')
+const repository = resolve(here, '..', '..', '..')
 
 /** The feed to snapshot from; `FEED_URL` overrides the default local feed. */
 const FEED = (process.env['FEED_URL'] ?? 'http://localhost:4711').replace(/\/+$/, '')
@@ -104,7 +115,7 @@ async function readEvents(runId: string): Promise<RunEvent[]> {
 function writeJson(relative: string, value: unknown): void {
   const path = resolve(fixtures, relative)
   mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`)
+  writeFileSync(path, `${JSON.stringify(hostlessJson(value), null, 2)}\n`)
 }
 
 const roster = await readJson<Roster>('/roster')
@@ -120,6 +131,11 @@ const programs = await readJson<ProgramRecord[]>('/programs')
 const live = [...roster.evidence.records, ...programs.map(program => program.path)].find(path => !path.startsWith('data/'))
 if (live !== undefined) throw new Error(`the feed reads the live run at ${live}; move it aside or snapshot from a clean tree`)
 
+// Read before the directory is cleared: a review whose target is not on this machine keeps its committed fixture.
+const committedReviews = new Map(runs.flatMap((run) => {
+  const path = resolve(fixtures, 'safety', `${run.id}.json`)
+  return existsSync(path) ? [[run.id, JSON.parse(readFileSync(path, 'utf8')) as SafetyReview] as const] : []
+}))
 rmSync(resolve(fixtures, 'events'), { recursive: true, force: true })
 rmSync(resolve(fixtures, 'safety'), { recursive: true, force: true })
 writeJson('runs.json', runs)
@@ -131,10 +147,14 @@ for (const run of runs) {
   const events = await readEvents(run.id)
   const path = resolve(fixtures, 'events', `${run.id}.jsonl`)
   mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(path, events.map(event => JSON.stringify(event)).join('\n') + (events.length > 0 ? '\n' : ''))
+  writeFileSync(path, events.map(event => JSON.stringify(hostlessJson(event))).join('\n') + (events.length > 0 ? '\n' : ''))
   console.log(`${run.id}: ${events.length} events`)
   if (run.kind === 'code-safety') {
-    const review = await readJson<SafetyReview>(`/safety/${encodeURIComponent(run.id)}`)
+    const read = await readJson<SafetyReview>(`/safety/${encodeURIComponent(run.id)}`)
+    // The feed falls back to the record's own directory when the target's checkout is missing.
+    const targetMissing = read.target.path === resolve(repository, run.path)
+    const review = targetMissing ? committedReviews.get(run.id) ?? read : read
+    if (targetMissing) console.log(`${run.id}: the target's checkout is not on this machine; ${review === read ? 'no committed review to keep, writing the record\'s own files' : 'keeping the committed review'}`)
     writeJson(`safety/${run.id}.json`, review)
     console.log(`${run.id}: ${review.target.files.length} files, ${review.findings.length} findings, verified ${review.certificate.verified}`)
   }
