@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "asOf": "2026-09-29T06:41:45.825Z",
+  "asOf": "2026-09-29T06:45:09.356Z",
   "repository": {
     "name": "LBJLincoln/deepseek-harness",
     "branch": "claude/coding-agent-harness-u9l4gt",
@@ -40,11 +40,11 @@
         "paths": [
           "data/enterprise/roster.json"
         ],
-        "computation": "counts.active: seats whose newest deliverable falls in the 24 hours ending at the roster's stamp, 2026-09-29T06:41:45.825Z."
+        "computation": "counts.active: seats whose newest deliverable falls in the 24 hours ending at the roster's stamp, 2026-09-29T06:45:09.356Z."
       }
     },
     "roster.stamp": {
-      "value": "2026-09-29T06:41:45.825Z",
+      "value": "2026-09-29T06:45:09.356Z",
       "source": {
         "paths": [
           "data/enterprise/roster.json"
@@ -100,7 +100,7 @@
       }
     },
     "shifts.count": {
-      "value": 6,
+      "value": 7,
       "source": {
         "paths": [
           "data/enterprise/shifts"
@@ -109,7 +109,7 @@
       }
     },
     "ledger.lines": {
-      "value": 139,
+      "value": 141,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
@@ -238,7 +238,7 @@
       }
     },
     "pilot.operatorUnits": {
-      "value": 6,
+      "value": 7,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -268,7 +268,7 @@
       }
     },
     "pilot.operatorShipped": {
-      "value": 2,
+      "value": 3,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -293,16 +293,17 @@
       }
     },
     "economics.shiftSeconds": {
-      "value": 2076,
+      "value": 4313,
       "source": {
         "paths": [
-          "data/enterprise/shifts/2026-09-28-182951-78a6/manifest.json"
+          "data/enterprise/shifts/2026-09-28-182951-78a6/manifest.json",
+          "data/enterprise/shifts/2026-09-29-001527-881f/manifest.json"
         ],
-        "computation": "Mean of endedAt minus startedAt over the 1 shift records that shipped a ticket: from the clone to the push."
+        "computation": "Mean of endedAt minus startedAt over the 2 shift records that shipped a ticket: from the clone to the push."
       }
     },
     "economics.shippingShifts": {
-      "value": 1,
+      "value": 2,
       "source": {
         "paths": [
           "data/enterprise/shifts"
@@ -962,6 +963,23 @@
         "seconds": 2318
       },
       {
+        "shift": "001527-881f",
+        "dir": "data/enterprise/shifts/2026-09-29-001527-881f",
+        "type": "result",
+        "startedAt": "2026-09-29T00:15:28.672Z",
+        "endedAt": "2026-09-29T02:04:38.491Z",
+        "tickets": [
+          "T-0007",
+          "T-0023"
+        ],
+        "shipped": [
+          "T-0007"
+        ],
+        "reason": null,
+        "redacted": 0,
+        "seconds": 6550
+      },
+      {
         "shift": "021357-6546",
         "dir": "data/enterprise/shifts/2026-09-29-021357-6546",
         "type": "result",
@@ -1226,6 +1244,36 @@
           "data/enterprise/cycles/cycle-20260929T001517Z.json",
           "data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T001517Z.log-e8b966e567",
           "data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b"
+        ]
+      },
+      {
+        "id": "001527-881f",
+        "kind": "shift",
+        "startedAt": "2026-09-29T00:15:28.672Z",
+        "startedBy": "operator",
+        "basis": "It started outside every cycle on the branch; a shift outside a cycle is started by hand with pnpm run enterprise -- shift.",
+        "shifts": [
+          "001527-881f"
+        ],
+        "attempted": 2,
+        "shipped": [
+          "T-0007"
+        ],
+        "failed": [
+          {
+            "ticket": "T-0023",
+            "status": "halted",
+            "failedChecks": [],
+            "reason": "budget-exhausted"
+          }
+        ],
+        "lost": 0,
+        "tokens": 584273,
+        "steps": [],
+        "finished": null,
+        "paths": [
+          "data/enterprise/ledger.jsonl",
+          "data/enterprise/shifts/2026-09-29-001527-881f"
         ]
       },
       {
@@ -2180,13 +2228,23 @@
           "createdAt": "2026-09-29T06:40:17Z",
           "updatedAt": "2026-09-29T06:40:28Z",
           "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36532281989"
+        },
+        {
+          "id": 36532484292,
+          "head": "8a4dd9c0267a8bde1e599404908bd03669e79261",
+          "status": "pending",
+          "conclusion": null,
+          "createdAt": "2026-09-29T06:42:31Z",
+          "updatedAt": "2026-09-29T06:42:32Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36532484292"
         }
       ],
       "counts": {
         "failure": 25,
         "cancelled": 33,
         "success": 13,
-        "in_progress": 1
+        "in_progress": 1,
+        "pending": 1
       }
     },
     "source": {
@@ -3111,7 +3169,7 @@
         },
         {
           "family": "shifts",
-          "sessions": 15,
+          "sessions": 19,
           "withTerms": 0
         },
         {
@@ -3205,6 +3263,24 @@
           "form": "event"
         },
         {
+          "run": "001527-881f",
+          "record": "shift",
+          "transition": "spec-freeze",
+          "principal": "enterprise-operator",
+          "kind": "human",
+          "at": "2026-09-29T00:17:00.592Z",
+          "form": "event"
+        },
+        {
+          "run": "001527-881f",
+          "record": "shift",
+          "transition": "release",
+          "principal": "enterprise-operator",
+          "kind": "human",
+          "at": "2026-09-29T00:17:00.593Z",
+          "form": "event"
+        },
+        {
           "run": "021357-6546",
           "record": "shift",
           "transition": "spec-freeze",
@@ -3278,6 +3354,11 @@
           "shift": "182951-78a6",
           "reviews": 2,
           "toolCalls": 0
+        },
+        {
+          "shift": "001527-881f",
+          "reviews": 1,
+          "toolCalls": 0
         }
       ],
       "source": {
@@ -3344,14 +3425,14 @@
     {
       "path": "data/enterprise/ledger.jsonl",
       "files": 1,
-      "bytes": 70052,
-      "sha256": "b399e592eb0b29f2458172523d3e9ec50c5837a72148bebb28ef7573fe5e51bf"
+      "bytes": 71544,
+      "sha256": "09ed70f9c3399ae0abae82aa508f1d7a216cac87170ba8ae793be9c4a86a6f09"
     },
     {
       "path": "data/enterprise/roster.json",
       "files": 1,
       "bytes": 124640,
-      "sha256": "ceb26c0760366cfefcdf56977b523d5f35fbac0bc70b8fd821c3a7e20a33fdc2"
+      "sha256": "21241afc8ecd3fe9bd48729f395048748851a31eb0447d3ac4f9f92c2a4ad14b"
     },
     {
       "path": "data/enterprise/shift-starts.jsonl",
@@ -3361,9 +3442,9 @@
     },
     {
       "path": "data/enterprise/shifts",
-      "files": 27,
-      "bytes": 2372105,
-      "sha256": "31a3cfaeb19f898a71efbf465a604acf5609e1a164f7183c61b671e0eb3ff6c3"
+      "files": 33,
+      "bytes": 2795806,
+      "sha256": "81b85a82df2aa1e1060b10814c11e873ada8697d7fa8d140382b141c8de0224c"
     },
     {
       "path": "data/enterprise/tickets",

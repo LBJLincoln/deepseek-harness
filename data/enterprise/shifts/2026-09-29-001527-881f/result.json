@@ -1,0 +1,122 @@
+{
+  "type": "result",
+  "shift": "001527-881f",
+  "startedAt": "2026-09-29T00:15:28.672Z",
+  "base": "c10a2f34e71ff3b34d7ef0637bcbdacd7dc61d5e",
+  "remote": "https://github.com/LBJLincoln/deepseek-harness",
+  "branch": "claude/coding-agent-harness-u9l4gt",
+  "implementer": "route",
+  "model": "Claude Code sonnet",
+  "programId": "program-fd946f9498a15be29032cb7b9cd8490530ef660ab15b58a407c4a20224fbde41",
+  "report": {
+    "programId": "program-fd946f9498a15be29032cb7b9cd8490530ef660ab15b58a407c4a20224fbde41",
+    "sessionId": "program-fd946f9498a15be29032cb7b9cd8490530ef660ab15b58a407c4a20224fbde41",
+    "outcome": "failed",
+    "goals": [
+      {
+        "key": "t-0007",
+        "status": "certified",
+        "sessionId": "program-fd946f9498a15be29032cb7b9cd8490530ef660ab15b58a407c4a20224fbde41-t-0007",
+        "revision": "fc95028a257272b4a4eae42537ba1739a6ca3f96",
+        "tree": "5da52907f414e221f51d3d06d8b7dd5a1d1ecc50"
+      },
+      {
+        "key": "t-0023",
+        "status": "blocked",
+        "sessionId": "program-fd946f9498a15be29032cb7b9cd8490530ef660ab15b58a407c4a20224fbde41-t-0023",
+        "reason": "budget-exhausted"
+      }
+    ]
+  },
+  "halt": null,
+  "tickets": [
+    {
+      "type": "ticket",
+      "at": "2026-09-29T02:04:38.491Z",
+      "shift": "001527-881f",
+      "ticket": "T-0007",
+      "seat": "harness-core-llm-steward",
+      "division": "harness-core",
+      "programId": "program-fd946f9498a15be29032cb7b9cd8490530ef660ab15b58a407c4a20224fbde41",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-fd946f9498a15be29032cb7b9cd8490530ef660ab15b58a407c4a20224fbde41-t-0007"
+      },
+      "checks": [
+        {
+          "id": "spec",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0007-51a05d12"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "50940d37a331497d1a8c489e6ad976af3731dcfd"
+      },
+      "reason": "approved and assembled",
+      "tokens": 338500,
+      "seconds": 3075,
+      "rationale": "- **Scope:** the diff adds only `packages/llm/llm/tests/directory-error-codes.spec.ts`. There is no source change, so the service and its messages are untouched, as the constraints require.\n- **Coverage of the ticket's cases:** every required path is driven through the public `ctx.llm` service, with a context built through `new Context()` and `ctx.plugin(LlmRuntime)`.\n  - `INVALID_DIRECTORY`: an empty entry list, and an entry with an empty `settingsPath` segment.\n  - `DUPLICATE_DIRECTORY`: a provider declared twice in one call, a provider another registration already declares, and `handle.replace()` naming a provider another registration owns.\n  - `REGISTRATION_DISPOSED`: `replace()` on a disposed directory handle and on a disposed adapter registration.\n  - `INVALID_DISCOVERY`: an empty namespace, and a discovery that names neither a provider nor a `baseURL`.\n  - `DUPLICATE_DISCOVERY`: a second offer for one namespace.\n- **Codes, not messages:** the `codeOf` helper requires an `LlmError` instance and returns its `code`. The discovery cases use `toMatchObject` on `code`. No assertion depends on message text.\n- **All-or-nothing:** the rejected-call tests check that state is unchanged.\n  - A failed registration leaves nothing declared.\n  - A failed second registration keeps the original provider only.\n  - A failed `replace()` keeps the current set of providers.\n  - A disposed handle declares nothing and registers no route.\n  - A rejected duplicate discovery leaves the first offer serving.\n- **Ambiguity:** \"a discovery without a provider\" could be read as `registerModelDiscovery` with no provider function. The test exercises the discovery call with neither provider nor `baseURL`. It reaches a real `INVALID_DISCOVERY` path, as the passing run shows. This is a small ambiguity and does not undermine the change.\n- **Checks:** the spec passes with 10 of 10 tests. The coverage run passes with 46 files and 973 tests, at 100% coverage for `packages/llm/llm/src`. Typecheck and …"
+    },
+    {
+      "type": "ticket",
+      "at": "2026-09-29T02:04:38.491Z",
+      "shift": "001527-881f",
+      "ticket": "T-0023",
+      "seat": "governance-translation-pairing-standard-author",
+      "division": "governance",
+      "programId": "program-fd946f9498a15be29032cb7b9cd8490530ef660ab15b58a407c4a20224fbde41",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "blocked",
+        "sessionId": "program-fd946f9498a15be29032cb7b9cd8490530ef660ab15b58a407c4a20224fbde41-t-0023"
+      },
+      "checks": [],
+      "review": {
+        "verdict": "none",
+        "sessionId": null
+      },
+      "integration": {
+        "outcome": "skipped"
+      },
+      "shipped": null,
+      "reason": "budget-exhausted",
+      "tokens": 245773,
+      "seconds": 1933,
+      "rationale": ""
+    }
+  ],
+  "redacted": 0
+}
