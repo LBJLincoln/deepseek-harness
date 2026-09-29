@@ -1,7 +1,7 @@
 {
-  "computedAt": "2026-09-28T17:50:42.295Z",
-  "shift": "2026-09-28T17-47Z",
-  "commit": "6fb91bb110919ffd1652a497fe3c0b4074c1e6f6",
+  "computedAt": "2026-09-29T00:10:25.552Z",
+  "shift": "cycle-20260928T221301Z",
+  "commit": "580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb",
   "records": [
     "data/code-safety/2026-09-19-dvja",
     "data/code-safety/2026-09-19-nodegoat",
@@ -12,6 +12,11 @@
     "data/code-safety/2026-09-22-nodegoat-6-base-a",
     "data/code-safety/2026-09-22-nodegoat-7-generalist-b",
     "data/code-safety/2026-09-22-nodegoat-8-base-b",
+    "data/code-safety/2026-09-27-nodegoat-10-base-c",
+    "data/code-safety/2026-09-27-nodegoat-11-misses-b",
+    "data/code-safety/2026-09-27-nodegoat-12-base-d",
+    "data/code-safety/2026-09-27-nodegoat-9-misses-a",
+    "data/code-safety/2026-09-28-dsh-self-review",
     "data/proving-ground/2026-09-06-claude-code-run-1",
     "data/proving-ground/2026-09-06-claude-code-run-2",
     "data/proving-ground/2026-09-07-bench-e2-harness-vs-product-t3",
@@ -72,11 +77,16 @@
     "data/proving-ground/2026-09-26-bench-completion-t6-haiku",
     "data/proving-ground/2026-09-26-bench-h3-baseline-sonnet-t5",
     "data/proving-ground/2026-09-27-bench-e12-self-review-sonnet-t5t6",
+    "data/proving-ground/2026-09-27-bench-e12-self-review-sonnet-t5t6-2",
+    "data/proving-ground/2026-09-27-bench-e13-probe-review-sonnet-t5t6",
     "data/proving-ground/2026-09-27-bench-h3-baseline-sonnet-t5",
+    "data/proving-ground/2026-09-27-bench-public-smoke-sonnet",
     "data/proving-ground/2026-09-27-polyglot-harness-vs-product-sonnet",
-    "data/proving-ground/2026-09-27-readme-rows-program"
+    "data/proving-ground/2026-09-27-readme-rows-program",
+    "data/enterprise/shifts/2026-09-28-171951-516d",
+    "data/enterprise/shifts/2026-09-28-182951-78a6"
   ],
-  "sessions": 1750,
+  "sessions": 1908,
   "rows": [
     {
       "provider": "cli-mock",
@@ -3927,28 +3937,28 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 8,
+      "runs": 12,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 6,
-      "certificateRate": 0.75,
-      "parity": 0.9977941176470588,
+      "certified": 10,
+      "certificateRate": 0.8333333333333334,
+      "parity": 0.9985294117647059,
       "attemptsMean": 1,
-      "inputTokens": 222,
-      "outputTokens": 128103,
+      "inputTokens": 328,
+      "outputTokens": 201217,
       "pricingDigests": [],
       "stats": {
-        "groups": 3,
-        "samples": 8,
+        "groups": 4,
+        "samples": 12,
         "passAtK": [
           {
             "k": 1,
-            "value": 0.75,
-            "groups": 3
+            "value": 0.8125,
+            "groups": 4
           }
         ]
       }
@@ -3967,7 +3977,7 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 8,
+      "runs": 12,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
@@ -3975,20 +3985,20 @@
         "runner"
       ],
       "certified": 5,
-      "certificateRate": 0.625,
-      "parity": 0.9933978873239437,
+      "certificateRate": 0.4166666666666667,
+      "parity": 0.98943661971831,
       "attemptsMean": 1,
-      "inputTokens": 278,
-      "outputTokens": 408622,
+      "inputTokens": 396,
+      "outputTokens": 582081,
       "pricingDigests": [],
       "stats": {
-        "groups": 3,
-        "samples": 8,
+        "groups": 4,
+        "samples": 12,
         "passAtK": [
           {
             "k": 1,
-            "value": 0.5,
-            "groups": 3
+            "value": 0.3125,
+            "groups": 4
           }
         ]
       }
@@ -4007,28 +4017,28 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 8,
+      "runs": 12,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 8,
-      "certificateRate": 1,
-      "parity": 1,
+      "certified": 11,
+      "certificateRate": 0.9166666666666666,
+      "parity": 0.9994343891402715,
       "attemptsMean": 1,
-      "inputTokens": 216,
-      "outputTokens": 181741,
+      "inputTokens": 314,
+      "outputTokens": 249911,
       "pricingDigests": [],
       "stats": {
-        "groups": 3,
-        "samples": 8,
+        "groups": 4,
+        "samples": 12,
         "passAtK": [
           {
             "k": 1,
-            "value": 1,
-            "groups": 3
+            "value": 0.875,
+            "groups": 4
           }
         ]
       }
@@ -4047,28 +4057,28 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 8,
+      "runs": 12,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 8,
+      "certified": 12,
       "certificateRate": 1,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 230,
-      "outputTokens": 153293,
+      "inputTokens": 322,
+      "outputTokens": 242310,
       "pricingDigests": [],
       "stats": {
-        "groups": 3,
-        "samples": 8,
+        "groups": 4,
+        "samples": 12,
         "passAtK": [
           {
             "k": 1,
             "value": 1,
-            "groups": 3
+            "groups": 4
           }
         ]
       }
@@ -4135,28 +4145,28 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 8,
+      "runs": 12,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 3,
-      "certificateRate": 0.375,
-      "parity": 0.9938725490196079,
+      "certified": 6,
+      "certificateRate": 0.5,
+      "parity": 0.9950980392156863,
       "attemptsMean": 1,
-      "inputTokens": 182,
-      "outputTokens": 183202,
+      "inputTokens": 282,
+      "outputTokens": 285993,
       "pricingDigests": [],
       "stats": {
-        "groups": 3,
-        "samples": 8,
+        "groups": 4,
+        "samples": 12,
         "passAtK": [
           {
             "k": 1,
-            "value": 0.4166666666666667,
-            "groups": 3
+            "value": 0.5625,
+            "groups": 4
           }
         ]
       }
@@ -4175,28 +4185,28 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 8,
+      "runs": 12,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 7,
-      "certificateRate": 0.875,
-      "parity": 0.9989035087719298,
+      "certified": 11,
+      "certificateRate": 0.9166666666666666,
+      "parity": 0.9992690058479532,
       "attemptsMean": 1,
-      "inputTokens": 204,
-      "outputTokens": 183608,
+      "inputTokens": 300,
+      "outputTokens": 275606,
       "pricingDigests": [],
       "stats": {
-        "groups": 3,
-        "samples": 8,
+        "groups": 4,
+        "samples": 12,
         "passAtK": [
           {
             "k": 1,
-            "value": 0.8333333333333334,
-            "groups": 3
+            "value": 0.875,
+            "groups": 4
           }
         ]
       }
@@ -4215,28 +4225,28 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 8,
+      "runs": 12,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 7,
-      "certificateRate": 0.875,
-      "parity": 0.9989754098360656,
+      "certified": 10,
+      "certificateRate": 0.8333333333333334,
+      "parity": 0.9986338797814208,
       "attemptsMean": 1,
-      "inputTokens": 220,
-      "outputTokens": 106029,
+      "inputTokens": 320,
+      "outputTokens": 166122,
       "pricingDigests": [],
       "stats": {
-        "groups": 3,
-        "samples": 8,
+        "groups": 4,
+        "samples": 12,
         "passAtK": [
           {
             "k": 1,
-            "value": 0.8333333333333334,
-            "groups": 3
+            "value": 0.8125,
+            "groups": 4
           }
         ]
       }
@@ -4447,28 +4457,28 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 8,
+      "runs": 12,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 3,
-      "certificateRate": 0.375,
-      "parity": 0.9932065217391304,
+      "certified": 5,
+      "certificateRate": 0.4166666666666667,
+      "parity": 0.9936594202898551,
       "attemptsMean": 1,
-      "inputTokens": 296,
-      "outputTokens": 379587,
+      "inputTokens": 446,
+      "outputTokens": 603515,
       "pricingDigests": [],
       "stats": {
-        "groups": 3,
-        "samples": 8,
+        "groups": 4,
+        "samples": 12,
         "passAtK": [
           {
             "k": 1,
-            "value": 0.25,
-            "groups": 3
+            "value": 0.3125,
+            "groups": 4
           }
         ]
       }
@@ -13675,28 +13685,28 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 6,
       "errors": 0,
       "tampered": 1,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 1,
+      "certified": 3,
       "certificateRate": 0.5,
-      "parity": 1,
+      "parity": 0.9804733727810652,
       "attemptsMean": 1,
-      "inputTokens": 76,
-      "outputTokens": 66323,
+      "inputTokens": 192,
+      "outputTokens": 170022,
       "pricingDigests": [],
       "stats": {
-        "groups": 1,
-        "samples": 2,
+        "groups": 2,
+        "samples": 6,
         "passAtK": [
           {
             "k": 1,
-            "value": 0.5,
-            "groups": 1
+            "value": 0.625,
+            "groups": 2
           }
         ]
       }
@@ -13716,7 +13726,7 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
@@ -13725,12 +13735,12 @@
       "certificateRate": 0,
       "parity": 0.9833333333333333,
       "attemptsMean": 1,
-      "inputTokens": 104,
-      "outputTokens": 62717,
+      "inputTokens": 196,
+      "outputTokens": 126612,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
@@ -13755,23 +13765,23 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 2,
+      "certified": 4,
       "certificateRate": 1,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 60,
-      "outputTokens": 59277,
+      "inputTokens": 126,
+      "outputTokens": 107814,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
@@ -13796,25 +13806,27 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
-      "certificateExecutors": [],
-      "certified": 0,
-      "certificateRate": 0,
-      "parity": 0.9891304347826086,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 0.25,
+      "parity": 0.9918478260869565,
       "attemptsMean": 1,
-      "inputTokens": 88,
-      "outputTokens": 133321,
+      "inputTokens": 184,
+      "outputTokens": 277434,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
-            "value": 0,
+            "value": 0.25,
             "groups": 1
           }
         ]
@@ -13835,23 +13847,23 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 2,
+      "certified": 4,
       "certificateRate": 1,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 80,
-      "outputTokens": 65908,
+      "inputTokens": 174,
+      "outputTokens": 141876,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
@@ -13875,26 +13887,26 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 6,
       "errors": 0,
-      "tampered": 0,
+      "tampered": 1,
       "escapesDenied": 0,
       "certificateExecutors": [],
       "certified": 0,
       "certificateRate": 0,
-      "parity": 0.9833333333333333,
+      "parity": 0.9833333333333332,
       "attemptsMean": 1,
-      "inputTokens": 92,
-      "outputTokens": 40953,
+      "inputTokens": 264,
+      "outputTokens": 125099,
       "pricingDigests": [],
       "stats": {
-        "groups": 1,
-        "samples": 2,
+        "groups": 2,
+        "samples": 6,
         "passAtK": [
           {
             "k": 1,
             "value": 0,
-            "groups": 1
+            "groups": 2
           }
         ]
       }
@@ -13914,23 +13926,23 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 2,
+      "certified": 4,
       "certificateRate": 1,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 78,
-      "outputTokens": 60330,
+      "inputTokens": 134,
+      "outputTokens": 117458,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
@@ -13954,28 +13966,28 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 6,
       "errors": 0,
       "tampered": 1,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 1,
-      "certificateRate": 0.5,
+      "certified": 5,
+      "certificateRate": 0.8333333333333334,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 66,
-      "outputTokens": 57196,
+      "inputTokens": 186,
+      "outputTokens": 174895,
       "pricingDigests": [],
       "stats": {
-        "groups": 1,
-        "samples": 2,
+        "groups": 2,
+        "samples": 6,
         "passAtK": [
           {
             "k": 1,
-            "value": 0.5,
-            "groups": 1
+            "value": 0.875,
+            "groups": 2
           }
         ]
       }
@@ -13995,27 +14007,27 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 2,
-      "certificateRate": 1,
-      "parity": 1,
+      "certified": 3,
+      "certificateRate": 0.75,
+      "parity": 0.9973591549295775,
       "attemptsMean": 1,
-      "inputTokens": 76,
-      "outputTokens": 136296,
+      "inputTokens": 176,
+      "outputTokens": 244807,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
-            "value": 1,
+            "value": 0.75,
             "groups": 1
           }
         ]
@@ -14036,23 +14048,23 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 2,
+      "certified": 4,
       "certificateRate": 1,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 72,
-      "outputTokens": 68601,
+      "inputTokens": 138,
+      "outputTokens": 140992,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
@@ -14077,23 +14089,23 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 2,
+      "certified": 4,
       "certificateRate": 1,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 50,
-      "outputTokens": 41012,
+      "inputTokens": 112,
+      "outputTokens": 81366,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
@@ -14118,23 +14130,23 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 2,
+      "certified": 4,
       "certificateRate": 1,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 62,
-      "outputTokens": 65059,
+      "inputTokens": 150,
+      "outputTokens": 145999,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
@@ -14159,23 +14171,23 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 2,
+      "certified": 4,
       "certificateRate": 1,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 100,
-      "outputTokens": 83908,
+      "inputTokens": 220,
+      "outputTokens": 177250,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
@@ -14199,28 +14211,28 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 6,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 2,
+      "certified": 6,
       "certificateRate": 1,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 64,
-      "outputTokens": 35163,
+      "inputTokens": 156,
+      "outputTokens": 88807,
       "pricingDigests": [],
       "stats": {
-        "groups": 1,
-        "samples": 2,
+        "groups": 2,
+        "samples": 6,
         "passAtK": [
           {
             "k": 1,
             "value": 1,
-            "groups": 1
+            "groups": 2
           }
         ]
       }
@@ -14240,23 +14252,23 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
-      "runs": 2,
+      "runs": 4,
       "errors": 0,
       "tampered": 0,
       "escapesDenied": 0,
       "certificateExecutors": [
         "runner"
       ],
-      "certified": 2,
+      "certified": 4,
       "certificateRate": 1,
       "parity": 1,
       "attemptsMean": 1,
-      "inputTokens": 90,
-      "outputTokens": 55706,
+      "inputTokens": 176,
+      "outputTokens": 103401,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
-        "samples": 2,
+        "samples": 4,
         "passAtK": [
           {
             "k": 1,
@@ -14281,6 +14293,47 @@
       "heldOut": false,
       "isolation": "none",
       "implementer": "route",
+      "runs": 4,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 2,
+      "certificateRate": 0.5,
+      "parity": 0.9911242603550297,
+      "attemptsMean": 1,
+      "inputTokens": 156,
+      "outputTokens": 154060,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 4,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 0.5,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:sheet-eval",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
       "runs": 2,
       "errors": 0,
       "tampered": 0,
@@ -14290,10 +14343,10 @@
       ],
       "certified": 1,
       "certificateRate": 0.5,
-      "parity": 0.9911242603550297,
+      "parity": 0.9945652173913043,
       "attemptsMean": 1,
-      "inputTokens": 68,
-      "outputTokens": 75493,
+      "inputTokens": 104,
+      "outputTokens": 121649,
       "pricingDigests": [],
       "stats": {
         "groups": 1,
@@ -14302,6 +14355,803 @@
           {
             "k": 1,
             "value": 0.5,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:rate-limit-sim",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 2,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 74,
+      "outputTokens": 49397,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:job-queue",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 2,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 88,
+      "outputTokens": 50900,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:md-render",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [],
+      "certified": 0,
+      "certificateRate": 0,
+      "parity": 0.9822485207100592,
+      "attemptsMean": 1,
+      "inputTokens": 74,
+      "outputTokens": 69834,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 0,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:build-schedule",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 2,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 68,
+      "outputTokens": 57315,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:uri-resolve",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 2,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 90,
+      "outputTokens": 63118,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:conf-canon",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 2,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 64,
+      "outputTokens": 107566,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:config-layers",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 2,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 94,
+      "outputTokens": 87199,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:ranked-choice",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 2,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 78,
+      "outputTokens": 51969,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:task-runner",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [],
+      "certified": 0,
+      "certificateRate": 0,
+      "parity": 0.9833333333333333,
+      "attemptsMean": 1,
+      "inputTokens": 86,
+      "outputTokens": 48766,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 0,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:diff3-merge",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 2,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 118,
+      "outputTokens": 72711,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": "probe"
+        }
+      ],
+      "environmentId": "code:lex-states",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "runs": 2,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 2,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 70,
+      "outputTokens": 58018,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 2,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:date-fns--implement-lightFormat",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "district": "bench-public",
+      "runs": 1,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 8,
+      "outputTokens": 1453,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 1,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:ufo--implement-parseURL",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "district": "bench-public",
+      "runs": 1,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 18,
+      "outputTokens": 2827,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 1,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:change-case--implement-camelCase",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "district": "bench-public",
+      "runs": 1,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 18,
+      "outputTokens": 1976,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 1,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:remeda--implement-chunk",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "district": "bench-public",
+      "runs": 1,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 10,
+      "outputTokens": 801,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 1,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:es-toolkit--implement-dedent",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "district": "bench-public",
+      "runs": 1,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 14,
+      "outputTokens": 2587,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 1,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:ms--implement-parse",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "district": "bench-public",
+      "runs": 1,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 16,
+      "outputTokens": 2903,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 1,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:antfu-utils--implement-deepMerge",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "district": "bench-public",
+      "runs": 1,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 2,
+      "inputTokens": 28,
+      "outputTokens": 6410,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 1,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:string-ts--implement-padStart",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "district": "bench-public",
+      "runs": 1,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 6,
+      "outputTokens": 408,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 1,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:simple-statistics--implement-quantile",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "district": "bench-public",
+      "runs": 1,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 1,
+      "inputTokens": 10,
+      "outputTokens": 1323,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 1,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
+            "groups": 1
+          }
+        ]
+      }
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:case-anything--implement-camelCase",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "district": "bench-public",
+      "runs": 1,
+      "errors": 0,
+      "tampered": 0,
+      "escapesDenied": 0,
+      "certificateExecutors": [
+        "runner"
+      ],
+      "certified": 1,
+      "certificateRate": 1,
+      "parity": 1,
+      "attemptsMean": 2,
+      "inputTokens": 46,
+      "outputTokens": 11111,
+      "pricingDigests": [],
+      "stats": {
+        "groups": 1,
+        "samples": 1,
+        "passAtK": [
+          {
+            "k": 1,
+            "value": 1,
             "groups": 1
           }
         ]
@@ -16989,6 +17839,6 @@
     }
   ],
   "excluded": 0,
-  "unstamped": 227,
+  "unstamped": 279,
   "skipped": []
 }

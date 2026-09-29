@@ -1,0 +1,60 @@
+# pnpm run verify-client-domain-graph on 580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb at 2026-09-28T23:15:33.097Z: fail (405.1s)
+$ tsx scripts/verify-client-domain-graph.ts
+verify-client-domain-graph: 27 violation(s):
+  runtime/src/client/contract/session.ts -> ../sessions/conversation.ts
+    domain "contract" imports sibling domain "sessions" (route shared API through contract/)
+  runtime/src/client/contract/sessions.ts -> ../agents/scope.ts
+    domain "contract" imports sibling domain "agents" (route shared API through contract/)
+  runtime/src/client/contract/sessions.ts -> ../sessions/manager.ts
+    domain "contract" imports sibling domain "sessions" (route shared API through contract/)
+  runtime/src/client/contract/sessions.ts -> ../sessions/service.ts
+    domain "contract" imports sibling domain "sessions" (route shared API through contract/)
+  runtime/src/client/contract/sessions.ts -> ../agents/scope.ts
+    domain "contract" imports sibling domain "agents" (route shared API through contract/)
+  runtime/src/client/contract/workspaces.ts -> ../workspaces/service.ts
+    domain "contract" imports sibling domain "workspaces" (route shared API through contract/)
+  runtime/src/client/sessions/service.ts -> ../agents/scope.ts
+    domain "sessions" imports sibling domain "agents" (route shared API through contract/)
+  runtime/src/client/sessions/service.ts -> ../agents/scope.ts
+    domain "sessions" imports sibling domain "agents" (route shared API through contract/)
+  runtime/src/client/workspaces/manager.ts -> ../sessions/notifier.ts
+    domain "workspaces" imports sibling domain "sessions" (route shared API through contract/)
+  runtime/src/client/workspaces/workspace.ts -> ../sessions/notifier.ts
+    domain "workspaces" imports sibling domain "sessions" (route shared API through contract/)
+  ui-conversation/src/client/contract/slots.ts -> ../input/blocks.ts
+    domain "contract" imports sibling domain "input" (route shared API through contract/)
+  ui-conversation/src/client/contract/slots.ts -> ../input/contract.ts
+    domain "contract" imports sibling domain "input" (route shared API through contract/)
+  ui-conversation/src/client/conversation-nodes/turn-tail.ts -> ../chat/turn-metrics.ts
+    domain "conversation-nodes" imports sibling domain "chat" (route shared API through contract/)
+  ui-conversation/src/client/input/hub.ts -> ../queue/store.ts
+    domain "input" imports sibling domain "queue" (route shared API through contract/)
+  ui-conversation/src/client/queue/store.ts -> ../input/contract.ts
+    domain "queue" imports sibling domain "input" (route shared API through contract/)
+  ui-conversation/src/client/service.ts -> ./input/blocks.ts
+    top-level non-assembly file imports domain "input" (only apply/index may assemble)
+  ui-conversation/src/client/service.ts -> ./input/contract.ts
+    top-level non-assembly file imports domain "input" (only apply/index may assemble)
+  ui-conversation/src/client/skeleton/ApprovalPanel.tsx -> ../chat/tool-node-reader.ts
+    domain "skeleton" imports sibling domain "chat" (route shared API through contract/)
+  ui-conversation/src/client/skeleton/ContextMeter.tsx -> ../chat/StatsLine.tsx
+    domain "skeleton" imports sibling domain "chat" (route shared API through contract/)
+  ui-conversation/src/client/skeleton/DetailsPanel.tsx -> ../chat/tool-node-reader.ts
+    domain "skeleton" imports sibling domain "chat" (route shared API through contract/)
+  ui-conversation/src/client/skeleton/InputBar.tsx -> ../input/decorations.ts
+    domain "skeleton" imports sibling domain "input" (route shared API through contract/)
+  ui-conversation/src/client/skeleton/InputBar.tsx -> ../input/decorations.ts
+    domain "skeleton" imports sibling domain "input" (route shared API through contract/)
+  ui-input-trigger/src/client/controller.ts -> ../core/detect.ts
+    top-level non-assembly file imports domain "core" (only apply/index may assemble)
+  ui-input-trigger/src/client/controller.ts -> ../core/menu.ts
+    top-level non-assembly file imports domain "core" (only apply/index may assemble)
+  ui-input-trigger/src/client/controller.ts -> ../core/contract.ts
+    top-level non-assembly file imports domain "core" (only apply/index may assemble)
+  ui-input-trigger/src/client/slots.ts -> ../core/contract.ts
+    top-level non-assembly file imports domain "core" (only apply/index may assemble)
+  ui-workspace/src/client/WorkspaceBrowser.tsx -> ./rows/Rows.tsx
+    top-level non-assembly file imports domain "rows" (only apply/index may assemble)
+[ELIFECYCLE] Command failed with exit code 1.
+
+exit 1
