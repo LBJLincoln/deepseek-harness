@@ -13,7 +13,7 @@ Daliesk is a pilot: an organisation of AI agents that changes a codebase through
 | Tickets shipped: by units the operator started / by cycles the scheduler started / by units whose starter is not recorded | 2 / 4 / 1 | [ledger.jsonl](../../data/enterprise/ledger.jsonl) |
 | Cycles run / started by the scheduler | 9 / 7 | [captured scheduler log](../../data/transcripts/live/enterprise-cycles) |
 | Shipped commits with a Branch CI run on the exact commit | 0 of 7 | [Branch CI](https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml) |
-| Branch CI runs completed / successful | 126 / 19 | [Branch CI](https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml) |
+| Branch CI runs completed / successful | 127 / 19 | [Branch CI](https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml) |
 | Seats defined (divisions) / occupied by a recorded deliverable | 147 (10) / 58 | [roster.json](../../data/enterprise/roster.json) |
 | Model tokens and time per shipped ticket (mean of 7) | 537,933 tokens, 1,248 s | [ledger.jsonl](../../data/enterprise/ledger.jsonl) |
 | Proving Ground frozen paired experiments / decisive | 22 / 3 | [data/proving-ground](../../data/proving-ground/README.md) |
@@ -59,7 +59,7 @@ Daliesk is a pilot: an organisation of AI agents that changes a codebase through
 ## Limits and risks
 
 - **Scale.** The pilot has shipped 7 tickets, with 34 open, over 10 shift records.
-- **CI.** Of 126 completed Branch CI runs since 27 September 2026, 15:36 UTC, 19 succeeded; the newest run with a verdict failed.
+- **CI.** Of 127 completed Branch CI runs since 27 September 2026, 15:36 UTC, 19 succeeded; the newest run with a verdict failed.
 - **Data-use terms.** 1,688 of 1,798 bench sessions pin data-use terms; code-safety sessions 0 of 114, shift sessions 0 of 35 and intake sessions 0 of 4.
 - **One vendor.** Recorded sessions by provider route: claude-code 1,283, openrouter 29.
 

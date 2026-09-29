@@ -165,19 +165,20 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
       </main>
 
       <footer className="deck__footer">
-        {/* The Operations view is shown to clients; it names its mode, never the feed's address. */}
+        {/* Every view is shown to clients: the footer names the feed's mode, never its address. */}
+        <span>feed <b>{source?.mode ?? '…'}</b></span>
+        <span>·</span>
+        <span>stream <b>{streamState}</b></span>
+        <span>·</span>
+        {/* The Operations view follows no single run, so it names none. */}
         {onOps ? null : (
           <>
-            <span>feed <b>{source?.configured ?? '…'}</b></span>
+            <span>run <b className="deck__run">{run?.name ?? '—'}</b></span>
+            <span>·</span>
+            <span><b>{rate ?? '—'}</b> events/min</span>
             <span>·</span>
           </>
         )}
-        <span>stream <b>{streamState}</b></span>
-        <span>·</span>
-        <span>run <b className="deck__run">{run?.name ?? '—'}</b></span>
-        <span>·</span>
-        <span><b>{rate ?? '—'}</b> events/min</span>
-        <span>·</span>
         <span>quality <b>{qualityPinned ? 'pinned' : 'auto'} · {qualityTier}</b></span>
         {source?.mode === 'replay' ? (
           <>

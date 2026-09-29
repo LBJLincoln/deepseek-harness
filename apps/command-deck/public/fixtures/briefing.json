@@ -505,7 +505,7 @@
       }
     },
     "ci.completed": {
-      "value": 126,
+      "value": 127,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -544,7 +544,7 @@
       }
     },
     "ci.cancelled": {
-      "value": 63,
+      "value": 64,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -1320,9 +1320,11 @@
               "jobs": [
                 {
                   "name": "node 24 / coverage",
-                  "conclusion": null,
+                  "conclusion": "failure",
                   "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474/job/109433129794",
-                  "failedGates": []
+                  "failedGates": [
+                    "test:coverage"
+                  ]
                 },
                 {
                   "name": "node 24 / snapshots and artifacts",
@@ -1341,7 +1343,9 @@
             "base": null,
             "firstGreen": null,
             "verdict": null,
-            "introduced": [],
+            "introduced": [
+              "test:coverage"
+            ],
             "preExisting": []
           },
           "source": {
@@ -1401,9 +1405,11 @@
               "jobs": [
                 {
                   "name": "node 24 / coverage",
-                  "conclusion": null,
+                  "conclusion": "failure",
                   "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474/job/109433129794",
-                  "failedGates": []
+                  "failedGates": [
+                    "test:coverage"
+                  ]
                 },
                 {
                   "name": "node 24 / snapshots and artifacts",
@@ -1422,7 +1428,9 @@
             "base": null,
             "firstGreen": null,
             "verdict": null,
-            "introduced": [],
+            "introduced": [
+              "test:coverage"
+            ],
             "preExisting": []
           },
           "source": {
@@ -3500,16 +3508,25 @@
         {
           "id": 36577013126,
           "head": "5ab918eb669b251139aaa1358173b4c2a1f06279",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "createdAt": "2026-09-29T13:41:53Z",
+          "updatedAt": "2026-09-29T13:46:05Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36577013126"
+        },
+        {
+          "id": 36577541783,
+          "head": "19da282313515d779c44d560ce679341dc0b8986",
           "status": "pending",
           "conclusion": null,
-          "createdAt": "2026-09-29T13:41:53Z",
-          "updatedAt": "2026-09-29T13:41:54Z",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36577013126"
+          "createdAt": "2026-09-29T13:46:04Z",
+          "updatedAt": "2026-09-29T13:46:05Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36577541783"
         }
       ],
       "counts": {
         "failure": 44,
-        "cancelled": 63,
+        "cancelled": 64,
         "success": 19,
         "in_progress": 1,
         "pending": 1
@@ -5024,9 +5041,9 @@
     },
     {
       "path": "data/transcripts/live/enterprise-cycles",
-      "files": 28,
-      "bytes": 51377,
-      "sha256": "8cfa34630494737c9e9366132ab883df15937e963651fe80027824ce21994f13"
+      "files": 30,
+      "bytes": 52788,
+      "sha256": "6955a5c39f9dea1d8f49b574d1dfc8724539c514e1e18aac0edc4d0528c69a8d"
     },
     {
       "path": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments",

@@ -556,6 +556,7 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
     open: n1.cite(f('tickets.open') ?? data.shipped),
     cycle: n1.cite(CYCLE_SOURCE),
     pilot: n1.cite(data.pilot),
+    recovered: n1.cite({ paths: ['data/enterprise/ledger.jsonl', 'data/enterprise/shifts/2026-09-29-001527-881f'], computation: 'Commit 7bd419444 (29 Sep 2026, 06:45 UTC) states that the engine’s three push rounds for shift 001527-881f were refused and that the operator cherry-picked the assembled commit from the kept clone as 3d5210654; commit dae1babd0 changed the ledger line’s shipped commit to cba8e46823, the commit the branch carries.' }),
   }
 
   // ---- 2. Operating model ----------------------------------------------
@@ -847,6 +848,14 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
                 {schedulerCycles.map(row => <li key={row.id}>{cycleAccount(row)}<Cite note={c1.pilot} branch={branch} />.</li>)}
               </ul>
             )}
+            {shipped.some(row => row.ticket === 'T-0007') ? (
+              <p>
+                T-0007 reached the branch by the operator&rsquo;s hand: all three of the engine&rsquo;s push rounds were refused
+                because the branch tip moved, and the operator cherry-picked the assembled commit from the kept clone at 06:45 UTC
+                on 29 Sep, after re-running its acceptance checks; a second commit then pointed its ledger line at the commit the
+                branch carries<Cite note={c1.recovered} branch={branch} />.
+              </p>
+            ) : null}
           </Section>
 
           <Section

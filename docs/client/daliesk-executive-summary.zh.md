@@ -13,7 +13,7 @@ Daliesk 是一个处于试点阶段的 AI（人工智能）智能体组织，通
 | 已交付工单：操作员启动的单元 / 调度器启动的周期 / 启动者未记录的单元 | 2 / 4 / 1 | [ledger.jsonl](../../data/enterprise/ledger.jsonl) |
 | 已运行周期 / 其中由调度器启动 | 9 / 7 | [scheduler.log 的实时捕获](../../data/transcripts/live/enterprise-cycles) |
 | 已交付提交中有 Branch CI 运行测试确切提交的数量 | 0 / 7 | [Branch CI](https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml) |
-| Branch CI 已完成运行 / 成功运行 | 126 / 19 | [Branch CI](https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml) |
+| Branch CI 已完成运行 / 成功运行 | 127 / 19 | [Branch CI](https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml) |
 | 已定义席位（事业部数）/ 被已记录交付物占用的席位 | 147（10）/ 58 | [roster.json](../../data/enterprise/roster.json) |
 | 每张已交付工单的模型 token 与耗时（7 张的平均值） | 537,933 token，1,248 秒 | [ledger.jsonl](../../data/enterprise/ledger.jsonl) |
 | Proving Ground 冻结配对实验 / 结论明确的实验 | 22 / 3 | [data/proving-ground](../../data/proving-ground/README.md) |
@@ -59,7 +59,7 @@ Daliesk 是一个处于试点阶段的 AI（人工智能）智能体组织，通
 ## 局限与风险
 
 - **规模。** 试点共交付 7 张工单，另有 34 张未关闭；10 个班次记录。
-- **CI。** 自 2026 年 9 月 27 日 15:36 UTC 以来，126 次已完成的 Branch CI 运行中有 19 次成功，最近一次有结论的运行失败。
+- **CI。** 自 2026 年 9 月 27 日 15:36 UTC 以来，127 次已完成的 Branch CI 运行中有 19 次成功，最近一次有结论的运行失败。
 - **数据使用条款。** 1,798 个基准会话中有 1,688 个固定了数据使用条款；代码安全会话 114 个中有 0 个、班次会话 35 个中有 0 个与受理会话 4 个中有 0 个。
 - **单一供应商。** 已记录会话按供应商路由统计：claude-code 1,283、openrouter 29。
 
