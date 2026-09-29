@@ -182,6 +182,7 @@ function runSpec(
   overrides: Partial<CodexRunSpec> = {},
 ): CodexRunSpec {
   return {
+    executables: { codex: '/native/codex', cmd: 'C:\\Windows\\System32\\cmd.exe' },
     cwd: process.cwd(),
     env: {},
     disposeGraceMs: DEFAULT_DISPOSE_GRACE_MS,
@@ -260,17 +261,23 @@ function turnCompleted(
 }
 
 describe('task admission and package contracts', () => {
-  it('resolves the fixed app-server command through the Windows npm shim boundary', () => {
-    expect(codexAppServerArgv('win32')).toEqual([
-      'cmd.exe',
+  it('builds the fixed app-server argv from absolute executable paths', () => {
+    expect(codexAppServerArgv(
+      { cmd: 'C:\\Windows\\System32\\cmd.exe', codex: 'C:\\npm\\codex.cmd' },
+      'win32',
+    )).toEqual([
+      'C:\\Windows\\System32\\cmd.exe',
       '/d',
       '/s',
       '/c',
-      'codex',
+      'C:\\npm\\codex.cmd',
       'app-server',
       '--stdio',
     ])
-    expect(codexAppServerArgv('linux')).toEqual(['codex', 'app-server', '--stdio'])
+    expect(codexAppServerArgv({ codex: '/usr/bin/codex' }, 'linux'))
+      .toEqual(['/usr/bin/codex', 'app-server', '--stdio'])
+    expect(() => codexAppServerArgv({ codex: 'C:\\npm\\codex.cmd' }, 'win32'))
+      .toThrow('needs an absolute cmd.exe path')
   })
 
   it('accepts one or more text blocks and rejects empty or non-text tasks', () => {
@@ -862,7 +869,7 @@ describe('run lifecycle and quiescence', () => {
     child.peer.respond(threadStart, { thread: { id: 'thread-1', ephemeral: true } })
     const run = await starting
     expect(spawn).toHaveBeenCalledWith({
-      argv: codexAppServerArgv(),
+      argv: codexAppServerArgv({ codex: '/native/codex' }),
       cwd: process.cwd(),
       stdio: { stdin: 'pipe', stdout: 'pipe', stderr: 'inherit' },
       graceMs: DEFAULT_DISPOSE_GRACE_MS,
@@ -938,6 +945,7 @@ describe('run lifecycle and quiescence', () => {
     await expect(startCodexRun(
       request(undefined, controller.signal),
       {
+        executables: { codex: '/native/codex' },
         cwd: process.cwd(),
         env: {},
         disposeGraceMs: 10,
@@ -1018,6 +1026,7 @@ describe('run lifecycle and quiescence', () => {
     await ctx.plugin(LocalSubprocessRuntime)
     const child = fakeChild()
     const spawn = vi.spyOn(ctx.subprocess, 'spawn').mockReturnValue(child.handle)
+    vi.spyOn(ctx.subprocess, 'resolveExecutable').mockResolvedValue('/native/codex')
     const warnings: string[] = []
     ctx.logger.warn = ((message: unknown) => {
       warnings.push(String(message))
@@ -1044,6 +1053,7 @@ describe('run lifecycle and quiescence', () => {
       env: { OPENAI_API_KEY: 'fake' },
       graceMs: 25,
       cwd: process.cwd(),
+      argv: ['/native/codex', 'app-server', '--stdio'],
     }))
     expect(warnings).toEqual([
       expect.stringContaining('subagent-codex: child run failed (error):'),

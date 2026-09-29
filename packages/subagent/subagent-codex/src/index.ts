@@ -22,6 +22,7 @@ import {
 import {
   DEFAULT_DISPOSE_GRACE_MS,
   startCodexRun,
+  type CodexExecutables,
   type CodexRunSpec,
 } from './run.ts'
 
@@ -62,7 +63,7 @@ class CodexProvider implements SubagentProvider {
     private readonly config: ResolvedConfig,
   ) {}
 
-  start(request: ResolvedSubagentStartRequest) {
+  async start(request: ResolvedSubagentStartRequest) {
     assertOutOfProcessAllowed(this.ctx, request.parent)
     const parentCwd = request.parent.session.header.cwd
     if (parentCwd === undefined) {
@@ -70,7 +71,21 @@ class CodexProvider implements SubagentProvider {
         'subagent-codex: no working directory for the child — delegate from a parent session that has one',
       )
     }
+    const codexPath = await this.ctx.subprocess.resolveExecutable(
+      'codex',
+      this.config.env,
+      request.signal,
+    )
+    const executables: CodexExecutables = { codex: codexPath }
+    if (process.platform === 'win32') {
+      executables.cmd = await this.ctx.subprocess.resolveExecutable(
+        'cmd.exe',
+        this.config.env,
+        request.signal,
+      )
+    }
     const spec: CodexRunSpec = {
+      executables,
       cwd: resolveChildCwd(
         'subagent-codex',
         undefined,
