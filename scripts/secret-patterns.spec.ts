@@ -75,7 +75,8 @@ describe('shared secret and personal-data patterns', () => {
     const single = JSON.stringify({ commit: `Co-Authored-By: Jane <${EMAIL}>` })
     expect(JSON.parse(mask(single).text)).toEqual({ commit: 'Co-Authored-By: Jane <[REDACTED-EMAIL]>' })
     const double = JSON.stringify({ result: JSON.stringify({ log: `x\n${EMAIL}` }) })
-    expect(JSON.parse(JSON.parse(mask(double).text).result)).toEqual({ log: 'x\n[REDACTED-EMAIL]' })
+    const outer = JSON.parse(mask(double).text) as { result: string }
+    expect(JSON.parse(outer.result)).toEqual({ log: 'x\n[REDACTED-EMAIL]' })
     const escaped = String.raw`{"to":"<${EMAIL}>"}`
     expect(JSON.parse(mask(escaped).text)).toEqual({ to: '<[REDACTED-EMAIL]>' })
   })
