@@ -10,6 +10,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { CheckId, StandardCheck } from '@deepseek-ai/dsh-verification/types'
 import { redactText, scanSecrets, SECRET_PATTERN_NAMES } from '../../../../../data/transcripts/tools/secret-patterns.mjs'
+import { ticketAcceptanceRefusal } from '../../../../../scripts/enterprise-acceptance.ts'
+import { scrubbedEnvironment } from '../../../../../scripts/enterprise-intake-admission.ts'
 import { ROSTER_PATH } from '../../../../../scripts/enterprise-roster.ts'
 import type { Roster } from '../../../../../scripts/enterprise-roster.ts'
 import { loadTickets, validateTickets } from '../../../../../scripts/enterprise-tickets.ts'
@@ -418,6 +420,56 @@ export function documentationCheck(policy: QueuePolicy, base: string, id: CheckI
     outcome: `a change that touches a Markdown document passes: ${policy.documentationRun}`,
     run: `! git diff --name-only ${base} HEAD -- '*.md' | grep -q . || ${policy.documentationRun}`,
   }]
+}
+
+/**
+ * The prefix of the reason a ticket line carries when the engine refused to
+ * work a ticket whose acceptance takes a form the queue does not allow.
+ */
+export const ACCEPTANCE_REFUSED_REASON = 'refused: acceptance'
+
+/**
+ * The selected tickets the engine refuses to work: those carrying an
+ * acceptance command outside the queue's forms. Admission refuses such a
+ * proposal, and a queued file can change after admission, so the engine
+ * checks again before any department runs.
+ * @param tickets - the selected tickets.
+ * @param policy - the queue's policy, whose forms decide.
+ * @returns ticket id to the ledger reason, starting with {@link ACCEPTANCE_REFUSED_REASON}, for each refused ticket.
+ */
+export function acceptanceRefusals(tickets: readonly Ticket[], policy: QueuePolicy): Map<string, string> {
+  const refusals = new Map<string, string>()
+  for (const ticket of tickets) {
+    const refused = ticketAcceptanceRefusal(ticket.acceptance, policy.acceptanceForms)
+    if (refused !== undefined) refusals.set(ticket.id, `${ACCEPTANCE_REFUSED_REASON} ${refused}; the ticket must be rewritten before a shift works it`)
+  }
+  return refusals
+}
+
+/** Variables every command the engine itself spawns for a ticket keeps by name. */
+const CHECK_ENV_NAMES: ReadonlySet<string> = new Set(['PATH', 'HOME', 'ENTERPRISE_HEAVY_LOCK', 'DSH_E2E_INSTALL_LOG'])
+
+/** Name prefixes of the node and pnpm variables those commands keep. */
+const CHECK_ENV_PREFIXES = ['NODE_', 'npm_config_', 'NPM_CONFIG_', 'PNPM_', 'COREPACK_']
+
+/** Proxy variables, which no offline install or check needs. */
+const PROXY_NAME = /proxy/i
+
+/**
+ * The environment of every command the engine spawns for a ticket outside the
+ * program — the recertification's acceptance, linter and documentation runs
+ * and the offline installs: `PATH`, `HOME`, the node and pnpm variables, the
+ * heavy lock the heavy runs take, and `DSH_E2E_INSTALL_LOG`, which the keyless
+ * e2e's seeded postinstall appends to. The engine's own environment carries
+ * the host's credentials and push access; nothing else of it is kept, and of
+ * what is kept, every name `scrubbedEnvironment` treats as a credential and
+ * every proxy variable is dropped as well.
+ * @param env - the engine's environment.
+ * @returns the environment those commands run with.
+ */
+export function checkEnvironment(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  return Object.fromEntries(Object.entries(scrubbedEnvironment(env)).filter(([name]) =>
+    (CHECK_ENV_NAMES.has(name) || CHECK_ENV_PREFIXES.some(prefix => name.startsWith(prefix))) && !PROXY_NAME.test(name)))
 }
 
 /** Quote one word for bash: single quotes, each embedded single quote closed, escaped, and reopened. */

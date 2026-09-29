@@ -13,11 +13,15 @@
  *    department takes a request as its source;
  * 3. with the next free id of the queue assigned, {@link validateTickets}
  *    accepts it beside every ticket already queued;
- * 4. its `seat` is the owner of its `scope`: a seat among the most specific
+ * 4. every acceptance command takes one of the queue's forms
+ *    (`scripts/enterprise-acceptance.ts`), so no command a model wrote at
+ *    intake pushes, reaches the network, or runs anything but the
+ *    repository's own checks;
+ * 5. its `seat` is the owner of its `scope`: a seat among the most specific
  *    roster seats whose `source` covers every scope entry;
- * 5. no open or shipped ticket, and no ticket admitted earlier in the same
+ * 6. no open or shipped ticket, and no ticket admitted earlier in the same
  *    intake, has the same source path and anchor;
- * 6. it carries at least one check of its own, and every one of them fails on
+ * 7. it carries at least one check of its own, and every one of them fails on
  *    a clean checkout of the tip.
  *
  * A check of its own is every acceptance command except the queue's guards:
@@ -32,8 +36,9 @@ import { existsSync, readFileSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import { SECRET_PATTERN_NAMES, redactText } from '../data/transcripts/tools/secret-patterns.mjs'
+import { ticketAcceptanceRefusal } from './enterprise-acceptance.ts'
 import type { Roster, RosterAgentDefinition } from './enterprise-roster.ts'
-import { isRequestFile, loadTickets, REQUEST_PRIORITY, TICKETS_DIR, validateTickets } from './enterprise-tickets.ts'
+import { HARNESS_QUEUE_POLICY, isRequestFile, loadTickets, REQUEST_PRIORITY, TICKETS_DIR, validateTickets } from './enterprise-tickets.ts'
 import type { LoadedTicket } from './enterprise-tickets.ts'
 
 /** The enterprise ledger, relative to the repository root. */
@@ -415,6 +420,7 @@ type RefusalCode =
   | 'over-limit'
   | 'request'
   | 'invalid'
+  | 'acceptance-form'
   | 'owner'
   | 'duplicate'
   | 'no-own-check'
@@ -577,6 +583,8 @@ async function admitOne(
     .map(error => error.startsWith(`${file}: `) ? error.slice(file.length + 2) : error)
   if (errors.length > 0) return refuse(index, proposal, 'invalid', errors.join('; '))
   const ticket = candidate as unknown as Ticket
+  const form = ticketAcceptanceRefusal(ticket.acceptance, HARNESS_QUEUE_POLICY.acceptanceForms)
+  if (form !== undefined) return refuse(index, proposal, 'acceptance-form', `acceptance ${form}`)
   const owners = owningSeats(context.roster, context.tip, ticket.scope)
   if (!owners.includes(ticket.seat)) {
     const named = owners.length === 0 ? 'no roster seat covers every scope entry' : `its scope is owned by ${owners.join(' or ')}`

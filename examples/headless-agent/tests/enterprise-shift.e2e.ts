@@ -12,7 +12,10 @@
  * about what a model can build. Every clone carries a pre-push hook that
  * refuses every push, as the repository's own hook refuses a push from a clone
  * whose root is not installed, and every shift names a heavy lock its heavy
- * acceptance runs take. The overlay under the fixture's `overlays/` is the same
+ * acceptance runs take. Every shift also carries a credential-named variable
+ * the seeded heavy check fails on, so a ticket shipping through that check
+ * shows the variable reached neither the department's check nor the engine's
+ * recertification. The overlay under the fixture's `overlays/` is the same
  * shift on the operator's Claude Code route.
  */
 
@@ -54,6 +57,12 @@ const INSTALL_GUARD_PASSED = 'node_modules/.install-guard-passed'
  */
 const INSTALL_LOG = join(tmpdir(), `enterprise-shift-installs-${process.pid}.log`)
 process.env['DSH_E2E_INSTALL_LOG'] = INSTALL_LOG
+
+/** A credential-named variable in the engine's environment; `seed/checks/coverage.sh` fails wherever it arrives. */
+const CANARY_CREDENTIAL = 'ENTERPRISE_E2E_API_TOKEN'
+
+/** The reason the engine records for the seeded `T-0006`, whose acceptance chains a push. */
+const REFUSED_PUSH = 'refused: acceptance sixes: `git push` is not an allowed acceptance command; only `git diff` is; the ticket must be rewritten before a shift works it'
 
 /** Several departments, their reviews, an assembly and a push outrun the default window. */
 const PHASE_TIMEOUT_MS = 300_000
@@ -181,6 +190,7 @@ async function runShift(remote: string, env: Record<string, string>, expectedExi
       ENTERPRISE_HEAVY_LOCK: heavyLock,
       ENTERPRISE_PUSH_LOCK: join(scratchRoot, 'push.lock'),
       DSH_ENTERPRISE_LINT_RUN: SEED_LINT_RUN,
+      [CANARY_CREDENTIAL]: 'e2e-canary-credential',
       ...env,
     },
   })
@@ -212,15 +222,18 @@ function lineOf(observed: ShiftResult, ticket: string): TicketLedgerLine & { rat
 }
 
 describe('an enterprise shift through a real cordis.yml over a seeded remote', () => {
-  it('ships the approved ticket, records the failed and out-of-scope ones, and pushes the ledger with the work', async () => {
+  it('ships the approved ticket, records the failed, out-of-scope and refused ones, and pushes the ledger with the work', async () => {
     const { remote, base } = await seedRemote()
-    const observed = await runShift(remote, { DSH_ENTERPRISE_TICKETS: 'T-0001,T-0002,T-0004', DSH_ENTERPRISE_SHIFT: 'e2e-mixed' })
+    const observed = await runShift(remote, { DSH_ENTERPRISE_TICKETS: 'T-0001,T-0002,T-0004,T-0006', DSH_ENTERPRISE_SHIFT: 'e2e-mixed' })
 
     // Not every department certified, so the program's own integration never
     // ran; the shift assembled the one approved department on its own.
     expect(observed.report.outcome).toBe('failed')
     expect(observed.report.goals.map(goal => [goal.key, goal.status])).toEqual([['t-0001', 'certified'], ['t-0002', 'failed'], ['t-0004', 'failed']])
 
+    // T-0001's heavy check fails wherever the credential-named variable
+    // arrives: it passed in the department's standard, through the composed
+    // shell, and again in the engine's recertification, which shipped it.
     const shipped = lineOf(observed, 'T-0001')
     expect(shipped.department.outcome).toBe('certified')
     expect(shipped.checks).toEqual([
@@ -264,6 +277,13 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     for (const key of ['t-0001', 't-0002', 't-0004', '@integration']) {
       expect(installed, key).toContain(join(observed.programId, key))
     }
+    // T-0006 chains a push into its acceptance: the engine refused it before
+    // any department ran, so it has no worktree, no session and no check.
+    expect(installed).not.toContain(join(observed.programId, 't-0006'))
+    const refused = lineOf(observed, 'T-0006')
+    expect(refused.department).toEqual({ outcome: 'blocked', sessionId: null })
+    expect(refused.reason).toBe(REFUSED_PUSH)
+    expect([refused.checks, refused.review, refused.integration, refused.shipped]).toEqual([[], { verdict: 'none', sessionId: null }, { outcome: 'skipped' }, null])
     // The worktrees were removed before the assembled tree was recertified at
     // the clone's root, so a gate that walks the filesystem sees only that tree.
     expect(existsSync(join(observed.repo, observed.programId))).toBe(false)
@@ -295,11 +315,11 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(observed.pushed).toEqual({ commit: observed.shiftCommit, rounds: 1 })
     const log = remoteLog(remote)
     expect(log.map(entry => entry.sha)).toEqual([observed.shiftCommit, shipped.shipped?.commit, observed.base, base])
-    expect(log[2]?.message.split('\n')[0]).toBe('chore(enterprise): shift e2e-mixed starts over T-0001, T-0002, T-0004')
+    expect(log[2]?.message.split('\n')[0]).toBe('chore(enterprise): shift e2e-mixed starts over T-0001, T-0002, T-0004, T-0006')
     expect(log[2]?.message.split('\n').slice(-2)).toEqual(['Co-Authored-By: Daliesk enterprise shift <noreply@anthropic.com>', TRAILERS[1]])
     expect(git(remote, 'diff', '--name-only', base, observed.base)).toBe('data/enterprise/shift-starts.jsonl')
     expect(remoteStarts(remote)).toEqual([expect.objectContaining({
-      type: 'shift-start', shift: 'e2e-mixed', tickets: ['T-0001', 'T-0002', 'T-0004'], base, host: hostname(), implementer: 'route',
+      type: 'shift-start', shift: 'e2e-mixed', tickets: ['T-0001', 'T-0002', 'T-0004', 'T-0006'], base, host: hostname(), implementer: 'route',
     })])
     const ticketCommit = log[1]?.message ?? ''
     expect(ticketCommit.split('\n')[0]).toBe('T-0001: Add the greeting tool')
@@ -332,8 +352,9 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
       ['T-0001', 'e2e-mixed', 'shipped'],
       ['T-0002', 'e2e-mixed', null],
       ['T-0004', 'e2e-mixed', null],
+      ['T-0006', 'e2e-mixed', null],
     ])
-    expect([...ticketStatuses(ledger).entries()]).toEqual([['T-0001', 'shipped'], ['T-0002', 'open'], ['T-0004', 'open']])
+    expect([...ticketStatuses(ledger).entries()]).toEqual([['T-0001', 'shipped'], ['T-0002', 'open'], ['T-0004', 'open'], ['T-0006', 'open']])
     const files = git(remote, 'ls-tree', '-r', '--name-only', 'main', observed.record).split('\n')
     expect(files).toContain(`${observed.record}/result.json`)
     expect(files).toContain(`${observed.record}/manifest.json`)
@@ -461,6 +482,20 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(log[4]?.sha).toBe(base)
     expect(observed.base).toBe(log[2]?.sha)
     expect(git(remote, 'show', 'main:tools/echo.mjs')).toBe("console.log('echo')")
+  }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('refuses a shift whose every ticket carries a disallowed acceptance command, runs no department, and pushes the reason', async () => {
+    const { remote, base } = await seedRemote()
+    const observed = await runShift(remote, { DSH_ENTERPRISE_TICKETS: 'T-0006', DSH_ENTERPRISE_SHIFT: 'e2e-refused' })
+    expect(observed.report).toBeNull()
+    expect(observed.programId).toBe('')
+    const line = lineOf(observed, 'T-0006')
+    expect(line.department).toEqual({ outcome: 'blocked', sessionId: null })
+    expect(line.reason).toBe(REFUSED_PUSH)
+    expect(observed.pushed).toEqual({ commit: observed.shiftCommit, rounds: 1 })
+    expect(remoteLog(remote).map(entry => entry.sha)).toEqual([observed.shiftCommit, observed.base, base])
+    expect(remoteLedger(remote).map(entry => [entry.ticket, entry.department.outcome, entry.reason])).toEqual([['T-0006', 'blocked', REFUSED_PUSH]])
+    expect(git(remote, 'for-each-ref', '--format=%(refname)')).toBe('refs/heads/main')
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
 
   it('halts on the route limit, ships nothing, and records the reset with every ticket', async () => {

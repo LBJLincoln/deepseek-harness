@@ -23,6 +23,7 @@
 | 它位于其部门前 `--max-tickets` 张拟议工单之内；对请求的部门而言，它是第一张。 | `over-limit` |
 | 它答复某个请求，当且仅当它的部门就是该请求的部门：请求的部门提交的工单，其 `source` 是该请求的文件及其标题行，其 `priority` 为 `0`；其他部门都不得以请求作为 source。 | `request` |
 | 赋予队列的下一个编号后，[`validateTickets`](../../../../../scripts/enterprise-tickets.ts) 在所有已排队工单旁接受它。 | `invalid` |
+| 每条验收命令都采用队列的某种形式（[`scripts/enterprise-acceptance.ts`](../../../../../scripts/enterprise-acceptance.ts)）：`pnpm run` 运行 `typecheck`、`doc-sync`、`lint`、`test:snapshot` 或某个 `verify-*` 脚本，`pnpm exec vitest run`、`pnpm exec tsc`、`grep`、`test` 或 `git diff`，以 `&&`、`||` 与 `|` 连接，每个词都是字面量且位于检出之内，因此模型写下的任何命令都不会推送、调用 `curl` 或 `gh`，也不会做命令替换。班次引擎同样拒绝违反这些形式的已排队工单。 | `acceptance-form` |
 | 它的 `seat` 拥有它的 `scope`：在 `source` 覆盖每个 scope 条目的花名册席位中，覆盖前缀最长的那些。`README.md` 形式的 source 覆盖其所在目录，目录覆盖它自身，文件只覆盖它自己。 | `owner` |
 | 没有任何开放或已发布的工单、也没有同一次受理中更早接纳的工单，与它有相同的 `source.path` 和 `source.anchor`。 | `duplicate` |
 | 它带有自己的检查：除 `pnpm run typecheck`、`pnpm run doc-sync` 和 `--coverage` 运行之外的验收命令；按队列规则，后三者在改动前后都通过。 | `no-own-check` |

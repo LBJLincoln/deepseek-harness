@@ -52,7 +52,7 @@ Proving Ground 与 Code Safety 在其交付物验证无误期间不持有工单�
 | `source` | `path` 存在于仓库树中，且其内容逐字包含 `anchor`。 |
 | `task` | 问题及其以 `path:line` 形式给出的证据、要求达到的行为、约束它的仓库规则，以及不得触碰的内容。 |
 | `scope` | 非空；每个前缀都存在；评审人拒绝任何越出范围的 diff。 |
-| `acceptance` | 非空；检查 id 在工单内唯一；始终包含该包的逐文件覆盖率运行和 `pnpm run typecheck`，工单涉及文档时再加 `pnpm run doc-sync`。 |
+| `acceptance` | 非空；检查 id 在工单内唯一；始终包含该包的逐文件覆盖率运行和 `pnpm run typecheck`，工单涉及文档时再加 `pnpm run doc-sync`。每条命令都须采用 [`scripts/enterprise-acceptance.ts`](../../../scripts/enterprise-acceptance.ts) 的某种形式——`pnpm run` 运行 `typecheck`、`doc-sync`、`lint`、`test:snapshot` 或某个 `verify-*` 脚本，`pnpm exec vitest run`、`pnpm exec tsc`、`grep`、`test`、`git diff`，以 `&&`、`||` 与 `|` 连接且只用字面量词——否则引擎拒绝处理该工单。 |
 | `budget` | 正整数：一次尝试的 token 上限与墙钟时间上限。 |
 | `priority` | `1`（最先）到 `3`（最后）；当 `source.path` 是 `data/enterprise/requests/` 下的某个请求时取 `0`。 |
 

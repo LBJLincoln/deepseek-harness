@@ -13,6 +13,8 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { basename, isAbsolute, resolve } from 'node:path'
 
+import { HARNESS_ACCEPTANCE_FORMS, OPEN_ACCEPTANCE_FORMS } from './enterprise-acceptance.ts'
+import type { AcceptanceForms } from './enterprise-acceptance.ts'
 import type { Roster } from './enterprise-roster.ts'
 
 /** Queue directory, relative to the repository root. */
@@ -88,6 +90,13 @@ export interface QueuePolicy {
    * change that makes one stale must regenerate it, whichever package it is in.
    */
   readonly generatedPaths: readonly string[]
+  /**
+   * The forms every acceptance command must take
+   * ([`enterprise-acceptance.ts`](enterprise-acceptance.ts)): admission
+   * refuses a proposal carrying another, and the shift engine refuses to work
+   * a queued ticket carrying another.
+   */
+  readonly acceptanceForms: AcceptanceForms
 }
 
 /** The commands this repository's heavy runs contain: the typecheck, a coverage run, and the documentation gates. */
@@ -132,19 +141,22 @@ export const HARNESS_QUEUE_POLICY: QueuePolicy = {
     'packages/core/session/src/known-event-types.ts',
     'packages/core/scope/src/scoped-events.generated.ts',
   ],
+  acceptanceForms: HARNESS_ACCEPTANCE_FORMS,
 }
 
 /**
  * A queue that mandates nothing beyond the ticket's own checks and owns no
  * generated file, for a repository without this one's gates. Its heavy runs
  * are marked by the same fragments, which name what a command does rather than
- * what a queue requires.
+ * what a queue requires; its acceptance commands run a repository file with
+ * `node` or `sh` where this repository's name a root script.
  */
 export const OPEN_QUEUE_POLICY: QueuePolicy = {
   requiredRuns: [],
   requiredFragments: [],
   heavyFragments: HEAVY_FRAGMENTS,
   generatedPaths: [],
+  acceptanceForms: OPEN_ACCEPTANCE_FORMS,
 }
 
 /** One queue file as read from disk, before validation. */

@@ -52,7 +52,7 @@ The engine takes open tickets by `priority`, so intake assigns priorities so tha
 | `source` | `path` exists in the tree and its content contains `anchor` verbatim. |
 | `task` | The problem with its evidence as `path:line`, the required behaviour, the repository rules that constrain it, and what not to touch. |
 | `scope` | Non-empty; every prefix exists; the reviewer rejects a diff outside it. |
-| `acceptance` | Non-empty; check ids unique within the ticket; always includes the package's per-file coverage run and `pnpm run typecheck`, plus `pnpm run doc-sync` when the ticket touches documentation. |
+| `acceptance` | Non-empty; check ids unique within the ticket; always includes the package's per-file coverage run and `pnpm run typecheck`, plus `pnpm run doc-sync` when the ticket touches documentation. Every command takes one of the forms of [`scripts/enterprise-acceptance.ts`](../../../scripts/enterprise-acceptance.ts) — `pnpm run` of `typecheck`, `doc-sync`, `lint`, `test:snapshot` or a `verify-*` script, `pnpm exec vitest run`, `pnpm exec tsc`, `grep`, `test`, `git diff`, joined by `&&`, `||` and `|` with literal words only — or the engine refuses to work the ticket. |
 | `budget` | Positive integers: the token and wall-clock ceilings of one attempt. |
 | `priority` | `1` (first) to `3` (last), or `0` when `source.path` is a request under `data/enterprise/requests/`. |
 

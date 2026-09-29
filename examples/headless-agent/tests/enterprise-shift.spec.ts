@@ -2,10 +2,12 @@
  * The pure half of the enterprise shift: ticket selection from the ledger, the
  * standard a ticket compiles to under the heavy lock and the generated paths,
  * the objective and the ticket the reviewer reads, the reviewer's verdict line,
- * the shipped commit message, and the redaction every recorded byte passes
- * through.
+ * the shipped commit message, the redaction every recorded byte passes
+ * through, the tickets the engine refuses to work, and the environment of the
+ * commands the engine spawns itself.
  */
 
+import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import type { CheckId } from '@deepseek-ai/dsh-verification/types'
@@ -13,7 +15,10 @@ import { HARNESS_QUEUE_POLICY, OPEN_QUEUE_POLICY } from '../../../scripts/enterp
 import {
   ABANDONED_REASON,
   abandonedLines,
+  ACCEPTANCE_REFUSED_REASON,
+  acceptanceRefusals,
   acceptanceRun,
+  checkEnvironment,
   departmentKey,
   departmentObjective,
   documentationCheck,
@@ -372,5 +377,47 @@ describe('the record', () => {
     const startedAt = new Date('2026-09-28T18:45:01.500Z')
     expect(shiftIdFor(startedAt, 'ab12')).toBe('184501-ab12')
     expect(shiftRecordName(startedAt, '184501-ab12')).toBe('2026-09-28-184501-ab12')
+  })
+})
+
+describe('the tickets the engine refuses to work', () => {
+  it('refuses a ticket whose acceptance chains a command outside the queue\'s forms, and names the check', () => {
+    const pushing = { ...ticket('T-0008', 1), acceptance: [{ id: 'runs', run: 'node tools/x.mjs' }, { id: 'ships', run: 'grep -q x tools/x.mjs && git push origin HEAD' }] }
+    const refusals = acceptanceRefusals([ticket('T-0007', 1), pushing], OPEN_QUEUE_POLICY)
+    expect([...refusals.keys()]).toEqual(['T-0008'])
+    expect(refusals.get('T-0008')).toBe(`${ACCEPTANCE_REFUSED_REASON} ships: \`git push\` is not an allowed acceptance command; only \`git diff\` is; the ticket must be rewritten before a shift works it`)
+  })
+
+  it('refuses under this repository\'s forms a direct run of a repository file the open queue allows', () => {
+    expect(acceptanceRefusals([ticket('T-0007', 1)], OPEN_QUEUE_POLICY).size).toBe(0)
+    expect(acceptanceRefusals([ticket('T-0007', 1)], HARNESS_QUEUE_POLICY).get('T-0007')).toMatch(/^refused: acceptance runs: `node` is not an allowed acceptance command/)
+  })
+})
+
+describe('the environment of the commands the engine spawns itself', () => {
+  const engine = {
+    PATH: process.env['PATH'],
+    HOME: '/home/engine',
+    NODE_OPTIONS: '--max-old-space-size=8192',
+    npm_config_store_dir: '/store',
+    npm_config_https_proxy: 'http://proxy.invalid:3128',
+    npm_config__authToken: 'npm-credential',
+    ENTERPRISE_HEAVY_LOCK: '/tmp/heavy.lock',
+    DSH_E2E_INSTALL_LOG: '/tmp/installs.log',
+    GH_TOKEN: 'forge-credential',
+    GIT_ASKPASS: '/usr/local/bin/askpass',
+    GIT_CONFIG_COUNT: '1',
+    HTTPS_PROXY: 'http://proxy.invalid:3128',
+    ENTERPRISE_PUSH_LOCK: '/tmp/push.lock',
+  }
+
+  it('keeps the search path, the home directory, the node and pnpm variables, the heavy lock and the e2e install log, and nothing else', () => {
+    expect(Object.keys(checkEnvironment(engine)).sort()).toEqual(['DSH_E2E_INSTALL_LOG', 'ENTERPRISE_HEAVY_LOCK', 'HOME', 'NODE_OPTIONS', 'PATH', 'npm_config_store_dir'])
+  })
+
+  it('does not hand a credential-named variable to a spawned check', () => {
+    const check = spawnSync('bash', ['-c', 'test -z "${GH_TOKEN:-}" && test -z "${GIT_ASKPASS:-}" && test -n "$ENTERPRISE_HEAVY_LOCK"'], { env: checkEnvironment(engine) })
+    expect(check.status).toBe(0)
+    expect(spawnSync('bash', ['-c', 'test -z "${GH_TOKEN:-}"'], { env: engine }).status).toBe(1)
   })
 })

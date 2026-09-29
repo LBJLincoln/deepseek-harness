@@ -60,7 +60,9 @@ import { ROSTER_PATH } from '../../../../../scripts/enterprise-roster.ts'
 import type { Roster } from '../../../../../scripts/enterprise-roster.ts'
 import {
   abandonedLines,
+  acceptanceRefusals,
   acceptanceRun,
+  checkEnvironment,
   departmentKey,
   departmentObjective,
   documentationCheck,
@@ -230,20 +232,26 @@ function tryGit(cwd: string, ...args: string[]): { ok: boolean; output: string }
   return { ok: result.status === 0, output: `${result.stdout}${result.stderr}`.trim() }
 }
 
-/** Run one shell command line at a directory, as the program's checks run: exit 0 is a pass. */
+/**
+ * Run one shell command line at a directory, as the program's checks run: exit
+ * 0 is a pass. It runs with {@link checkEnvironment}, never the engine's own
+ * environment, which carries the host's credentials.
+ */
 function runCheck(cwd: string, command: string): { ok: boolean; output: string } {
-  const result = spawnSync('bash', ['-c', command], { cwd, encoding: 'utf8', env: process.env })
+  const result = spawnSync('bash', ['-c', command], { cwd, encoding: 'utf8', env: checkEnvironment(process.env) })
   return { ok: result.status === 0, output: `${result.stdout}${result.stderr}`.trim() }
 }
 
 /**
  * Install the repository's dependencies from the warm store, when it has a
- * lockfile to install from. A repository without one installs nothing.
+ * lockfile to install from. A repository without one installs nothing. The
+ * install runs the checkout's lifecycle scripts, which a department may have
+ * changed, so it runs with {@link checkEnvironment} as a check does.
  * @param cwd - the checkout to install in.
  */
 function installOffline(cwd: string): void {
   if (!existsSync(join(cwd, 'pnpm-lock.yaml'))) return
-  const result = spawnSync('pnpm', ['install', '--offline', '--frozen-lockfile'], { cwd, encoding: 'utf8', env: process.env })
+  const result = spawnSync('pnpm', ['install', '--offline', '--frozen-lockfile'], { cwd, encoding: 'utf8', env: checkEnvironment(process.env) })
   if (result.status !== 0) throw new Error(`pnpm install --offline --frozen-lockfile failed in ${cwd}: ${`${result.stdout}${result.stderr}`.slice(-2000)}`)
 }
 
@@ -747,24 +755,35 @@ if ('refused' in started) {
 // Every worktree is cut from the start commit, which the remote already
 // carries, so the final push fast-forwards from it.
 const { base } = started
-const spec = programSpec(repo, selected, base, config.implementer, policy, config.heavyLock)
-const programId = programIdFor(programSpecDigest(resolveProgramSpec(spec)))
-const runs: TicketRun[] = selected.map(ticket => ({
-  ticket,
-  key: departmentKey(ticket.id),
-  outcome: 'pending',
-  sessionId: null,
-  revision: undefined,
-  checks: [],
-  reviewed: [],
-  review: { verdict: 'none', sessionId: null, rationale: '' },
-  reviewer: null,
-  integration: 'skipped',
-  commit: null,
-  reason: '',
-  tokens: 0,
-  seconds: 0,
-}))
+// A selected ticket whose acceptance takes a form the queue does not allow is
+// refused before any department runs: it gets its ledger line with the
+// reason, and the program is composed of the others alone.
+const refusals = acceptanceRefusals(selected, policy)
+const workable = selected.filter(ticket => !refusals.has(ticket.id))
+const spec = workable.length === 0 ? undefined : programSpec(repo, workable, base, config.implementer, policy, config.heavyLock)
+const programId = spec === undefined ? '' : programIdFor(programSpecDigest(resolveProgramSpec(spec)))
+/** Every selected ticket's run, in selection order: the refused ones and the program's. */
+const allRuns: TicketRun[] = selected.map((ticket) => {
+  const refused = refusals.get(ticket.id)
+  return {
+    ticket,
+    key: departmentKey(ticket.id),
+    outcome: refused === undefined ? 'pending' : 'blocked',
+    sessionId: null,
+    revision: undefined,
+    checks: [],
+    reviewed: [],
+    review: { verdict: 'none', sessionId: null, rationale: '' },
+    reviewer: null,
+    integration: 'skipped',
+    commit: null,
+    reason: refused ?? '',
+    tokens: 0,
+    seconds: 0,
+  }
+})
+/** The runs of the program's departments, which every later step works on. */
+const runs = allRuns.filter(run => !refusals.has(run.ticket.id))
 process.env['DSH_ENTERPRISE_REPO'] = repo
 process.env['DSH_ENTERPRISE_SESSIONS'] = sessionsRoot
 process.env['DSH_ENTERPRISE_PRESETS'] = presetsDir
@@ -797,13 +816,13 @@ let trailers: CommitTrailers = { coAuthor: 'Daliesk enterprise shift <noreply@an
 // the ledger, not a process exit.
 let prepared: string | undefined
 try {
-  prepareWorktrees(repo, programId, runs.map(run => run.key), base)
+  if (spec !== undefined) prepareWorktrees(repo, programId, runs.map(run => run.key), base)
 } catch (error: unknown) {
   prepared = describeError(error)
 }
 if (prepared !== undefined) {
   failUnfinished(runs, `the shift could not prepare its worktrees: ${prepared}`)
-} else {
+} else if (spec !== undefined) {
   const ctx = await boot('enterprise-shift', resolveConfigPath(configPath, undefined))
   try {
     await ctx.get('loader')?.await()
@@ -950,7 +969,7 @@ const composition = relative(fileURLToPath(new URL('../../../../..', import.meta
 const finalize = async (assembledHead: string, shippedBase: string): Promise<string> => {
   git(repo, 'reset', '-q', '--hard', assembledHead)
   const at = new Date().toISOString()
-  const lines = runs.map(run => ledgerLine(run, at, config.shift, programId, config.implementer, modelName))
+  const lines = allRuns.map(run => ledgerLine(run, at, config.shift, programId, config.implementer, modelName))
   await mkdir(join(repo, 'data', 'enterprise'), { recursive: true })
   await appendFile(ledgerFile, `${lines.map(line => JSON.stringify(line)).join('\n')}\n`)
   rmSync(recordDir, { recursive: true, force: true })
@@ -970,7 +989,7 @@ const finalize = async (assembledHead: string, shippedBase: string): Promise<str
     report: report ?? null,
     halt: halt ?? null,
     decisions,
-    tickets: runs.map(run => ({
+    tickets: allRuns.map(run => ({
       ...ledgerLine(run, at, config.shift, programId, config.implementer, modelName),
       rationale: run.review.rationale,
     })),
@@ -1032,7 +1051,7 @@ try {
   }
 } catch (error: unknown) {
   const reason = `the shift could not finalize or push: ${describeError(error)}`
-  process.stdout.write(`${JSON.stringify({ type: 'result', shift: config.shift, error: reason, repo, tickets: runs.map(run => ledgerLine(run, startedAt.toISOString(), config.shift, programId, config.implementer, modelName)) })}\n`)
+  process.stdout.write(`${JSON.stringify({ type: 'result', shift: config.shift, error: reason, repo, tickets: allRuns.map(run => ledgerLine(run, startedAt.toISOString(), config.shift, programId, config.implementer, modelName)) })}\n`)
   process.stderr.write(`enterprise-shift: ${reason}; the clone is kept at ${repo}\n`)
   process.exit(1)
 }
@@ -1090,7 +1109,7 @@ process.stdout.write(`${JSON.stringify({
   report: report ?? null,
   halt: halt ?? null,
   decisions,
-  tickets: runs.map(run => ({
+  tickets: allRuns.map(run => ({
     ...ledgerLine(run, startedAt.toISOString(), config.shift, programId, config.implementer, modelName),
     rationale: run.review.rationale,
   })),

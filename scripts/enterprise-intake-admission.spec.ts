@@ -219,20 +219,22 @@ describe('admitProposals', () => {
     ])
     writeFileSync(join(root, 'data/enterprise/ledger.jsonl'), `${JSON.stringify({ type: 'ticket', ticket: 'T-0002', shipped: null, review: { verdict: 'reject' } })}\n`)
     const passing = 'grep -q drain packages/alpha/src/queue.ts'
-    const slow = 'sleep 600'
+    const slow = 'pnpm exec vitest run packages/alpha/tests/slow.spec.ts'
+    const coverage = { id: 'coverage', run: 'pnpm exec vitest run packages/alpha/ --coverage' }
     const { runCheck } = stubRunner({ [passing]: 0, [slow]: 'timeout' })
     const proposals = [
       proposal({ status: 'open' }),
       proposal({ seat: BETA }),
       proposal({ source: { path: 'packages/alpha/README.md', anchor: 'Timeouts are fixed.' } }),
       proposal({ acceptance: [{ id: 'coverage', run: 'pnpm exec vitest run packages/alpha/ --coverage' }, { id: 'typecheck', run: 'pnpm run typecheck' }] }),
-      proposal({ acceptance: [{ id: 'drains', run: passing }, { id: 'coverage', run: 'x --coverage' }, { id: 'typecheck', run: 'pnpm run typecheck' }] }),
-      proposal({ acceptance: [{ id: 'slow', run: slow }, { id: 'coverage', run: 'x --coverage' }, { id: 'typecheck', run: 'pnpm run typecheck' }] }),
+      proposal({ acceptance: [{ id: 'drains', run: passing }, coverage, { id: 'typecheck', run: 'pnpm run typecheck' }] }),
+      proposal({ acceptance: [{ id: 'slow', run: slow }, coverage, { id: 'typecheck', run: 'pnpm run typecheck' }] }),
+      proposal({ acceptance: [{ id: 'drains', run: 'grep -q maxJobs packages/alpha/src/queue.ts && git push origin HEAD' }, coverage, { id: 'typecheck', run: 'pnpm run typecheck' }] }),
       // A rejected ticket's source may be filed again, and this one is admitted.
       proposal({ seat: BETA, scope: ['packages/beta/'], source: { path: 'packages/beta/README.md', anchor: 'Retries are unbounded.' } }),
       'not an object',
     ]
-    const { verdicts } = await admitProposals(proposals, 8, context(root, runCheck))
+    const { verdicts } = await admitProposals(proposals, 9, context(root, runCheck))
     expect(verdicts.map(verdict => [verdict.index, verdict.admitted ? verdict.id : verdict.code])).toEqual([
       [0, 'invalid'],
       [1, 'owner'],
@@ -240,13 +242,16 @@ describe('admitProposals', () => {
       [3, 'no-own-check'],
       [4, 'passes-before'],
       [5, 'timeout'],
-      [6, 'T-0003'],
-      [7, 'invalid'],
+      [6, 'acceptance-form'],
+      [7, 'T-0003'],
+      [8, 'invalid'],
     ])
     expect(verdicts[0]?.reason).toMatch(/unknown field "status"/)
     expect(verdicts[1]?.reason).toBe(`seat ${BETA} does not own the scope: its scope is owned by ${ALPHA}`)
     expect(verdicts[2]?.reason).toMatch(/^T-0001 already carries the source/)
     expect(verdicts[4]?.checks.map(check => check.exitCode)).toEqual([0])
+    expect(verdicts[6]?.reason).toBe('acceptance drains: `git push` is not an allowed acceptance command; only `git diff` is')
+    expect(verdicts[6]?.checks).toEqual([])
   })
 
   it('refuses a proposal repeating one admitted earlier in the same intake, and proposals past the limit', async () => {
