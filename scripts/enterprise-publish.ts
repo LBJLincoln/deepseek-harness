@@ -34,7 +34,7 @@ import {
   type TicketStatus,
 } from './enterprise-ledger.ts'
 import { enterpriseReport, gitRepository, type EnterpriseWindowReport, type ReportRepository } from './enterprise-report.ts'
-import { ROSTER_PATH, type Roster } from './enterprise-roster.ts'
+import { divisionSeats, ROSTER_PATH, type Roster } from './enterprise-roster.ts'
 import { loadTickets, type LoadedTicket } from './enterprise-tickets.ts'
 
 /** The deck's fixture directory, relative to the repository root. */
@@ -212,16 +212,7 @@ export function buildEnterpriseReport(roster: Roster, ledger: LedgerRead, ticket
       .map(line => ({ seat: line.seat, function: line.function, outcome: line.outcome, url: line.evidence.url, at: line.at })),
   }))
 
-  const divisions = roster.divisions.map((division) => {
-    const members = roster.agents.filter(agent => agent.division === division.id)
-    return {
-      id: division.id,
-      name: division.name,
-      defined: members.length,
-      occupied: members.filter(agent => agent.evidence.sessions > 0 || agent.ledger.lines > 0).length,
-      active: members.filter(agent => agent.status === 'active').length,
-    }
-  })
+  const divisions = divisionSeats(roster)
 
   return {
     asOf,

@@ -1026,6 +1026,25 @@ export function serializeRoster(roster: Roster): string {
   return `${JSON.stringify(roster, null, 2)}\n`
 }
 
+/**
+ * Seats per division as a roster states them: defined, occupied (an attributed
+ * session or a ledger line names the seat) and active (the seat's status).
+ * @param roster - the roster.
+ * @returns one tally per division, in the roster's presentation order.
+ */
+export function divisionSeats(roster: Roster): { id: string; name: string; defined: number; occupied: number; active: number }[] {
+  return roster.divisions.map((division) => {
+    const members = roster.agents.filter(agent => agent.division === division.id)
+    return {
+      id: division.id,
+      name: division.name,
+      defined: members.length,
+      occupied: members.filter(agent => agent.evidence.sessions > 0 || agent.ledger.lines > 0).length,
+      active: members.filter(agent => agent.status === 'active').length,
+    }
+  })
+}
+
 const isMain = process.argv[1] !== undefined && import.meta.url === `file://${resolve(process.argv[1])}`
 if (isMain) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')

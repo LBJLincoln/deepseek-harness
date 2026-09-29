@@ -36,7 +36,7 @@ import {
   type TicketLine,
   type TicketStatus,
 } from './enterprise-ledger.ts'
-import { buildRoster, type Roster } from './enterprise-roster.ts'
+import { buildRoster, divisionSeats, type Roster } from './enterprise-roster.ts'
 import { committedRecords, readRecordedSessions } from './roster-evidence.ts'
 
 /** The directory `--write` writes reports to, relative to the repository root. */
@@ -429,16 +429,7 @@ export async function enterpriseReport(sources: ReportSources, window: ReportWin
 
   // Seats at the window's end.
   const roster = sources.rosterAt(window.until)
-  const byDivision = roster.divisions.map((division) => {
-    const members = roster.agents.filter(agent => agent.division === division.id)
-    return {
-      id: division.id,
-      name: division.name,
-      defined: members.length,
-      occupied: members.filter(agent => agent.evidence.sessions > 0 || agent.ledger.lines > 0).length,
-      active: members.filter(agent => agent.status === 'active').length,
-    }
-  })
+  const byDivision: DivisionSeats[] = divisionSeats(roster)
 
   // Function runs.
   const functionDivisions = new Map<string, { division: string } & Record<FunctionOutcome, number>>()
