@@ -1,0 +1,208 @@
+{
+  "type": "result",
+  "shift": "201313-0965",
+  "startedAt": "2026-09-29T20:13:15.781Z",
+  "base": "8bada72a51203b396e050a6179a61fd58d88ede7",
+  "remote": "https://github.com/LBJLincoln/deepseek-harness",
+  "branch": "claude/coding-agent-harness-u9l4gt",
+  "implementer": "route",
+  "model": "Claude Code sonnet",
+  "programId": "program-04dc310b9905ca09b6a70f98932bd5dd7e6a7db303d9d90e8dcd1bdaf11a3170",
+  "report": {
+    "programId": "program-04dc310b9905ca09b6a70f98932bd5dd7e6a7db303d9d90e8dcd1bdaf11a3170",
+    "sessionId": "program-04dc310b9905ca09b6a70f98932bd5dd7e6a7db303d9d90e8dcd1bdaf11a3170",
+    "outcome": "released",
+    "mergedRevision": "dde573e6d9109a30cad45f70ff86375f0d06c95d",
+    "goals": [
+      {
+        "key": "t-0015",
+        "status": "merged",
+        "sessionId": "program-04dc310b9905ca09b6a70f98932bd5dd7e6a7db303d9d90e8dcd1bdaf11a3170-t-0015",
+        "revision": "e389c44a1805045ca09aa8b2022539476bfa7f58",
+        "tree": "c33effedea7d2bd36a96935f601e83e9763e270e"
+      },
+      {
+        "key": "t-0028",
+        "status": "merged",
+        "sessionId": "program-04dc310b9905ca09b6a70f98932bd5dd7e6a7db303d9d90e8dcd1bdaf11a3170-t-0028",
+        "revision": "bed704c5be17c16e2b96b4630dedbb50216316ba",
+        "tree": "07f013bfdbf8d27ce27b597cfd87503f50f74d54"
+      }
+    ]
+  },
+  "halt": null,
+  "decisions": [
+    {
+      "transition": "spec-freeze",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 201313-0965"
+      },
+      "artefactSha256": "d9ce7866b5c4892c10e3e030e040d2ccb3b45db1a8f46c61761b7d4a89d53324"
+    },
+    {
+      "transition": "release",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 201313-0965"
+      },
+      "artefactSha256": "d9ce7866b5c4892c10e3e030e040d2ccb3b45db1a8f46c61761b7d4a89d53324"
+    }
+  ],
+  "tickets": [
+    {
+      "type": "ticket",
+      "at": "2026-09-29T20:46:35.859Z",
+      "shift": "201313-0965",
+      "ticket": "T-0015",
+      "seat": "harness-core-subagent-steward",
+      "division": "harness-core",
+      "programId": "program-04dc310b9905ca09b6a70f98932bd5dd7e6a7db303d9d90e8dcd1bdaf11a3170",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-04dc310b9905ca09b6a70f98932bd5dd7e6a7db303d9d90e8dcd1bdaf11a3170-t-0015"
+      },
+      "checks": [
+        {
+          "id": "exports-gone",
+          "ok": true
+        },
+        {
+          "id": "driver-depth-spec",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-lint",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0015-70c0432b"
+      },
+      "reviewer": {
+        "sessionId": "review-t-0015-70c0432b",
+        "route": "claude-code",
+        "model": "sonnet",
+        "verdict": "approve"
+      },
+      "integration": {
+        "outcome": "digest-mismatch"
+      },
+      "shipped": null,
+      "reason": "the assembled tree 42ad225c2710e990f4471fcb86e75eb6a4ba87a3 is not the program's certified merged tree acf5ca5b22afdc8767ade1fff8c920d8e2b87b14",
+      "tokens": 233035,
+      "seconds": 298,
+      "rationale": "- **Diff matches the ticket.** It removes exactly two lines from `packages/subagent/subagent/src/index.ts`: the `seedDescriptorTurn` re-export and `SubagentDepthError` in the `child-agent.ts` export list. The other exports in that block (`childSessionMeta`, `resolveChildAgentOptions`, `resolveChildDepth`) are untouched. The ticket says to keep `assertSubagentMaxDepth`, `delegationDepthOf` and `AgentOptions.subagentDepth` exported, and the diff does not touch them.\n- **No behavior change.** `child-agent.ts` and `descriptor-seed.ts` are not in the diff, so the class, the function, their messages and their codes are unchanged. Both remain exported from their own modules for same-package callers such as `continuation.ts`.\n- **Scope respected.** Only one file inside `packages/subagent/subagent/` changed. There is no README edit and no Agent Note, as the constraints require. The ticket's generated paths were not touched.\n- **Checks passed.**\n  - `exports-gone` passes, so neither name appears in `index.ts` any more.\n  - The driver depth spec passes (19/19), so the depth assertions that match by `name` and fields still hold.\n  - The coverage run passes with 27 files, 546 tests and 100% coverage on `subagent/src`. Its output shows no uid-0 failure of `out-of-process.spec.ts`, so I take that run as valid for this check.\n  - `typecheck` passes, which confirms nothing outside the package imported the removed root exports.\n  - All the engine checks (committed, scope, whitespace, lint, documentation) pass.\n- **Commit message** describes the change accurately and carries the required attribution trailers."
+    },
+    {
+      "type": "ticket",
+      "at": "2026-09-29T20:46:35.859Z",
+      "shift": "201313-0965",
+      "ticket": "T-0028",
+      "seat": "curation-data-bug-fix-curator",
+      "division": "curation-data",
+      "programId": "program-04dc310b9905ca09b6a70f98932bd5dd7e6a7db303d9d90e8dcd1bdaf11a3170",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-04dc310b9905ca09b6a70f98932bd5dd7e6a7db303d9d90e8dcd1bdaf11a3170-t-0028"
+      },
+      "checks": [
+        {
+          "id": "stale-test-gone",
+          "ok": true
+        },
+        {
+          "id": "current-pin-cited-in-both",
+          "ok": true
+        },
+        {
+          "id": "pairs-recorded",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "doc-sync",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-lint",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0028-a50f9c0d"
+      },
+      "reviewer": {
+        "sessionId": "review-t-0028-a50f9c0d",
+        "route": "claude-code",
+        "model": "sonnet",
+        "verdict": "approve"
+      },
+      "integration": {
+        "outcome": "digest-mismatch"
+      },
+      "shipped": null,
+      "reason": "the assembled tree 42ad225c2710e990f4471fcb86e75eb6a4ba87a3 is not the program's certified merged tree acf5ca5b22afdc8767ade1fff8c920d8e2b87b14",
+      "tokens": 364446,
+      "seconds": 566,
+      "rationale": "- **Scope:** the diff touches only the six files the ticket lists: the two notes, their `.zh.md` counterparts, and their `.i18n.yaml` records. It does not touch the TUI-removal note, `vendor/README.md`, the archived notes, any test or any generated path. It adds no new note.\n- **Stale path removed:** `tui-keyless-smoke` no longer appears in any of the four note files, and the `stale-test-gone` check passes.\n- **Current owner cited:** both notes name `apps/cli/tests/built-bin.e2e.ts` and the case `reports a patch-overlay boot failure without hanging`, and the `current-pin-cited-in-both` check passes. That title matches `vendor/README.md:44`, which calls the same case \"the patch-overlay boot-failure built-bin case\". The ticket also says the invalid-provider fixture is bound in that file. The stated assertions are exit 1, empty stdout and stderr containing `llm-pi-ai`. I could not read the test file itself, so I could not confirm them against its source.\n- **Claims trimmed to the current test:** the old notes claimed a PTY, the labelled `dsh: plugin tree failed to load:` text, `$.providers` and `ESC[?2004l`. The new text drops all of these from the hmr-deadlock note's description of the test. The fail-loud note now reports the `ESC[?2004l` and labelled-diagnostic assertions as a named coverage gap, as the ticket asked. It also says the labelled text survives only in `app-boot.spec.ts` against a fake process, and the release-contract tests remain the only pin for the terminal-state half.\n- **Chinese counterparts:** they carry the same facts at the same locations, and the `pairs-recorded` check and the corpus-wide pairing check (1109 pairs, all consistent) pass.\n- **Gates:** `coverage` (100%), `typecheck`, `doc-sync` (29/29) and all five engine checks pass.\n\nThe one residual risk is that the test title, fixture argument and asserted strings could not be checked against `built-bin.e2e.ts`. They are consistent with the ticket and with `vendor/README.md`, so I am not rejec…"
+    }
+  ],
+  "held": [],
+  "redacted": 22
+}
