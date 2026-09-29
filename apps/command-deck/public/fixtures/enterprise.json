@@ -1,35 +1,35 @@
 {
-  "asOf": "2026-09-29T20:49:29.297Z",
+  "asOf": "2026-09-29T23:09:09.591Z",
   "window": {
-    "since": "2026-09-28T20:49:29.297Z",
-    "until": "2026-09-29T20:49:29.297Z"
+    "since": "2026-09-28T23:09:09.591Z",
+    "until": "2026-09-29T23:09:09.591Z"
   },
   "counts": {
     "defined": 147,
-    "occupied": 62,
-    "active": 43,
+    "occupied": 64,
+    "active": 40,
     "work": {
       "occupied": {
-        "model": 34,
+        "model": 36,
         "check": 22,
         "halted": 6
       },
       "active": {
-        "model": 15,
+        "model": 12,
         "check": 22,
         "halted": 6
       }
     }
   },
   "outcomes": {
-    "shipped": 7,
-    "notShipped": 7,
+    "shipped": 9,
+    "notShipped": 5,
     "haltedBeforeModel": 6,
     "programs": [],
     "checks": {
-      "runs": 202,
-      "pass": 188,
-      "fail": 14,
+      "runs": 215,
+      "pass": 199,
+      "fail": 16,
       "error": 0
     }
   },
@@ -38,7 +38,7 @@
       "id": "harness-core",
       "name": "Harness Core",
       "defined": 24,
-      "occupied": 12,
+      "occupied": 13,
       "active": 11,
       "work": {
         "model": 8,
@@ -51,9 +51,9 @@
       "name": "Proving Ground",
       "defined": 12,
       "occupied": 12,
-      "active": 3,
+      "active": 0,
       "work": {
-        "model": 3,
+        "model": 0,
         "check": 0,
         "halted": 0
       }
@@ -98,10 +98,10 @@
       "id": "program-departments",
       "name": "Program Departments",
       "defined": 10,
-      "occupied": 3,
-      "active": 1,
+      "occupied": 4,
+      "active": 2,
       "work": {
-        "model": 0,
+        "model": 1,
         "check": 0,
         "halted": 1
       }
@@ -123,9 +123,9 @@
       "name": "Knowledge",
       "defined": 11,
       "occupied": 2,
-      "active": 2,
+      "active": 1,
       "work": {
-        "model": 1,
+        "model": 0,
         "check": 0,
         "halted": 1
       }
@@ -193,25 +193,11 @@
         "title": "Remove the RetryInternals test hook from the llm-retry apply() signature"
       },
       {
-        "ticket": "T-0017",
-        "seat": "harness-core-subagent-claude-code-steward",
-        "division": "harness-core",
-        "status": "queued",
-        "title": "Reclassify the shipped external-agent bridge Agent Note as implemented"
-      },
-      {
         "ticket": "T-0018",
         "seat": "harness-core-subagent-fork-in-process-steward",
         "division": "harness-core",
         "status": "queued",
         "title": "Pin that a fork child's seed is a one-time snapshot of the parent"
-      },
-      {
-        "ticket": "T-0029",
-        "seat": "program-departments-workspace-coordinator",
-        "division": "program-departments",
-        "status": "queued",
-        "title": "Drop the caller-less title parameter from WorkspaceRegistry.create"
       },
       {
         "ticket": "T-0030",
@@ -292,6 +278,42 @@
       }
     ],
     "shipped": [
+      {
+        "ticket": "T-0017",
+        "seat": "harness-core-subagent-claude-code-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T23:07:01.571Z",
+        "shift": "221307-dd9a",
+        "commit": "84651be1bfc78c37bb7741ecd1af4ac93baa158d",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0017-dfbe8005"
+        },
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0029",
+        "seat": "program-departments-workspace-coordinator",
+        "division": "program-departments",
+        "status": "shipped",
+        "at": "2026-09-29T23:07:01.571Z",
+        "shift": "221307-dd9a",
+        "commit": "46d9a57469c165a565512ca5962abe4eaf8ef5b6",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0029-3e7cbf28"
+        },
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
       {
         "ticket": "T-0011",
         "seat": "harness-core-llm-pi-ai-steward",
@@ -527,28 +549,368 @@
         "at": "2026-09-29T02:04:38.491Z",
         "shift": "001527-881f",
         "reason": "budget-exhausted"
-      },
-      {
-        "ticket": "T-0001",
-        "seat": "harness-core-agent-steward",
-        "division": "harness-core",
-        "status": "halted",
-        "at": "2026-09-28T22:53:59.804Z",
-        "shift": "221520-e979",
-        "reason": "no certificate after 3 rounds"
-      },
-      {
-        "ticket": "T-0022",
-        "seat": "knowledge-dsh-doc-site-sync-skill-keeper",
-        "division": "knowledge",
-        "status": "halted",
-        "at": "2026-09-28T22:53:59.804Z",
-        "shift": "221520-e979",
-        "reason": "no certificate after 3 rounds"
       }
     ]
   },
   "functions": [
+    {
+      "type": "function",
+      "at": "2026-09-29T23:09:05.421Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 3.8
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:09:05.411Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 3.8
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:55.052Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-mermaid.log"
+      },
+      "seconds": 16.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:38.464Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 11.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:27.133Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-md-links.log"
+      },
+      "seconds": 16.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:10.499Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 7.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:03.341Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:02.342Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 43.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:18.767Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 1.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:17.249Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:16.378Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 2.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:13.677Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:12.714Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:11.730Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:10.800Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:09.873Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:06:54.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "function": "ci-consumers",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446416"
+      },
+      "seconds": 871
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:06:54.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "function": "ci-lint-contracts-ready",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446416"
+      },
+      "seconds": 871
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:06:54.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "function": "ci-snapshot",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446416"
+      },
+      "seconds": 871
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:06:54.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "function": "ci-artifacts",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446416"
+      },
+      "seconds": 871
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:00:04.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "function": "ci-coverage",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446253"
+      },
+      "seconds": 461
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T22:56:12.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "function": "ci-static",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446009"
+      },
+      "seconds": 210
+    },
     {
       "type": "function",
       "at": "2026-09-29T20:49:25.331Z",
@@ -3672,153 +4034,31 @@
         "path": "data/enterprise/functions/cycle-20260928T221301Z/verification-verify-client-domain-graph.log"
       },
       "seconds": 405.1
-    },
-    {
-      "type": "function",
-      "at": "2026-09-28T23:08:47.973Z",
-      "shift": "cycle-20260928T221301Z",
-      "seat": "verification-verify-archived-agent-notes",
-      "division": "verification",
-      "function": "verify-archived-agent-notes",
-      "target": {
-        "commit": "580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb"
-      },
-      "outcome": "pass",
-      "evidence": {
-        "path": "data/enterprise/functions/cycle-20260928T221301Z/verification-verify-archived-agent-notes.log"
-      },
-      "seconds": 189.8
-    },
-    {
-      "type": "function",
-      "at": "2026-09-28T23:08:22.000Z",
-      "shift": "cycle-20260928T221301Z",
-      "seat": "judging-ci-consumers",
-      "division": "judging",
-      "function": "ci-consumers",
-      "target": {
-        "commit": "580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb"
-      },
-      "outcome": "pass",
-      "evidence": {
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36494952632/job/109172240620"
-      },
-      "seconds": 920
-    },
-    {
-      "type": "function",
-      "at": "2026-09-28T23:08:22.000Z",
-      "shift": "cycle-20260928T221301Z",
-      "seat": "judging-ci-lint-contracts-ready",
-      "division": "judging",
-      "function": "ci-lint-contracts-ready",
-      "target": {
-        "commit": "580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb"
-      },
-      "outcome": "pass",
-      "evidence": {
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36494952632/job/109172240620"
-      },
-      "seconds": 920
-    },
-    {
-      "type": "function",
-      "at": "2026-09-28T23:08:22.000Z",
-      "shift": "cycle-20260928T221301Z",
-      "seat": "judging-ci-snapshot",
-      "division": "judging",
-      "function": "ci-snapshot",
-      "target": {
-        "commit": "580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb"
-      },
-      "outcome": "pass",
-      "evidence": {
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36494952632/job/109172240620"
-      },
-      "seconds": 920
-    },
-    {
-      "type": "function",
-      "at": "2026-09-28T23:08:22.000Z",
-      "shift": "cycle-20260928T221301Z",
-      "seat": "judging-ci-artifacts",
-      "division": "judging",
-      "function": "ci-artifacts",
-      "target": {
-        "commit": "580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb"
-      },
-      "outcome": "pass",
-      "evidence": {
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36494952632/job/109172240620"
-      },
-      "seconds": 920
-    },
-    {
-      "type": "function",
-      "at": "2026-09-28T23:05:38.134Z",
-      "shift": "cycle-20260928T221301Z",
-      "seat": "verification-verify-agent-note-format",
-      "division": "verification",
-      "function": "verify-agent-note-format",
-      "target": {
-        "commit": "580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb"
-      },
-      "outcome": "pass",
-      "evidence": {
-        "path": "data/enterprise/functions/cycle-20260928T221301Z/verification-verify-agent-note-format.log"
-      },
-      "seconds": 330.8
-    },
-    {
-      "type": "function",
-      "at": "2026-09-28T23:04:00.000Z",
-      "shift": "cycle-20260928T221301Z",
-      "seat": "judging-ci-coverage",
-      "division": "judging",
-      "function": "ci-coverage",
-      "target": {
-        "commit": "580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb"
-      },
-      "outcome": "pass",
-      "evidence": {
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36494952632/job/109172240590"
-      },
-      "seconds": 659
-    },
-    {
-      "type": "function",
-      "at": "2026-09-28T23:00:07.350Z",
-      "shift": "cycle-20260928T221301Z",
-      "seat": "verification-verify-agent-note-classification",
-      "division": "verification",
-      "function": "verify-agent-note-classification",
-      "target": {
-        "commit": "580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb"
-      },
-      "outcome": "pass",
-      "evidence": {
-        "path": "data/enterprise/functions/cycle-20260928T221301Z/verification-verify-agent-note-classification.log"
-      },
-      "seconds": 299.2
-    },
-    {
-      "type": "function",
-      "at": "2026-09-28T22:56:30.000Z",
-      "shift": "cycle-20260928T221301Z",
-      "seat": "judging-ci-static",
-      "division": "judging",
-      "function": "ci-static",
-      "target": {
-        "commit": "580923d49f8f4b5dcefdc0f8a1fff83ada5f52bb"
-      },
-      "outcome": "pass",
-      "evidence": {
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36494952632/job/109172240262"
-      },
-      "seconds": 208
     }
   ],
   "shipped": [
+    {
+      "commit": "84651be1bfc78c37bb7741ecd1af4ac93baa158d",
+      "at": "2026-09-29T23:07:01.571Z",
+      "tickets": [
+        "T-0017"
+      ],
+      "seats": [
+        "harness-core-subagent-claude-code-steward"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "46d9a57469c165a565512ca5962abe4eaf8ef5b6",
+      "at": "2026-09-29T23:07:01.571Z",
+      "tickets": [
+        "T-0029"
+      ],
+      "seats": [
+        "program-departments-workspace-coordinator"
+      ],
+      "verdicts": []
+    },
     {
       "commit": "81699732468a674ba0bf6338807ebc404ec11c4f",
       "at": "2026-09-29T16:31:49.326Z",
@@ -3906,25 +4146,40 @@
         "harness-core-llm-pi-ai-steward"
       ],
       "verdicts": []
-    },
-    {
-      "commit": "cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38",
-      "at": "2026-09-28T19:04:29.582Z",
-      "tickets": [
-        "T-0019"
-      ],
-      "seats": [
-        "harness-core-subagent-in-process-driver-steward"
-      ],
-      "verdicts": []
     }
   ],
   "reviews": {
-    "approved": 13,
+    "approved": 15,
     "rejected": 1,
-    "reviewerRecorded": 6,
+    "reviewerRecorded": 8,
     "overturned": 1,
     "reviews": [
+      {
+        "ticket": "T-0017",
+        "seat": "harness-core-subagent-claude-code-steward",
+        "division": "harness-core",
+        "shift": "221307-dd9a",
+        "at": "2026-09-29T23:07:01.571Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0017-dfbe8005",
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0029",
+        "seat": "program-departments-workspace-coordinator",
+        "division": "program-departments",
+        "shift": "221307-dd9a",
+        "at": "2026-09-29T23:07:01.571Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0029-3e7cbf28",
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
       {
         "ticket": "T-0015",
         "seat": "harness-core-subagent-steward",
@@ -4079,9 +4334,9 @@
     ]
   },
   "ledger": {
-    "lines": 267,
-    "tickets": 28,
-    "functions": 239,
+    "lines": 291,
+    "tickets": 30,
+    "functions": 261,
     "skipped": 0
   }
 }
