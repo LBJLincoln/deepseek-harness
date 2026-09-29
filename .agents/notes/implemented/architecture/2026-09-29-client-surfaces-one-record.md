@@ -17,6 +17,16 @@ A client-readiness review of the briefing, the executive summary, the README and
 - The README pair carries no figure; it links the regenerated surfaces.
 - `enterprise-ops.ts` collects the operator's own agents only for a local run (`operatorAgents`); `--push` and `--fixture` never do. The throughput tile counts ledger entries by kind, and review rejections count inside the window from the ledger's lines. A ticket halted in two shifts is medium only when a department ran and left a report. The deck drops the scratch copy of a run whose committed record the feed also lists, so the default code-safety run is one whose event stream has events.
 
+## Alternatives considered
+
+**Quote each failed ticket's full `reason`.** It is the ledger's exact text, but for an install failure it is the captured command output, with scratch paths and package lists, which a client reads as a crash log; the opening clause names the cause, and the cited ledger line keeps the rest.
+
+**A verdict of its own for the briefing,** such as the first fully successful run after the commit. It answers a different question than `pnpm run enterprise:verdicts`, so the briefing and the report disagreed on the same commits; one rule, with its basis stated, keeps every surface on one answer.
+
+**Count a cancelled run as failed.** A run superseded while it waited never ran a test, so it says nothing about the commit; reading it as a failure inverted the answer for commits whose first completed run passed.
+
+**Keep the operator's sessions on the public view.** They show the supervision honestly, but they carry session titles, commands and token counts from a private workspace; the published view lists enterprise agents only, and a local run still shows the operator's.
+
 ## Consequences
 
 The executive summary, the briefing and the deck regenerate from these rules on every cycle. Figures a reader compares across surfaces come from one computation each.
