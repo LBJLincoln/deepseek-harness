@@ -30,8 +30,10 @@ concurrency:
   group: branch-ci-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: read
+# No job holds more than it needs: each reads the repository to check it out
+# and nothing else. Third-party actions are pinned to full commit SHAs, the
+# release each SHA was tagged as named beside it.
+permissions: {}
 
 env:
   PRIMARY_NODE_VERSION: '24'
@@ -44,20 +46,22 @@ jobs:
     runs-on: ubuntu-latest
     name: node 24 / static
     timeout-minutes: 60
+    permissions:
+      contents: read
     env:
       DSH_GATE_CONCURRENCY: '2'
     steps:
       # Full history: the archive gate reads the trusted base from the checkout.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           dest: ${{ runner.temp }}/setup-pnpm
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
 
@@ -69,7 +73,7 @@ jobs:
           store_path=$(PNPM_CONFIG_STORE_DIR="$store_root" pnpm store path --silent)
           echo "path=$store_path" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ runner.os }}-node-${{ env.PRIMARY_NODE_VERSION }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
@@ -86,19 +90,21 @@ jobs:
     runs-on: ubuntu-latest
     name: node 24 / coverage
     timeout-minutes: 150
+    permissions:
+      contents: read
     env:
       DSH_COVERAGE_MAX_WORKERS: '3'
       DSH_GATE_CONCURRENCY: '1'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           dest: ${{ runner.temp }}/setup-pnpm
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
 
@@ -110,7 +116,7 @@ jobs:
           store_path=$(PNPM_CONFIG_STORE_DIR="$store_root" pnpm store path --silent)
           echo "path=$store_path" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ runner.os }}-node-${{ env.PRIMARY_NODE_VERSION }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
@@ -137,6 +143,8 @@ jobs:
     runs-on: ubuntu-latest
     name: node 24 / snapshots and artifacts
     timeout-minutes: 150
+    permissions:
+      contents: read
     env:
       # One gate at a time: the browser suites in this group time out when a
       # second gate's build shares the four cores.
@@ -145,15 +153,15 @@ jobs:
       DSH_OXLINT_THREADS: '2'
       DSH_PUBLINT_CONCURRENCY: '2'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           dest: ${{ runner.temp }}/setup-pnpm
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
 
@@ -165,7 +173,7 @@ jobs:
           store_path=$(PNPM_CONFIG_STORE_DIR="$store_root" pnpm store path --silent)
           echo "path=$store_path" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ runner.os }}-node-${{ env.PRIMARY_NODE_VERSION }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
