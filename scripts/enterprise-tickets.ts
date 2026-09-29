@@ -67,6 +67,13 @@ export interface QueuePolicy {
    */
   readonly documentationRun?: string
   /**
+   * Command line the shift engine runs at the worktree root with every
+   * `.ts`, `.tsx` and `.mjs` file the change adds or modifies appended as
+   * arguments, whatever the ticket's own acceptance says; absent for a queue
+   * whose repository has no linter.
+   */
+  readonly lintRun?: string
+  /**
    * Fragments that mark an acceptance command as a heavy run — a whole-workspace
    * typecheck, a coverage run, the documentation gates — which the shift engine
    * serializes with every other heavy run on the machine when it runs under a
@@ -88,9 +95,12 @@ const HEAVY_FRAGMENTS = ['pnpm run typecheck', '--coverage', 'pnpm run doc-sync'
 
 /**
  * This repository's queue: every ticket runs the typecheck and the package's
- * per-file coverage, and a change to any Markdown document passes the
- * bilingual pairing gate, which a department editing a README pair without
- * re-recording it would otherwise ship past the ticket's acceptance. The
+ * per-file coverage, a change to any Markdown document passes the bilingual
+ * pairing gate, which a department editing a README pair without re-recording
+ * it would otherwise ship past the ticket's acceptance, and every changed
+ * TypeScript or ES module file passes the repository's oxlint, which neither a
+ * ticket's acceptance nor the reviewer ran before `T-0007` shipped three lint
+ * errors. The
  * generated paths are the outputs of the `gen-*` scripts `pnpm run doc-sync`
  * checks, with their Chinese sides and pair records, and the subsystem pages
  * whose `type-equiv` pastes `verify-type-equiv` compares with the source.
@@ -99,6 +109,7 @@ export const HARNESS_QUEUE_POLICY: QueuePolicy = {
   requiredRuns: ['pnpm run typecheck'],
   requiredFragments: [{ fragment: '--coverage', rule: "the package's per-file coverage run" }],
   documentationRun: 'pnpm run verify-translation-pairing',
+  lintRun: 'node_modules/.bin/tsx scripts/run-oxlint.ts',
   heavyFragments: HEAVY_FRAGMENTS,
   generatedPaths: [
     'docs/subsystems/',

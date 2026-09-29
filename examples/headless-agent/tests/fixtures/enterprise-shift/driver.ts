@@ -17,6 +17,8 @@
  * optional `DSH_ENTERPRISE_REFERENCE` (a local repository whose objects the
  * clone borrows), `DSH_ENTERPRISE_IMPLEMENTER` (`route`, the default, or
  * `subagent`), `DSH_ENTERPRISE_PUSH=1`, `DSH_ENTERPRISE_QUEUE_POLICY=open`,
+ * `DSH_ENTERPRISE_LINT_RUN` (the command line the lint check runs with the
+ * changed files appended, in place of the queue policy's `lintRun`),
  * `DSH_ENTERPRISE_SHIFT` (the shift id), `DSH_ENTERPRISE_KEEP=1` (keep the
  * clone when the shift ends), `ENTERPRISE_HEAVY_LOCK` (an absolute lock file
  * every heavy acceptance run takes through `flock`, shared with every other
@@ -62,6 +64,7 @@ import {
   departmentKey,
   departmentObjective,
   documentationCheck,
+  lintCheck,
   engineDecisions,
   LEDGER_PATH,
   LIMIT_HALT_REASON,
@@ -360,7 +363,11 @@ function programSpec(
       checks: ticketChecks(ticket, base, policy, heavyLock),
     })),
     integration: {
-      checks: [...merged, ...documentationCheck(policy, base, 'merged-engine-documentation' as CheckId)],
+      checks: [
+        ...merged,
+        ...lintCheck(policy, base, 'merged-engine-lint' as CheckId),
+        ...documentationCheck(policy, base, 'merged-engine-documentation' as CheckId),
+      ],
       gates: ['test -z "$(git status --porcelain)"', `git diff --check ${base} HEAD`],
     },
   }
@@ -593,10 +600,10 @@ function unship(repo: string, base: string, runs: readonly TicketRun[], outcome:
 
 /**
  * Re-run every assembled ticket's acceptance over the assembled tree, which is
- * what a shipped commit is certified on, then the queue's documentation gate
- * over the whole assembled change.
- * @param base - the revision the assembled commits follow, for the documentation gate's diff.
- * @param policy - the queue's policy, whose documentation gate runs last.
+ * what a shipped commit is certified on, then the queue's linter and its
+ * documentation gate over the whole assembled change.
+ * @param base - the revision the assembled commits follow, for the linter's and the documentation gate's diff.
+ * @param policy - the queue's policy, whose linter and documentation gate run last.
  * @param heavyLock - the lock the heavy acceptance runs take, as the departments' own did.
  * @returns the first failing check as `<ticket> <check>: <output>`, or `undefined` when every check passed.
  */
@@ -615,7 +622,7 @@ function recertify(
       if (!result.ok) return `${run.ticket.id} ${check.id}: ${result.output.slice(-1000)}`
     }
   }
-  for (const check of documentationCheck(policy, base, 'engine-documentation' as CheckId)) {
+  for (const check of [...lintCheck(policy, base, 'engine-lint' as CheckId), ...documentationCheck(policy, base, 'engine-documentation' as CheckId)]) {
     const result = runCheck(repo, check.run)
     if (!result.ok) return `${check.id}: ${result.output.slice(-1000)}`
   }
@@ -645,7 +652,9 @@ for (const name of Object.keys(process.env)) {
 }
 
 const { repo, base: tip } = cloneTip(config)
-const policy = config.openPolicy ? OPEN_QUEUE_POLICY : HARNESS_QUEUE_POLICY
+const lintRunOverride = process.env['DSH_ENTERPRISE_LINT_RUN']
+const queuePolicy = config.openPolicy ? OPEN_QUEUE_POLICY : HARNESS_QUEUE_POLICY
+const policy: QueuePolicy = lintRunOverride === undefined || lintRunOverride === '' ? queuePolicy : { ...queuePolicy, lintRun: lintRunOverride }
 const tickets = readQueue(repo, policy)
 const ledgerFile = join(repo, LEDGER_PATH)
 const startsFile = join(repo, SHIFT_STARTS_PATH)

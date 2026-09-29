@@ -81,7 +81,7 @@ const PUSH_ATTEMPTS = 'git push -q origin HEAD:refs/heads/department-push; git p
 /** What each seeded ticket's department does, in order, before it answers. */
 const SCRIPTS: Readonly<Record<string, readonly Step[]>> = {
   'T-0001': [write('tools/greet.mjs', "console.log('hello')\n"), commit('T-0001')],
-  'T-0002': [write('tools/answer.mjs', 'console.log(41)\n'), commit('T-0002')],
+  'T-0002': [write('tools/answer.mjs', 'debugger\nconsole.log(41)\n'), commit('T-0002')],
   'T-0003': [write('tools/bye.mjs', "console.log('bye')\n"), commit('T-0003')],
   'T-0004': [
     write('tools/count.mjs', 'console.log(3)\n'),

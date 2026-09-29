@@ -21,6 +21,7 @@ import {
   ENGINE_PRINCIPAL_ID,
   engineDecisions,
   LIMIT_HALT_REASON,
+  lintCheck,
   parseLedger,
   parseShiftStarts,
   queueOrder,
@@ -153,6 +154,15 @@ describe('the standard a ticket compiles to', () => {
     expect(checks.at(-1)?.id).toBe(ENGINE_CHECKS.documentation)
     expect(checks.at(-1)?.run).toBe("! git diff --name-only abc123 HEAD -- '*.md' | grep -q . || pnpm run verify-translation-pairing")
     expect(documentationCheck(OPEN_QUEUE_POLICY, 'abc123', 'x' as CheckId)).toEqual([])
+  })
+
+  it('lints every changed TypeScript and ES module file with the queue\'s linter, before the documentation gate', () => {
+    const checks = ticketChecks(ticket('T-0007', 1), 'abc123', HARNESS_QUEUE_POLICY, undefined)
+    expect(checks.map(check => check.id).slice(-2)).toEqual([ENGINE_CHECKS.lint, ENGINE_CHECKS.documentation])
+    expect(checks.at(-2)?.run).toBe("git diff -z --name-only --diff-filter=d abc123 HEAD -- '*.ts' '*.tsx' '*.mjs' | xargs -0 -r node_modules/.bin/tsx scripts/run-oxlint.ts")
+    expect(lintCheck(OPEN_QUEUE_POLICY, 'abc123', 'x' as CheckId)).toEqual([])
+    expect(departmentObjective(ticket('T-0007', 1), 'Seat', HARNESS_QUEUE_POLICY, undefined)).toContain('`node_modules/.bin/tsx scripts/run-oxlint.ts <files>`')
+    expect(departmentObjective(ticket('T-0007', 1), 'Seat', OPEN_QUEUE_POLICY, undefined)).not.toContain('Lint:')
   })
 
   it('counts the queue\'s generated paths inside every ticket\'s scope, the ticket\'s own first', () => {

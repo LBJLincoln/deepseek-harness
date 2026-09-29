@@ -326,8 +326,30 @@ export const ENGINE_CHECKS = {
   committed: 'engine-committed',
   scope: 'engine-scope',
   whitespace: 'engine-whitespace',
+  lint: 'engine-lint',
   documentation: 'engine-documentation',
 } as const
+
+/** The pathspecs of the files the lint check lints: TypeScript sources and ES modules. */
+const LINTED_PATHSPECS = ["'*.ts'", "'*.tsx'", "'*.mjs'"]
+
+/**
+ * The queue's linter as one check: the policy's command runs with every
+ * `.ts`, `.tsx` and `.mjs` file the diff from `base` adds or modifies as its
+ * arguments, and the check passes without running it when none changed.
+ * @param policy - the queue's policy; a policy without a lint run yields no check.
+ * @param base - the revision the diff starts from.
+ * @param id - the check's id.
+ * @returns the check, or nothing.
+ */
+export function lintCheck(policy: QueuePolicy, base: string, id: CheckId): StandardCheck[] {
+  if (policy.lintRun === undefined) return []
+  return [{
+    id,
+    outcome: `every changed TypeScript or ES module file passes: ${policy.lintRun} <files>`,
+    run: `git diff -z --name-only --diff-filter=d ${base} HEAD -- ${LINTED_PATHSPECS.join(' ')} | xargs -0 -r ${policy.lintRun}`,
+  }]
+}
 
 /**
  * The queue's documentation gate as one check: the policy's command runs when
@@ -386,13 +408,14 @@ export function ticketScope(ticket: Ticket, policy: QueuePolicy): string[] {
  * commands, each as {@link acceptanceRun} runs it, then the engine's own — the
  * branch carries a commit past the base, every changed path is under the
  * ticket's scope or one of the queue's generated paths, the diff carries no
- * whitespace error, and a change touching a Markdown document passes the
+ * whitespace error, every changed TypeScript or ES module file passes the
+ * queue's linter, and a change touching a Markdown document passes the
  * queue's documentation gate. The scope check lists the changed paths outside
  * every allowed pathspec through git's own exclude pathspecs and passes only
  * when that list is empty.
  * @param ticket - the ticket.
  * @param base - the revision every worktree of the shift is cut from.
- * @param policy - the queue's policy, whose documentation gate, heavy runs and generated paths the standard follows.
+ * @param policy - the queue's policy, whose linter, documentation gate, heavy runs and generated paths the standard follows.
  * @param heavyLock - the lock file the heavy acceptance commands take, or `undefined` to run them unlocked.
  * @param prefix - `''` for the department's own standard, a label for the shift's re-run.
  * @returns the checks in the order they run.
@@ -422,6 +445,7 @@ export function ticketChecks(ticket: Ticket, base: string, policy: QueuePolicy, 
       outcome: 'the diff carries no whitespace error',
       run: `git diff --check ${base} HEAD`,
     },
+    ...lintCheck(policy, base, id(ENGINE_CHECKS.lint)),
     ...documentationCheck(policy, base, id(ENGINE_CHECKS.documentation)),
   ]
 }
@@ -455,6 +479,9 @@ export function departmentObjective(ticket: Ticket, seatName: string, policy: Qu
       ? []
       : [`Generated files: when \`pnpm run doc-sync\` reports a generated file stale, run the generator it names (\`pnpm run gen-…\`) and commit what it writes; when it reports a \`type-equiv\` drift, update the named block, and its Chinese counterpart, to match the source; then re-record every translation pair whose sides changed with \`pnpm run verify-translation-pairing --write <English path>\`. These files are inside your scope whichever package they are in: ${quoted(policy.generatedPaths)}.`],
     `Commit every change on this branch before you stop, with a message that names the ticket: only committed work is measured, over a clean worktree. Your work is accepted when these commands exit 0 at the worktree root: ${ticket.acceptance.map(check => `\`${check.run}\``).join('; ')}.`,
+    ...policy.lintRun === undefined
+      ? []
+      : [`Lint: the engine also runs \`${policy.lintRun} <files>\` over every \`.ts\`, \`.tsx\` and \`.mjs\` file you add or change, and it must exit 0; run it yourself on those files before you stop.`],
     ...heavyLock === undefined
       ? []
       : [`Heavy runs share this machine: the engine runs every acceptance command containing ${quoted(policy.heavyFragments)} under \`flock ${heavyLock}\`, which waits for every other heavy run on the machine. Run such a command yourself the same way, \`flock ${heavyLock} <command>\`, with a timeout that allows for the wait.`],

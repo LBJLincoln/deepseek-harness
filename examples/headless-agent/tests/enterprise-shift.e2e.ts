@@ -35,6 +35,16 @@ const configPath = join(fixtureDir, 'cordis.yml')
 const repoTsconfig = fileURLToPath(new URL('../../../tsconfig.json', import.meta.url))
 const installHook = fileURLToPath(new URL('../../../scripts/install-lefthook.mjs', import.meta.url))
 
+/**
+ * The lint check's command in the seeded repository: this repository's oxlint
+ * wrapper, which lints the seed with oxlint's default rules, every warning
+ * failing the run.
+ */
+const SEED_LINT_RUN = [
+  fileURLToPath(new URL('../../../node_modules/.bin/tsx', import.meta.url)),
+  fileURLToPath(new URL('../../../scripts/run-oxlint.ts', import.meta.url)),
+].map(path => `'${path}'`).concat('--deny-warnings').join(' ')
+
 /** The file the seed's postinstall writes once the repository's install hook accepted the checkout. */
 const INSTALL_GUARD_PASSED = 'node_modules/.install-guard-passed'
 
@@ -163,6 +173,7 @@ async function runShift(remote: string, env: Record<string, string>, expectedExi
       GIT_TEMPLATE_DIR: await refusingHooks(),
       ENTERPRISE_HEAVY_LOCK: heavyLock,
       ENTERPRISE_PUSH_LOCK: join(scratchRoot, 'push.lock'),
+      DSH_ENTERPRISE_LINT_RUN: SEED_LINT_RUN,
       ...env,
     },
   })
@@ -211,6 +222,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
       { id: 'engine-committed', ok: true },
       { id: 'engine-scope', ok: true },
       { id: 'engine-whitespace', ok: true },
+      { id: 'engine-lint', ok: true },
     ])
     expect(shipped.review.verdict).toBe('approve')
     expect(shipped.review.sessionId).toMatch(/^review-t-0001-/)
@@ -224,6 +236,10 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     const failed = lineOf(observed, 'T-0002')
     expect(failed.department.outcome).toBe('failed')
     expect(failed.checks.find(check => check.id === 'answers')?.ok).toBe(false)
+    // The department also left a `debugger` statement, which the repository's
+    // oxlint refused over the one file it changed.
+    expect(failed.checks.find(check => check.id === 'engine-lint')?.ok).toBe(false)
+    expect(git(remote, 'show', `main:${observed.record}/sessions/${failed.department.sessionId ?? ''}.jsonl`)).toContain('no-debugger')
     expect(failed.review).toEqual({ verdict: 'none', sessionId: null })
     expect(failed.integration.outcome).toBe('skipped')
     expect(failed.shipped).toBeNull()
