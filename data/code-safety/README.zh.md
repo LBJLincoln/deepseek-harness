@@ -28,11 +28,13 @@ data/code-safety/
   tools/compare.mjs                    scores any findings list against a ground truth, the rule recall.mjs uses, for a cross-tool comparison
   tools/trajectory.mjs                 reads a record's session logs for its provenance and each finding's read trail
   tools/assemble-comparison.mjs        assembles one target's three-tier comparison into comparisons/<date>-<target>/comparison.json
+  tools/client-report.mjs              renders a record as that assessment and prints it to PDF; scripts/code-safety-client-report.spec.ts keeps the committed one current
   tools/seed-defects.mjs               plants N defects drawn from the mutation catalogue into a copy of a target, for seeded-recall estimation; never part of the release gate
   tools/seed-defects.cases.mjs         the seeder's TypeScript behavior cases; scripts/code-safety-seeding.spec.ts runs them under plain Node
   tools/seeded-recall.mjs              scores a findings list against a seed-defects.mjs ground truth, with a Wilson 95% interval, overall and per CWE class
   tools/seed-catalogue.json            the mutation catalogue seed-defects.mjs draws from: one CWE class, language, site pattern, and insertion template per entry
   comparisons/<date>-<target>/         a target reviewed three ways — a scanner, one model, the enterprise — scored against one ground truth
+  reports/<record>/                    SECURITY-ASSESSMENT.md and .html: a client-facing assessment of one record, never part of the record
 ```
 
 ## 如何运行与记录
@@ -63,6 +65,8 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
 | [2026-09-27-nodegoat-11-misses-b](2026-09-27-nodegoat-11-misses-b/manifest.json) | `679eca6bd` | OWASP NodeGoat，111 个文件，同一配对的第二个 `with` 臂，从诊断提交的暂存检出运行；其第一次尝试从第一个检出运行，在集成之前止于路由的会话上限，没有发布任何东西 | `sonnet` | 7 of 7 | 49 (5 critical, 19 high, 17 medium, 7 low, 1 info) | 退出码 0 | 1559 s |
 | [2026-09-27-nodegoat-12-base-d](2026-09-27-nodegoat-12-base-d/manifest.json) | `745d904b1` | OWASP NodeGoat，111 个文件，同一配对的第二个 `without` 臂；收束第三次迭代 | `sonnet` | 7 of 7 | 49 (9 critical, 16 high, 15 medium, 9 low, 0 info) | 退出码 0 | 1636 s |
 | [2026-09-28-dsh-self-review](2026-09-28-dsh-self-review/manifest.json) | `0e9b0cb26` | 本仓库 `599da7580` 处的四个外部 agent subagent provider，24 个文件，植入了八个 TypeScript canary（[目标](targets/README.md#dsh-subagent-providers-the-enterprises-own-code)）；本部门对自己企业代码的第一次评审，分拣为 7 条 canary 发现与 4 条误报，无一确认；分拣发现了一个评审漏报的 Windows 可执行文件搜索缺陷，作为 T-0040 与 T-0041 提交；seeded recall 8 中 6，95% 区间 [0.409, 0.929] | `sonnet` | 7 of 7 | 11 (0 critical, 1 high, 4 medium, 4 low, 2 info) | 退出码 0 | 1390 s |
+
+最新一份 NodeGoat 记录的面向客户的评估 [`reports/2026-09-27-nodegoat-12-base-d/SECURITY-ASSESSMENT.md`](reports/2026-09-27-nodegoat-12-base-d/SECURITY-ASSESSMENT.md) 只由该记录经 `node data/code-safety/tools/client-report.mjs [<record>]` 渲染而成：一份带五项最紧急修复的执行摘要、范围与方法、按严重度排序并附证据的发现、针对已记载问题的召回率、局限与数据处理，路径与摘要放在附录中。它旁边的 HTML 文件可用 `--pdf <file>` 经 Chromium 打印为 PDF；带种子副本的记录在渲染时带有种子横幅及其 Wilson 区间。
 
 ## 一条记录证明了什么
 

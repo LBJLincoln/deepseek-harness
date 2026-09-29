@@ -25,7 +25,7 @@
 | 6 | Claude Code 自己记录的各部门会话转录，凭据形态的字符串与电子邮件地址已遮盖，其余按原样 | GitHub 上的本仓库，公开，每五分钟一次 | [`scripts/transcripts-capture.sh`](../../scripts/transcripts-capture.sh) 运行期间 | [`data/transcripts/README.md`](../../data/transcripts/README.md) |
 | 7 | 一次被记录的审查：每份会话日志、发现、报告、审查器的输出；密钥材料与电子邮件地址已替换 | GitHub 上的本仓库，公开，位于 `data/code-safety/<record>/` | 操作者运行 `record-run.mjs` 并推送时 | [`record-run.mjs`](../../data/code-safety/tools/record-run.mjs) |
 | 8 | 审查的发现（各带其源代码行）与报告 | Supabase 项目上的镜像中继，其 feed 对每次读取都不要求认证，并允许任意来源 | [`pusher.mjs`](../../apps/command-deck/mirror/README.md) 运行期间 | [镜像 README](../../apps/command-deck/mirror/README.md) |
-| 9 | 指挥台位于 `public/fixtures/safety/` 下的审查 fixture（带源代码行的发现、报告） | GitHub Pages，公开 | 分支的每次推送 | [`deck-pages.yml`](../../.github/workflows/deck-pages.yml)、[指挥台 README](../../apps/command-deck/README.md) |
+| 9 | 指挥台位于 `public/fixtures/safety/` 下的审查 fixture（带源代码行的发现、报告） | GitHub Pages，公开 | 分支上每次改动 `apps/command-deck/` 的推送 | [`deck-pages.yml`](../../.github/workflows/deck-pages.yml)、[指挥台 README](../../apps/command-deck/README.md) |
 
 企业班次沿用第 2 行与第 6 行，并按第 7 行的方式发布：班次、评审者与接收会话通过同一登录运行，每个班次都把它的会话日志提交到同一仓库（[简报的数据](../../apps/command-deck/public/fixtures/briefing-claims.md)）。
 

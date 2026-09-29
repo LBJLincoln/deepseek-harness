@@ -78,3 +78,4 @@ pnpm run code-safety -- ~/targets/NodeGoat --model sonnet   # or start the revie
 | 企业花名册、它的证据与 feed | [`data/enterprise/`](../data/enterprise/README.md)、`scripts/roster-evidence.ts`、`scripts/harness-feed.ts` |
 | 指挥台 | [`apps/command-deck/`](../apps/command-deck/README.md) |
 | 已记录的运行与基准真值 | [`data/code-safety/`](../data/code-safety/README.md) |
+| 最新一份 NodeGoat 记录的面向客户的评估 | [`SECURITY-ASSESSMENT.md`](../data/code-safety/reports/2026-09-27-nodegoat-12-base-d/SECURITY-ASSESSMENT.md) |

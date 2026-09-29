@@ -28,11 +28,13 @@ data/code-safety/
   tools/compare.mjs                    scores any findings list against a ground truth, the rule recall.mjs uses, for a cross-tool comparison
   tools/trajectory.mjs                 reads a record's session logs for its provenance and each finding's read trail
   tools/assemble-comparison.mjs        assembles one target's three-tier comparison into comparisons/<date>-<target>/comparison.json
+  tools/client-report.mjs              renders a record as that assessment and prints it to PDF; scripts/code-safety-client-report.spec.ts keeps the committed one current
   tools/seed-defects.mjs               plants N defects drawn from the mutation catalogue into a copy of a target, for seeded-recall estimation; never part of the release gate
   tools/seed-defects.cases.mjs         the seeder's TypeScript behavior cases; scripts/code-safety-seeding.spec.ts runs them under plain Node
   tools/seeded-recall.mjs              scores a findings list against a seed-defects.mjs ground truth, with a Wilson 95% interval, overall and per CWE class
   tools/seed-catalogue.json            the mutation catalogue seed-defects.mjs draws from: one CWE class, language, site pattern, and insertion template per entry
   comparisons/<date>-<target>/         a target reviewed three ways — a scanner, one model, the enterprise — scored against one ground truth
+  reports/<record>/                    SECURITY-ASSESSMENT.md and .html: a client-facing assessment of one record, never part of the record
 ```
 
 ## Running one, and recording it
@@ -63,6 +65,8 @@ The recorder refuses to overwrite an existing record. A run over a seeded copy i
 | [2026-09-27-nodegoat-11-misses-b](2026-09-27-nodegoat-11-misses-b/manifest.json) | `679eca6bd` | OWASP NodeGoat, 111 files, the same pair's second `with` arm, from a scratch checkout of the diagnosis commit; its first attempt, from the first checkout, ended at the route's session limit before integration and released nothing | `sonnet` | 7 of 7 | 49 (5 critical, 19 high, 17 medium, 7 low, 1 info) | exit 0 | 1559 s |
 | [2026-09-27-nodegoat-12-base-d](2026-09-27-nodegoat-12-base-d/manifest.json) | `745d904b1` | OWASP NodeGoat, 111 files, the same pair's second `without` arm; closes iteration 3 | `sonnet` | 7 of 7 | 49 (9 critical, 16 high, 15 medium, 9 low, 0 info) | exit 0 | 1636 s |
 | [2026-09-28-dsh-self-review](2026-09-28-dsh-self-review/manifest.json) | `0e9b0cb26` | this repository's four external-agent subagent providers at `599da7580`, 24 files, eight TypeScript canaries planted ([the target](targets/README.md#dsh-subagent-providers-the-enterprises-own-code)); the division's first review of its own enterprise's code, triaged to 7 canary findings and 4 false positives, none confirmed; the triage found a Windows executable-search defect the review missed, filed as T-0040 and T-0041; seeded recall 6 of 8, 95% interval [0.409, 0.929] | `sonnet` | 7 of 7 | 11 (0 critical, 1 high, 4 medium, 4 low, 2 info) | exit 0 | 1390 s |
+
+The client-facing assessment of the latest NodeGoat record, [`reports/2026-09-27-nodegoat-12-base-d/SECURITY-ASSESSMENT.md`](reports/2026-09-27-nodegoat-12-base-d/SECURITY-ASSESSMENT.md), is rendered from that record alone by `node data/code-safety/tools/client-report.mjs [<record>]`: an executive summary with the five most urgent remediations, the scope and method, the findings ranked by severity with their evidence, recall against the documented issues, the limitations and the data handling, with paths and digests in an appendix. The HTML file beside it prints to a PDF through Chromium with `--pdf <file>`; a record of a seeded copy is rendered with a seeded banner and its Wilson interval.
 
 ## What a record proves
 

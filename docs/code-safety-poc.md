@@ -78,3 +78,4 @@ Four to six weeks on the customer's own applications, once the requirements of [
 | The enterprise roster, its evidence, and the feed | [`data/enterprise/`](../data/enterprise/README.md), `scripts/roster-evidence.ts`, `scripts/harness-feed.ts` |
 | The command deck | [`apps/command-deck/`](../apps/command-deck/README.md) |
 | Recorded runs and the ground truth | [`data/code-safety/`](../data/code-safety/README.md) |
+| The client-facing assessment of the latest NodeGoat record | [`SECURITY-ASSESSMENT.md`](../data/code-safety/reports/2026-09-27-nodegoat-12-base-d/SECURITY-ASSESSMENT.md) |
