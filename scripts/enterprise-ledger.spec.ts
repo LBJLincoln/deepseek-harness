@@ -15,6 +15,7 @@ import {
   parseLedgerLine,
   readLedger,
   seatWork,
+  ticketStandings,
   ticketStatus,
   workOf,
   type FunctionLine,
@@ -153,6 +154,29 @@ describe('ticketStatus', () => {
     expect(ticketStatus({ ...SHIPPED, shipped: null, review: { verdict: 'approved' }, integration: { outcome: 'conflict' } })).toBe('halted')
     const { review: _review, ...unreviewed } = SHIPPED
     expect(ticketStatus({ ...unreviewed, shipped: null, department: { outcome: 'budget-exhausted' } })).toBe('halted')
+  })
+})
+
+describe('ticketStandings', () => {
+  const standing = (lines: readonly TicketLine[]): [string, string, string][] =>
+    [...ticketStandings(lines)].map(([ticket, entry]) => [ticket, entry.status, entry.line.shift])
+
+  it('keeps a ticket shipped whatever the order of its lines, stated by the shipping line and its commit', () => {
+    // T-0007: the shipping line, written at 02:04Z, reached the branch after a shift that began before it failed the ticket at 04:14Z.
+    const failedLater = { ...SHIPPED, ticket: 'T-0007', shift: '041341-222d', at: '2026-09-29T04:14:26.512Z', shipped: null, review: { verdict: 'none' } }
+    const shippedEarlier = { ...SHIPPED, ticket: 'T-0007', shift: '001527-881f', at: '2026-09-29T02:04:38.491Z', shipped: { commit: 'cba8e4682' } }
+    expect(standing([failedLater, shippedEarlier])).toEqual([['T-0007', 'shipped', '001527-881f']])
+    expect(standing([shippedEarlier, failedLater])).toEqual([['T-0007', 'shipped', '001527-881f']])
+    expect(ticketStandings([failedLater, shippedEarlier]).get('T-0007')).toMatchObject({ status: 'shipped', commit: 'cba8e4682' })
+  })
+
+  it('reads any other ticket from its latest line, a line written after the fact taking that place only when its at is not earlier', () => {
+    const halted = { ...SHIPPED, ticket: 'T-0002', at: '2026-09-28T22:00:00.000Z', shipped: null, review: { verdict: 'none' } }
+    const late = (at: string): TicketLine => ({ ...halted, shift: `late-${at}`, at, review: { verdict: 'reject' }, recordedBy: 'supervisor', recordedAt: '2026-09-29T10:00:00.000Z' })
+    expect(standing([halted, late('2026-09-28T21:00:00.000Z')])).toEqual([['T-0002', 'halted', 'shift-1']])
+    expect(standing([halted, late('2026-09-28T23:00:00.000Z')])).toEqual([['T-0002', 'rejected', 'late-2026-09-28T23:00:00.000Z']])
+    expect(standing([late('2026-09-28T21:00:00.000Z'), halted])).toEqual([['T-0002', 'halted', 'shift-1']])
+    expect(standing([])).toEqual([])
   })
 })
 

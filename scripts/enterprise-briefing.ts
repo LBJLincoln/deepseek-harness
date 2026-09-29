@@ -36,7 +36,7 @@ import { gunzipSync } from 'node:zlib'
 
 import { CYCLES_DIR, cycleStartedAt, readCycleRecords, type CycleRecord } from './enterprise-cycle-record.ts'
 import { CI_REPOSITORY, CI_WORKFLOW, DEFAULT_CI_BRANCH, githubReader, parseJobLog, proxyHint, type GitHubReader } from './enterprise-functions.ts'
-import { LEDGER_PATH, readLedger, ticketStatus, type FunctionLine, type LedgerRead, type TicketLine } from './enterprise-ledger.ts'
+import { LEDGER_PATH, readLedger, ticketStandings, ticketStatus, type FunctionLine, type LedgerRead, type TicketLine, type TicketStanding } from './enterprise-ledger.ts'
 import { DECK_FIXTURES } from './enterprise-publish.ts'
 import { ROSTER_PATH, type Roster } from './enterprise-roster.ts'
 import { loadTickets, TICKETS_DIR, type LoadedTicket } from './enterprise-tickets.ts'
@@ -704,14 +704,6 @@ function functionLines(ledger: LedgerRead): FunctionLine[] {
   return ledger.lines.filter((line): line is FunctionLine => line.type === 'function')
 }
 
-/** The newest line of every worked ticket. */
-function newestByTicket(ledger: LedgerRead): Map<string, TicketLine> {
-  const byTicket = new Map<string, TicketLine>()
-  for (const line of [...ticketLines(ledger)].sort((left, right) => ms(right.at) - ms(left.at))) {
-    if (!byTicket.has(line.ticket)) byTicket.set(line.ticket, line)
-  }
-  return byTicket
-}
 
 function queueTickets(tickets: readonly LoadedTicket[]): { id: string; title: string | null }[] {
   const rows: { id: string; title: string | null }[] = []
@@ -742,19 +734,17 @@ export function divisionRows(roster: Roster): DivisionRow[] {
 }
 
 /**
- * The queue's tickets by status: `shipped` and `rejected` close a ticket, `halted` leaves it open, and a ticket with no line is `queued`.
+ * The queue's tickets by the ledger's status rule (`ticketStandings`): `shipped` and `rejected` close a ticket, `halted`
+ * leaves it open, and a ticket with no line is `queued`.
  * @param tickets - the queue files.
  * @param ledger - the ledger.
  * @returns the ticket ids in each status.
  */
 export function ticketsByStatus(tickets: readonly LoadedTicket[], ledger: LedgerRead): Record<'queued' | 'shipped' | 'rejected' | 'halted', string[]> {
-  const lines = newestByTicket(ledger)
+  const standings = ticketStandings(ticketLines(ledger))
   const byStatus: Record<'queued' | 'shipped' | 'rejected' | 'halted', string[]> = { queued: [], shipped: [], rejected: [], halted: [] }
-  const ids = new Set([...queueTickets(tickets).map(ticket => ticket.id), ...lines.keys()])
-  for (const id of [...ids].sort()) {
-    const line = lines.get(id)
-    byStatus[line === undefined ? 'queued' : ticketStatus(line)].push(id)
-  }
+  const ids = new Set([...queueTickets(tickets).map(ticket => ticket.id), ...standings.keys()])
+  for (const id of [...ids].sort()) byStatus[standings.get(id)?.status ?? 'queued'].push(id)
   return byStatus
 }
 
@@ -1718,11 +1708,11 @@ export function buildBriefing(inputs: BriefingInputs, ci: CiReading, branch: str
   const ledgerSource = (computation: string): Source => ({ paths: [LEDGER_PATH], computation })
   const ciSource = (computation: string): Source => ({ paths: [LEDGER_PATH, SHIFTS_DIR], urls: [CI_URL], computation })
 
-  const shippedLines = [...newestByTicket(ledger).values()]
-    .filter(line => line.shipped !== null)
-    .sort((left, right) => ms(left.at) - ms(right.at) || left.ticket.localeCompare(right.ticket))
-  const shipped: ShippedRow[] = shippedLines.map((line) => {
-    const commit = (line.shipped as { commit: string }).commit
+  const shippedStandings = [...ticketStandings(ticketLines(ledger)).values()]
+    .filter((standing): standing is TicketStanding & { status: 'shipped' } => standing.status === 'shipped')
+    .sort((left, right) => ms(left.line.at) - ms(right.line.at) || left.line.ticket.localeCompare(right.line.ticket))
+  const shippedLines = shippedStandings.map(standing => standing.line)
+  const shipped: ShippedRow[] = shippedStandings.map(({ line, commit }) => {
     const verdict = ci.shipments.get(commit)
     const source = ciSource(`The Branch CI runs of ${branch}: the earliest run whose commit contains ${commit.slice(0, 9)} (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log.`)
     const figure: Figure<ShipmentCi> = ci.failure !== undefined
@@ -1791,10 +1781,10 @@ export function buildBriefing(inputs: BriefingInputs, ci: CiReading, branch: str
     'seats.active': known(roster.counts.active, { paths: ROSTER_SOURCE, computation: `counts.active: seats whose newest deliverable falls in the 24 hours ending at the roster's stamp, ${roster.generatedAt}.` }),
     'roster.stamp': known(roster.generatedAt, { paths: ROSTER_SOURCE, computation: 'generatedAt: the moment the roster content last changed.' }),
     'tickets.total': known(tickets.queued.length + tickets.shipped.length + tickets.rejected.length + tickets.halted.length, { paths: [TICKETS_DIR, LEDGER_PATH], computation: 'Queue files and ticket ids the ledger names, counted once each.' }),
-    'tickets.open': known(tickets.queued.length + tickets.halted.length, { paths: [TICKETS_DIR, LEDGER_PATH], computation: 'Tickets whose newest ledger line is neither shipped nor rejected, or that have no line.' }),
-    'tickets.shipped': known(tickets.shipped.length, ledgerSource('Tickets whose newest ticket line names a shipped commit.')),
-    'tickets.rejected': known(tickets.rejected.length, ledgerSource('Tickets whose newest ticket line records a non-approving review verdict or a failed check.')),
-    'tickets.halted': known(tickets.halted.length, ledgerSource('Tickets whose newest ticket line neither shipped nor was rejected.')),
+    'tickets.open': known(tickets.queued.length + tickets.halted.length, { paths: [TICKETS_DIR, LEDGER_PATH], computation: 'Tickets no ledger line shipped and whose latest line records no reject verdict, or that have no line.' }),
+    'tickets.shipped': known(tickets.shipped.length, ledgerSource('Tickets any ticket line of which names a shipped commit, whatever the order of their lines.')),
+    'tickets.rejected': known(tickets.rejected.length, ledgerSource('Tickets no line shipped whose latest ticket line records a reject verdict.')),
+    'tickets.halted': known(tickets.halted.length, ledgerSource('Tickets no line shipped whose latest ticket line records no reject verdict.')),
     'shifts.count': known(shifts.length, { paths: [SHIFTS_DIR], computation: 'Shift record directories.' }),
     'ledger.lines': known(ledger.lines.length, ledgerSource('Lines the ledger reader accepted.')),
     'ledger.functionLines': known(functionLines(ledger).length, ledgerSource('Lines of type function.')),
@@ -1913,7 +1903,7 @@ export function buildBriefing(inputs: BriefingInputs, ci: CiReading, branch: str
         .sort((left, right) => right.sessions - left.sessions || left.route.localeCompare(right.route)),
       { paths: ROSTER_SOURCE, computation: 'evidence.routes: the recorded sessions of the committed records per provider route, attributed to a seat or not.' },
     ),
-    shipped: known(shipped, { paths: [LEDGER_PATH, TICKETS_DIR, SHIFTS_DIR, ROSTER_PATH], computation: 'The newest ticket line of every ticket whose line names a shipped commit, with the queue file\'s title, the seat\'s name, the shift record\'s base commit and the review session\'s tool calls.' }),
+    shipped: known(shipped, { paths: [LEDGER_PATH, TICKETS_DIR, SHIFTS_DIR, ROSTER_PATH], computation: 'The line that shipped each ticket any line of which names a shipped commit, with the queue file\'s title, the seat\'s name, the shift record\'s base commit and the review session\'s tool calls.' }),
     shifts: known(shifts, { paths: [SHIFTS_DIR], computation: 'Each shift record\'s result.json and manifest.json: the tickets worked, the tickets shipped, the start and the end, and the reason a partial record gives.' }),
     pilot: known(pilot, pilotSource(
       'Every cycle the branch names and every shift record outside all of them; a cycle\'s shifts are those its record lists, or the shift records that '

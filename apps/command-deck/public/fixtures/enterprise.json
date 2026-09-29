@@ -22,7 +22,7 @@
     }
   },
   "outcomes": {
-    "shipped": 3,
+    "shipped": 5,
     "notShipped": 5,
     "haltedBeforeModel": 4,
     "programs": [
@@ -246,20 +246,6 @@
         "title": "Pin that a fork child's seed is a one-time snapshot of the parent"
       },
       {
-        "ticket": "T-0020",
-        "seat": "harness-core-subagent-steward",
-        "division": "harness-core",
-        "status": "queued",
-        "title": "Self-skip the subagent search-permission cwd test when the process runs as root"
-      },
-      {
-        "ticket": "T-0021",
-        "seat": "harness-core-subagent-acp-steward",
-        "division": "harness-core",
-        "status": "queued",
-        "title": "Self-skip the ACP search-permission cwd test when the process runs as root"
-      },
-      {
         "ticket": "T-0026",
         "seat": "knowledge-dsh-pre-push-checks-skill-keeper",
         "division": "knowledge",
@@ -374,6 +360,48 @@
     ],
     "shipped": [
       {
+        "ticket": "T-0020",
+        "seat": "harness-core-subagent-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T11:06:39.783Z",
+        "shift": "101309-c95c",
+        "commit": "b157e090863512134630d246d52d7c7167fde50a",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0020-c3b2dc5a"
+        }
+      },
+      {
+        "ticket": "T-0021",
+        "seat": "harness-core-subagent-acp-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T11:06:39.783Z",
+        "shift": "101309-c95c",
+        "commit": "a54154ce7897494822a74d7da81e92774a2f981b",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0021-f02dd27f"
+        }
+      },
+      {
+        "ticket": "T-0007",
+        "seat": "harness-core-llm-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T02:04:38.491Z",
+        "shift": "001527-881f",
+        "commit": "cba8e46823c6fa946e5ee4f86d3945590a3fb1bc",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0007-51a05d12"
+        }
+      },
+      {
         "ticket": "T-0012",
         "seat": "harness-core-llm-pi-ai-steward",
         "division": "harness-core",
@@ -445,15 +473,6 @@
         "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n[WARN] Failed to create bin at /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/061342-191b/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
       },
       {
-        "ticket": "T-0007",
-        "seat": "harness-core-llm-steward",
-        "division": "harness-core",
-        "status": "halted",
-        "at": "2026-09-29T04:14:26.512Z",
-        "shift": "041341-222d",
-        "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n[WARN] Failed to create bin at /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/041341-222d/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
-      },
-      {
         "ticket": "T-0024",
         "seat": "curation-data-feature-curator",
         "division": "curation-data",
@@ -476,9 +495,9 @@
         "seat": "governance-translation-pairing-standard-author",
         "division": "governance",
         "status": "halted",
-        "at": "2026-09-29T02:14:43.714Z",
-        "shift": "021357-6546",
-        "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n[WARN] Failed to create bin at /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/021357-6546/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+        "at": "2026-09-29T02:04:38.491Z",
+        "shift": "001527-881f",
+        "reason": "budget-exhausted"
       },
       {
         "ticket": "T-0001",
@@ -3200,6 +3219,28 @@
   ],
   "shipped": [
     {
+      "commit": "b157e090863512134630d246d52d7c7167fde50a",
+      "at": "2026-09-29T11:06:39.783Z",
+      "tickets": [
+        "T-0020"
+      ],
+      "seats": [
+        "harness-core-subagent-steward"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "a54154ce7897494822a74d7da81e92774a2f981b",
+      "at": "2026-09-29T11:06:39.783Z",
+      "tickets": [
+        "T-0021"
+      ],
+      "seats": [
+        "harness-core-subagent-acp-steward"
+      ],
+      "verdicts": []
+    },
+    {
       "commit": "cba8e46823c6fa946e5ee4f86d3945590a3fb1bc",
       "at": "2026-09-29T02:04:38.491Z",
       "tickets": [
@@ -3234,11 +3275,29 @@
     }
   ],
   "reviews": {
-    "approved": 5,
+    "approved": 7,
     "rejected": 1,
     "reviewerRecorded": 0,
     "overturned": 1,
     "reviews": [
+      {
+        "ticket": "T-0020",
+        "seat": "harness-core-subagent-steward",
+        "division": "harness-core",
+        "shift": "101309-c95c",
+        "at": "2026-09-29T11:06:39.783Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0020-c3b2dc5a"
+      },
+      {
+        "ticket": "T-0021",
+        "seat": "harness-core-subagent-acp-steward",
+        "division": "harness-core",
+        "shift": "101309-c95c",
+        "at": "2026-09-29T11:06:39.783Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0021-f02dd27f"
+      },
       {
         "ticket": "T-0016",
         "seat": "harness-core-tool-subagent-steward",
@@ -3297,8 +3356,8 @@
     ]
   },
   "ledger": {
-    "lines": 191,
-    "tickets": 18,
+    "lines": 193,
+    "tickets": 20,
     "functions": 173,
     "skipped": 0
   }

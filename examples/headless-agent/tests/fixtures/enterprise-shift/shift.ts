@@ -12,6 +12,7 @@ import type { CheckId, StandardCheck } from '@deepseek-ai/dsh-verification/types
 import { redactText, scanSecrets, SECRET_PATTERN_NAMES } from '../../../../../data/transcripts/tools/secret-patterns.mjs'
 import { ticketAcceptanceRefusal } from '../../../../../scripts/enterprise-acceptance.ts'
 import { scrubbedEnvironment } from '../../../../../scripts/enterprise-intake-admission.ts'
+import { ticketStandings } from '../../../../../scripts/enterprise-ledger.ts'
 import { ROSTER_PATH } from '../../../../../scripts/enterprise-roster.ts'
 import type { Roster } from '../../../../../scripts/enterprise-roster.ts'
 import type { RecordedAfter } from '../../../../../scripts/enterprise-ledger.ts'
@@ -252,26 +253,16 @@ export function parseLedger(text: string): TicketLedgerLine[] {
 }
 
 /**
- * The status of every ticket the ledger names, from each ticket's latest line:
- * the last in file order, except that a line written after the fact (one with
- * `recordedAt`) is latest only when its `at` is not earlier than the line it
- * would replace, so recording an old shift never reopens or recloses a ticket
- * a later shift settled.
+ * The status of every ticket the ledger names, by the ledger's one status
+ * rule (`ticketStandings` in `scripts/enterprise-ledger.ts`): shipped once any
+ * line shipped it, otherwise its latest line's, a line written after the fact
+ * taking the latest place only when its `at` is not earlier; a ticket that
+ * rule calls halted is open to a later shift.
  * @param lines - the ledger in file order.
  * @returns ticket id to status; a ticket with no line is absent, which is `open`.
  */
 export function ticketStatuses(lines: readonly TicketLedgerLine[]): Map<string, TicketStatus> {
-  const latest = new Map<string, TicketLedgerLine>()
-  for (const line of lines) {
-    const current = latest.get(line.ticket)
-    if (current !== undefined && line.recordedAt !== undefined && Date.parse(line.at) < Date.parse(current.at)) continue
-    latest.set(line.ticket, line)
-  }
-  const statuses = new Map<string, TicketStatus>()
-  for (const [ticket, line] of latest) {
-    statuses.set(ticket, line.shipped !== null ? 'shipped' : line.review.verdict === 'reject' ? 'rejected' : 'open')
-  }
-  return statuses
+  return new Map([...ticketStandings(lines)].map(([ticket, { status }]) => [ticket, status === 'halted' ? 'open' : status]))
 }
 
 /** The prefix of the reason a ticket its reviewer rejected is held with. */

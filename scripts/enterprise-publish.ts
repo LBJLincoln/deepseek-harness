@@ -27,7 +27,7 @@ import { githubReader, type GitHubReader } from './enterprise-functions.ts'
 import {
   LEDGER_PATH,
   readLedger,
-  ticketStatus,
+  ticketStandings,
   workOf,
   type ActiveWindow,
   type DivisionOccupancy,
@@ -35,6 +35,7 @@ import {
   type FunctionOutcome,
   type LedgerRead,
   type TicketLine,
+  type TicketStanding,
   type TicketStatus,
   type WorkCounts,
 } from './enterprise-ledger.ts'
@@ -76,18 +77,18 @@ export interface TicketSummary {
   ticket: string
   seat: string
   division: string
-  /** `queued` for a ticket the ledger has no line for; else the status of its newest line. */
+  /** `queued` for a ticket the ledger has no line for; else its status by the ledger's rule (`ticketStandings`). */
   status: 'queued' | TicketStatus
   /** The queue file's title, for a queued ticket. */
   title?: string
-  /** The newest line's time, for a worked ticket. */
+  /** For a worked ticket, the time of the line that states its status; the fields below are that line's. */
   at?: string
   shift?: string
   commit?: string
   reason?: string
-  /** The newest line's review verdict and session, for a worked ticket whose line records a review. */
+  /** That line's review verdict and session, when it records a review. */
   review?: { verdict: string; sessionId?: string }
-  /** The reviewer's route and model, when the newest line names them; a line written before the engine recorded them lacks it. */
+  /** The reviewer's route and model, when that line names them; a line written before the engine recorded them lacks it. */
   reviewer?: { route: string; model: string }
 }
 
@@ -174,7 +175,10 @@ export interface EnterpriseReport {
   outcomes: EnterpriseOutcomes
   /** Each division's seats, with its active seats split by what their deliverables inside the window were. */
   divisions: (DivisionOccupancy & { name: string; work: WorkCounts })[]
-  /** Tickets by status: queued ones from the queue, the rest from their newest line inside the window. */
+  /**
+   * Tickets by status: queued ones from the queue, the rest by the ledger's rule when the line that states the status
+   * is inside the window, newest first.
+   */
   tickets: Record<'queued' | TicketStatus, TicketSummary[]>
   /** Function lines inside the window, newest first. */
   functions: FunctionLine[]
@@ -213,12 +217,12 @@ function sameCommit(left: string, right: string): boolean {
   return left.length >= 7 && right.length >= 7 && (left.startsWith(right) || right.startsWith(left))
 }
 
-function summarize(line: TicketLine): TicketSummary {
+function summarize({ status, line }: TicketStanding): TicketSummary {
   const summary: TicketSummary = {
     ticket: line.ticket,
     seat: line.seat,
     division: line.division,
-    status: ticketStatus(line),
+    status,
     at: line.at,
     shift: line.shift,
   }
@@ -321,13 +325,10 @@ export function buildEnterpriseReport(roster: Roster, ledger: LedgerRead, ticket
   )
   const asOf = lastAt !== undefined && ms(lastAt) > ms(roster.generatedAt) ? lastAt : roster.generatedAt
 
-  const newestByTicket = new Map<string, TicketLine>()
-  for (const line of newestFirst(ticketLines)) if (!newestByTicket.has(line.ticket)) newestByTicket.set(line.ticket, line)
-  const byStatus: EnterpriseReport['tickets'] = { queued: queued(tickets, new Set(newestByTicket.keys())), shipped: [], rejected: [], halted: [] }
-  for (const line of newestByTicket.values()) {
-    if (!inWindow(line.at, window)) continue
-    const summary = summarize(line)
-    if (summary.status !== 'queued') byStatus[summary.status].push(summary)
+  const standings = ticketStandings(ticketLines)
+  const byStatus: EnterpriseReport['tickets'] = { queued: queued(tickets, new Set(standings.keys())), shipped: [], rejected: [], halted: [] }
+  for (const standing of [...standings.values()].sort((left, right) => ms(right.line.at) - ms(left.line.at))) {
+    if (inWindow(standing.line.at, window)) byStatus[standing.status].push(summarize(standing))
   }
 
   const verdicts = functionLines.filter((line): line is FunctionLine & { evidence: { url: string } } => 'url' in line.evidence)

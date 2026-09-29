@@ -180,6 +180,16 @@ describe('buildEnterpriseReport', () => {
     expect(listed[0]?.commit).toBe(`c0ffee${String(SHIPPED_LIMIT + 2).padStart(6, '0')}`)
   })
 
+  it('lists a ticket as shipped when a later-dated line records an attempt that began before its shipping line reached the branch', () => {
+    const lines = [
+      ticket({ ticket: 'T-0007', shift: '041341-222d', at: '2026-09-28T16:00:00.000Z', shipped: null, review: undefined, reason: 'the shift could not prepare its worktrees' }),
+      ticket({ ticket: 'T-0007', shift: '001527-881f', at: '2026-09-28T14:00:00.000Z' }),
+    ]
+    const listed = buildEnterpriseReport(roster, { lines, skipped: [] }, []).tickets
+    expect(listed.shipped.map(entry => [entry.ticket, entry.shift, entry.commit])).toEqual([['T-0007', '001527-881f', COMMIT]])
+    expect(listed.halted).toEqual([])
+  })
+
   it('counts every review of the whole ledger, the ones older than the window included, newest first', () => {
     expect(report.reviews).toEqual({
       approved: 2,

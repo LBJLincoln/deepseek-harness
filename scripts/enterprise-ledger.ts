@@ -20,6 +20,11 @@
  * range. A line written after the fact, for a run whose own writer never
  * recorded it, carries {@link RecordedAfter} fields.
  *
+ * **Status.** {@link ticketStandings} is the one rule that gives a ticket its
+ * status from its lines: shipped once any line shipped it, otherwise its
+ * latest line's; the engine's selection, the deck's data, the client briefing
+ * and the report all read it.
+ *
  * **Occupancy.** A seat is occupied only by a recorded deliverable: a ticket
  * line or a function line naming the seat's id exactly, or a recorded session
  * `scripts/roster-evidence.ts` attributes to it. A seat is active when its
@@ -379,18 +384,74 @@ export function appendLedger(file: string, lines: readonly LedgerLine[]): void {
 export type TicketStatus = 'shipped' | 'rejected' | 'halted'
 
 /**
- * Read a ticket line's status the way the engine closes tickets: `shipped` when
- * a commit on the branch carries the change, `rejected` when the independent
- * review's verdict is `reject`, and `halted` otherwise (a department that failed
- * its acceptance, a change the integration could not assemble, a shift the usage
- * limit stopped), which leaves the ticket open for a later shift.
+ * The fields of a ticket line the status rule reads. The ledger's readers'
+ * {@link TicketLine} and the shift engine's own line type both carry them.
+ */
+export interface StatusLine {
+  ticket: string
+  at: string
+  recordedAt?: string | undefined
+  shipped: { commit: string } | null
+  review?: { verdict: string } | undefined
+}
+
+/**
+ * Read one ticket line's status the way the engine closes tickets: `shipped`
+ * when a commit on the branch carries the change, `rejected` when the
+ * independent review's verdict is `reject`, and `halted` otherwise (a
+ * department that failed its acceptance, a change the integration could not
+ * assemble, a shift the usage limit stopped), which leaves the ticket open for
+ * a later shift. A ticket's own status is {@link ticketStandings}'.
  * @param line - the ticket line.
  * @returns the status.
  */
 export function ticketStatus(line: TicketLine): TicketStatus {
-  if (line.shipped !== null) return 'shipped'
-  if (line.review !== undefined && line.review.verdict.trim().toLowerCase() === 'reject') return 'rejected'
-  return 'halted'
+  return line.shipped !== null ? 'shipped' : unshippedStatus(line)
+}
+
+/** The status of a line that shipped nothing: `rejected` on a `reject` verdict, `halted` otherwise. */
+function unshippedStatus(line: Pick<StatusLine, 'review'>): 'rejected' | 'halted' {
+  return line.review !== undefined && line.review.verdict.trim().toLowerCase() === 'reject' ? 'rejected' : 'halted'
+}
+
+/** A ticket's status and the line that states it; a shipped ticket also names its commit. */
+export type TicketStanding<L extends StatusLine = TicketLine> =
+  | { status: 'shipped'; line: L; commit: string }
+  | { status: 'rejected' | 'halted'; line: L }
+
+/**
+ * The status of every ticket the ledger names: the one rule the engine's
+ * selection, the deck's published data, the client briefing and the report
+ * read. A ticket is `shipped` once any of its lines shipped a commit, whatever
+ * the order of its lines, and that line, the last shipping one in file order,
+ * states it: nothing takes a shipped commit off the branch, and a later line
+ * can record an attempt that began before the shipping line reached the
+ * branch. Shift `041341-222d` selected `T-0007` at 04:13Z and failed it at
+ * 04:14Z, while the line of shift `001527-881f` that shipped it as
+ * `cba8e4682`, dated 02:04Z when that shift wrote it, reached the branch with
+ * the shift's push at 06:45Z. Otherwise the ticket's latest line states its
+ * status through {@link ticketStatus}: the last in file order, except that a
+ * line written after the fact ({@link RecordedAfter}) replaces the latest only
+ * when its `at` is not earlier, so recording an old run never reopens or
+ * recloses a ticket a later line settled.
+ * @param lines - ticket lines in file order.
+ * @returns each ticket id's standing, in the order the tickets first appear.
+ */
+export function ticketStandings<L extends StatusLine>(lines: readonly L[]): Map<string, TicketStanding<L>> {
+  const latest = new Map<string, L>()
+  const shipping = new Map<string, { line: L; commit: string }>()
+  for (const line of lines) {
+    if (line.shipped !== null) shipping.set(line.ticket, { line, commit: line.shipped.commit })
+    const current = latest.get(line.ticket)
+    if (current !== undefined && line.recordedAt !== undefined && Date.parse(line.at) < Date.parse(current.at)) continue
+    latest.set(line.ticket, line)
+  }
+  const standings = new Map<string, TicketStanding<L>>()
+  for (const [ticket, line] of latest) {
+    const shipped = shipping.get(ticket)
+    standings.set(ticket, shipped === undefined ? { status: unshippedStatus(line), line } : { status: 'shipped', ...shipped })
+  }
+  return standings
 }
 
 /** What the ledger records for one seat, counted exactly by seat id. */

@@ -46,11 +46,13 @@ import {
   LEDGER_PATH,
   parseLedgerLine,
   readLedger,
+  ticketStandings,
   ticketStatus,
   type FunctionLine,
   type FunctionOutcome,
   type LedgerLine,
   type TicketLine,
+  type TicketStanding,
   type TicketStatus,
   type WorkCounts,
 } from './enterprise-ledger.ts'
@@ -256,7 +258,7 @@ export interface EnterpriseWindowReport {
     byDivision: ({ division: string; lines: number } & Record<TicketStatus, number>)[]
     /** The independent review of those lines: approved, rejected, or not reached (no verdict recorded). */
     reviews: { approved: number; rejected: number; notReached: number }
-    /** The distinct tickets shipped inside the window, by their shipping line's time. */
+    /** The distinct tickets the window's lines ship by the ledger's rule (`ticketStandings`), by their shipping line's time. */
     shipped: ShippedTicket[]
   }
   /** Each commit a ticket shipped as inside the window, with its Branch CI answer. */
@@ -783,7 +785,6 @@ export async function enterpriseReport(sources: ReportSources, window: ReportWin
     else reviews.notReached += 1
   }
   const divisions = new Map<string, { division: string; lines: number } & Record<TicketStatus, number>>()
-  const shippedTickets = new Map<string, ShippedTicket>()
   for (const line of [...ticketLines].sort((left, right) => ms(left.at) - ms(right.at))) {
     const status = ticketStatus(line)
     byStatus[status] += 1
@@ -791,11 +792,11 @@ export async function enterpriseReport(sources: ReportSources, window: ReportWin
     tally.lines += 1
     tally[status] += 1
     divisions.set(line.division, tally)
-    if (line.shipped !== null) {
-      shippedTickets.set(`${line.ticket} ${line.shipped.commit}`, { ticket: line.ticket, division: line.division, seat: line.seat, commit: line.shipped.commit, at: line.at, shift: line.shift })
-    }
   }
-  const shipped = [...shippedTickets.values()]
+  const shipped: ShippedTicket[] = [...ticketStandings(ticketLines).values()]
+    .filter((standing): standing is TicketStanding & { status: 'shipped' } => standing.status === 'shipped')
+    .map(({ line, commit }) => ({ ticket: line.ticket, division: line.division, seat: line.seat, commit, at: line.at, shift: line.shift }))
+    .sort((left, right) => ms(left.at) - ms(right.at))
   const commitIds = [...new Set(shipped.map(ticket => ticket.commit))].sort()
   const answers = await ciAnswers(commitIds, sources)
   const commits: ShippedCommitReport[] = commitIds.map((commit) => {

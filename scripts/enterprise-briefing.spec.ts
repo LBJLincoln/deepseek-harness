@@ -227,18 +227,21 @@ describe('enterprise figures', () => {
     ])
   })
 
-  it('takes each ticket status from its newest line and counts a ticket without a line as queued', () => {
+  it('takes each ticket status from the ledger\'s rule and counts a ticket without a line as queued', () => {
     const ledger: LedgerRead = {
       lines: [
         ticketLine({ ticket: 'T-0001', at: '2026-09-28T10:00:00.000Z', shipped: null, review: { verdict: 'none' } }),
         ticketLine({ ticket: 'T-0001', at: '2026-09-28T12:00:00.000Z' }),
         ticketLine({ ticket: 'T-0002', shipped: null, review: { verdict: 'reject' } }),
         ticketLine({ ticket: 'T-0003', shipped: null, review: { verdict: 'none' }, reason: 'halted: limit' }),
+        // A shift that selected T-0005 before its shipping line reached the branch failed it later.
+        ticketLine({ ticket: 'T-0005', shift: '041341-222d', at: '2026-09-29T04:14:26.512Z', shipped: null, review: { verdict: 'none' } }),
+        ticketLine({ ticket: 'T-0005', shift: '001527-881f', at: '2026-09-29T02:04:38.491Z', shipped: { commit: FIX } }),
       ],
       skipped: [],
     }
-    const queue = ['T-0001', 'T-0002', 'T-0003', 'T-0004'].map(id => ({ file: `${id}.json`, value: { id } }))
-    expect(ticketsByStatus(queue, ledger)).toEqual({ queued: ['T-0004'], shipped: ['T-0001'], rejected: ['T-0002'], halted: ['T-0003'] })
+    const queue = ['T-0001', 'T-0002', 'T-0003', 'T-0004', 'T-0005'].map(id => ({ file: `${id}.json`, value: { id } }))
+    expect(ticketsByStatus(queue, ledger)).toEqual({ queued: ['T-0004'], shipped: ['T-0001', 'T-0005'], rejected: ['T-0002'], halted: ['T-0003'] })
   })
 
   it('reads a shift record, its duration and a partial record\'s reason', () => {

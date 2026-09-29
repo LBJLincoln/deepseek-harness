@@ -118,6 +118,16 @@ describe('ticket status from the ledger', () => {
   })
 })
 
+describe('a shipped ticket', () => {
+  it('stays shipped when a shift that selected it before its shipping line reached the branch appends a later attempt', () => {
+    const shipped = line('T-0001', 'a'.repeat(40), 'approve', '2026-09-28T19:00:00.000Z')
+    const laterAttempt = { ...line('T-0001', null, 'none', '2026-09-28T20:00:00.000Z'), shift: 'shift-2', reason: 'no certificate after 3 rounds' }
+    expect(ticketStatuses([shipped, laterAttempt]).get('T-0001')).toBe('shipped')
+    expect(ticketStatuses([laterAttempt, shipped]).get('T-0001')).toBe('shipped')
+    expect(selectTickets([ticket('T-0001', 1), ticket('T-0002', 1)], [shipped, laterAttempt], { kind: 'next', count: 2 }).map(entry => entry.id)).toEqual(['T-0002'])
+  })
+})
+
 describe('ticket selection', () => {
   const queue = [ticket('T-0001', 2), ticket('T-0002', 1), ticket('T-0003', 1), ticket('T-0004', 3)]
 

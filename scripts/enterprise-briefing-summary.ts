@@ -189,11 +189,13 @@ function shippedSentence(briefing: Briefing, locale: Locale): string {
   const by = listed(starters.map(starter => STARTER[starter][locale]), locale)
   if (zh) {
     parts.push(`${shipped.length} 张工单在由${by}启动的班次 ${listed(shifts, locale)} 中交付：${tickets}。`)
-    parts.push(allPassed ? `每张都通过了全部 ${totals.join('、')} 项检查，` : `检查通过情况：${shipped.map(row => `${row.checks.passed}/${row.checks.total}`).join('、')}，`)
+    const every = totals.length === 1 ? `全部 ${totals.join('')} 项检查` : `自己的全部检查（每张 ${totals.join('、')} 项）`
+    parts.push(allPassed ? `每张都通过了${every}，` : `检查通过情况：${shipped.map(row => `${row.checks.passed}/${row.checks.total}`).join('、')}，`)
     parts.push(blind ? '并由一位没有调用任何工具的审阅者批准。' : '并经审阅者批准。')
   } else {
-    parts.push(`${shipped.length} ${shipped.length === 1 ? 'ticket' : 'tickets'} shipped in shift ${listed(shifts, locale)}, started by the ${by}: ${tickets}.`)
-    parts.push(allPassed ? `Each passed all ${listed(totals.map(String), locale)} of its checks` : `Checks passed: ${shipped.map(row => `${row.checks.passed}/${row.checks.total}`).join(', ')};`)
+    parts.push(`${shipped.length} ${shipped.length === 1 ? 'ticket' : 'tickets'} shipped in ${shifts.length === 1 ? 'shift' : 'shifts'} ${listed(shifts, locale)}, started by the ${by}: ${tickets}.`)
+    const every = totals.length === 1 ? `all ${totals.join('')} of its checks` : `all of its checks (${listed(totals.map(String), locale)} per ticket)`
+    parts.push(allPassed ? `Each passed ${every}` : `Checks passed: ${shipped.map(row => `${row.checks.passed}/${row.checks.total}`).join(', ')};`)
     parts.push(blind ? 'and was approved by a reviewer that made no tool call.' : 'and was approved by a reviewer.')
   }
   const unknownCi = shipped.map(row => row.ci).find(figure => figure.value === null)
