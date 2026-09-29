@@ -15,8 +15,12 @@
 //   targeted, and the decision taken. The proposal and the decision are authored;
 //   the reading (recall, issues gained and lost against the baseline, targets caught)
 //   is scored here from the record.
+// The enterprise tier's tokens are summed from the record's session logs: every
+// `assistant/chunk` event whose chunk is `usage`, one per model response. The
+// records hold no dollar price for the subscription route, so that tier states
+// its tokens and no cost; the single pass states the cost Claude Code reported.
 // Writes <out dir>/comparison.json.
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const [groundTruthPath, outDir] = process.argv.slice(2)
@@ -49,6 +53,27 @@ const singleMeta = readJson(join(outDir, 't1-single-model-meta.json'))
 const enterpriseRecord = readJson(join(ENTERPRISE_RECORD, 'findings.json'))
 const enterpriseManifest = readJson(join(ENTERPRISE_RECORD, 'manifest.json'))
 const enterprise = score(asFindings(enterpriseRecord))
+
+/** Sum the token usage the record's session logs carry, one `usage` chunk per model response. */
+function recordTokens(recordDir) {
+  const tokens = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
+  const sessions = join(recordDir, 'sessions')
+  for (const file of readdirSync(sessions).filter(name => name.endsWith('.jsonl'))) {
+    for (const line of readFileSync(join(sessions, file), 'utf8').split('\n')) {
+      if (!line.includes('"assistant/chunk"')) continue
+      const event = JSON.parse(line)
+      const usage = event.data?.chunk?.type === 'usage' ? event.data.chunk.usage : undefined
+      if (usage === undefined) continue
+      tokens.input += usage.inputTokens ?? 0
+      tokens.output += usage.outputTokens ?? 0
+      tokens.cacheRead += usage.cacheReadTokens ?? 0
+      tokens.cacheWrite += usage.cacheWriteTokens ?? 0
+    }
+  }
+  return { ...tokens, total: tokens.input + tokens.output + tokens.cacheRead + tokens.cacheWrite }
+}
+const enterpriseTokens = recordTokens(ENTERPRISE_RECORD)
+const grouped = n => n.toLocaleString('en-US')
 
 const matrix = truth.issues.map(issue => ({
   id: issue.id,
@@ -84,11 +109,11 @@ const comparison = {
   revision: truth.revision,
   knownIssues: truth.issues.length,
   date: new Date().toISOString().slice(0, 10),
-  note: 'Same target, same revision, same 18-issue ground truth, scored by the same rule (a finding within three lines of a known issue). The single-model and enterprise tiers run the same model (sonnet); the only difference between them is the harness. The issue count and locations were never disclosed to any tier.',
+  note: 'Same target, same revision, same 18-issue ground truth, scored by the same rule: a known issue is caught when a finding cites its file within three lines of its lines or of another location the ground truth lists for it. Each tier is one run. The single-model and enterprise tiers run the same model (sonnet); the single pass is one session with read-only tools and a generic review prompt, the enterprise six scoped departments, an examiner and an integration. Verified means line-verified: the examiner found the quoted text at the cited line of the cited file, which does not show that a finding is a real defect. The issue count and locations were never disclosed to any tier. The iterations with the diagnosed checklists are in-sample: the checklists were written from this target\'s misses.',
   tiers: [
-    { id: 'semgrep', name: 'Semgrep, community rules', kind: 'commodity static analysis, no model', ...tierFields(semgrep), verified: false, wall: 'seconds', cost: '$0', detail: '96 rules over 44 files' },
-    { id: 'single-model', name: 'One frontier model, one pass', kind: 'a single sonnet session, no departments, no verifier', ...tierFields(single), verified: false, wall: `${Math.round(singleMeta.duration_ms / 1000)} s`, cost: `$${singleMeta.cost_usd.toFixed(2)}`, detail: `${singleMeta.num_turns} turns` },
-    { id: 'enterprise', name: 'Daliesk enterprise', kind: 'six departments, a verifier, and integration; same sonnet', ...tierFields(enterprise), verified: enterpriseManifest.verifier?.exitCode === 0, wall: `${enterpriseManifest.elapsedSeconds} s`, cost: 'subscription', detail: `${enterpriseManifest.certified.length} certified; record ${ENTERPRISE_RECORD.split('/').pop()}` },
+    { id: 'semgrep', name: 'Semgrep, community rules, one run', kind: 'commodity static analysis, no model', ...tierFields(semgrep), verified: false, wall: 'seconds', cost: '$0', detail: '96 rules over 44 files' },
+    { id: 'single-model', name: 'One frontier model, one pass, one run', kind: 'a single sonnet session with read-only tools and a generic prompt, no departments, no verifier', ...tierFields(single), verified: false, wall: `${Math.round(singleMeta.duration_ms / 1000)} s`, cost: `$${singleMeta.cost_usd.toFixed(2)}, as Claude Code reported it; tokens not recorded`, detail: `${singleMeta.num_turns} turns` },
+    { id: 'enterprise', name: 'Daliesk enterprise, one run', kind: 'six departments, a line verifier and an integration; same sonnet', ...tierFields(enterprise), verified: enterpriseManifest.verifier?.exitCode === 0, wall: `${enterpriseManifest.elapsedSeconds} s`, cost: `${grouped(enterpriseTokens.total)} tokens on the operator's subscription; no dollar price recorded`, tokens: enterpriseTokens, detail: `${enterpriseManifest.certified.length} certified; record ${ENTERPRISE_RECORD.split('/').pop()}` },
   ],
   matrix: matrix.map(({ id, category, semgrep: s, singleModel: m, enterprise: e }) => ({ id, category, semgrep: s, singleModel: m, enterprise: e })),
   bothModelsMiss: bothMiss,
