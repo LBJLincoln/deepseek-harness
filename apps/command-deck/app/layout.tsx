@@ -3,9 +3,15 @@ import type { ReactNode } from 'react'
 import { DeckShell } from '@/components/shell/DeckShell'
 import './globals.css'
 
+/** Daliesk's one line of positioning, the same as the root README's first sentence. */
+const POSITIONING = 'Daliesk is a pilot organisation of AI agents that changes a codebase through a ticket queue, '
+  + 'has an independent reviewer approve each change before it ships, and records every step in its repository.'
+
 export const metadata: Metadata = {
-  title: 'Command Deck — Daliesk',
-  description: 'The Daliesk agent enterprise: 147 agents, the workflows between them, and code-safety review placed on the code.',
+  title: 'Daliesk Command Deck',
+  description: POSITIONING,
+  applicationName: 'Daliesk Command Deck',
+  openGraph: { title: 'Daliesk Command Deck', description: POSITIONING, siteName: 'Daliesk', type: 'website' },
 }
 
 export const viewport: Viewport = {

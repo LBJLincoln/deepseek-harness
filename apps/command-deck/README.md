@@ -1,8 +1,8 @@
-# @deepseek-ai/dsh-command-deck
+# Daliesk Command Deck
 
 English | [中文](README.zh.md)
 
-The Command Deck is the customer-facing front end of the Daliesk agent enterprise: its 147 seat definitions, each with the evidence the recorded sessions give it; the organisation of record, every recorded program run with its departments, certificates and sign-offs; the workflows between sessions; the live activity of a harness run; a code-safety review placed on the target repository's own code; and the enterprise's operations, every agent working now with what needs attention and why.
+The Command Deck, the package `@deepseek-ai/dsh-command-deck`, is the customer-facing front end of Daliesk, a pilot organisation of AI agents built on DeepSeek Harness: its 147 seat definitions, each with the evidence the recorded sessions give it; the organisation of record, every recorded program run with its departments, certificates and sign-offs; the workflows between sessions; the live activity of a harness run; a code-safety review placed on the target repository's own code; and the enterprise's operations, every agent working now with what needs attention and why.
 
 It is a Next.js 14 application (App Router, React 18) whose three scenes are three.js through `@react-three/fiber`. It reads one HTTP feed and, when that feed does not answer, replays the fixtures committed beside it — so the deck is fully usable, and demonstrable, with no server running and no API key.
 

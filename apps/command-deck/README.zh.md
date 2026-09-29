@@ -1,8 +1,8 @@
-# @deepseek-ai/dsh-command-deck
+# Daliesk Command Deck
 
 [English](README.md) | 中文
 
-Command Deck 是 Daliesk agent（智能体）企业面向客户的前端：它的 147 个席位定义，每个都附带已记录会话为它提供的证据；记录在案的组织，即每次已记录的 program（项目）运行及其部门、证书与签署；会话之间的工作流；harness 运行的实时活动；落在目标仓库代码上的代码安全审查；以及企业的运营：此刻正在工作的每个 agent，以及需要处理的事项与原因。
+Command Deck（包名 `@deepseek-ai/dsh-command-deck`）是 Daliesk 面向客户的前端；Daliesk 是一个构建在 DeepSeek Harness 之上的试点性质的 AI 智能体组织：它的 147 个席位定义，每个都附带已记录会话为它提供的证据；记录在案的组织，即每次已记录的 program（项目）运行及其部门、证书与签署；会话之间的工作流；harness 运行的实时活动；落在目标仓库代码上的代码安全审查；以及企业的运营：此刻正在工作的每个 agent，以及需要处理的事项与原因。
 
 它是一个 Next.js 14 应用（App Router、React 18），三个场景通过 `@react-three/fiber` 使用 three.js。它读取一个 HTTP feed；当该 feed 没有响应时，会回放随其一同提交的 fixture，因此在没有服务端、没有 API key 的情况下，deck 依然完全可用、可演示。
 

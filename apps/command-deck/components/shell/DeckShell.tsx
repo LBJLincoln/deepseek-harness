@@ -49,10 +49,10 @@ const SEAT_COUNTS: readonly {
 }[] = [
   { key: 'defined', label: 'seats defined', title: 'Seat definitions in the roster; a definition is not a running agent', value: counts => counts.defined },
   { key: 'occupied', label: 'occupied', tone: 'occupied', title: 'Seats a recorded deliverable occupies: a session, a ticket, a gate run, a CI verdict', value: counts => counts.occupied },
-  { key: 'active', label: 'active · 24 h', tone: 'active', title: 'Seats with a deliverable in the 24 hours before the roster\'s stamp', value: counts => (counts.work === undefined ? counts.active : undefined) },
-  { key: 'model', label: 'model-driven · 24 h', tone: 'active', title: 'Active seats a model did the work of: a session, a ticket, a code-safety review, an intake', value: counts => counts.work?.active.model },
-  { key: 'check', label: 'automated checks · 24 h', title: 'Active seats whose work was a script or a read: a verify-* gate, a CI verdict, a fold', value: counts => counts.work?.active.check },
-  { key: 'halted', label: 'halted · 24 h', title: 'Active seats whose only work in the window was a ticket its shift stopped before any model ran', value: counts => (counts.work?.active.halted === 0 ? undefined : counts.work?.active.halted) },
+  { key: 'active', label: 'active · 24h', tone: 'active', title: 'Seats with a deliverable in the 24 hours before the roster\'s stamp', value: counts => (counts.work === undefined ? counts.active : undefined) },
+  { key: 'model', label: 'model-driven · 24h', tone: 'active', title: 'Active seats a model did the work of: a session, a ticket, a code-safety review, an intake', value: counts => counts.work?.active.model },
+  { key: 'check', label: 'checks · 24h', title: 'Active seats whose work was a script or a read: a verify-* gate, a CI verdict, a fold', value: counts => counts.work?.active.check },
+  { key: 'halted', label: 'halted · 24h', title: 'Active seats whose only work in the window was a ticket its shift stopped before any model ran', value: counts => (counts.work?.active.halted === 0 ? undefined : counts.work?.active.halted) },
   { key: 'running', label: 'running now', tone: 'active', title: 'Seats a session is running on at this moment', value: counts => counts.running },
 ]
 
