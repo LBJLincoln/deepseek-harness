@@ -112,7 +112,7 @@ function agentPoints(agents: readonly OpsAgent[], layout: OpsLayout): Map<string
  * @param props - The snapshot to draw.
  * @returns The canvas.
  */
-export function OpsStage({ snapshot, onLost }: { snapshot: OpsSnapshot; onLost: () => void }): ReactNode {
+export function OpsStage({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
   const seats = snapshot.seats ?? []
   const divisions = snapshot.big.seats?.divisions ?? []
   // A seat keeps its place across snapshots: the layout is rebuilt only when the seats themselves change.
@@ -132,23 +132,8 @@ export function OpsStage({ snapshot, onLost }: { snapshot: OpsSnapshot; onLost: 
       <Comets points={points} layout={layout} />
       <Rings layout={layout} />
       <Rig />
-      <ContextWatch onLost={onLost} />
     </Stage>
   )
-}
-
-/**
- * Reports a lost WebGL context: the browser takes it back under memory
- * pressure or a driver reset and the canvas goes blank without an error, so
- * the view swaps in the flat floor instead.
- */
-function ContextWatch({ onLost }: { onLost: () => void }): ReactNode {
-  const canvas = useThree(state => state.gl.domElement)
-  useEffect(() => {
-    canvas.addEventListener('webglcontextlost', onLost)
-    return () => canvas.removeEventListener('webglcontextlost', onLost)
-  }, [canvas, onLost])
-  return null
 }
 
 /**

@@ -8,11 +8,13 @@ import { usePlayback } from '@/deck/playback'
 import { eventsUpTo, eventTimeMs, useDeck } from '@/deck/store'
 import { EventFeed } from '@/components/shell/EventFeed'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
+import { WebGLGate } from '@/components/three/WebGLGate'
 import { PlaybackControls } from './PlaybackControls.tsx'
 import styles from './workflow.module.css'
 
 // three.js reaches for a WebGL context on mount, so the scene never renders on
-// the server; the rest of the view is ordinary React and does.
+// the server, and mounts behind a WebGLGate in the browser; the rest of the view
+// is ordinary React and renders everywhere.
 const WorkflowStage = dynamic(
   async () => (await import('./WorkflowStage')).WorkflowStage,
   { ssr: false, loading: () => <div className="loading">tracing the run's sessions…</div> },
@@ -60,13 +62,15 @@ export function WorkflowView(): ReactNode {
   return (
     <div className="view view--split">
       <div className="stage">
-        <WorkflowStage
-          graph={graph}
-          selected={selected}
-          hovered={hovered}
-          onHover={setHovered}
-          onSelect={setSelected}
-        />
+        <WebGLGate poster="workflow" label="the run's session graph">
+          <WorkflowStage
+            graph={graph}
+            selected={selected}
+            hovered={hovered}
+            onHover={setHovered}
+            onSelect={setSelected}
+          />
+        </WebGLGate>
 
         <div className="stage__overlay">
           <div className="stage__title">

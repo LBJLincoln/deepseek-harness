@@ -20,7 +20,7 @@ Status: implemented
 
 **传输沿用 feed 契约。** [`scripts/harness-feed.ts`](../../../../scripts/harness-feed.ts) 提供 `GET /ops`，并在 `GET /ops/events` 上以运行事件流的帧格式流式发送活动帧。中继的 feed 函数从 `ingest` 存在 `/ops` 与运行 id `ops` 下的行提供同样的两个路径。[`scripts/enterprise-ops-live.sh`](../../../../scripts/enterprise-ops-live.sh) 在自己的检出中每隔 `OPS_INTERVAL_SECONDS`（15）以 `--push` 运行一次采集器，每五分钟快进一次该检出，持有一个 `flock` 以保证只有一个循环在运行，并把采集器的增量状态保存在 `/tmp`。周期的 `enterprise:publish` 步骤还会写出 `public/fixtures/ops.json`，因此 Pages 上的 deck 带着一份不早于上一个周期的快照。
 
-**deck 会说明自己处于哪种模式。** [`deck/ops.ts`](../../../../apps/command-deck/deck/ops.ts) 读取 feed 的 `/ops`：比六个生产者间隔（至少 90 秒）更新即为 `live`；否则视图显示它能读到的最新快照（feed 的或随包附带的），标为 `recent` 并注明时长与回放提示；两者都没有时为 `offline`。实时帧按记录时的间隔、比机器晚一个间隔加五秒播放；recent 快照的帧循环回放。[运营视图](../../../../apps/command-deck/README.md#the-operations-view)（`/ops`，按键 `5`）把速览卡片放在顶部，场景居中，泳道图在其下方，关注队列在旁边。视图在挂载场景前检查 WebGL 2，用错误边界捕获抛出错误的场景，并监听 WebGL 上下文的丢失；在这几种情况下，它都把同一个大厅画成一张 SVG 并说明原因，因此没有 GPU 的笔记本或远程桌面仍能得到一个可读的视图。
+**deck 会说明自己处于哪种模式。** [`deck/ops.ts`](../../../../apps/command-deck/deck/ops.ts) 读取 feed 的 `/ops`：比六个生产者间隔（至少 90 秒）更新即为 `live`；否则视图显示它能读到的最新快照（feed 的或随包附带的），标为 `recent` 并注明时长与回放提示；两者都没有时为 `offline`。实时帧按记录时的间隔、比机器晚一个间隔加五秒播放；recent 快照的帧循环回放。[运营视图](../../../../apps/command-deck/README.md#the-operations-view)（`/ops`，按键 `5`）把速览卡片放在顶部，场景居中，泳道图在其下方，关注队列在旁边。场景挂载在指挥台共用的 `WebGLGate` 之后：它在挂载场景前检查 WebGL 2，用错误边界接住抛出错误的场景或被浏览器收回 WebGL 上下文的场景，并遵循 `?flat`；在这几种情况下，本视图都交给它同一个画成一张 SVG 的大厅，由门说明原因，因此没有 GPU 的笔记本或远程桌面仍能得到一个可读的视图（[门的 Agent Note](2026-09-29-command-deck-room-grade.md)）。
 
 ## Alternatives considered
 

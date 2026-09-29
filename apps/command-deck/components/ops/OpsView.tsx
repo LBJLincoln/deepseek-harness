@@ -1,17 +1,19 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { OpsAgent, OpsAttention, OpsHeartbeat, OpsSnapshot, OpsSource, OpsSourceId, Severity } from '@/deck/contract'
 import { factsAsOf, formatAge, snapshotAge, STATION_NAME, STATIONS, stationCounts, type OpsReading } from '@/deck/ops'
 import { stopOps, useOps } from '@/deck/ops-store'
 import { divisionColor } from '@/deck/palette'
 import { Age, useNow } from './Age.tsx'
-import { FlatFloor, hasWebGL2, SceneBoundary } from './FlatFloor.tsx'
+import { WebGLGate } from '@/components/three/WebGLGate'
+import { FlatFloor } from './FlatFloor.tsx'
 import { KIND_LABEL, Swimlanes } from './Swimlanes.tsx'
 import styles from './ops.module.css'
 
-// three.js reaches for a WebGL context on mount, so the scene never renders on the server.
+// three.js reaches for a WebGL context on mount, so the scene never renders on
+// the server, and mounts behind the deck's WebGLGate in the browser.
 const OpsStage = dynamic(
   async () => (await import('./OpsStage')).OpsStage,
   { ssr: false, loading: () => <div className={styles.loading}>lighting the operations floor…</div> },
@@ -19,9 +21,6 @@ const OpsStage = dynamic(
 
 /** The view's theme: the viewer's system setting, or one they chose here. */
 type Theme = 'auto' | 'light' | 'dark'
-
-/** How the floor is drawn: the three.js scene, or flat, with the reason the scene is not drawn. */
-type Floor = { mode: 'probing' } | { mode: 'scene' } | { mode: 'flat'; reason: string }
 
 /** Where the chosen theme is remembered in this browser. */
 const THEME_KEY = 'dsh-deck-ops-theme'
@@ -130,28 +129,20 @@ export function OpsView(): ReactNode {
   }, [boot])
 
   const snapshot = reading?.snapshot
-  const [floor, setFloor] = useState<Floor>({ mode: 'probing' })
-  useEffect(() => {
-    // `?flat` asks for the flat floor, which is also what a browser without WebGL 2 gets.
-    if (new URLSearchParams(window.location.search).has('flat')) setFloor({ mode: 'flat', reason: 'The floor is drawn flat because the address asks for it (?flat).' })
-    else if (!hasWebGL2()) setFloor({ mode: 'flat', reason: 'This browser offers no WebGL 2 (no GPU, a remote desktop, or a policy that blocks it), so the floor is drawn flat.' })
-    else setFloor({ mode: 'scene' })
-  }, [])
-  const lost = useCallback(() => setFloor({ mode: 'flat', reason: 'The browser took back the scene\'s WebGL context, so the floor is drawn flat; reload to try the scene again.' }), [])
 
   return (
     <div className={styles.root} data-theme={theme === 'auto' ? undefined : theme}>
       <TopStrip reading={reading} theme={theme} setTheme={setTheme} />
       <div className={styles.body}>
         <div className={styles.main}>
-          <div className={styles.stage} data-floor={floor.mode}>
+          <div className={styles.stage}>
             <div className={styles.canvasBox}>
-              {snapshot === undefined || floor.mode === 'probing' ? (
-                <div className={styles.loading}>{reading === undefined ? 'reading the operations snapshot…' : snapshot === undefined ? 'no operations snapshot to draw' : 'lighting the operations floor…'}</div>
-              ) : floor.mode === 'flat' ? <FlatFloor snapshot={snapshot} reason={floor.reason} /> : (
-                <SceneBoundary fallback={message => <FlatFloor snapshot={snapshot} reason={`The 3D scene failed (${message.slice(0, 120)}), so the floor is drawn flat.`} />}>
-                  <OpsStage snapshot={snapshot} onLost={lost} />
-                </SceneBoundary>
+              {snapshot === undefined ? (
+                <div className={styles.loading}>{reading === undefined ? 'reading the operations snapshot…' : 'no operations snapshot to draw'}</div>
+              ) : (
+                <WebGLGate flat={<FlatFloor snapshot={snapshot} />} label="the operations floor">
+                  <OpsStage snapshot={snapshot} />
+                </WebGLGate>
               )}
             </div>
             <StageOverlay reading={reading} />

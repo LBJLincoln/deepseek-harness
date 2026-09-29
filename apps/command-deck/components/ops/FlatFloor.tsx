@@ -1,6 +1,6 @@
 'use client'
 
-import { Component, useMemo, type ErrorInfo, type ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import type { OpsSnapshot } from '@/deck/contract'
 import { layoutOps, satellitePoint, type Point } from '@/deck/layout-ops'
 import { STATION_NAME, STATIONS, stationOf } from '@/deck/ops'
@@ -21,13 +21,15 @@ function project(point: Point): { x: number; y: number } {
 
 /**
  * The operations floor drawn flat: the same seats, stations, beams and
- * operator agents as the scene, as one still SVG. The view draws it when the
- * browser offers no WebGL 2 or the scene fails, so a laptop without a GPU, a
- * remote desktop or a locked-down browser still shows the floor.
- * @param props - The snapshot, and why the scene is not drawn.
+ * operator agents as the scene, as one still SVG. It is the Operations view's
+ * stand-in behind the deck's `WebGLGate`, drawn when the address asks for it
+ * (`?flat`), the browser offers no WebGL 2, or the scene fails, so a laptop
+ * without a GPU, a remote desktop or a locked-down browser still shows the
+ * floor; the gate's note says which.
+ * @param props - The snapshot to draw.
  * @returns The drawing.
  */
-export function FlatFloor({ snapshot, reason }: { snapshot: OpsSnapshot; reason: string }): ReactNode {
+export function FlatFloor({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
   const seats = snapshot.seats ?? []
   const layout = useMemo(() => layoutOps(seats, snapshot.big.seats?.divisions ?? []), [seats, snapshot.big.seats])
   const working = new Map(snapshot.agents.flatMap(agent => (agent.seat === undefined ? [] : [[agent.seat, agent] as const])))
@@ -93,47 +95,6 @@ export function FlatFloor({ snapshot, reason }: { snapshot: OpsSnapshot; reason:
           return <path key={agent.id} d={`M ${at.x} ${at.y - 4} l 4 4 l -4 4 l -4 -4 z`} fill="#9b7bff"><title>{agent.label}</title></path>
         })}
       </svg>
-      <p className={styles.flatNote}>{reason}</p>
     </div>
   )
-}
-
-/** What the boundary shows instead of a scene that threw. */
-interface SceneBoundaryProps {
-  fallback: (message: string) => ReactNode
-  children: ReactNode
-}
-
-/**
- * Catches an error the three.js scene throws while rendering (a lost WebGL
- * context, a driver the renderer refuses) and draws its fallback in place of
- * the scene, so the rest of the view keeps working.
- */
-export class SceneBoundary extends Component<SceneBoundaryProps, { message: string | undefined }> {
-  override state: { message: string | undefined } = { message: undefined }
-
-  static getDerivedStateFromError(error: unknown): { message: string } {
-    return { message: error instanceof Error ? error.message : String(error) }
-  }
-
-  override componentDidCatch(error: unknown, info: ErrorInfo): void {
-    console.error('operations scene failed', error, info.componentStack)
-  }
-
-  override render(): ReactNode {
-    return this.state.message === undefined ? this.props.children : this.props.fallback(this.state.message)
-  }
-}
-
-/**
- * Whether this browser can draw the scene: a WebGL 2 context on a scratch canvas.
- * @returns `true` when one is offered.
- */
-export function hasWebGL2(): boolean {
-  try {
-    return document.createElement('canvas').getContext('webgl2') !== null
-  } catch {
-    // A browser that throws on the request offers no context either.
-    return false
-  }
 }

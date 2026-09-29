@@ -9,11 +9,13 @@ import { usePlayback } from '@/deck/playback'
 import { eventsUpTo, eventTimeMs, useDeck } from '@/deck/store'
 import { EventFeed } from '@/components/shell/EventFeed'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
+import { WebGLGate } from '@/components/three/WebGLGate'
 import { PlaybackControls } from '@/components/workflow/PlaybackControls'
 import { KIND_LOOK } from './kinds'
 
 // three.js reaches for a WebGL context on mount, so the scene never renders on
-// the server; the rest of the view is ordinary React and does.
+// the server, and mounts behind a WebGLGate in the browser; the rest of the view
+// is ordinary React and renders everywhere.
 const ProcessStage = dynamic(
   async () => (await import('./ProcessStage')).ProcessStage,
   { ssr: false, loading: () => <div className="loading">laying out the pipeline…</div> },
@@ -89,13 +91,15 @@ export function ProcessView(): ReactNode {
   return (
     <div className="view view--split">
       <div className="stage">
-        <ProcessStage
-          events={visible}
-          history={ordered}
-          agents={agents}
-          completed={completed}
-          progress={progress}
-        />
+        <WebGLGate poster="process" label="the program pipeline">
+          <ProcessStage
+            events={visible}
+            history={ordered}
+            agents={agents}
+            completed={completed}
+            progress={progress}
+          />
+        </WebGLGate>
 
         <div className="stage__overlay">
           <div className="stage__title">

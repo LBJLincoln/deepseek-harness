@@ -8,13 +8,15 @@ import { divisionColor } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { EventFeed } from '@/components/shell/EventFeed'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
+import { WebGLGate } from '@/components/three/WebGLGate'
 import { deliverables, isOccupied, ledgerLines, NEVER_RUN, routelessSessions, routeRows, UNATTRIBUTED_REASON_TEXT } from './evidence.ts'
 import { DayPanel } from './DayPanel.tsx'
 import { LedgerPanel } from './LedgerPanel.tsx'
 import { RecordPanel } from './RecordPanel.tsx'
 
 // three.js reaches for a WebGL context on mount, so the scene never renders on
-// the server; the rest of the view is ordinary React and does.
+// the server, and mounts behind a WebGLGate in the browser; the rest of the view
+// is ordinary React and renders everywhere.
 const EnterpriseStage = dynamic(
   async () => (await import('./EnterpriseStage')).EnterpriseStage,
   { ssr: false, loading: () => <div className="loading">composing the enterprise…</div> },
@@ -306,7 +308,7 @@ export function EnterpriseView(): ReactNode {
       <div className="stage">
         {roster === undefined
           ? <div className="loading">reading the roster…</div>
-          : <EnterpriseStage roster={roster} />}
+          : <WebGLGate poster="enterprise" label="the enterprise graph"><EnterpriseStage roster={roster} /></WebGLGate>}
         <div className="stage__overlay">
           <div className="stage__title">
             <h1>The enterprise on record</h1>

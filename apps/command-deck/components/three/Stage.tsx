@@ -1,10 +1,10 @@
 'use client'
 
 import { PerformanceMonitor } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, type RootState } from '@react-three/fiber'
 import { Bloom, ChromaticAberration, EffectComposer, Noise, SMAA, Vignette } from '@react-three/postprocessing'
 import { BlendFunction, EdgeDetectionMode, SMAAPreset, ToneMappingEffect, ToneMappingMode } from 'postprocessing'
-import { useEffect, useMemo, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Vector2 } from 'three'
 import { Atmosphere } from '@/components/three/Atmosphere'
 import { pinnedQuality, qualityBounds, QUALITY, REDUCED_QUALITY, useQualityLadder } from '@/components/three/quality'
@@ -65,6 +65,9 @@ function useToneMapping(): ToneMappingEffect {
  * unknown laptop keeps its frame rate instead of its image. `?quality=` pins a
  * tier and stops the monitor; the reduced grade overrides everything but the
  * pixel ratio.
+ *
+ * A stage mounts only behind a `WebGLGate`: the canvas throws when it cannot
+ * create a context, and throws again if the browser takes the context back.
  * @param props - Camera placement and the scene contents.
  * @returns The canvas.
  */
@@ -95,6 +98,24 @@ export function Stage({
     if (asked !== undefined) pinQualityTier(asked)
   }, [pinQualityTier])
 
+  // A context the browser takes back (a GPU reset, a remote session reconnecting)
+  // leaves a black canvas that never recovers on its own, so the loss is raised
+  // to the view's WebGLGate, which shows the poster and offers to mount the
+  // scene again. react-three-fiber forces a context loss half a second after
+  // the canvas unmounts, which is not a failure, so only a mounted stage listens.
+  const [lost, setLost] = useState(false)
+  const mounted = useRef(true)
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
+  const onCreated = useCallback(({ gl }: RootState): void => {
+    gl.domElement.addEventListener('webglcontextlost', () => {
+      if (mounted.current) setLost(true)
+    }, { once: true })
+  }, [])
+  if (lost) throw new Error('the browser took back the WebGL context')
+
   const grade = QUALITY[tier]
   const bloom = reduced ? REDUCED_QUALITY.bloom : grade.bloom
   const radius = reduced ? REDUCED_QUALITY.radius : grade.radius
@@ -106,6 +127,7 @@ export function Stage({
       gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
       camera={{ position: camera.position, fov: camera.fov, near: 0.5, far: 2_000 }}
       frameloop="always"
+      onCreated={onCreated}
     >
       <color attach="background" args={['#04060b']} />
       <fog attach="fog" args={['#04060b', fogNear, fogFar]} />

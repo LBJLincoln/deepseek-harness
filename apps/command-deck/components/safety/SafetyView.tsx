@@ -12,6 +12,7 @@ import { usePrefersReducedMotion } from '@/deck/motion'
 import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
+import { WebGLGate } from '@/components/three/WebGLGate'
 import { BenchmarkPanel } from './BenchmarkPanel'
 import { FilesOpened } from './FilesOpened'
 import { FindingCard } from './FindingCard'
@@ -21,7 +22,8 @@ import { useFindingsTour } from './useFindingsTour.ts'
 import { VerdictCard } from './VerdictCard'
 
 // three.js reaches for a WebGL context on mount, so the scene never renders on
-// the server; the rest of the view is ordinary React and does.
+// the server, and mounts behind a WebGLGate in the browser; the rest of the view
+// is ordinary React and renders everywhere.
 const SafetyStage = dynamic(
   async () => (await import('./SafetyStage')).SafetyStage,
   { ssr: false, loading: () => <div className="loading">building the code city…</div> },
@@ -152,14 +154,16 @@ export function SafetyView(): ReactNode {
         {safety === undefined
           ? <div className="loading">reading the review…</div>
           : (
-            <SafetyStage
-              target={safety.target}
-              departments={safety.departments}
-              findings={findings}
-              selectedFindingId={selectedFindingId}
-              verdict={moments.verdict}
-              onSelectFinding={selectFinding}
-            />
+            <WebGLGate poster="safety" label="the code city">
+              <SafetyStage
+                target={safety.target}
+                departments={safety.departments}
+                findings={findings}
+                selectedFindingId={selectedFindingId}
+                verdict={moments.verdict}
+                onSelectFinding={selectFinding}
+              />
+            </WebGLGate>
           )}
 
         <div className="stage__overlay">
