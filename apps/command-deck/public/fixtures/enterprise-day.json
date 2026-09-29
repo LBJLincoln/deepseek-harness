@@ -1,17 +1,17 @@
 {
   "window": {
-    "since": "2026-09-28T11:10:10.313Z",
-    "until": "2026-09-29T11:10:10.313Z"
+    "since": "2026-09-28T13:40:56.861Z",
+    "until": "2026-09-29T13:40:56.861Z"
   },
   "head": {
-    "commit": "a24a5dde1ab2d80259f0424d9f504680ee2e3844",
-    "committedAt": "2026-09-29T11:23:49.000Z"
+    "commit": "040eb5e9ecd534044508080191d5df399308066b",
+    "committedAt": "2026-09-29T13:39:58.000Z"
   },
   "cycles": {
-    "count": 8,
-    "recorded": 6,
+    "count": 9,
+    "recorded": 7,
     "gitOnly": 2,
-    "clean": 1,
+    "clean": 2,
     "failed": 5,
     "failedByStep": {
       "intake-push": 3,
@@ -278,6 +278,41 @@
             "fail": 1,
             "error": 0
           },
+          "recordOnRemote": true
+        }
+      },
+      {
+        "cycle": "cycle-20260929T121300Z",
+        "startedAt": "2026-09-29T12:13:00.000Z",
+        "source": "record",
+        "outcome": "clean",
+        "startedBy": {
+          "by": "scheduler",
+          "basis": "the cycle record"
+        },
+        "commits": [
+          {
+            "commit": "517250d81abf9a12e2b3a57221d812a82aae9bfe",
+            "carries": "intake"
+          }
+        ],
+        "record": {
+          "endedAt": "2026-09-29T13:40:49.453Z",
+          "firstFailure": null,
+          "failedSteps": [],
+          "shifts": [
+            "121310-3eae"
+          ],
+          "tickets": {
+            "shipped": 2,
+            "rejected": 0,
+            "halted": 0
+          },
+          "functions": {
+            "pass": 20,
+            "fail": 2,
+            "error": 0
+          },
           "recordOnRemote": "unknown"
         }
       }
@@ -403,12 +438,24 @@
         "halted": 0
       },
       "evidence": "data/enterprise/shifts/2026-09-29-101309-c95c"
+    },
+    {
+      "shift": "121310-3eae",
+      "startedAt": "2026-09-29T12:13:11.643Z",
+      "source": "record",
+      "outcome": "program released",
+      "tickets": {
+        "shipped": 2,
+        "rejected": 0,
+        "halted": 0
+      },
+      "evidence": "data/enterprise/shifts/2026-09-29-121310-3eae"
     }
   ],
   "tickets": {
-    "lines": 20,
+    "lines": 22,
     "byStatus": {
-      "shipped": 5,
+      "shipped": 7,
       "rejected": 1,
       "halted": 14
     },
@@ -429,8 +476,8 @@
       },
       {
         "division": "harness-core",
-        "lines": 15,
-        "shipped": 5,
+        "lines": 17,
+        "shipped": 7,
         "rejected": 1,
         "halted": 9
       },
@@ -450,7 +497,7 @@
       }
     ],
     "reviews": {
-      "approved": 7,
+      "approved": 9,
       "rejected": 1,
       "notReached": 12
     },
@@ -494,6 +541,22 @@
         "commit": "a54154ce7897494822a74d7da81e92774a2f981b",
         "at": "2026-09-29T11:06:39.783Z",
         "shift": "101309-c95c"
+      },
+      {
+        "ticket": "T-0040",
+        "division": "harness-core",
+        "seat": "harness-core-subagent-codex-steward",
+        "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5",
+        "at": "2026-09-29T13:37:07.184Z",
+        "shift": "121310-3eae"
+      },
+      {
+        "ticket": "T-0003",
+        "division": "harness-core",
+        "seat": "harness-core-agent-default-model-steward",
+        "commit": "e086cb101806019afe126869b15e67c765c62333",
+        "at": "2026-09-29T13:37:07.184Z",
+        "shift": "121310-3eae"
       }
     ]
   },
@@ -529,15 +592,45 @@
         "harness-core"
       ],
       "ci": {
-        "basis": "none",
+        "basis": "later",
+        "run": {
+          "id": 36562124879,
+          "headSha": "d3381c5527460c722692f9dc3e58515f36b87804",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36562124879",
+          "createdAt": "2026-09-29T11:30:05Z"
+        },
         "superseded": []
       },
-      "verdict": "no run"
+      "verdict": "success"
     },
     {
       "commit": "b157e090863512134630d246d52d7c7167fde50a",
       "tickets": [
         "T-0020"
+      ],
+      "divisions": [
+        "harness-core"
+      ],
+      "ci": {
+        "basis": "later",
+        "run": {
+          "id": 36562124879,
+          "headSha": "d3381c5527460c722692f9dc3e58515f36b87804",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36562124879",
+          "createdAt": "2026-09-29T11:30:05Z"
+        },
+        "superseded": []
+      },
+      "verdict": "success"
+    },
+    {
+      "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5",
+      "tickets": [
+        "T-0040"
       ],
       "divisions": [
         "harness-core"
@@ -591,21 +684,35 @@
         "superseded": []
       },
       "verdict": "failure"
+    },
+    {
+      "commit": "e086cb101806019afe126869b15e67c765c62333",
+      "tickets": [
+        "T-0003"
+      ],
+      "divisions": [
+        "harness-core"
+      ],
+      "ci": {
+        "basis": "none",
+        "superseded": []
+      },
+      "verdict": "no run"
     }
   ],
   "seats": {
-    "at": "2026-09-29T11:10:10.313Z",
+    "at": "2026-09-29T13:40:56.861Z",
     "defined": 147,
-    "occupied": 55,
-    "active": 46,
+    "occupied": 58,
+    "active": 49,
     "work": {
       "occupied": {
-        "model": 29,
+        "model": 32,
         "check": 22,
         "halted": 4
       },
       "active": {
-        "model": 20,
+        "model": 23,
         "check": 22,
         "halted": 4
       }
@@ -615,10 +722,10 @@
         "id": "harness-core",
         "name": "Harness Core",
         "defined": 24,
-        "occupied": 8,
-        "active": 8,
+        "occupied": 11,
+        "active": 11,
         "work": {
-          "model": 6,
+          "model": 9,
           "check": 0,
           "halted": 2
         }
@@ -734,7 +841,7 @@
     ]
   },
   "functions": {
-    "lines": 167,
+    "lines": 189,
     "byDivision": [
       {
         "division": "code-safety",
@@ -744,19 +851,19 @@
       },
       {
         "division": "curation-data",
-        "pass": 8,
+        "pass": 9,
         "fail": 0,
         "error": 0
       },
       {
         "division": "judging",
-        "pass": 24,
-        "fail": 6,
+        "pass": 29,
+        "fail": 7,
         "error": 0
       },
       {
         "division": "observatory",
-        "pass": 8,
+        "pass": 9,
         "fail": 0,
         "error": 0
       },
@@ -768,8 +875,8 @@
       },
       {
         "division": "verification",
-        "pass": 104,
-        "fail": 8,
+        "pass": 117,
+        "fail": 9,
         "error": 0
       }
     ]
@@ -778,9 +885,9 @@
     {
       "covers": "ticket lines: the engine's count for each ticket a shift worked, its department's and its review's sessions",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 20,
-      "tokens": 3821776,
-      "seconds": 14518
+      "items": 22,
+      "tokens": 5410220,
+      "seconds": 17335
     },
     {
       "covers": "intake coordinators: each coordinator department an intake ran, as its intake record counts it",
@@ -820,14 +927,14 @@
     {
       "covers": "recorded sessions under data/enterprise/shifts whose newest event falls in the window: the tokens their usage events state, and their model time",
       "source": "data/enterprise/shifts",
-      "items": 29,
-      "tokens": 7354706,
-      "seconds": 1915,
+      "items": 35,
+      "tokens": 8943150,
+      "seconds": 2188.6,
       "breakdown": {
-        "input": 454,
-        "output": 138803,
-        "cacheRead": 6562030,
-        "cacheWrite": 653419,
+        "input": 534,
+        "output": 162020,
+        "cacheRead": 8000958,
+        "cacheWrite": 779638,
         "reasoning": 0
       }
     },
@@ -848,24 +955,24 @@
     {
       "covers": "function lines: the seconds each seat's gate, verdict read or fold took; no model is called",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 167,
+      "items": 189,
       "tokens": null,
-      "seconds": 31884.4
+      "seconds": 36630.6
     },
     {
       "covers": "recorded cycles: each one's wall time from its start to its record",
       "source": "data/enterprise/cycles/*.json",
-      "items": 6,
+      "items": 7,
       "tokens": null,
-      "seconds": 16560
+      "seconds": 21829
     }
   ],
-  "headline": "Pilot, 2026-09-28T11:10:10.313Z to 2026-09-29T11:10:10.313Z: 8 cycles started (1 clean, 5 failed, 2 without a record); 10 shifts (9 recorded, 1 shown by ledger lines only); 20 ticket lines (5 shipped, 1 rejected, 14 halted); reviews 7 approved, 1 rejected, 12 not reached; 5 tickets shipped in 5 commits, Branch CI 3 failure, 2 no run (3 from a later run containing the commit); 167 function runs (153 pass, 14 fail, 0 error).",
+  "headline": "Pilot, 2026-09-28T13:40:56.861Z to 2026-09-29T13:40:56.861Z: 9 cycles started (2 clean, 5 failed, 2 without a record); 11 shifts (10 recorded, 1 shown by ledger lines only); 22 ticket lines (7 shipped, 1 rejected, 14 halted); reviews 9 approved, 1 rejected, 12 not reached; 7 tickets shipped in 7 commits, Branch CI 3 failure, 2 success, 2 no run (5 from a later run containing the commit); 189 function runs (173 pass, 16 fail, 0 error).",
   "unknowns": [
     "2 cycles are seen only in git history (cycle-20260928T201148Z, cycle-20260928T221301Z): their steps, outcome and ledger lines are unknown",
     "who started cycle-20260928T221301Z is unknown: the cycle has no record",
     "who started cycle-20260929T001517Z is unknown: its record predates the startedBy field",
-    "whether cycle-20260929T101300Z's record reached the remote branch is unknown until a later cycle's record states it",
+    "whether cycle-20260929T121300Z's record reached the remote branch is unknown until a later cycle's record states it",
     "4 ticket lines state no token count; the ticket lines' token total leaves them out"
   ]
 }

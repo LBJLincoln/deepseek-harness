@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "asOf": "2026-09-29T12:13:50.000Z",
+  "asOf": "2026-09-29T13:40:56.861Z",
   "repository": {
     "name": "LBJLincoln/deepseek-harness",
     "branch": "claude/coding-agent-harness-u9l4gt",
@@ -26,7 +26,7 @@
       }
     },
     "seats.occupied": {
-      "value": 55,
+      "value": 58,
       "source": {
         "paths": [
           "data/enterprise/roster.json"
@@ -35,16 +35,16 @@
       }
     },
     "seats.active": {
-      "value": 46,
+      "value": 49,
       "source": {
         "paths": [
           "data/enterprise/roster.json"
         ],
-        "computation": "counts.active: seats whose newest deliverable falls in the 24 hours ending at the roster's stamp, 2026-09-29T11:10:10.313Z."
+        "computation": "counts.active: seats whose newest deliverable falls in the 24 hours ending at the roster's stamp, 2026-09-29T13:40:56.861Z."
       }
     },
     "roster.stamp": {
-      "value": "2026-09-29T11:10:10.313Z",
+      "value": "2026-09-29T13:40:56.861Z",
       "source": {
         "paths": [
           "data/enterprise/roster.json"
@@ -63,7 +63,7 @@
       }
     },
     "tickets.open": {
-      "value": 36,
+      "value": 34,
       "source": {
         "paths": [
           "data/enterprise/tickets",
@@ -73,7 +73,7 @@
       }
     },
     "tickets.shipped": {
-      "value": 5,
+      "value": 7,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
@@ -100,7 +100,7 @@
       }
     },
     "shifts.count": {
-      "value": 9,
+      "value": 10,
       "source": {
         "paths": [
           "data/enterprise/shifts"
@@ -109,7 +109,7 @@
       }
     },
     "ledger.lines": {
-      "value": 193,
+      "value": 217,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
@@ -118,7 +118,7 @@
       }
     },
     "ledger.functionLines": {
-      "value": 173,
+      "value": 195,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
@@ -208,7 +208,7 @@
       }
     },
     "reviews.approved": {
-      "value": 7,
+      "value": 9,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
@@ -226,7 +226,7 @@
       }
     },
     "reviews.reviewerRecorded": {
-      "value": 0,
+      "value": 2,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
@@ -308,7 +308,7 @@
       }
     },
     "pilot.schedulerShipped": {
-      "value": 2,
+      "value": 4,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -363,18 +363,19 @@
       }
     },
     "economics.shiftSeconds": {
-      "value": 3945,
+      "value": 4218,
       "source": {
         "paths": [
           "data/enterprise/shifts/2026-09-28-182951-78a6/manifest.json",
           "data/enterprise/shifts/2026-09-29-001527-881f/manifest.json",
-          "data/enterprise/shifts/2026-09-29-101309-c95c/manifest.json"
+          "data/enterprise/shifts/2026-09-29-101309-c95c/manifest.json",
+          "data/enterprise/shifts/2026-09-29-121310-3eae/manifest.json"
         ],
-        "computation": "Mean of endedAt minus startedAt over the 3 shift records that shipped a ticket: from the clone to the push."
+        "computation": "Mean of endedAt minus startedAt over the 4 shift records that shipped a ticket: from the clone to the push."
       }
     },
     "economics.shippingShifts": {
-      "value": 3,
+      "value": 4,
       "source": {
         "paths": [
           "data/enterprise/shifts"
@@ -383,21 +384,21 @@
       }
     },
     "economics.tokensPerShipped": {
-      "value": 435417,
+      "value": 537933,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
         ],
-        "computation": "Mean of the tokens field over the 5 shipped tickets' lines: department and review model tokens."
+        "computation": "Mean of the tokens field over the 7 shipped tickets' lines: department and review model tokens."
       }
     },
     "economics.secondsPerShipped": {
-      "value": 1184,
+      "value": 1248,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl"
         ],
-        "computation": "Mean of the seconds field over the 5 shipped tickets' lines: department and review time."
+        "computation": "Mean of the seconds field over the 7 shipped tickets' lines: department and review time."
       }
     },
     "economics.currency": {
@@ -465,7 +466,7 @@
       }
     },
     "shifts.redacted": {
-      "value": 22,
+      "value": 34,
       "source": {
         "paths": [
           "data/enterprise/shifts"
@@ -615,8 +616,8 @@
         "name": "Harness Core",
         "purpose": "Stewards the product API spine: session, prompt assembly, tools, agent, the agent loop, LLM routing, and subagent delegation.",
         "defined": 24,
-        "occupied": 8,
-        "active": 8
+        "occupied": 11,
+        "active": 11
       },
       {
         "id": "proving-ground",
@@ -1274,6 +1275,167 @@
             "computation": "The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains a54154ce7 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log."
           }
         }
+      },
+      {
+        "ticket": "T-0003",
+        "title": "saveSelection() warns when no settings provider can retain the selection",
+        "seat": "harness-core-agent-default-model-steward",
+        "seatName": "Agent Default Model Steward",
+        "division": "harness-core",
+        "shift": "121310-3eae",
+        "at": "2026-09-29T13:37:07.184Z",
+        "commit": "e086cb101806019afe126869b15e67c765c62333",
+        "base": "e60920113bf10d932df24e476595488954c279b3",
+        "model": "Claude Code sonnet",
+        "checks": {
+          "passed": 9,
+          "total": 9,
+          "ids": [
+            "spec",
+            "coverage",
+            "typecheck",
+            "doc-sync",
+            "engine-committed",
+            "engine-scope",
+            "engine-whitespace",
+            "engine-lint",
+            "engine-documentation"
+          ]
+        },
+        "review": "approve",
+        "reviewToolCalls": 0,
+        "tokens": 365109,
+        "seconds": 1191,
+        "ci": {
+          "value": {
+            "exact": null,
+            "carrying": {
+              "id": 36576432474,
+              "head": "74a8101c1d4b506871f1611b10f897bd3b922b2d",
+              "status": "in_progress",
+              "conclusion": null,
+              "createdAt": "2026-09-29T13:37:13Z",
+              "updatedAt": "2026-09-29T13:37:16Z",
+              "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474",
+              "jobs": [
+                {
+                  "name": "node 24 / coverage",
+                  "conclusion": null,
+                  "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474/job/109433129794",
+                  "failedGates": []
+                },
+                {
+                  "name": "node 24 / snapshots and artifacts",
+                  "conclusion": null,
+                  "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474/job/109433129940",
+                  "failedGates": []
+                },
+                {
+                  "name": "node 24 / static",
+                  "conclusion": "success",
+                  "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474/job/109433129370",
+                  "failedGates": []
+                }
+              ]
+            },
+            "base": null,
+            "firstGreen": null,
+            "verdict": null,
+            "introduced": [],
+            "preExisting": []
+          },
+          "source": {
+            "paths": [
+              "data/enterprise/ledger.jsonl",
+              "data/enterprise/shifts"
+            ],
+            "urls": [
+              "https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml"
+            ],
+            "computation": "The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains e086cb101 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log."
+          }
+        }
+      },
+      {
+        "ticket": "T-0040",
+        "title": "Resolve cmd.exe and codex to absolute paths before the Codex provider spawns in the delegating workspace",
+        "seat": "harness-core-subagent-codex-steward",
+        "seatName": "Subagent Codex Steward",
+        "division": "harness-core",
+        "shift": "121310-3eae",
+        "at": "2026-09-29T13:37:07.184Z",
+        "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5",
+        "base": "e60920113bf10d932df24e476595488954c279b3",
+        "model": "Claude Code sonnet",
+        "checks": {
+          "passed": 10,
+          "total": 10,
+          "ids": [
+            "resolution-spec",
+            "no-bare-codex",
+            "coverage",
+            "typecheck",
+            "doc-sync",
+            "engine-committed",
+            "engine-scope",
+            "engine-whitespace",
+            "engine-lint",
+            "engine-documentation"
+          ]
+        },
+        "review": "approve",
+        "reviewToolCalls": 0,
+        "tokens": 1223335,
+        "seconds": 1626,
+        "ci": {
+          "value": {
+            "exact": null,
+            "carrying": {
+              "id": 36576432474,
+              "head": "74a8101c1d4b506871f1611b10f897bd3b922b2d",
+              "status": "in_progress",
+              "conclusion": null,
+              "createdAt": "2026-09-29T13:37:13Z",
+              "updatedAt": "2026-09-29T13:37:16Z",
+              "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474",
+              "jobs": [
+                {
+                  "name": "node 24 / coverage",
+                  "conclusion": null,
+                  "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474/job/109433129794",
+                  "failedGates": []
+                },
+                {
+                  "name": "node 24 / snapshots and artifacts",
+                  "conclusion": null,
+                  "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474/job/109433129940",
+                  "failedGates": []
+                },
+                {
+                  "name": "node 24 / static",
+                  "conclusion": "success",
+                  "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474/job/109433129370",
+                  "failedGates": []
+                }
+              ]
+            },
+            "base": null,
+            "firstGreen": null,
+            "verdict": null,
+            "introduced": [],
+            "preExisting": []
+          },
+          "source": {
+            "paths": [
+              "data/enterprise/ledger.jsonl",
+              "data/enterprise/shifts"
+            ],
+            "urls": [
+              "https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml"
+            ],
+            "computation": "The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains ba3973e84 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log."
+          }
+        }
       }
     ],
     "source": {
@@ -1430,6 +1592,24 @@
         "reason": null,
         "redacted": 12,
         "seconds": 3209
+      },
+      {
+        "shift": "121310-3eae",
+        "dir": "data/enterprise/shifts/2026-09-29-121310-3eae",
+        "type": "result",
+        "startedAt": "2026-09-29T12:13:11.643Z",
+        "endedAt": "2026-09-29T13:37:07.184Z",
+        "tickets": [
+          "T-0040",
+          "T-0003"
+        ],
+        "shipped": [
+          "T-0040",
+          "T-0003"
+        ],
+        "reason": null,
+        "redacted": 12,
+        "seconds": 5036
       }
     ],
     "source": {
@@ -2093,16 +2273,19 @@
         "kind": "cycle",
         "startedAt": "2026-09-29T12:13:00.000Z",
         "startedBy": "scheduler",
-        "basis": "The captured scheduler log announced the slot 2026-09-29T12:13:00.000Z, and this is the first cycle to start at or after it.",
+        "basis": "Its cycle record states scheduler: the cycle script records scheduler when scripts/enterprise-scheduler.sh is its parent process, and operator otherwise.",
         "shifts": [
           "121310-3eae"
         ],
         "attempted": 2,
-        "shipped": [],
+        "shipped": [
+          "T-0040",
+          "T-0003"
+        ],
         "completedBy": [],
         "failed": [],
-        "lost": 2,
-        "tokens": null,
+        "lost": 0,
+        "tokens": 1588444,
         "steps": [
           {
             "name": "pull",
@@ -2118,12 +2301,38 @@
             "name": "intake-push",
             "exit": 0,
             "at": "2026-09-29T12:13:08.000Z"
+          },
+          {
+            "name": "shift",
+            "exit": 0,
+            "at": "2026-09-29T13:37:13.000Z"
+          },
+          {
+            "name": "pull-after-shift",
+            "exit": 0,
+            "at": "2026-09-29T13:37:14.000Z"
+          },
+          {
+            "name": "functions",
+            "exit": 0,
+            "at": "2026-09-29T13:39:51.000Z"
+          },
+          {
+            "name": "roster",
+            "exit": 0,
+            "at": "2026-09-29T13:39:55.000Z"
+          },
+          {
+            "name": "publish",
+            "exit": 0,
+            "at": "2026-09-29T13:40:47.000Z"
           }
         ],
-        "finished": false,
+        "finished": true,
         "paths": [
           "data/enterprise/ledger.jsonl",
-          "data/enterprise/shift-starts.jsonl",
+          "data/enterprise/shifts/2026-09-29-121310-3eae",
+          "data/enterprise/cycles/cycle-20260929T121300Z.json",
           "data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T121300Z.log-56cf41c17d",
           "data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b"
         ]
@@ -3269,12 +3478,32 @@
           "createdAt": "2026-09-29T12:33:52Z",
           "updatedAt": "2026-09-29T13:00:09Z",
           "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186"
+        },
+        {
+          "id": 36576432474,
+          "head": "74a8101c1d4b506871f1611b10f897bd3b922b2d",
+          "status": "in_progress",
+          "conclusion": null,
+          "createdAt": "2026-09-29T13:37:13Z",
+          "updatedAt": "2026-09-29T13:37:16Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576432474"
+        },
+        {
+          "id": 36576631699,
+          "head": "979fa0314882e756c30641ec98aa1eae8bb61807",
+          "status": "pending",
+          "conclusion": null,
+          "createdAt": "2026-09-29T13:38:51Z",
+          "updatedAt": "2026-09-29T13:38:56Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36576631699"
         }
       ],
       "counts": {
         "failure": 44,
         "cancelled": 62,
-        "success": 19
+        "success": 19,
+        "in_progress": 1,
+        "pending": 1
       }
     },
     "source": {
@@ -4202,7 +4431,7 @@
         },
         {
           "family": "shifts",
-          "sessions": 29,
+          "sessions": 35,
           "withTerms": 0
         },
         {
@@ -4402,6 +4631,24 @@
           "kind": "machine",
           "at": null,
           "form": "decision"
+        },
+        {
+          "run": "121310-3eae",
+          "record": "shift",
+          "transition": "spec-freeze",
+          "principal": "daliesk-enterprise-shift",
+          "kind": "machine",
+          "at": null,
+          "form": "decision"
+        },
+        {
+          "run": "121310-3eae",
+          "record": "shift",
+          "transition": "release",
+          "principal": "daliesk-enterprise-shift",
+          "kind": "machine",
+          "at": null,
+          "form": "decision"
         }
       ],
       "source": {
@@ -4436,6 +4683,11 @@
         },
         {
           "shift": "101309-c95c",
+          "reviews": 2,
+          "toolCalls": 0
+        },
+        {
+          "shift": "121310-3eae",
           "reviews": 2,
           "toolCalls": 0
         }
@@ -4590,6 +4842,46 @@
           "shipped": "a54154ce7897494822a74d7da81e92774a2f981b",
           "overturnedBy": null,
           "followUps": []
+        },
+        {
+          "ticket": "T-0003",
+          "shift": "121310-3eae",
+          "at": "2026-09-29T13:37:07.184Z",
+          "verdict": "approve",
+          "sessionId": "review-t-0003-9462100b",
+          "reviewer": {
+            "route": "claude-code",
+            "model": "sonnet"
+          },
+          "requested": {
+            "route": "claude-code",
+            "model": "sonnet"
+          },
+          "toolCalls": 0,
+          "recordedIn": "ledger",
+          "shipped": "e086cb101806019afe126869b15e67c765c62333",
+          "overturnedBy": null,
+          "followUps": []
+        },
+        {
+          "ticket": "T-0040",
+          "shift": "121310-3eae",
+          "at": "2026-09-29T13:37:07.184Z",
+          "verdict": "approve",
+          "sessionId": "review-t-0040-89ca51a7",
+          "reviewer": {
+            "route": "claude-code",
+            "model": "sonnet"
+          },
+          "requested": {
+            "route": "claude-code",
+            "model": "sonnet"
+          },
+          "toolCalls": 0,
+          "recordedIn": "ledger",
+          "shipped": "ba3973e84b50a60f955d9826ea84ef5160d4fac5",
+          "overturnedBy": null,
+          "followUps": []
         }
       ],
       "source": {
@@ -4628,6 +4920,16 @@
           "ticket": "T-0021",
           "tokens": 113380,
           "seconds": 984
+        },
+        {
+          "ticket": "T-0003",
+          "tokens": 365109,
+          "seconds": 1191
+        },
+        {
+          "ticket": "T-0040",
+          "tokens": 1223335,
+          "seconds": 1626
         }
       ],
       "source": {
@@ -4659,9 +4961,9 @@
     },
     {
       "path": "data/enterprise/cycles",
-      "files": 6,
-      "bytes": 8554,
-      "sha256": "a01f00780d6f2d1dcaaa1e0202b3a11565bf3c8adf93419b5071f022a811870d"
+      "files": 7,
+      "bytes": 9980,
+      "sha256": "1b9ee09162ca5d881a7ded2e7d9109702bd6688d73fc4c231b9352669369330d"
     },
     {
       "path": "data/enterprise/intake",
@@ -4672,14 +4974,14 @@
     {
       "path": "data/enterprise/ledger.jsonl",
       "files": 1,
-      "bytes": 97527,
-      "sha256": "c0c1f2b20e29f5c38521eb28611ebb70c25dcd9943fd436854abe6dbedbf06ec"
+      "bytes": 108449,
+      "sha256": "967c30bb0bc3161acaa0ec23fa5e45f99ffd66349f51455be425019450d2cf37"
     },
     {
       "path": "data/enterprise/roster.json",
       "files": 1,
-      "bytes": 129095,
-      "sha256": "5a1586f40ef519a5a75da31f775121aa1f5e7aa1adfc9572dc94ca6819670b54"
+      "bytes": 129470,
+      "sha256": "76790d5354172acc35d836676ca1e27829a0e6233b9459f03d425a18a392afe9"
     },
     {
       "path": "data/enterprise/shift-starts.jsonl",
@@ -4689,9 +4991,9 @@
     },
     {
       "path": "data/enterprise/shifts",
-      "files": 47,
-      "bytes": 3683860,
-      "sha256": "48e8023656965487a99935bcf1975a14df44579be57623a15257df78a3dbed53"
+      "files": 55,
+      "bytes": 4458949,
+      "sha256": "897070a8197c093290655322152f103991c766e551a035e751b96b90bf0d2070"
     },
     {
       "path": "data/enterprise/tickets",
@@ -4713,9 +5015,9 @@
     },
     {
       "path": "data/transcripts/live/enterprise-cycles",
-      "files": 27,
-      "bytes": 47035,
-      "sha256": "f417c6f34dffc5cc217787b9c2a950f33195a0e0e38794c5d2c9a9d1dc052eb1"
+      "files": 28,
+      "bytes": 51377,
+      "sha256": "8cfa34630494737c9e9366132ab883df15937e963651fe80027824ce21994f13"
     },
     {
       "path": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments",
