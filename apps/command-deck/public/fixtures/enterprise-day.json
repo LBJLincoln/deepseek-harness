@@ -1,17 +1,17 @@
 {
   "window": {
-    "since": "2026-09-28T16:34:48.944Z",
-    "until": "2026-09-29T16:34:48.944Z"
+    "since": "2026-09-28T20:49:29.297Z",
+    "until": "2026-09-29T20:49:29.297Z"
   },
   "head": {
-    "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf",
-    "committedAt": "2026-09-29T16:31:49.000Z"
+    "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0",
+    "committedAt": "2026-09-29T20:46:36.000Z"
   },
   "cycles": {
     "count": 11,
-    "recorded": 7,
-    "gitOnly": 4,
-    "clean": 2,
+    "recorded": 8,
+    "gitOnly": 3,
+    "clean": 3,
     "failed": 5,
     "failedByStep": {
       "intake-push": 3,
@@ -20,22 +20,6 @@
       "shift": 2
     },
     "list": [
-      {
-        "cycle": "cycle-20260928T201148Z",
-        "startedAt": "2026-09-28T20:11:48.000Z",
-        "source": "git",
-        "outcome": "unknown",
-        "startedBy": {
-          "by": "operator",
-          "basis": "it began before scripts/enterprise-scheduler.sh was first committed, at 2026-09-28T20:41:16.000Z"
-        },
-        "commits": [
-          {
-            "commit": "7ec9cecb3fc64f51032ec40648ba73f15bcbfc78",
-            "carries": "intake"
-          }
-        ]
-      },
       {
         "cycle": "cycle-20260928T221301Z",
         "startedAt": "2026-09-28T22:13:01.000Z",
@@ -317,7 +301,7 @@
             "fail": 2,
             "error": 0
           },
-          "recordOnRemote": "unknown"
+          "recordOnRemote": true
         }
       },
       {
@@ -339,6 +323,46 @@
       {
         "cycle": "cycle-20260929T161300Z",
         "startedAt": "2026-09-29T16:13:00.000Z",
+        "source": "record",
+        "outcome": "clean",
+        "startedBy": {
+          "by": "scheduler",
+          "basis": "the cycle record"
+        },
+        "commits": [
+          {
+            "commit": "d47799da7bad630f10e66e3db801b520669d380d",
+            "carries": "intake"
+          },
+          {
+            "commit": "ea5564148ee758dc0065f7cd6f906fc514c087f9",
+            "carries": "functions, roster and deck"
+          }
+        ],
+        "record": {
+          "endedAt": "2026-09-29T16:35:48.224Z",
+          "firstFailure": null,
+          "failedSteps": [],
+          "shifts": [
+            "141308-b243",
+            "161311-58c9"
+          ],
+          "tickets": {
+            "shipped": 2,
+            "rejected": 0,
+            "halted": 2
+          },
+          "functions": {
+            "pass": 21,
+            "fail": 1,
+            "error": 0
+          },
+          "recordOnRemote": "unknown"
+        }
+      },
+      {
+        "cycle": "cycle-20260929T201301Z",
+        "startedAt": "2026-09-29T20:13:01.000Z",
         "source": "git",
         "outcome": "unknown",
         "startedBy": {
@@ -347,7 +371,7 @@
         },
         "commits": [
           {
-            "commit": "d47799da7bad630f10e66e3db801b520669d380d",
+            "commit": "477b43356b76e5083a1bd625dbd03e624425cfc6",
             "carries": "intake"
           }
         ]
@@ -355,30 +379,6 @@
     ]
   },
   "shifts": [
-    {
-      "shift": "171951-516d",
-      "startedAt": "2026-09-28T17:19:51.258Z",
-      "source": "record",
-      "outcome": "no program outcome recorded",
-      "tickets": {
-        "shipped": 0,
-        "rejected": 0,
-        "halted": 0
-      },
-      "evidence": "data/enterprise/shifts/2026-09-28-171951-516d"
-    },
-    {
-      "shift": "182951-78a6",
-      "startedAt": "2026-09-28T18:29:53.155Z",
-      "source": "record",
-      "outcome": "program released",
-      "tickets": {
-        "shipped": 2,
-        "rejected": 0,
-        "halted": 0
-      },
-      "evidence": "data/enterprise/shifts/2026-09-28-182951-78a6"
-    },
     {
       "shift": "201448-94fd",
       "startedAt": null,
@@ -510,22 +510,34 @@
         "halted": 0
       },
       "evidence": "data/enterprise/shifts/2026-09-29-161311-58c9"
+    },
+    {
+      "shift": "201313-0965",
+      "startedAt": "2026-09-29T20:13:15.781Z",
+      "source": "record",
+      "outcome": "program released",
+      "tickets": {
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 2
+      },
+      "evidence": "data/enterprise/shifts/2026-09-29-201313-0965"
     }
   ],
   "tickets": {
-    "lines": 26,
+    "lines": 24,
     "byStatus": {
-      "shipped": 9,
-      "rejected": 1,
-      "halted": 16
+      "shipped": 7,
+      "rejected": 0,
+      "halted": 17
     },
     "byDivision": [
       {
         "division": "curation-data",
-        "lines": 1,
+        "lines": 2,
         "shipped": 0,
         "rejected": 0,
-        "halted": 1
+        "halted": 2
       },
       {
         "division": "governance",
@@ -536,9 +548,9 @@
       },
       {
         "division": "harness-core",
-        "lines": 19,
-        "shipped": 8,
-        "rejected": 1,
+        "lines": 16,
+        "shipped": 6,
+        "rejected": 0,
         "halted": 10
       },
       {
@@ -557,27 +569,11 @@
       }
     ],
     "reviews": {
-      "approved": 11,
-      "rejected": 1,
+      "approved": 10,
+      "rejected": 0,
       "notReached": 14
     },
     "shipped": [
-      {
-        "ticket": "T-0012",
-        "division": "harness-core",
-        "seat": "harness-core-llm-pi-ai-steward",
-        "commit": "1d6a5d3430aef9893b1a28adfea1f1841238c866",
-        "at": "2026-09-28T19:04:29.582Z",
-        "shift": "182951-78a6"
-      },
-      {
-        "ticket": "T-0019",
-        "division": "harness-core",
-        "seat": "harness-core-subagent-in-process-driver-steward",
-        "commit": "cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38",
-        "at": "2026-09-28T19:04:29.582Z",
-        "shift": "182951-78a6"
-      },
       {
         "ticket": "T-0007",
         "division": "harness-core",
@@ -638,28 +634,6 @@
   },
   "commits": [
     {
-      "commit": "1d6a5d3430aef9893b1a28adfea1f1841238c866",
-      "tickets": [
-        "T-0012"
-      ],
-      "divisions": [
-        "harness-core"
-      ],
-      "ci": {
-        "basis": "later",
-        "run": {
-          "id": 36469749793,
-          "headSha": "52c56001db9a56d046f0fe8f4efdb3859ddd2ae7",
-          "status": "completed",
-          "conclusion": "failure",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36469749793",
-          "createdAt": "2026-09-28T19:05:08Z"
-        },
-        "superseded": []
-      },
-      "verdict": "failure"
-    },
-    {
       "commit": "81699732468a674ba0bf6338807ebc404ec11c4f",
       "tickets": [
         "T-0011"
@@ -668,10 +642,18 @@
         "harness-core"
       ],
       "ci": {
-        "basis": "none",
+        "basis": "later",
+        "run": {
+          "id": 36598884416,
+          "headSha": "ea5564148ee758dc0065f7cd6f906fc514c087f9",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36598884416",
+          "createdAt": "2026-09-29T16:35:55Z"
+        },
         "superseded": []
       },
-      "verdict": "no run"
+      "verdict": "success"
     },
     {
       "commit": "a54154ce7897494822a74d7da81e92774a2f981b",
@@ -726,10 +708,18 @@
         "governance"
       ],
       "ci": {
-        "basis": "none",
+        "basis": "later",
+        "run": {
+          "id": 36598884416,
+          "headSha": "ea5564148ee758dc0065f7cd6f906fc514c087f9",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36598884416",
+          "createdAt": "2026-09-29T16:35:55Z"
+        },
         "superseded": []
       },
-      "verdict": "no run"
+      "verdict": "success"
     },
     {
       "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5",
@@ -776,28 +766,6 @@
       "verdict": "failure"
     },
     {
-      "commit": "cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38",
-      "tickets": [
-        "T-0019"
-      ],
-      "divisions": [
-        "harness-core"
-      ],
-      "ci": {
-        "basis": "later",
-        "run": {
-          "id": 36469749793,
-          "headSha": "52c56001db9a56d046f0fe8f4efdb3859ddd2ae7",
-          "status": "completed",
-          "conclusion": "failure",
-          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36469749793",
-          "createdAt": "2026-09-28T19:05:08Z"
-        },
-        "superseded": []
-      },
-      "verdict": "failure"
-    },
-    {
       "commit": "e086cb101806019afe126869b15e67c765c62333",
       "tickets": [
         "T-0003"
@@ -821,18 +789,18 @@
     }
   ],
   "seats": {
-    "at": "2026-09-29T16:34:48.944Z",
+    "at": "2026-09-29T20:49:29.297Z",
     "defined": 147,
-    "occupied": 61,
-    "active": 52,
+    "occupied": 62,
+    "active": 43,
     "work": {
       "occupied": {
-        "model": 33,
+        "model": 34,
         "check": 22,
         "halted": 6
       },
       "active": {
-        "model": 24,
+        "model": 15,
         "check": 22,
         "halted": 6
       }
@@ -843,9 +811,9 @@
         "name": "Harness Core",
         "defined": 24,
         "occupied": 12,
-        "active": 12,
+        "active": 11,
         "work": {
-          "model": 9,
+          "model": 8,
           "check": 0,
           "halted": 3
         }
@@ -890,10 +858,10 @@
         "id": "curation-data",
         "name": "Curation & Data",
         "defined": 8,
-        "occupied": 2,
-        "active": 2,
+        "occupied": 3,
+        "active": 3,
         "work": {
-          "model": 0,
+          "model": 1,
           "check": 1,
           "halted": 1
         }
@@ -903,9 +871,9 @@
         "name": "Program Departments",
         "defined": 10,
         "occupied": 3,
-        "active": 3,
+        "active": 1,
         "work": {
-          "model": 2,
+          "model": 0,
           "check": 0,
           "halted": 1
         }
@@ -915,9 +883,9 @@
         "name": "Code Safety",
         "defined": 43,
         "occupied": 7,
-        "active": 7,
+        "active": 0,
         "work": {
-          "model": 7,
+          "model": 0,
           "check": 0,
           "halted": 0
         }
@@ -961,14 +929,8 @@
     ]
   },
   "functions": {
-    "lines": 211,
+    "lines": 202,
     "byDivision": [
-      {
-        "division": "code-safety",
-        "pass": 7,
-        "fail": 0,
-        "error": 0
-      },
       {
         "division": "curation-data",
         "pass": 10,
@@ -977,19 +939,13 @@
       },
       {
         "division": "judging",
-        "pass": 35,
-        "fail": 7,
+        "pass": 38,
+        "fail": 4,
         "error": 0
       },
       {
         "division": "observatory",
         "pass": 10,
-        "fail": 0,
-        "error": 0
-      },
-      {
-        "division": "program-departments",
-        "pass": 2,
         "fail": 0,
         "error": 0
       },
@@ -1005,56 +961,28 @@
     {
       "covers": "ticket lines: the engine's count for each ticket a shift worked, its department's and its review's sessions",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 26,
-      "tokens": 5706053,
-      "seconds": 17858
+      "items": 24,
+      "tokens": 4780367,
+      "seconds": 17799
     },
     {
       "covers": "intake coordinators: each coordinator department an intake ran, as its intake record counts it",
       "source": "data/enterprise/intake/*/result.json",
-      "items": 2,
-      "tokens": 3400316,
-      "seconds": 411
-    },
-    {
-      "covers": "recorded sessions under data/code-safety whose newest event falls in the window: the tokens their usage events state, and their model time",
-      "source": "data/code-safety",
-      "items": 8,
-      "tokens": 10270010,
-      "seconds": 3156.2,
-      "breakdown": {
-        "input": 304,
-        "output": 183972,
-        "cacheRead": 9242340,
-        "cacheWrite": 843394,
-        "reasoning": 0
-      }
-    },
-    {
-      "covers": "recorded sessions under data/enterprise/intake whose newest event falls in the window: the tokens their usage events state, and their model time",
-      "source": "data/enterprise/intake",
-      "items": 4,
-      "tokens": 3400316,
-      "seconds": 383.8,
-      "breakdown": {
-        "input": 114,
-        "output": 24982,
-        "cacheRead": 3166948,
-        "cacheWrite": 208272,
-        "reasoning": 0
-      }
+      "items": 0,
+      "tokens": 0,
+      "seconds": 0
     },
     {
       "covers": "recorded sessions under data/enterprise/shifts whose newest event falls in the window: the tokens their usage events state, and their model time",
       "source": "data/enterprise/shifts",
-      "items": 41,
-      "tokens": 9238983,
-      "seconds": 2283,
+      "items": 35,
+      "tokens": 4867646,
+      "seconds": 992.5,
       "breakdown": {
-        "input": 566,
-        "output": 169500,
-        "cacheRead": 8229607,
-        "cacheWrite": 839310,
+        "input": 344,
+        "output": 86890,
+        "cacheRead": 4207562,
+        "cacheWrite": 572850,
         "reasoning": 0
       }
     },
@@ -1075,26 +1003,26 @@
     {
       "covers": "function lines: the seconds each seat's gate, verdict read or fold took; no model is called",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 211,
+      "items": 202,
       "tokens": null,
-      "seconds": 41184
+      "seconds": 37014
     },
     {
       "covers": "recorded cycles: each one's wall time from its start to its record",
       "source": "data/enterprise/cycles/*.json",
-      "items": 7,
+      "items": 8,
       "tokens": null,
-      "seconds": 21829
+      "seconds": 23197
     }
   ],
-  "headline": "Pilot, 2026-09-28T16:34:48.944Z to 2026-09-29T16:34:48.944Z: 11 cycles started (2 clean, 5 failed, 4 without a record); 13 shifts (11 recorded, 2 shown by ledger lines only); 26 ticket lines (9 shipped, 1 rejected, 16 halted); reviews 11 approved, 1 rejected, 14 not reached; 9 tickets shipped in 9 commits, Branch CI 5 failure, 2 no run, 2 success (7 from a later run containing the commit); 211 function runs (194 pass, 17 fail, 0 error).",
+  "headline": "Pilot, 2026-09-28T20:49:29.297Z to 2026-09-29T20:49:29.297Z: 11 cycles started (3 clean, 5 failed, 3 without a record); 12 shifts (2 shown by ledger lines only, 10 recorded); 24 ticket lines (7 shipped, 0 rejected, 17 halted); reviews 10 approved, 0 rejected, 14 not reached; 7 tickets shipped in 7 commits, Branch CI 4 success, 3 failure (7 from a later run containing the commit); 202 function runs (188 pass, 14 fail, 0 error).",
   "unknowns": [
-    "4 cycles are seen only in git history (cycle-20260928T201148Z, cycle-20260928T221301Z, cycle-20260929T141300Z, cycle-20260929T161300Z): their steps, outcome and ledger lines are unknown",
+    "3 cycles are seen only in git history (cycle-20260928T221301Z, cycle-20260929T141300Z, cycle-20260929T201301Z): their steps, outcome and ledger lines are unknown",
     "who started cycle-20260928T221301Z is unknown: the cycle has no record",
     "who started cycle-20260929T001517Z is unknown: its record predates the startedBy field",
-    "whether cycle-20260929T121300Z's record reached the remote branch is unknown until a later cycle's record states it",
     "who started cycle-20260929T141300Z is unknown: the cycle has no record",
-    "who started cycle-20260929T161300Z is unknown: the cycle has no record",
-    "4 ticket lines state no token count; the ticket lines' token total leaves them out"
+    "whether cycle-20260929T161300Z's record reached the remote branch is unknown until a later cycle's record states it",
+    "who started cycle-20260929T201301Z is unknown: the cycle has no record",
+    "2 ticket lines state no token count; the ticket lines' token total leaves them out"
   ]
 }

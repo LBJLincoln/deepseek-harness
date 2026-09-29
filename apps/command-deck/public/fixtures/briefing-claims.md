@@ -1,6 +1,6 @@
 # Client briefing: claims register
 
-Every sentence of the Command Deck's client briefing (`/briefing`), rendered from `briefing.json` with its committed records as of 2026-09-29T16:34:48.944Z, with the source notes it cites; then every note with its computation and what it read. A sentence with no note of its own takes the notes of its paragraph or of the heading above it, as the Cited column states; `none` marks a sentence no note sources, such as a lead, a requirement or a statement of method, and no such sentence states a number. `pnpm run enterprise:briefing` writes this file with `briefing.json` and fails when the page holds a forbidden phrase or a sentence that states a number with no note.
+Every sentence of the Command Deck's client briefing (`/briefing`), rendered from `briefing.json` with its committed records as of 2026-09-29T20:49:29.297Z, with the source notes it cites; then every note with its computation and what it read. A sentence with no note of its own takes the notes of its paragraph or of the heading above it, as the Cited column states; `none` marks a sentence no note sources, such as a lead, a requirement or a statement of method, and no such sentence states a number. `pnpm run enterprise:briefing` writes this file with `briefing.json` and fails when the page holds a forbidden phrase or a sentence that states a number with no note.
 
 ## Claims
 
@@ -15,17 +15,17 @@ Every sentence of the Command Deck's client briefing (`/briefing`), rendered fro
 | 7 | Where the pilot stands | What the pilot has delivered so far, counted only from recorded deliverables. | none | none |
 | 8 | Where the pilot stands | Tickets shipped · 9 · 2 from work the operator started | 1.1, 1.2 | sentence |
 | 9 | Where the pilot stands | Shipped with no human or supervisor step · 4 of 9 · started by the scheduler and pushed by the engine itself | 1.11 | sentence |
-| 10 | Where the pilot stands | Shipped from scheduler-started cycles · 6 · from the 9 cycles the scheduler started | 1.3, 1.4 | sentence |
-| 11 | Where the pilot stands | Cycles run · 11 · since 28 Sep 2026, 20:11 UTC | 1.5 | sentence |
+| 10 | Where the pilot stands | Shipped from scheduler-started cycles · 6 · from the 10 cycles the scheduler started | 1.3, 1.4 | sentence |
+| 11 | Where the pilot stands | Cycles run · 12 · since 28 Sep 2026, 20:11 UTC | 1.5 | sentence |
 | 12 | Where the pilot stands | Shipped commits CI tested alone · 0 of 9 · a Branch CI run on the exact commit | 1.6 | sentence |
-| 13 | Where the pilot stands | Seats occupied · 61 · of 147 defined, by a recorded deliverable | 1.7, 1.8 | sentence |
+| 13 | Where the pilot stands | Seats occupied · 62 · of 147 defined, by a recorded deliverable | 1.7, 1.8 | sentence |
 | 14 | Where the pilot stands | Tickets open · 32 · in the queue | 1.9 | sentence |
 | 15 | Where the pilot stands | A cycle script and a scheduler that starts it are in place. | 1.10 | sentence |
 | 16 | Where the pilot stands | Every two hours, at 13 minutes past an even UTC hour, the scheduler starts one cycle: intake refills the queue when fewer than 8 tickets are open, a shift works the next 2 open tickets, the divisions that need no ticket run their functions on the new branch tip, and the roster, the deck and this briefing are regenerated. | 1.10 | paragraph |
 | 17 | Where the pilot stands | The operator can also start a shift or a cycle by hand. | 1.10 | paragraph |
 | 18 | Where the pilot stands | This is a pilot. | 1.11, 1.3 | paragraph |
 | 19 | Where the pilot stands | The 9 tickets shipped so far came from shift 182951-78a6, started by the operator; cycle-20260929T001517Z, whose starter the records do not state; cycle-20260929T101300Z, started by the scheduler, whose push the supervisor completed (its ledger lines are recorded by the supervisor); cycle-20260929T121300Z, started by the scheduler; and cycle-20260929T161300Z, started by the scheduler. | 1.11 | sentence |
-| 20 | Where the pilot stands | The scheduler has started 9 cycles, which shipped 6; 4 shipped tickets reached the branch with no operator or supervisor step. | 1.3 | sentence |
+| 20 | Where the pilot stands | The scheduler has started 10 cycles, which shipped 6; 4 shipped tickets reached the branch with no operator or supervisor step. | 1.3 | sentence |
 | 21 | Where the pilot stands | Section 3 sets out every unit of work. | 1.11, 1.3 | paragraph |
 | 22 | Where the pilot stands | cycle-20260928T221301Z, started 28 Sep 2026, 22:13 UTC, worked 2 tickets and shipped 0: T-0001 and T-0022 were halted (no certificate after 3 rounds), with the doc-sync check failing. | 1.11 | sentence |
 | 23 | Where the pilot stands | cycle-20260929T021318Z, started 29 Sep 2026, 02:13 UTC, worked 2 tickets and shipped 0: T-0005 and T-0023 were halted (the workspace install failed before any model ran). | 1.11 | sentence |
@@ -35,278 +35,282 @@ Every sentence of the Command Deck's client briefing (`/briefing`), rendered fro
 | 27 | Where the pilot stands | cycle-20260929T101300Z, started 29 Sep 2026, 10:13 UTC, worked 2 tickets and shipped 2. | 1.11 | sentence |
 | 28 | Where the pilot stands | cycle-20260929T121300Z, started 29 Sep 2026, 12:13 UTC, worked 2 tickets and shipped 2. | 1.11 | sentence |
 | 29 | Where the pilot stands | cycle-20260929T141300Z, started 29 Sep 2026, 14:13 UTC, worked 2 tickets and shipped 0: T-0006 and T-0026 were halted (abandoned in the container reset). | 1.11 | sentence |
-| 30 | Where the pilot stands | cycle-20260929T161300Z, started 29 Sep 2026, 16:13 UTC, worked 2 tickets and shipped 2. | 1.11 | sentence |
-| 31 | Where the pilot stands | T-0007 reached the branch by the operator’s hand: all three of the engine’s push rounds were refused because the branch tip moved, and the operator cherry-picked the assembled commit from the kept clone at 06:45 UTC on 29 Sep, after re-running its acceptance checks; a second commit then pointed its ledger line at the commit the branch carries. | 1.12 | sentence |
-| 32 | The operating model | Every seat is a role grounded in a real part of this repository. | 2.1 | sentence |
-| 33 | The operating model | A person owns the queue policy, the schedule and the branch; the agents work inside those limits. | 2.2 | sentence |
-| 34 | The operating model | A seat is a defined role: a package steward, a verification gate, a CI judge, a review department. | 2.2 | paragraph |
-| 35 | The operating model | It counts as occupied only when a recorded deliverable names it — a session, a ledger line, a CI verdict — and never by its definition alone. | 2.2 | paragraph |
-| 36 | The operating model | The tags show how each division receives work. | 2.2 | sentence |
-| 37 | The operating model | Operator · a person · Owns the queue policy, the schedule and the branch · Starts shifts and cycles by hand; the scheduler starts the rest | 2.1 | heading |
-| 38 | The operating model | The cycle · every two hours · Intake → shift → functions → roster and deck · Started by the scheduler at 13 minutes past every even UTC hour, or by the operator | 2.1 | heading |
-| 39 | The operating model | Harness Core · Stewards the product API spine: session, prompt assembly, tools, agent, the agent loop, LLM routing, and subagent delegation. · 24 seats · Tickets | 2.1 | heading |
-| 40 | The operating model | Proving Ground · Operates the harness against real bench scenarios recorded under examples/headless-agent/tests. · 12 seats · Bench runs | 2.1 | heading |
-| 41 | The operating model | Verification · Runs the verify-* scripts that gate changed source before it ships. · 14 seats · Cycle function: gates | 2.1 | heading |
-| 42 | The operating model | Judging · Decides pass or fail at each named CI gate. · 11 seats · Cycle function: CI verdicts | 2.1 | heading |
-| 43 | The operating model | Curation & Data · Curates the Agent Note corpus and fixture datasets, and keeps score of usage for the observatory. · 8 seats · Cycle function: scoreboard · Tickets | 2.1 | heading |
-| 44 | The operating model | Program Departments · Coordinates cross-cutting package groups as departments of one program. · 10 seats · Intake · Tickets | 2.1 | heading |
-| 45 | The operating model | Code Safety · Reviews target repositories for secrets, injection, access, data, dependency, and platform risk, per language. · 43 seats · Reviews on request | 2.1 | heading |
-| 46 | The operating model | Knowledge · Keeps the repository's reusable skills current and discoverable. · 11 seats · Tickets | 2.1 | heading |
-| 47 | The operating model | Governance · Owns process standards: labels, stacking, dependencies, vendoring, licensing, and translation pairing. · 8 seats · Tickets | 2.1 | heading |
-| 48 | The operating model | Observatory · Watches session telemetry, token spend, and query surfaces across runs. · 6 seats · Cycle function: telemetry | 2.1 | heading |
-| 49 | The operating model | Each step is performed by a different actor and leaves its own record, so the path of any change can be read back from the repository. | 2.3 | heading |
-| 50 | The operating model | Continuous integration runs after the push; it reports on the branch and does not gate the change. | 2.3 | heading |
-| 51 | The operating model | Intake · Program Departments coordinators · Propose tickets for their package groups when fewer than 8 are open; admission files only tickets whose checks fail on the branch tip. · data/​enterprise/​intake/​<run>/​ | 2.3 | heading |
-| 52 | The operating model | Queue · The ticket file · Names the seat, the paths the change may touch, the acceptance commands and the budget. · data/​enterprise/​tickets/​T-nnnn.json | 2.3 | heading |
-| 53 | The operating model | Shift · The seat’s department · Implements the ticket in its own worktree of a fresh clone of the branch. · Session log per department | 2.3 | heading |
-| 54 | The operating model | Acceptance · The engine · Runs the ticket’s commands and its own checks: committed, inside scope, clean whitespace, documentation pairing. · Ledger line: checks | 2.3 | heading |
-| 55 | The operating model | Blind review · An independent session · No parent and an empty directory, and no tools since the second shift; reads the diff, the commit messages and the check output, then approves or rejects. · Review session log; ledger: review | 2.3 | heading |
-| 56 | The operating model | Assembly · The engine · Squashes each approved ticket into one commit on the base, checks the tree against the certified merge, and re-runs the acceptance. · Commit naming shift, ticket, seat, sessions | 2.3 | heading |
-| 57 | The operating model | Push, then CI · The engine, then GitHub · One fast-forward push of the commits with the ledger lines; Branch CI then runs its static, coverage and snapshot lanes on the pushed tip, after the change is on the branch. · Shift record; GitHub Actions run | 2.3 | heading |
-| 58 | The operating model | Functions · Verification, Judging, Observatory, Curation · Run the gates on the new tip, read the CI verdicts, fold telemetry and the scoreboard; the roster and this briefing are regenerated. · Ledger function lines | 2.3 | heading |
-| 59 | The pilot record | Every unit of work so far, what it shipped, and what continuous integration said about it. | none | none |
-| 60 | The pilot record | A unit is one run of the cycle script, or one shift the operator started outside any cycle. | 3.1 | heading |
-| 61 | The pilot record | The note on each “started by” gives its evidence: the cycle’s own record when it states its starter, else the scheduler’s own log as the live capture keeps it, or when the scripts reached the branch. | 3.1 | heading |
-| 62 | The pilot record | “Lost” counts tickets a shift took on that no ledger line records. | 3.1 | heading |
-| 63 | The pilot record | Shift 28 Sep 2026, 17:19 UTC · 171951-516d \| Operator \| 2 \| 0 \| 2: T-0012 and T-0019 \| 0 \| nothing shipped \| unknown | 3.2 | sentence |
-| 64 | The pilot record | Shift 28 Sep 2026, 18:29 UTC · 182951-78a6 \| Operator \| 2 \| 2: T-0012 and T-0019 \| 0 \| 0 \| Exact commit: no run on either of 2 · Verdict: ✕ failed \| 1,523,167 | 3.3 | sentence |
-| 65 | The pilot record | Cycle 28 Sep 2026, 20:11 UTC · cycle-20260928T201148Z · No end on the branch \| Operator \| 2 \| 0 \| 2: T-0001 and T-0005 \| 0 \| nothing shipped \| unknown | 3.4 | sentence |
-| 66 | The pilot record | Cycle 28 Sep 2026, 22:13 UTC · cycle-20260928T221301Z \| Scheduler \| 2 \| 0 \| 2: T-0001 and T-0022; doc-sync failed \| 0 \| nothing shipped \| 633,783 | 3.5 | sentence |
-| 67 | The pilot record | Cycle 29 Sep 2026, 00:15 UTC · cycle-20260929T001517Z \| Unknown \| 2 \| 1: T-0007 \| 1: T-0023 \| 0 \| Exact commit: no run on it · Verdict: ✕ failed \| 584,273 | 3.6 | sentence |
-| 68 | The pilot record | Cycle 29 Sep 2026, 02:13 UTC · cycle-20260929T021318Z \| Scheduler \| 2 \| 0 \| 2: T-0005 and T-0023 \| 0 \| nothing shipped \| 0 | 3.7 | sentence |
-| 69 | The pilot record | Cycle 29 Sep 2026, 04:13 UTC · cycle-20260929T041300Z \| Scheduler \| 2 \| 0 \| 2: T-0007 and T-0024 \| 0 \| nothing shipped \| 0 | 3.8 | sentence |
-| 70 | The pilot record | Cycle 29 Sep 2026, 06:13 UTC · cycle-20260929T061300Z \| Scheduler \| 2 \| 0 \| 2: T-0008 and T-0025 \| 0 \| nothing shipped \| 0 | 3.9 | sentence |
-| 71 | The pilot record | Cycle 29 Sep 2026, 08:13 UTC · cycle-20260929T081300Z \| Scheduler \| 2 \| 0 \| 2: T-0014 and T-0016; coverage failed \| 0 \| nothing shipped \| 765,135 | 3.10 | sentence |
-| 72 | The pilot record | Cycle 29 Sep 2026, 10:13 UTC · cycle-20260929T101300Z \| Scheduler \| 2 \| 2: T-0020 and T-0021 \| 0 \| 0 \| Exact commit: no run on either of 2 · Verdict: ✓ passed \| 315,418 | 3.11 | sentence |
-| 73 | The pilot record | Cycle 29 Sep 2026, 12:13 UTC · cycle-20260929T121300Z \| Scheduler \| 2 \| 2: T-0040 and T-0003 \| 0 \| 0 \| Exact commit: no run on either of 2 · Verdict: ✕ failed \| 1,588,444 | 3.12 | sentence |
-| 74 | The pilot record | Cycle 29 Sep 2026, 14:13 UTC · cycle-20260929T141300Z · No end on the branch \| Scheduler \| 2 \| 0 \| 2: T-0006 and T-0026 \| 0 \| nothing shipped \| 0 | 3.13 | sentence |
-| 75 | The pilot record | Cycle 29 Sep 2026, 16:13 UTC · cycle-20260929T161300Z · No end on the branch yet \| Scheduler \| 2 \| 2: T-0011 and T-0027 \| 0 \| 0 \| Exact commit: no run on either of 2 · Verdict: none yet \| 295,833 | 3.14 | sentence |
-| 76 | The pilot record | T-0012 Drop the test-only supportedProtocols root export from dsh-llm-pi-ai \| Llm Pi Ai Steward \| 6 of 6 passed \| approve, no tool calls \| 1d6a5d343 \| 1,047,317 \| 9 min 7 s | 3.17 | heading |
-| 77 | The pilot record | T-0019 Drop the test-only STRUCTURED_OUTPUT_INSTRUCTION root export from the in-process driver \| Subagent In Process Driver Steward \| 6 of 6 passed \| approve, no tool calls \| cfe0a75f7 \| 475,850 \| 6 min 16 s | 3.17 | heading |
-| 78 | The pilot record | T-0007 Pin the documented error codes of the LLM provider directory and model discovery \| Llm Steward \| 7 of 7 passed \| approve, no tool calls \| cba8e4682 \| 338,500 \| 51 min 15 s | 3.17 | heading |
-| 79 | The pilot record | T-0020 Self-skip the subagent search-permission cwd test when the process runs as root \| Subagent Steward \| 9 of 9 passed \| approve, no tool calls \| b157e0908 \| 202,038 \| 15 min 37 s | 3.17 | heading |
-| 80 | The pilot record | T-0021 Self-skip the ACP search-permission cwd test when the process runs as root \| Subagent Acp Steward \| 9 of 9 passed \| approve, no tool calls \| a54154ce7 \| 113,380 \| 16 min 24 s | 3.17 | heading |
-| 81 | The pilot record | T-0003 saveSelection() warns when no settings provider can retain the selection \| Agent Default Model Steward \| 9 of 9 passed \| approve, no tool calls \| e086cb101 \| 365,109 \| 19 min 51 s | 3.17 | heading |
-| 82 | The pilot record | T-0040 Resolve cmd.exe and codex to absolute paths before the Codex provider spawns in the delegating workspace \| Subagent Codex Steward \| 10 of 10 passed \| approve, no tool calls \| ba3973e84 \| 1,223,335 \| 27 min 6 s | 3.17 | heading |
-| 83 | The pilot record | T-0011 Pin that one pi-ai stream() call makes exactly one provider request on a retryable failure \| Llm Pi Ai Steward \| 8 of 8 passed \| approve, no tool calls \| 816997324 \| 174,226 \| 4 min 30 s | 3.17 | heading |
-| 84 | The pilot record | T-0027 Drop the oxlint metadata overrides the installed manifests now answer \| Third-Party Notices Standard Author \| 11 of 11 passed \| approve, no tool calls \| b26f4b959 \| 121,607 \| 4 min 13 s | 3.17 | heading |
-| 85 | The pilot record | Exact commit. | 3.18 | heading |
-| 86 | The pilot record | No Branch CI run tested 1d6a5d343 or cfe0a75f7 on its own. | 3.18 | heading |
-| 87 | The pilot record | Verdict. | 3.18 | heading |
-| 88 | The pilot record | Run 36469749793 on 52c56001d, the first run containing them that passed or failed (a run a later push cancelled reached no verdict): ✕ failed. | 3.18 | heading |
-| 89 | The pilot record | Containing run. | 3.18 | heading |
-| 90 | The pilot record | Run 36469749793 on 52c56001d, the push that carried them, started 28 Sep 2026, 19:05 UTC: ✕ failed. | 3.18 | heading |
-| 91 | The pilot record | ✓ · coverage · passed | 3.18 | heading |
-| 92 | The pilot record | ✕ · snapshots and artifacts · failed | 3.18 | heading |
-| 93 | The pilot record | test:snapshot · already failing before the shift | 3.18 | heading |
-| 94 | The pilot record | web browser snapshot · already failing before the shift | 3.18 | heading |
-| 95 | The pilot record | ✕ · static · failed | 3.18 | heading |
-| 96 | The pilot record | translation pairing · introduced by this push | 3.18 | heading |
-| 97 | The pilot record | The introduced failure came from the first shipped ticket: its department edited a documentation pair without re-recording the pair’s consistency record. | 3.19 | paragraph |
-| 98 | The pilot record | The engine now runs that check before a change can be approved. | 3.19 | sentence |
-| 99 | The pilot record | Exact commit. | 3.20 | heading |
-| 100 | The pilot record | No Branch CI run tested cba8e4682 on its own. | 3.20 | heading |
-| 101 | The pilot record | Verdict. | 3.20 | heading |
-| 102 | The pilot record | Run 36532805308 on dae1babd0, the first run containing them that passed or failed (a run a later push cancelled reached no verdict): ✕ failed. | 3.20 | heading |
-| 103 | The pilot record | Containing run. | 3.20 | heading |
-| 104 | The pilot record | Run 36532784608 on 7bd419444, the push that carried them, started 29 Sep 2026, 06:45 UTC: • cancelled before a verdict. | 3.20 | heading |
-| 105 | The pilot record | Exact commit. | 3.21 | heading |
-| 106 | The pilot record | No Branch CI run tested b157e0908 or a54154ce7 on its own. | 3.21 | heading |
-| 107 | The pilot record | Verdict. | 3.21 | heading |
-| 108 | The pilot record | Run 36562124879 on d3381c552, the first run containing them that passed or failed (a run a later push cancelled reached no verdict): ✓ passed. | 3.21 | heading |
-| 109 | The pilot record | Containing run. | 3.21 | heading |
-| 110 | The pilot record | Run 36561294088 on d7a854b94, the push that carried them, started 29 Sep 2026, 11:22 UTC: • cancelled before a verdict. | 3.21 | heading |
-| 111 | The pilot record | Exact commit. | 3.22 | heading |
-| 112 | The pilot record | No Branch CI run tested e086cb101 or ba3973e84 on its own. | 3.22 | heading |
-| 113 | The pilot record | Verdict. | 3.22 | heading |
-| 114 | The pilot record | Run 36576432474 on 74a8101c1, the first run containing them that passed or failed (a run a later push cancelled reached no verdict): ✕ failed. | 3.22 | heading |
-| 115 | The pilot record | Containing run. | 3.22 | heading |
-| 116 | The pilot record | Run 36576432474 on 74a8101c1, the push that carried them, started 29 Sep 2026, 13:37 UTC: ✕ failed. | 3.22 | heading |
-| 117 | The pilot record | ✕ · coverage · failed | 3.22 | heading |
-| 118 | The pilot record | test:coverage · introduced by this push | 3.22 | heading |
-| 119 | The pilot record | ✓ · snapshots and artifacts · passed | 3.22 | heading |
-| 120 | The pilot record | ✓ · static · passed | 3.22 | heading |
-| 121 | The pilot record | Exact commit. | 3.23 | heading |
-| 122 | The pilot record | No Branch CI run tested 816997324 or b26f4b959 on its own. | 3.23 | heading |
-| 123 | The pilot record | Verdict. | 3.23 | heading |
-| 124 | The pilot record | No run containing these commits has reached a verdict yet. | 3.23 | heading |
-| 125 | The pilot record | Containing run. | 3.23 | heading |
-| 126 | The pilot record | Run 36598394797 on 190c94d28, the push that carried them, started 29 Sep 2026, 16:31 UTC: • running. | 3.23 | heading |
-| 127 | The pilot record | Branch CI runs the static, coverage and snapshot lanes on every push to the development branch. | 3.25 | paragraph |
-| 128 | The pilot record | Of 140 completed runs since 27 Sep 2026, 15:36 UTC, 22 passed, 47 failed and 71 were cancelled by a later push before a verdict. | 3.25 | sentence |
-| 129 | The pilot record | The newest run with a verdict finished at 29 Sep 2026, 16:28 UTC and passed. | 3.25 | paragraph |
-| 130 | The pilot record | 61 of 147 seats are occupied by a recorded deliverable, and 52 delivered in the 24 hours to 29 Sep 2026, 16:34 UTC. | 3.27 | paragraph |
-| 131 | The pilot record | Ten seats are vacant by construction: five CI judges whose lanes this fork does not run and five observers whose backends nothing here composes. | 3.27 | sentence |
-| 132 | Measured quality | How well the harness and the code-safety program perform, measured against tasks and targets whose answers are known. | none | none |
-| 133 | Measured quality | The harness is measured on 44 task environments across 6 domains; the two hardest tiers are judged on hidden cases the implementer never sees. | 4.1, 4.2 | sentence |
-| 134 | Measured quality | A frozen paired experiment runs the same cells under two arms that differ in one field and reads the difference with a bootstrap interval; its verdict is promote or reject only when the interval clears the plan’s thresholds. | 4.1, 4.2, 4.3, 4.4 | paragraph |
-| 135 | Measured quality | 22 frozen pairs are on record, and 3 reached a decisive verdict. | 4.3, 4.4 | sentence |
-| 136 | Measured quality | The model matters most. | 4.5 | heading |
-| 137 | Measured quality | On tier 5 a larger model certified 16 of 16 cells against 13 for the middle model (+0.19, interval [0.13, 0.25], promote); a smaller one certified 1 against 14 (−0.81, interval [−0.88, −0.75], reject). | 4.5 | heading |
-| 138 | Measured quality | The harness loop and the product’s own loop are level on results. | 4.5 | heading |
-| 139 | Measured quality | 15 against 14 of 16 sealed tier-5 cells (−0.06, interval [−0.13, 0.00], inconclusive); 40 against 40 of 40 on the public polyglot suite. | 4.5 | heading |
-| 140 | Measured quality | Retrying helps, by less than the first reading. | 4.5 | heading |
-| 141 | Measured quality | Three attempts against one read −0.38, interval [−0.56, −0.19], reject in the first pair; the 2 replications read −0.06, interval [−0.13, 0.00], inconclusive and −0.06, interval [−0.19, 0.06], inconclusive. | 4.5 | heading |
-| 142 | Measured quality | No harness mechanism has been promoted. | 4.5 | heading |
-| 143 | Measured quality | The largest mechanism reading, a self-review turn before validation, is +0.17, interval [−0.04, 0.38], inconclusive. | 4.5 | heading |
-| 144 | Measured quality | The instrument’s resolution. | 4.6 | paragraph |
-| 145 | Measured quality | A repeat of the same 16 cells differs by about one cell, so one pair of 16 cannot resolve an effect smaller than about 0.19. | 4.6 | sentence |
-| 146 | Measured quality | The code-safety program reviews a codebase in six departments — secrets, injection, access, data, dependencies and platform — and a committed examiner rejects any finding whose cited line does not hold; a finding it passes is line-verified: the quoted text is at the cited line of the cited file, which does not show that the finding is a real defect. | 4.13, 4.7 | paragraph |
-| 147 | Measured quality | Every review sends the code it reads to the model API and commits records that quote it. | 4.13 | sentence |
-| 148 | Measured quality | Recall is read against targets whose defects are documented: OWASP NodeGoat, with 18 issues, and Damn Vulnerable Java Application (dvja), with 14. | 4.13, 4.7 | paragraph |
-| 149 | Measured quality | A documented issue counts as found when a finding cites its file within three lines of the issue’s lines. | 4.7 | sentence |
-| 150 | Measured quality | Each tier ran once. | 4.9 | paragraph |
-| 151 | Measured quality | On this small application one model in one pass found 15 of 18 documented issues, more than the enterprise’s 13; the scanner found 4. | 4.9 | paragraph |
-| 152 | Measured quality | The single pass released 23 findings, unverified: nothing checked them against the code. | 4.9 | paragraph |
-| 153 | Measured quality | The enterprise released 47, each line-verified, with a record of how every finding was reached; 15 of them land on no documented issue and are untriaged candidates, not established defects. | 4.9 | sentence |
-| 154 | Measured quality | The 10 reviews of the same revision without the diagnosed checklists found between 13 and 15 of 18 documented issues, each within three lines. | 4.10 | heading |
-| 155 | Measured quality | A generalist department added nothing. | 4.10 | heading |
-| 156 | Measured quality | Checklists written from a diagnosis of the enterprise’s misses on this application found 18 and 18 in their two runs against 14 and 15 without them, an in-sample reading, because the checklists were written from the application they were scored on; whether they transfer to another codebase is untested. | 4.10 | heading |
-| 157 | Measured quality | On Damn Vulnerable Java Application (dvja) the review found 13 of 14. | 4.10 | heading |
-| 158 | Measured quality | With no ground truth for a client’s code, recall is read by planting defects in a copy without telling the review. | 4.12 | paragraph |
-| 159 | Measured quality | On this repository’s own packages the review caught 6 of 8 planted defects within three lines, 95% interval 0.41 to 0.93. | 4.12 | paragraph |
-| 160 | Measured quality | Three of the planted sites carried no reachable defect; on the five that did, it caught five. | 4.12 | sentence |
-| 161 | Data handling, governance and audit | Where a client’s code and the records of the work go, the controls on what an agent can read, run and ship, and the record that makes each action attributable. | none | none |
-| 162 | Data handling, governance and audit | A shift runs on one review machine. | 5.1 | sentence |
-| 163 | Data handling, governance and audit | Four movements of data cross its edge; the arrows point the way the data moves. | 5.1 | paragraph |
-| 164 | Data handling, governance and audit | A scratch clone of the branch, one worktree per department · cloned at the start of each shift · GitHub: the development branch | 5.1 | sentence |
-| 165 | Data handling, governance and audit | Department, reviewer and intake sessions · every model request: the conversation, with the contents of each file a department reads · Anthropic’s model API, under the operator’s Claude Code login | 5.2 | sentence |
-| 166 | Data handling, governance and audit | Shift records: every session log · committed and pushed at the end of each shift · GitHub: this repository, public | 5.3 | sentence |
-| 167 | Data handling, governance and audit | Claude Code transcripts of the operator and of every department · pushed every 5 minutes; credential-shaped strings masked, the rest as written · GitHub: this repository, public | 5.4 | sentence |
-| 168 | Data handling, governance and audit | The repository’s visibility on GitHub is public. | 5.5 | sentence |
-| 169 | Data handling, governance and audit | A client’s code read by a department therefore reaches Anthropic’s model API under the operator’s Claude Code login, and the session logs and transcripts that hold it are published with the repository. | 5.5, 5.31 | paragraph |
-| 170 | Data handling, governance and audit | Every movement of the data, the terms of each destination and what the repository does not record about them are on the data-handling page. | 5.31 | sentence |
-| 171 | Data handling, governance and audit | An Anthropic API organisation for the engagement, under a data processing agreement with zero data retention, in place of the operator’s login. | none | none |
-| 172 | Data handling, governance and audit | The records, session logs and transcripts of the engagement kept in a private repository, and the live capture pointed at it. | none | none |
-| 173 | Data handling, governance and audit | Data-use terms naming the client, the agreement, the purposes, the residency and the retention pinned on every session. | 5.6 | sentence |
-| 174 | Data handling, governance and audit | Execution isolation \| Shift departments, reviewers, intake and code-safety reviews run unconfined, as the host user: each department works in its own worktree of a scratch clone whose push address is unreachable, which contains a mistaken push but is not a sandbox, and nothing yet limits their network or the host files and credentials they can read. | 5.9 | sentence |
-| 175 | Data handling, governance and audit | The harness’s operating-system sandbox (bubblewrap, then Landlock on Linux; Seatbelt on macOS; a restricted token on Windows) confines the Proving Ground bench only. \| Every bench cell has run sealed since 8 Sep 2026, 09:25 UTC: only the cell’s workspace is visible to it. | 5.7, 5.8 | sentence |
-| 176 | Data handling, governance and audit | Running departments under that sandbox, without the host’s credentials in their environment, is work to finish before any client engagement. | 5.9, 5.7, 5.8 | paragraph |
-| 177 | Data handling, governance and audit | Least privilege on reads \| The read barrier denies implementing and judging sessions the directories the validator owns, enforced where the filesystem capability opens a path. \| Reads refused on the code-safety records: 0. | 5.10, 5.11 | sentence |
-| 178 | Data handling, governance and audit | Separation of duties \| The reviewer of a change is a separate session with no parent and an empty directory, and has had no tools since the second shift; it sees the diff, the commit messages and the check output, not the implementer’s work. | 5.12, 5.13 | paragraph |
-| 179 | Data handling, governance and audit | Its route and model are configured apart from the departments’, but every review so far ran the same model through the same Claude Code login as the departments. | 5.12, 5.13 | paragraph |
-| 180 | Data handling, governance and audit | Since 29 Sep, 10:15 UTC (commit 3291b6402) a ticket it rejects is held for a person and not reviewed again; before that rule, T-0019 was rejected on 28 Sep at 18:19 UTC, reviewed again and shipped. \| Shift 171951-516d: 2 reviews, 6 tool calls; Shift 182951-78a6: 2 reviews, 0 tool calls; Shift 001527-881f: 1 reviews, 0 tool calls; Shift 081308-24b5: 1 reviews, 0 tool calls; Shift 101309-c95c: 2 reviews, 0 tool calls; Shift 121310-3eae: 2 reviews, 0 tool calls; Shift 161311-58c9: 2 reviews, 0 tool calls. | 5.12, 5.13 | sentence |
-| 181 | Data handling, governance and audit | Independent verification \| A committed examiner re-reads every code-safety finding at the line it cites and fails the release if the text is not there. \| Records whose examiner passed: 14 of 14. | 5.20, 5.21 | sentence |
-| 182 | Data handling, governance and audit | Sign-off \| A shift and an intake each record a spec freeze and a release. | 5.22, 5.23 | paragraph |
-| 183 | Data handling, governance and audit | A person’s sign-off would carry the principal, the SHA-256 of what was signed and the evidence, unauthenticated; unattended runs record both as decisions of the engine, under a machine principal, and no person approves a release. \| 10 sign-off events in 5 records were written by the engine as the program opened, at most 2 ms apart, under “enterprise-operator” and “enterprise-intake-operator” with the kind “human”: machine decisions labelled as a person’s. | 5.22 | sentence |
-| 184 | Data handling, governance and audit | 7 records carry the engine’s decisions, under “daliesk-enterprise-shift” with the kind “machine”. | 5.22, 5.23 | paragraph |
-| 185 | Data handling, governance and audit | No person signs a change before it is pushed. | 5.23 | sentence |
-| 186 | Data handling, governance and audit | Data use and retention \| A session pins its terms when it is created — client, agreement, purposes, residency, retention, redaction profile — and later terms may only narrow them. | 5.6, 5.24 | paragraph |
-| 187 | Data handling, governance and audit | Exports are refused without a redaction profile. \| 1,688 of 1,798 bench sessions pin terms; code-safety 0 of 114, shifts 0 of 41, intake 0 of 4. | 5.6, 5.24 | sentence |
-| 188 | Data handling, governance and audit | Secrets in records \| Key material a review reads out of a target is replaced before its record is committed; shift records cut credential-shaped strings and count them, and the live capture masks them. \| Code-safety records with redactions: 14; strings cut from shift records: 46. | 5.25, 5.26, 5.27 | sentence |
-| 189 | Data handling, governance and audit | Audit trail \| The ledger is append-only, enforced by a gate since commit 580d9e688 (29 Sep, 10:54 UTC). | 5.28, 5.29, 5.30 | paragraph |
-| 190 | Data handling, governance and audit | Before that gate the ledger was edited: commit dae1babd0 (29 Sep, 06:45 UTC) rewrote the shipped commit on T-0007’s line in place, and commits d46e02bd9, d1aec806b, 1f669dbf9 and 8a4dd9c02 inserted lines mid-file; the gate’s commit lists them. | 5.28, 5.29, 5.30 | paragraph |
-| 191 | Data handling, governance and audit | Each shift record keeps every session log with each file’s SHA-256; each commit names its shift, ticket, seat, program and sessions. | 5.28, 5.29, 5.30 | paragraph |
-| 192 | Data handling, governance and audit | Anything that reached a model is reconstructable from the session logs, except the sessions the loss register (LOSSES.md) records as erased by a container reset. \| Ledger lines: 243; session logs in committed records: 1,912. | 5.28, 5.29, 5.30 | sentence |
-| 193 | Data handling, governance and audit | The ledger records 11 approvals and 1 rejection by the separate reviewer session. | 5.15 | sentence |
-| 194 | Data handling, governance and audit | Each review ran in a session of its own that never saw the department’s. | 5.15, 5.17 | paragraph |
-| 195 | Data handling, governance and audit | 4 of the ledger’s reviews name the reviewer’s model and route; the older lines read reviewer not recorded, and the model each review’s request was sent with is read from its own session log. | 5.17 | sentence |
-| 196 | Data handling, governance and audit | T-0019, shift 171951-516d: the reviewer rejected the change; a later review approved the same ticket and it shipped as cfe0a75f7, which overturned the rejection. | 5.18 | sentence |
-| 197 | Data handling, governance and audit | T-0012, shift 182951-78a6: the reviewer approved the change and it shipped as 1d6a5d343; it was reworked afterwards by b7cf48055 (“fix(llm-pi-ai): re-record the README pair the first shipped ticket left unrecorded”). | 5.19 | sentence |
-| 198 | Data handling, governance and audit | T-0012 · review-t-0012-79328c42 \| 171951-516d, 28 Sep 2026, 18:19 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 6 \| not shipped | 5.14 | sentence |
-| 199 | Data handling, governance and audit | T-0019 · review-t-0019-e3dd7355 \| 171951-516d, 28 Sep 2026, 18:19 UTC \| rejected \| reviewer not recorded \| sonnet on claude-code \| 0 \| overturned: shipped later as cfe0a75f7 | 5.14 | sentence |
-| 200 | Data handling, governance and audit | T-0012 · review-t-0012-fb58af6f \| 182951-78a6, 28 Sep 2026, 19:04 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| shipped as 1d6a5d343, reworked by b7cf48055 | 5.14 | sentence |
-| 201 | Data handling, governance and audit | T-0019 · review-t-0019-da50c0af \| 182951-78a6, 28 Sep 2026, 19:04 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| shipped as cfe0a75f7 | 5.14 | sentence |
-| 202 | Data handling, governance and audit | T-0007 · review-t-0007-51a05d12 \| 001527-881f, 29 Sep 2026, 02:04 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| shipped as cba8e4682 | 5.14 | sentence |
-| 203 | Data handling, governance and audit | T-0016 · review-t-0016-f22a14a7 \| 081308-24b5, 29 Sep 2026, 09:37 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| not shipped | 5.14 | sentence |
-| 204 | Data handling, governance and audit | T-0020 · review-t-0020-c3b2dc5a \| 101309-c95c, 29 Sep 2026, 11:06 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| shipped as b157e0908 | 5.14 | sentence |
-| 205 | Data handling, governance and audit | T-0021 · review-t-0021-f02dd27f \| 101309-c95c, 29 Sep 2026, 11:06 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| shipped as a54154ce7 | 5.14 | sentence |
-| 206 | Data handling, governance and audit | T-0003 · review-t-0003-9462100b \| 121310-3eae, 29 Sep 2026, 13:37 UTC \| approved \| sonnet on claude-code \| sonnet on claude-code \| 0 \| shipped as e086cb101 | 5.14 | sentence |
-| 207 | Data handling, governance and audit | T-0040 · review-t-0040-89ca51a7 \| 121310-3eae, 29 Sep 2026, 13:37 UTC \| approved \| sonnet on claude-code \| sonnet on claude-code \| 0 \| shipped as ba3973e84 | 5.14 | sentence |
-| 208 | Data handling, governance and audit | T-0011 · review-t-0011-46d9ba45 \| 161311-58c9, 29 Sep 2026, 16:31 UTC \| approved \| sonnet on claude-code \| sonnet on claude-code \| 0 \| shipped as 816997324 | 5.14 | sentence |
-| 209 | Data handling, governance and audit | T-0027 · review-t-0027-edabf50d \| 161311-58c9, 29 Sep 2026, 16:31 UTC \| approved \| sonnet on claude-code \| sonnet on claude-code \| 0 \| shipped as b26f4b959 | 5.14 | sentence |
-| 210 | Economics | What a shipped change costs in model tokens and time, as the records state it. | 6.1 | paragraph |
-| 211 | Economics | The records carry no currency. | 6.1 | sentence |
-| 212 | Economics | Tokens per shipped ticket · 451,262 · mean of 9, department and review | 6.2 | sentence |
-| 213 | Economics | Agent time per ticket · 17.1 min · mean of 9, department and review | 6.3 | sentence |
-| 214 | Economics | Shift, clone to its recorded end · 60.0 min · mean of 5 shifts that shipped; a push a person completed later is not counted | 6.4 | sentence |
-| 215 | Economics | Security review time · 20.4–28.8 min · per review, over 14 reviews | 6.5 | sentence |
-| 216 | Economics | T-0012 \| 1,047,317 \| 9 min 7 s | 6.6 | heading |
-| 217 | Economics | T-0019 \| 475,850 \| 6 min 16 s | 6.6 | heading |
-| 218 | Economics | T-0007 \| 338,500 \| 51 min 15 s | 6.6 | heading |
-| 219 | Economics | T-0020 \| 202,038 \| 15 min 37 s | 6.6 | heading |
-| 220 | Economics | T-0021 \| 113,380 \| 16 min 24 s | 6.6 | heading |
-| 221 | Economics | T-0003 \| 365,109 \| 19 min 51 s | 6.6 | heading |
-| 222 | Economics | T-0040 \| 1,223,335 \| 27 min 6 s | 6.6 | heading |
-| 223 | Economics | T-0011 \| 174,226 \| 4 min 30 s | 6.6 | heading |
-| 224 | Economics | T-0027 \| 121,607 \| 4 min 13 s | 6.6 | heading |
-| 225 | Economics | Price per change is not recorded. | 6.1 | paragraph |
-| 226 | Economics | Unknown: every shift ran on a flat-rate subscription route, so a per-ticket price would be an estimate, and this briefing states none. | 6.1 | sentence |
-| 227 | Economics | A single model pass is cheaper and faster, and unchecked. | 6.7 | paragraph |
-| 228 | Economics | On the same application one pass took 113 s and cost $0.36 by its own accounting; the enterprise took 22 min 36 s on the subscription and had every finding checked at its cited line. | 6.7 | sentence |
-| 229 | Economics | Scale is not yet established. | 6.6 | paragraph |
-| 230 | Economics | These means rest on 9 shipped tickets; a cost model for a client queue needs a pilot measured the same way. | 6.6 | sentence |
-| 231 | Limits and risks | What the evidence does not show, and the risks a client should weigh. | none | none |
-| 232 | Limits and risks | A pilot. | 7.1, 7.2, 7.3 | paragraph |
-| 233 | Limits and risks | 9 tickets have shipped, 2 of them from work the operator started. | 7.1 | sentence |
-| 234 | Limits and risks | The cycles the scheduler started have shipped 6, and a container reset erased the session logs of the shift of cycle-20260928T201148Z before it recorded its tickets, which the supervisor wrote to the ledger as abandoned afterwards. | 7.2, 7.3 | sentence |
-| 235 | Limits and risks | Shift work is not yet sandboxed. | 7.5 | paragraph |
-| 236 | Limits and risks | A department runs its commands unconfined in a worktree of a scratch clone that cannot push; the sandbox and the sealed workspace are in use on the bench only. | 7.5 | sentence |
-| 237 | Limits and risks | Continuous integration has only lately turned green. | 7.6, 7.7 | paragraph |
-| 238 | Limits and risks | The newest Branch CI run with a verdict passed; 22 of 140 completed Branch CI runs passed. | 7.6 | sentence |
-| 239 | Limits and risks | No run tested a shipped commit on its own (0 of 9). | 7.7 | sentence |
-| 240 | Limits and risks | Of the 5 pushes that carried them, the containing run of 2 failed and of 2 was cancelled by a later push before a verdict. | 7.6, 7.7 | paragraph |
-| 241 | Limits and risks | The name DeepSeek is provenance, not a supplier. | 7.4 | paragraph |
-| 242 | Limits and risks | This repository is a fork of an open-source agent harness that DeepSeek AI publishes under the MIT licence, which is why its name and its package scope carry DeepSeek; DeepSeek AI has not built, reviewed or endorsed Daliesk. | 7.4 | paragraph |
-| 243 | Limits and risks | No shift, review or intake request goes to a DeepSeek endpoint: they go to Anthropic, as the next item states. | 7.4 | paragraph |
-| 244 | Limits and risks | Only the Proving Ground bench has run open-weight models, DeepSeek’s among them, through OpenRouter. | 7.4 | sentence |
-| 245 | Limits and risks | A client’s code would leave the machine. | 7.8 | paragraph |
-| 246 | Limits and risks | Every model request, with the files a department reads, goes to Anthropic under the operator’s Claude Code login, and the session logs and transcripts are published with a public repository. | 7.8 | sentence |
-| 247 | Limits and risks | The requirements in section 5 come first. | 7.8 | paragraph |
-| 248 | Limits and risks | No person signs. | 7.9 | paragraph |
-| 249 | Limits and risks | The engine decides each shift’s spec freeze and release itself, and no person approves a change before it is pushed; the 5 records that hold sign-off events label the engine’s decisions with a principal of the kind “human”. | 7.9 | sentence |
-| 250 | Limits and risks | Data-use terms are not yet pinned on delivery work. | 7.10 | paragraph |
-| 251 | Limits and risks | Sessions that pin terms: code-safety 0 of 114, shift 0 of 41, intake 0 of 4. | 7.10 | sentence |
-| 252 | Limits and risks | One vendor. | 7.11 | paragraph |
-| 253 | Limits and risks | 98% of the recorded sessions that made a model request ran on one route, claude-code (1,283 of 1,312); a route’s usage limit halts a shift. | 7.11 | sentence |
-| 254 | Limits and risks | The benchmark is narrow. | 7.12, 7.13 | paragraph |
-| 255 | Limits and risks | The tasks are written in-house; the harness measured runs an eight-tool build rather than the full shipped composition; and no harness change has been promoted by a frozen pair. | 7.12, 7.13 | sentence |
-| 256 | Limits and risks | Security recall is read on training applications. | 7.14 | paragraph |
-| 257 | Limits and risks | The documented-defect targets are public, intentionally vulnerable applications; the checklist gain may not transfer; the review of this repository’s own code confirmed none of its findings and missed a defect its triage found. | 7.14 | sentence |
-| 258 | Limits and risks | A developer preview. | 7.15 | paragraph |
-| 259 | Limits and risks | The harness underneath is in developer preview and will change incompatibly. | 7.15 | sentence |
-| 260 | Roadmap and engagement | The work that closes the limits above, and a proposed way to start with a client. | none | none |
-| 261 | Roadmap and engagement | Data handling before any client work. | 8.1 | paragraph |
-| 262 | Roadmap and engagement | Serve the departments from an Anthropic API organisation under a data processing agreement with zero data retention, keep the records in a private repository, and pin data-use terms on every session. | 8.1 | sentence |
-| 263 | Roadmap and engagement | Sign-off and isolation. | 8.2 | paragraph |
-| 264 | Roadmap and engagement | Have a person sign each release after the certificate, under a principal the engine does not configure; run shift departments under the sandbox the bench already uses. | 8.2 | sentence |
-| 265 | Roadmap and engagement | Unattended delivery, measured. | 8.3 | paragraph |
-| 266 | Roadmap and engagement | Clear the doc-sync and coverage checks that halted the scheduled cycles’ tickets and keep Branch CI green, then count what cycles ship without an operator, in the table of section 3. | 8.3 | sentence |
-| 267 | Roadmap and engagement | Evidence that others can check. | 8.2 | paragraph |
-| 268 | Roadmap and engagement | Measure on public suites and on private tasks no model has seen, with more cells per arm, before promoting any harness change. | 8.2 | sentence |
-| 269 | Roadmap and engagement | More than one model vendor. | 8.2 | paragraph |
-| 270 | Roadmap and engagement | Run the same cells on more routes, so a result is not one vendor’s. | 8.2 | sentence |
-| 271 | Roadmap and engagement | Full CI coverage. | 8.4 | paragraph |
-| 272 | Roadmap and engagement | Compose the Windows and primary lanes this fork lacks, so the vacant judge seats rule on real runs. | 8.4 | sentence |
-| 273 | Roadmap and engagement | Data handling, terms and scope | none | none |
-| 274 | Roadmap and engagement | An Anthropic API organisation for the engagement under a data processing agreement with zero data retention; a private repository for the records; the data-use terms each session will pin; and the people who sign. | 8.1 | sentence |
-| 275 | Roadmap and engagement | A code-safety review of a codebase the client selects | none | none |
-| 276 | Roadmap and engagement | Six departments, each finding checked at the line it cites, the report with executive summaries in French and English; recall read by planting defects in a copy. | 8.5 | sentence |
-| 277 | Roadmap and engagement | On the reference application one review took up to 28.8 min. | 8.6 | sentence |
-| 278 | Roadmap and engagement | Supervised shifts on an agreed queue | none | none |
-| 279 | Roadmap and engagement | Tickets under the client’s own acceptance commands, a person signing each release, measured as this briefing measures: checks, reviews, CI verdicts, tokens and time per ticket. | 8.7 | sentence |
-| 280 | Roadmap and engagement | Decision | none | none |
-| 281 | Roadmap and engagement | Continue, widen or stop on the measured record, not on this document. | none | none |
-| 282 | Inputs and verification | Every figure above was computed by pnpm run enterprise:briefing from these inputs. | A.1 | sentence |
-| 283 | Inputs and verification | For a directory, the digest covers the list of every file read under it with that file’s own SHA-256. | A.1 | paragraph |
-| 284 | Inputs and verification | data/code-safety \| 143 \| 57,279,997 \| e8c8a775e9bae5e6 | A.1 | heading |
-| 285 | Inputs and verification | data/code-safety/comparisons/2026-09-22-nodegoat \| 4 \| 28,978 \| b76548dc0e54b316 | A.1 | heading |
-| 286 | Inputs and verification | data/code-safety/targets \| 2 \| 13,389 \| 887633e5b05335fd | A.1 | heading |
-| 287 | Inputs and verification | data/enterprise/cycles \| 7 \| 9,980 \| 1b9ee09162ca5d88 | A.1 | heading |
-| 288 | Inputs and verification | data/enterprise/intake \| 16 \| 993,415 \| f4db69c9c6acbe04 | A.1 | heading |
-| 289 | Inputs and verification | data/enterprise/ledger.jsonl \| 1 \| 120,510 \| 70bce9c970db4fde | A.1 | heading |
-| 290 | Inputs and verification | data/enterprise/roster.json \| 1 \| 129,865 \| 5c152395291e22f3 | A.1 | heading |
-| 291 | Inputs and verification | data/enterprise/shift-starts.jsonl \| 1 \| 1,624 \| e4646837519a3b90 | A.1 | heading |
-| 292 | Inputs and verification | data/enterprise/shifts \| 63 \| 4,862,372 \| a5fd0e5ad6624d0c | A.1 | heading |
-| 293 | Inputs and verification | data/enterprise/tickets \| 41 \| 126,737 \| 9817e12997abd1c3 | A.1 | heading |
-| 294 | Inputs and verification | data/proving-ground \| 1,821 \| 262,478,081 \| c14058044e036c5a | A.1 | heading |
-| 295 | Inputs and verification | data/proving-ground/folds \| 14 \| 61,768 \| 1bcb94a44d402448 | A.1 | heading |
-| 296 | Inputs and verification | data/transcripts/live/enterprise-cycles \| 33 \| 53,455 \| d6a31b867093a7f7 | A.1 | heading |
-| 297 | Inputs and verification | examples/headless-agent/tests/fixtures/proving-ground-bench/environments \| 44 \| 171,312 \| 085622d1978d280e | A.1 | heading |
-| 298 | Inputs and verification | Open its source note: it names the paths read and the computation. | none | none |
-| 299 | Inputs and verification | Open the path on the branch; the Proving Ground and code-safety records carry their own manifests with each file’s SHA-256. | none | none |
-| 300 | Inputs and verification | Rebuild with pnpm run enterprise:briefing on a checkout of the branch and compare apps/command-deck/public/fixtures/briefing.json. | none | none |
-| 301 | Inputs and verification | Read the claims register, briefing-claims.md: every sentence of this page with the notes it cites. | A.2 | sentence |
+| 30 | Where the pilot stands | cycle-20260929T161300Z, started 29 Sep 2026, 16:13 UTC, worked 4 tickets and shipped 2: T-0006 and T-0026 were halted (abandoned in the container reset). | 1.11 | sentence |
+| 31 | Where the pilot stands | cycle-20260929T201301Z, started 29 Sep 2026, 20:13 UTC, worked 2 tickets and shipped 0: T-0015 and T-0028 were halted (the assembled tree 42ad225c2710e990f4471fcb86e75eb6a4ba87a3 is not the…). | 1.11 | sentence |
+| 32 | Where the pilot stands | T-0007 reached the branch by the operator’s hand: all three of the engine’s push rounds were refused because the branch tip moved, and the operator cherry-picked the assembled commit from the kept clone at 06:45 UTC on 29 Sep, after re-running its acceptance checks; a second commit then pointed its ledger line at the commit the branch carries. | 1.12 | sentence |
+| 33 | The operating model | Every seat is a role grounded in a real part of this repository. | 2.1 | sentence |
+| 34 | The operating model | A person owns the queue policy, the schedule and the branch; the agents work inside those limits. | 2.2 | sentence |
+| 35 | The operating model | A seat is a defined role: a package steward, a verification gate, a CI judge, a review department. | 2.2 | paragraph |
+| 36 | The operating model | It counts as occupied only when a recorded deliverable names it — a session, a ledger line, a CI verdict — and never by its definition alone. | 2.2 | paragraph |
+| 37 | The operating model | The tags show how each division receives work. | 2.2 | sentence |
+| 38 | The operating model | Operator · a person · Owns the queue policy, the schedule and the branch · Starts shifts and cycles by hand; the scheduler starts the rest | 2.1 | heading |
+| 39 | The operating model | The cycle · every two hours · Intake → shift → functions → roster and deck · Started by the scheduler at 13 minutes past every even UTC hour, or by the operator | 2.1 | heading |
+| 40 | The operating model | Harness Core · Stewards the product API spine: session, prompt assembly, tools, agent, the agent loop, LLM routing, and subagent delegation. · 24 seats · Tickets | 2.1 | heading |
+| 41 | The operating model | Proving Ground · Operates the harness against real bench scenarios recorded under examples/headless-agent/tests. · 12 seats · Bench runs | 2.1 | heading |
+| 42 | The operating model | Verification · Runs the verify-* scripts that gate changed source before it ships. · 14 seats · Cycle function: gates | 2.1 | heading |
+| 43 | The operating model | Judging · Decides pass or fail at each named CI gate. · 11 seats · Cycle function: CI verdicts | 2.1 | heading |
+| 44 | The operating model | Curation & Data · Curates the Agent Note corpus and fixture datasets, and keeps score of usage for the observatory. · 8 seats · Cycle function: scoreboard · Tickets | 2.1 | heading |
+| 45 | The operating model | Program Departments · Coordinates cross-cutting package groups as departments of one program. · 10 seats · Intake · Tickets | 2.1 | heading |
+| 46 | The operating model | Code Safety · Reviews target repositories for secrets, injection, access, data, dependency, and platform risk, per language. · 43 seats · Reviews on request | 2.1 | heading |
+| 47 | The operating model | Knowledge · Keeps the repository's reusable skills current and discoverable. · 11 seats · Tickets | 2.1 | heading |
+| 48 | The operating model | Governance · Owns process standards: labels, stacking, dependencies, vendoring, licensing, and translation pairing. · 8 seats · Tickets | 2.1 | heading |
+| 49 | The operating model | Observatory · Watches session telemetry, token spend, and query surfaces across runs. · 6 seats · Cycle function: telemetry | 2.1 | heading |
+| 50 | The operating model | Each step is performed by a different actor and leaves its own record, so the path of any change can be read back from the repository. | 2.3 | heading |
+| 51 | The operating model | Continuous integration runs after the push; it reports on the branch and does not gate the change. | 2.3 | heading |
+| 52 | The operating model | Intake · Program Departments coordinators · Propose tickets for their package groups when fewer than 8 are open; admission files only tickets whose checks fail on the branch tip. · data/​enterprise/​intake/​<run>/​ | 2.3 | heading |
+| 53 | The operating model | Queue · The ticket file · Names the seat, the paths the change may touch, the acceptance commands and the budget. · data/​enterprise/​tickets/​T-nnnn.json | 2.3 | heading |
+| 54 | The operating model | Shift · The seat’s department · Implements the ticket in its own worktree of a fresh clone of the branch. · Session log per department | 2.3 | heading |
+| 55 | The operating model | Acceptance · The engine · Runs the ticket’s commands and its own checks: committed, inside scope, clean whitespace, documentation pairing. · Ledger line: checks | 2.3 | heading |
+| 56 | The operating model | Blind review · An independent session · No parent and an empty directory, and no tools since the second shift; reads the diff, the commit messages and the check output, then approves or rejects. · Review session log; ledger: review | 2.3 | heading |
+| 57 | The operating model | Assembly · The engine · Squashes each approved ticket into one commit on the base, checks the tree against the certified merge, and re-runs the acceptance. · Commit naming shift, ticket, seat, sessions | 2.3 | heading |
+| 58 | The operating model | Push, then CI · The engine, then GitHub · One fast-forward push of the commits with the ledger lines; Branch CI then runs its static, coverage and snapshot lanes on the pushed tip, after the change is on the branch. · Shift record; GitHub Actions run | 2.3 | heading |
+| 59 | The operating model | Functions · Verification, Judging, Observatory, Curation · Run the gates on the new tip, read the CI verdicts, fold telemetry and the scoreboard; the roster and this briefing are regenerated. · Ledger function lines | 2.3 | heading |
+| 60 | The pilot record | Every unit of work so far, what it shipped, and what continuous integration said about it. | none | none |
+| 61 | The pilot record | A unit is one run of the cycle script, or one shift the operator started outside any cycle. | 3.1 | heading |
+| 62 | The pilot record | The note on each “started by” gives its evidence: the cycle’s own record when it states its starter, else the scheduler’s own log as the live capture keeps it, or when the scripts reached the branch. | 3.1 | heading |
+| 63 | The pilot record | “Lost” counts tickets a shift took on that no ledger line records. | 3.1 | heading |
+| 64 | The pilot record | Shift 28 Sep 2026, 17:19 UTC · 171951-516d \| Operator \| 2 \| 0 \| 2: T-0012 and T-0019 \| 0 \| nothing shipped \| unknown | 3.2 | sentence |
+| 65 | The pilot record | Shift 28 Sep 2026, 18:29 UTC · 182951-78a6 \| Operator \| 2 \| 2: T-0012 and T-0019 \| 0 \| 0 \| Exact commit: no run on either of 2 · Verdict: ✕ failed \| 1,523,167 | 3.3 | sentence |
+| 66 | The pilot record | Cycle 28 Sep 2026, 20:11 UTC · cycle-20260928T201148Z · No end on the branch \| Operator \| 2 \| 0 \| 2: T-0001 and T-0005 \| 0 \| nothing shipped \| unknown | 3.4 | sentence |
+| 67 | The pilot record | Cycle 28 Sep 2026, 22:13 UTC · cycle-20260928T221301Z \| Scheduler \| 2 \| 0 \| 2: T-0001 and T-0022; doc-sync failed \| 0 \| nothing shipped \| 633,783 | 3.5 | sentence |
+| 68 | The pilot record | Cycle 29 Sep 2026, 00:15 UTC · cycle-20260929T001517Z \| Unknown \| 2 \| 1: T-0007 \| 1: T-0023 \| 0 \| Exact commit: no run on it · Verdict: ✕ failed \| 584,273 | 3.6 | sentence |
+| 69 | The pilot record | Cycle 29 Sep 2026, 02:13 UTC · cycle-20260929T021318Z \| Scheduler \| 2 \| 0 \| 2: T-0005 and T-0023 \| 0 \| nothing shipped \| 0 | 3.7 | sentence |
+| 70 | The pilot record | Cycle 29 Sep 2026, 04:13 UTC · cycle-20260929T041300Z \| Scheduler \| 2 \| 0 \| 2: T-0007 and T-0024 \| 0 \| nothing shipped \| 0 | 3.8 | sentence |
+| 71 | The pilot record | Cycle 29 Sep 2026, 06:13 UTC · cycle-20260929T061300Z \| Scheduler \| 2 \| 0 \| 2: T-0008 and T-0025 \| 0 \| nothing shipped \| 0 | 3.9 | sentence |
+| 72 | The pilot record | Cycle 29 Sep 2026, 08:13 UTC · cycle-20260929T081300Z \| Scheduler \| 2 \| 0 \| 2: T-0014 and T-0016; coverage failed \| 0 \| nothing shipped \| 765,135 | 3.10 | sentence |
+| 73 | The pilot record | Cycle 29 Sep 2026, 10:13 UTC · cycle-20260929T101300Z \| Scheduler \| 2 \| 2: T-0020 and T-0021 \| 0 \| 0 \| Exact commit: no run on either of 2 · Verdict: ✓ passed \| 315,418 | 3.11 | sentence |
+| 74 | The pilot record | Cycle 29 Sep 2026, 12:13 UTC · cycle-20260929T121300Z \| Scheduler \| 2 \| 2: T-0040 and T-0003 \| 0 \| 0 \| Exact commit: no run on either of 2 · Verdict: ✕ failed \| 1,588,444 | 3.12 | sentence |
+| 75 | The pilot record | Cycle 29 Sep 2026, 14:13 UTC · cycle-20260929T141300Z · No end on the branch \| Scheduler \| 2 \| 0 \| 2: T-0006 and T-0026 \| 0 \| nothing shipped \| 0 | 3.13 | sentence |
+| 76 | The pilot record | Cycle 29 Sep 2026, 16:13 UTC · cycle-20260929T161300Z \| Scheduler \| 4 \| 2: T-0011 and T-0027 \| 2: T-0006 and T-0026 \| 0 \| Exact commit: no run on either of 2 · Verdict: ✓ passed \| 295,833 | 3.14 | sentence |
+| 77 | The pilot record | Cycle 29 Sep 2026, 20:13 UTC · cycle-20260929T201301Z · No end on the branch yet \| Scheduler \| 2 \| 0 \| 2: T-0015 and T-0028 \| 0 \| nothing shipped \| 597,481 | 3.15 | sentence |
+| 78 | The pilot record | T-0012 Drop the test-only supportedProtocols root export from dsh-llm-pi-ai \| Llm Pi Ai Steward \| 6 of 6 passed \| approve, no tool calls \| 1d6a5d343 \| 1,047,317 \| 9 min 7 s | 3.18 | heading |
+| 79 | The pilot record | T-0019 Drop the test-only STRUCTURED_OUTPUT_INSTRUCTION root export from the in-process driver \| Subagent In Process Driver Steward \| 6 of 6 passed \| approve, no tool calls \| cfe0a75f7 \| 475,850 \| 6 min 16 s | 3.18 | heading |
+| 80 | The pilot record | T-0007 Pin the documented error codes of the LLM provider directory and model discovery \| Llm Steward \| 7 of 7 passed \| approve, no tool calls \| cba8e4682 \| 338,500 \| 51 min 15 s | 3.18 | heading |
+| 81 | The pilot record | T-0020 Self-skip the subagent search-permission cwd test when the process runs as root \| Subagent Steward \| 9 of 9 passed \| approve, no tool calls \| b157e0908 \| 202,038 \| 15 min 37 s | 3.18 | heading |
+| 82 | The pilot record | T-0021 Self-skip the ACP search-permission cwd test when the process runs as root \| Subagent Acp Steward \| 9 of 9 passed \| approve, no tool calls \| a54154ce7 \| 113,380 \| 16 min 24 s | 3.18 | heading |
+| 83 | The pilot record | T-0003 saveSelection() warns when no settings provider can retain the selection \| Agent Default Model Steward \| 9 of 9 passed \| approve, no tool calls \| e086cb101 \| 365,109 \| 19 min 51 s | 3.18 | heading |
+| 84 | The pilot record | T-0040 Resolve cmd.exe and codex to absolute paths before the Codex provider spawns in the delegating workspace \| Subagent Codex Steward \| 10 of 10 passed \| approve, no tool calls \| ba3973e84 \| 1,223,335 \| 27 min 6 s | 3.18 | heading |
+| 85 | The pilot record | T-0011 Pin that one pi-ai stream() call makes exactly one provider request on a retryable failure \| Llm Pi Ai Steward \| 8 of 8 passed \| approve, no tool calls \| 816997324 \| 174,226 \| 4 min 30 s | 3.18 | heading |
+| 86 | The pilot record | T-0027 Drop the oxlint metadata overrides the installed manifests now answer \| Third-Party Notices Standard Author \| 11 of 11 passed \| approve, no tool calls \| b26f4b959 \| 121,607 \| 4 min 13 s | 3.18 | heading |
+| 87 | The pilot record | Exact commit. | 3.19 | heading |
+| 88 | The pilot record | No Branch CI run tested 1d6a5d343 or cfe0a75f7 on its own. | 3.19 | heading |
+| 89 | The pilot record | Verdict. | 3.19 | heading |
+| 90 | The pilot record | Run 36469749793 on 52c56001d, the first run containing them that passed or failed (a run a later push cancelled reached no verdict): ✕ failed. | 3.19 | heading |
+| 91 | The pilot record | Containing run. | 3.19 | heading |
+| 92 | The pilot record | Run 36469749793 on 52c56001d, the push that carried them, started 28 Sep 2026, 19:05 UTC: ✕ failed. | 3.19 | heading |
+| 93 | The pilot record | ✓ · coverage · passed | 3.19 | heading |
+| 94 | The pilot record | ✕ · snapshots and artifacts · failed | 3.19 | heading |
+| 95 | The pilot record | test:snapshot · already failing before the shift | 3.19 | heading |
+| 96 | The pilot record | web browser snapshot · already failing before the shift | 3.19 | heading |
+| 97 | The pilot record | ✕ · static · failed | 3.19 | heading |
+| 98 | The pilot record | translation pairing · introduced by this push | 3.19 | heading |
+| 99 | The pilot record | The introduced failure came from the first shipped ticket: its department edited a documentation pair without re-recording the pair’s consistency record. | 3.20 | paragraph |
+| 100 | The pilot record | The engine now runs that check before a change can be approved. | 3.20 | sentence |
+| 101 | The pilot record | Exact commit. | 3.21 | heading |
+| 102 | The pilot record | No Branch CI run tested cba8e4682 on its own. | 3.21 | heading |
+| 103 | The pilot record | Verdict. | 3.21 | heading |
+| 104 | The pilot record | Run 36532805308 on dae1babd0, the first run containing them that passed or failed (a run a later push cancelled reached no verdict): ✕ failed. | 3.21 | heading |
+| 105 | The pilot record | Containing run. | 3.21 | heading |
+| 106 | The pilot record | Run 36532784608 on 7bd419444, the push that carried them, started 29 Sep 2026, 06:45 UTC: • cancelled before a verdict. | 3.21 | heading |
+| 107 | The pilot record | Exact commit. | 3.22 | heading |
+| 108 | The pilot record | No Branch CI run tested b157e0908 or a54154ce7 on its own. | 3.22 | heading |
+| 109 | The pilot record | Verdict. | 3.22 | heading |
+| 110 | The pilot record | Run 36562124879 on d3381c552, the first run containing them that passed or failed (a run a later push cancelled reached no verdict): ✓ passed. | 3.22 | heading |
+| 111 | The pilot record | Containing run. | 3.22 | heading |
+| 112 | The pilot record | Run 36561294088 on d7a854b94, the push that carried them, started 29 Sep 2026, 11:22 UTC: • cancelled before a verdict. | 3.22 | heading |
+| 113 | The pilot record | Exact commit. | 3.23 | heading |
+| 114 | The pilot record | No Branch CI run tested e086cb101 or ba3973e84 on its own. | 3.23 | heading |
+| 115 | The pilot record | Verdict. | 3.23 | heading |
+| 116 | The pilot record | Run 36576432474 on 74a8101c1, the first run containing them that passed or failed (a run a later push cancelled reached no verdict): ✕ failed. | 3.23 | heading |
+| 117 | The pilot record | Containing run. | 3.23 | heading |
+| 118 | The pilot record | Run 36576432474 on 74a8101c1, the push that carried them, started 29 Sep 2026, 13:37 UTC: ✕ failed. | 3.23 | heading |
+| 119 | The pilot record | ✕ · coverage · failed | 3.23 | heading |
+| 120 | The pilot record | test:coverage · introduced by this push | 3.23 | heading |
+| 121 | The pilot record | ✓ · snapshots and artifacts · passed | 3.23 | heading |
+| 122 | The pilot record | ✓ · static · passed | 3.23 | heading |
+| 123 | The pilot record | Exact commit. | 3.24 | heading |
+| 124 | The pilot record | No Branch CI run tested 816997324 or b26f4b959 on its own. | 3.24 | heading |
+| 125 | The pilot record | Verdict. | 3.24 | heading |
+| 126 | The pilot record | Run 36598884416 on ea5564148, the first run containing them that passed or failed (a run a later push cancelled reached no verdict): ✓ passed. | 3.24 | heading |
+| 127 | The pilot record | Containing run. | 3.24 | heading |
+| 128 | The pilot record | Run 36598394797 on 190c94d28, the push that carried them, started 29 Sep 2026, 16:31 UTC: • cancelled before a verdict. | 3.24 | heading |
+| 129 | The pilot record | Branch CI runs the static, coverage and snapshot lanes on every push to the development branch. | 3.26 | paragraph |
+| 130 | The pilot record | Of 145 completed runs since 27 Sep 2026, 15:36 UTC, 25 passed, 48 failed and 72 were cancelled by a later push before a verdict. | 3.26 | sentence |
+| 131 | The pilot record | The newest run with a verdict finished at 29 Sep 2026, 20:40 UTC and passed. | 3.26 | paragraph |
+| 132 | The pilot record | 62 of 147 seats are occupied by a recorded deliverable, and 43 delivered in the 24 hours to 29 Sep 2026, 20:49 UTC. | 3.28 | paragraph |
+| 133 | The pilot record | Ten seats are vacant by construction: five CI judges whose lanes this fork does not run and five observers whose backends nothing here composes. | 3.28 | sentence |
+| 134 | Measured quality | How well the harness and the code-safety program perform, measured against tasks and targets whose answers are known. | none | none |
+| 135 | Measured quality | The harness is measured on 44 task environments across 6 domains; the two hardest tiers are judged on hidden cases the implementer never sees. | 4.1, 4.2 | sentence |
+| 136 | Measured quality | A frozen paired experiment runs the same cells under two arms that differ in one field and reads the difference with a bootstrap interval; its verdict is promote or reject only when the interval clears the plan’s thresholds. | 4.1, 4.2, 4.3, 4.4 | paragraph |
+| 137 | Measured quality | 22 frozen pairs are on record, and 3 reached a decisive verdict. | 4.3, 4.4 | sentence |
+| 138 | Measured quality | The model matters most. | 4.5 | heading |
+| 139 | Measured quality | On tier 5 a larger model certified 16 of 16 cells against 13 for the middle model (+0.19, interval [0.13, 0.25], promote); a smaller one certified 1 against 14 (−0.81, interval [−0.88, −0.75], reject). | 4.5 | heading |
+| 140 | Measured quality | The harness loop and the product’s own loop are level on results. | 4.5 | heading |
+| 141 | Measured quality | 15 against 14 of 16 sealed tier-5 cells (−0.06, interval [−0.13, 0.00], inconclusive); 40 against 40 of 40 on the public polyglot suite. | 4.5 | heading |
+| 142 | Measured quality | Retrying helps, by less than the first reading. | 4.5 | heading |
+| 143 | Measured quality | Three attempts against one read −0.38, interval [−0.56, −0.19], reject in the first pair; the 2 replications read −0.06, interval [−0.13, 0.00], inconclusive and −0.06, interval [−0.19, 0.06], inconclusive. | 4.5 | heading |
+| 144 | Measured quality | No harness mechanism has been promoted. | 4.5 | heading |
+| 145 | Measured quality | The largest mechanism reading, a self-review turn before validation, is +0.17, interval [−0.04, 0.38], inconclusive. | 4.5 | heading |
+| 146 | Measured quality | The instrument’s resolution. | 4.6 | paragraph |
+| 147 | Measured quality | A repeat of the same 16 cells differs by about one cell, so one pair of 16 cannot resolve an effect smaller than about 0.19. | 4.6 | sentence |
+| 148 | Measured quality | The code-safety program reviews a codebase in six departments — secrets, injection, access, data, dependencies and platform — and a committed examiner rejects any finding whose cited line does not hold; a finding it passes is line-verified: the quoted text is at the cited line of the cited file, which does not show that the finding is a real defect. | 4.13, 4.7 | paragraph |
+| 149 | Measured quality | Every review sends the code it reads to the model API and commits records that quote it. | 4.13 | sentence |
+| 150 | Measured quality | Recall is read against targets whose defects are documented: OWASP NodeGoat, with 18 issues, and Damn Vulnerable Java Application (dvja), with 14. | 4.13, 4.7 | paragraph |
+| 151 | Measured quality | A documented issue counts as found when a finding cites its file within three lines of the issue’s lines. | 4.7 | sentence |
+| 152 | Measured quality | Each tier ran once. | 4.9 | paragraph |
+| 153 | Measured quality | On this small application one model in one pass found 15 of 18 documented issues, more than the enterprise’s 13; the scanner found 4. | 4.9 | paragraph |
+| 154 | Measured quality | The single pass released 23 findings, unverified: nothing checked them against the code. | 4.9 | paragraph |
+| 155 | Measured quality | The enterprise released 47, each line-verified, with a record of how every finding was reached; 15 of them land on no documented issue and are untriaged candidates, not established defects. | 4.9 | sentence |
+| 156 | Measured quality | The 10 reviews of the same revision without the diagnosed checklists found between 13 and 15 of 18 documented issues, each within three lines. | 4.10 | heading |
+| 157 | Measured quality | A generalist department added nothing. | 4.10 | heading |
+| 158 | Measured quality | Checklists written from a diagnosis of the enterprise’s misses on this application found 18 and 18 in their two runs against 14 and 15 without them, an in-sample reading, because the checklists were written from the application they were scored on; whether they transfer to another codebase is untested. | 4.10 | heading |
+| 159 | Measured quality | On Damn Vulnerable Java Application (dvja) the review found 13 of 14. | 4.10 | heading |
+| 160 | Measured quality | With no ground truth for a client’s code, recall is read by planting defects in a copy without telling the review. | 4.12 | paragraph |
+| 161 | Measured quality | On this repository’s own packages the review caught 6 of 8 planted defects within three lines, 95% interval 0.41 to 0.93. | 4.12 | paragraph |
+| 162 | Measured quality | Three of the planted sites carried no reachable defect; on the five that did, it caught five. | 4.12 | sentence |
+| 163 | Data handling, governance and audit | Where a client’s code and the records of the work go, the controls on what an agent can read, run and ship, and the record that makes each action attributable. | none | none |
+| 164 | Data handling, governance and audit | A shift runs on one review machine. | 5.1 | sentence |
+| 165 | Data handling, governance and audit | Four movements of data cross its edge; the arrows point the way the data moves. | 5.1 | paragraph |
+| 166 | Data handling, governance and audit | A scratch clone of the branch, one worktree per department · cloned at the start of each shift · GitHub: the development branch | 5.1 | sentence |
+| 167 | Data handling, governance and audit | Department, reviewer and intake sessions · every model request: the conversation, with the contents of each file a department reads · Anthropic’s model API, under the operator’s Claude Code login | 5.2 | sentence |
+| 168 | Data handling, governance and audit | Shift records: every session log · committed and pushed at the end of each shift · GitHub: this repository, public | 5.3 | sentence |
+| 169 | Data handling, governance and audit | Claude Code transcripts of the operator and of every department · pushed every 5 minutes; credential-shaped strings masked, the rest as written · GitHub: this repository, public | 5.4 | sentence |
+| 170 | Data handling, governance and audit | The repository’s visibility on GitHub is public. | 5.5 | sentence |
+| 171 | Data handling, governance and audit | A client’s code read by a department therefore reaches Anthropic’s model API under the operator’s Claude Code login, and the session logs and transcripts that hold it are published with the repository. | 5.5, 5.31 | paragraph |
+| 172 | Data handling, governance and audit | Every movement of the data, the terms of each destination and what the repository does not record about them are on the data-handling page. | 5.31 | sentence |
+| 173 | Data handling, governance and audit | An Anthropic API organisation for the engagement, under a data processing agreement with zero data retention, in place of the operator’s login. | none | none |
+| 174 | Data handling, governance and audit | The records, session logs and transcripts of the engagement kept in a private repository, and the live capture pointed at it. | none | none |
+| 175 | Data handling, governance and audit | Data-use terms naming the client, the agreement, the purposes, the residency and the retention pinned on every session. | 5.6 | sentence |
+| 176 | Data handling, governance and audit | Execution isolation \| Shift departments, reviewers, intake and code-safety reviews run unconfined, as the host user: each department works in its own worktree of a scratch clone whose push address is unreachable, which contains a mistaken push but is not a sandbox, and nothing yet limits their network or the host files and credentials they can read. | 5.9 | sentence |
+| 177 | Data handling, governance and audit | The harness’s operating-system sandbox (bubblewrap, then Landlock on Linux; Seatbelt on macOS; a restricted token on Windows) confines the Proving Ground bench only. \| Every bench cell has run sealed since 8 Sep 2026, 09:25 UTC: only the cell’s workspace is visible to it. | 5.7, 5.8 | sentence |
+| 178 | Data handling, governance and audit | Running departments under that sandbox, without the host’s credentials in their environment, is work to finish before any client engagement. | 5.9, 5.7, 5.8 | paragraph |
+| 179 | Data handling, governance and audit | Least privilege on reads \| The read barrier denies implementing and judging sessions the directories the validator owns, enforced where the filesystem capability opens a path. \| Reads refused on the code-safety records: 0. | 5.10, 5.11 | sentence |
+| 180 | Data handling, governance and audit | Separation of duties \| The reviewer of a change is a separate session with no parent and an empty directory, and has had no tools since the second shift; it sees the diff, the commit messages and the check output, not the implementer’s work. | 5.12, 5.13 | paragraph |
+| 181 | Data handling, governance and audit | Its route and model are configured apart from the departments’, but every review so far ran the same model through the same Claude Code login as the departments. | 5.12, 5.13 | paragraph |
+| 182 | Data handling, governance and audit | Since 29 Sep, 10:15 UTC (commit 3291b6402) a ticket it rejects is held for a person and not reviewed again; before that rule, T-0019 was rejected on 28 Sep at 18:19 UTC, reviewed again and shipped. \| Shift 171951-516d: 2 reviews, 6 tool calls; Shift 182951-78a6: 2 reviews, 0 tool calls; Shift 001527-881f: 1 reviews, 0 tool calls; Shift 081308-24b5: 1 reviews, 0 tool calls; Shift 101309-c95c: 2 reviews, 0 tool calls; Shift 121310-3eae: 2 reviews, 0 tool calls; Shift 161311-58c9: 2 reviews, 0 tool calls; Shift 201313-0965: 2 reviews, 0 tool calls. | 5.12, 5.13 | sentence |
+| 183 | Data handling, governance and audit | Independent verification \| A committed examiner re-reads every code-safety finding at the line it cites and fails the release if the text is not there. \| Records whose examiner passed: 14 of 14. | 5.20, 5.21 | sentence |
+| 184 | Data handling, governance and audit | Sign-off \| A shift and an intake each record a spec freeze and a release. | 5.22, 5.23 | paragraph |
+| 185 | Data handling, governance and audit | A person’s sign-off would carry the principal, the SHA-256 of what was signed and the evidence, unauthenticated; unattended runs record both as decisions of the engine, under a machine principal, and no person approves a release. \| 10 sign-off events in 5 records were written by the engine as the program opened, at most 2 ms apart, under “enterprise-operator” and “enterprise-intake-operator” with the kind “human”: machine decisions labelled as a person’s. | 5.22 | sentence |
+| 186 | Data handling, governance and audit | 8 records carry the engine’s decisions, under “daliesk-enterprise-shift” with the kind “machine”. | 5.22, 5.23 | paragraph |
+| 187 | Data handling, governance and audit | No person signs a change before it is pushed. | 5.23 | sentence |
+| 188 | Data handling, governance and audit | Data use and retention \| A session pins its terms when it is created — client, agreement, purposes, residency, retention, redaction profile — and later terms may only narrow them. | 5.6, 5.24 | paragraph |
+| 189 | Data handling, governance and audit | Exports are refused without a redaction profile. \| 1,688 of 1,798 bench sessions pin terms; code-safety 0 of 114, shifts 0 of 47, intake 0 of 4. | 5.6, 5.24 | sentence |
+| 190 | Data handling, governance and audit | Secrets in records \| Key material a review reads out of a target is replaced before its record is committed; shift records cut credential-shaped strings and count them, and the live capture masks them. \| Code-safety records with redactions: 14; strings cut from shift records: 68. | 5.25, 5.26, 5.27 | sentence |
+| 191 | Data handling, governance and audit | Audit trail \| The ledger is append-only, enforced by a gate since commit 580d9e688 (29 Sep, 10:54 UTC). | 5.28, 5.29, 5.30 | paragraph |
+| 192 | Data handling, governance and audit | Before that gate the ledger was edited: commit dae1babd0 (29 Sep, 06:45 UTC) rewrote the shipped commit on T-0007’s line in place, and commits d46e02bd9, d1aec806b, 1f669dbf9 and 8a4dd9c02 inserted lines mid-file; the gate’s commit lists them. | 5.28, 5.29, 5.30 | paragraph |
+| 193 | Data handling, governance and audit | Each shift record keeps every session log with each file’s SHA-256; each commit names its shift, ticket, seat, program and sessions. | 5.28, 5.29, 5.30 | paragraph |
+| 194 | Data handling, governance and audit | Anything that reached a model is reconstructable from the session logs, except the sessions the loss register (LOSSES.md) records as erased by a container reset. \| Ledger lines: 267; session logs in committed records: 1,912. | 5.28, 5.29, 5.30 | sentence |
+| 195 | Data handling, governance and audit | The ledger records 13 approvals and 1 rejection by the separate reviewer session. | 5.15 | sentence |
+| 196 | Data handling, governance and audit | Each review ran in a session of its own that never saw the department’s. | 5.15, 5.17 | paragraph |
+| 197 | Data handling, governance and audit | 6 of the ledger’s reviews name the reviewer’s model and route; the older lines read reviewer not recorded, and the model each review’s request was sent with is read from its own session log. | 5.17 | sentence |
+| 198 | Data handling, governance and audit | T-0019, shift 171951-516d: the reviewer rejected the change; a later review approved the same ticket and it shipped as cfe0a75f7, which overturned the rejection. | 5.18 | sentence |
+| 199 | Data handling, governance and audit | T-0012, shift 182951-78a6: the reviewer approved the change and it shipped as 1d6a5d343; it was reworked afterwards by b7cf48055 (“fix(llm-pi-ai): re-record the README pair the first shipped ticket left unrecorded”). | 5.19 | sentence |
+| 200 | Data handling, governance and audit | T-0012 · review-t-0012-79328c42 \| 171951-516d, 28 Sep 2026, 18:19 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 6 \| not shipped | 5.14 | sentence |
+| 201 | Data handling, governance and audit | T-0019 · review-t-0019-e3dd7355 \| 171951-516d, 28 Sep 2026, 18:19 UTC \| rejected \| reviewer not recorded \| sonnet on claude-code \| 0 \| overturned: shipped later as cfe0a75f7 | 5.14 | sentence |
+| 202 | Data handling, governance and audit | T-0012 · review-t-0012-fb58af6f \| 182951-78a6, 28 Sep 2026, 19:04 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| shipped as 1d6a5d343, reworked by b7cf48055 | 5.14 | sentence |
+| 203 | Data handling, governance and audit | T-0019 · review-t-0019-da50c0af \| 182951-78a6, 28 Sep 2026, 19:04 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| shipped as cfe0a75f7 | 5.14 | sentence |
+| 204 | Data handling, governance and audit | T-0007 · review-t-0007-51a05d12 \| 001527-881f, 29 Sep 2026, 02:04 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| shipped as cba8e4682 | 5.14 | sentence |
+| 205 | Data handling, governance and audit | T-0016 · review-t-0016-f22a14a7 \| 081308-24b5, 29 Sep 2026, 09:37 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| not shipped | 5.14 | sentence |
+| 206 | Data handling, governance and audit | T-0020 · review-t-0020-c3b2dc5a \| 101309-c95c, 29 Sep 2026, 11:06 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| shipped as b157e0908 | 5.14 | sentence |
+| 207 | Data handling, governance and audit | T-0021 · review-t-0021-f02dd27f \| 101309-c95c, 29 Sep 2026, 11:06 UTC \| approved \| reviewer not recorded \| sonnet on claude-code \| 0 \| shipped as a54154ce7 | 5.14 | sentence |
+| 208 | Data handling, governance and audit | T-0003 · review-t-0003-9462100b \| 121310-3eae, 29 Sep 2026, 13:37 UTC \| approved \| sonnet on claude-code \| sonnet on claude-code \| 0 \| shipped as e086cb101 | 5.14 | sentence |
+| 209 | Data handling, governance and audit | T-0040 · review-t-0040-89ca51a7 \| 121310-3eae, 29 Sep 2026, 13:37 UTC \| approved \| sonnet on claude-code \| sonnet on claude-code \| 0 \| shipped as ba3973e84 | 5.14 | sentence |
+| 210 | Data handling, governance and audit | T-0011 · review-t-0011-46d9ba45 \| 161311-58c9, 29 Sep 2026, 16:31 UTC \| approved \| sonnet on claude-code \| sonnet on claude-code \| 0 \| shipped as 816997324 | 5.14 | sentence |
+| 211 | Data handling, governance and audit | T-0027 · review-t-0027-edabf50d \| 161311-58c9, 29 Sep 2026, 16:31 UTC \| approved \| sonnet on claude-code \| sonnet on claude-code \| 0 \| shipped as b26f4b959 | 5.14 | sentence |
+| 212 | Data handling, governance and audit | T-0015 · review-t-0015-70c0432b \| 201313-0965, 29 Sep 2026, 20:46 UTC \| approved \| sonnet on claude-code \| sonnet on claude-code \| 0 \| not shipped | 5.14 | sentence |
+| 213 | Data handling, governance and audit | T-0028 · review-t-0028-a50f9c0d \| 201313-0965, 29 Sep 2026, 20:46 UTC \| approved \| sonnet on claude-code \| sonnet on claude-code \| 0 \| not shipped | 5.14 | sentence |
+| 214 | Economics | What a shipped change costs in model tokens and time, as the records state it. | 6.1 | paragraph |
+| 215 | Economics | The records carry no currency. | 6.1 | sentence |
+| 216 | Economics | Tokens per shipped ticket · 451,262 · mean of 9, department and review | 6.2 | sentence |
+| 217 | Economics | Agent time per ticket · 17.1 min · mean of 9, department and review | 6.3 | sentence |
+| 218 | Economics | Shift, clone to its recorded end · 60.0 min · mean of 5 shifts that shipped; a push a person completed later is not counted | 6.4 | sentence |
+| 219 | Economics | Security review time · 20.4–28.8 min · per review, over 14 reviews | 6.5 | sentence |
+| 220 | Economics | T-0012 \| 1,047,317 \| 9 min 7 s | 6.6 | heading |
+| 221 | Economics | T-0019 \| 475,850 \| 6 min 16 s | 6.6 | heading |
+| 222 | Economics | T-0007 \| 338,500 \| 51 min 15 s | 6.6 | heading |
+| 223 | Economics | T-0020 \| 202,038 \| 15 min 37 s | 6.6 | heading |
+| 224 | Economics | T-0021 \| 113,380 \| 16 min 24 s | 6.6 | heading |
+| 225 | Economics | T-0003 \| 365,109 \| 19 min 51 s | 6.6 | heading |
+| 226 | Economics | T-0040 \| 1,223,335 \| 27 min 6 s | 6.6 | heading |
+| 227 | Economics | T-0011 \| 174,226 \| 4 min 30 s | 6.6 | heading |
+| 228 | Economics | T-0027 \| 121,607 \| 4 min 13 s | 6.6 | heading |
+| 229 | Economics | Price per change is not recorded. | 6.1 | paragraph |
+| 230 | Economics | Unknown: every shift ran on a flat-rate subscription route, so a per-ticket price would be an estimate, and this briefing states none. | 6.1 | sentence |
+| 231 | Economics | A single model pass is cheaper and faster, and unchecked. | 6.7 | paragraph |
+| 232 | Economics | On the same application one pass took 113 s and cost $0.36 by its own accounting; the enterprise took 22 min 36 s on the subscription and had every finding checked at its cited line. | 6.7 | sentence |
+| 233 | Economics | Scale is not yet established. | 6.6 | paragraph |
+| 234 | Economics | These means rest on 9 shipped tickets; a cost model for a client queue needs a pilot measured the same way. | 6.6 | sentence |
+| 235 | Limits and risks | What the evidence does not show, and the risks a client should weigh. | none | none |
+| 236 | Limits and risks | A pilot. | 7.1, 7.2, 7.3 | paragraph |
+| 237 | Limits and risks | 9 tickets have shipped, 2 of them from work the operator started. | 7.1 | sentence |
+| 238 | Limits and risks | The cycles the scheduler started have shipped 6, and a container reset erased the session logs of the shift of cycle-20260928T201148Z before it recorded its tickets, which the supervisor wrote to the ledger as abandoned afterwards. | 7.2, 7.3 | sentence |
+| 239 | Limits and risks | Shift work is not yet sandboxed. | 7.5 | paragraph |
+| 240 | Limits and risks | A department runs its commands unconfined in a worktree of a scratch clone that cannot push; the sandbox and the sealed workspace are in use on the bench only. | 7.5 | sentence |
+| 241 | Limits and risks | Continuous integration has only lately turned green. | 7.6, 7.7 | paragraph |
+| 242 | Limits and risks | The newest Branch CI run with a verdict passed; 25 of 145 completed Branch CI runs passed. | 7.6 | sentence |
+| 243 | Limits and risks | No run tested a shipped commit on its own (0 of 9). | 7.7 | sentence |
+| 244 | Limits and risks | Of the 5 pushes that carried them, the containing run of 2 failed and of 3 was cancelled by a later push before a verdict. | 7.6, 7.7 | paragraph |
+| 245 | Limits and risks | The name DeepSeek is provenance, not a supplier. | 7.4 | paragraph |
+| 246 | Limits and risks | This repository is a fork of an open-source agent harness that DeepSeek AI publishes under the MIT licence, which is why its name and its package scope carry DeepSeek; DeepSeek AI has not built, reviewed or endorsed Daliesk. | 7.4 | paragraph |
+| 247 | Limits and risks | No shift, review or intake request goes to a DeepSeek endpoint: they go to Anthropic, as the next item states. | 7.4 | paragraph |
+| 248 | Limits and risks | Only the Proving Ground bench has run open-weight models, DeepSeek’s among them, through OpenRouter. | 7.4 | sentence |
+| 249 | Limits and risks | A client’s code would leave the machine. | 7.8 | paragraph |
+| 250 | Limits and risks | Every model request, with the files a department reads, goes to Anthropic under the operator’s Claude Code login, and the session logs and transcripts are published with a public repository. | 7.8 | sentence |
+| 251 | Limits and risks | The requirements in section 5 come first. | 7.8 | paragraph |
+| 252 | Limits and risks | No person signs. | 7.9 | paragraph |
+| 253 | Limits and risks | The engine decides each shift’s spec freeze and release itself, and no person approves a change before it is pushed; the 5 records that hold sign-off events label the engine’s decisions with a principal of the kind “human”. | 7.9 | sentence |
+| 254 | Limits and risks | Data-use terms are not yet pinned on delivery work. | 7.10 | paragraph |
+| 255 | Limits and risks | Sessions that pin terms: code-safety 0 of 114, shift 0 of 47, intake 0 of 4. | 7.10 | sentence |
+| 256 | Limits and risks | One vendor. | 7.11 | paragraph |
+| 257 | Limits and risks | 98% of the recorded sessions that made a model request ran on one route, claude-code (1,283 of 1,312); a route’s usage limit halts a shift. | 7.11 | sentence |
+| 258 | Limits and risks | The benchmark is narrow. | 7.12, 7.13 | paragraph |
+| 259 | Limits and risks | The tasks are written in-house; the harness measured runs an eight-tool build rather than the full shipped composition; and no harness change has been promoted by a frozen pair. | 7.12, 7.13 | sentence |
+| 260 | Limits and risks | Security recall is read on training applications. | 7.14 | paragraph |
+| 261 | Limits and risks | The documented-defect targets are public, intentionally vulnerable applications; the checklist gain may not transfer; the review of this repository’s own code confirmed none of its findings and missed a defect its triage found. | 7.14 | sentence |
+| 262 | Limits and risks | A developer preview. | 7.15 | paragraph |
+| 263 | Limits and risks | The harness underneath is in developer preview and will change incompatibly. | 7.15 | sentence |
+| 264 | Roadmap and engagement | The work that closes the limits above, and a proposed way to start with a client. | none | none |
+| 265 | Roadmap and engagement | Data handling before any client work. | 8.1 | paragraph |
+| 266 | Roadmap and engagement | Serve the departments from an Anthropic API organisation under a data processing agreement with zero data retention, keep the records in a private repository, and pin data-use terms on every session. | 8.1 | sentence |
+| 267 | Roadmap and engagement | Sign-off and isolation. | 8.2 | paragraph |
+| 268 | Roadmap and engagement | Have a person sign each release after the certificate, under a principal the engine does not configure; run shift departments under the sandbox the bench already uses. | 8.2 | sentence |
+| 269 | Roadmap and engagement | Unattended delivery, measured. | 8.3 | paragraph |
+| 270 | Roadmap and engagement | Clear the doc-sync and coverage checks that halted the scheduled cycles’ tickets and keep Branch CI green, then count what cycles ship without an operator, in the table of section 3. | 8.3 | sentence |
+| 271 | Roadmap and engagement | Evidence that others can check. | 8.2 | paragraph |
+| 272 | Roadmap and engagement | Measure on public suites and on private tasks no model has seen, with more cells per arm, before promoting any harness change. | 8.2 | sentence |
+| 273 | Roadmap and engagement | More than one model vendor. | 8.2 | paragraph |
+| 274 | Roadmap and engagement | Run the same cells on more routes, so a result is not one vendor’s. | 8.2 | sentence |
+| 275 | Roadmap and engagement | Full CI coverage. | 8.4 | paragraph |
+| 276 | Roadmap and engagement | Compose the Windows and primary lanes this fork lacks, so the vacant judge seats rule on real runs. | 8.4 | sentence |
+| 277 | Roadmap and engagement | Data handling, terms and scope | none | none |
+| 278 | Roadmap and engagement | An Anthropic API organisation for the engagement under a data processing agreement with zero data retention; a private repository for the records; the data-use terms each session will pin; and the people who sign. | 8.1 | sentence |
+| 279 | Roadmap and engagement | A code-safety review of a codebase the client selects | none | none |
+| 280 | Roadmap and engagement | Six departments, each finding checked at the line it cites, the report with executive summaries in French and English; recall read by planting defects in a copy. | 8.5 | sentence |
+| 281 | Roadmap and engagement | On the reference application one review took up to 28.8 min. | 8.6 | sentence |
+| 282 | Roadmap and engagement | Supervised shifts on an agreed queue | none | none |
+| 283 | Roadmap and engagement | Tickets under the client’s own acceptance commands, a person signing each release, measured as this briefing measures: checks, reviews, CI verdicts, tokens and time per ticket. | 8.7 | sentence |
+| 284 | Roadmap and engagement | Decision | none | none |
+| 285 | Roadmap and engagement | Continue, widen or stop on the measured record, not on this document. | none | none |
+| 286 | Inputs and verification | Every figure above was computed by pnpm run enterprise:briefing from these inputs. | A.1 | sentence |
+| 287 | Inputs and verification | For a directory, the digest covers the list of every file read under it with that file’s own SHA-256. | A.1 | paragraph |
+| 288 | Inputs and verification | data/code-safety \| 143 \| 57,279,997 \| e8c8a775e9bae5e6 | A.1 | heading |
+| 289 | Inputs and verification | data/code-safety/comparisons/2026-09-22-nodegoat \| 4 \| 28,978 \| b76548dc0e54b316 | A.1 | heading |
+| 290 | Inputs and verification | data/code-safety/targets \| 2 \| 13,389 \| 887633e5b05335fd | A.1 | heading |
+| 291 | Inputs and verification | data/enterprise/cycles \| 8 \| 11,425 \| a44702a7d55ccefa | A.1 | heading |
+| 292 | Inputs and verification | data/enterprise/intake \| 17 \| 993,678 \| 05557d1783333c46 | A.1 | heading |
+| 293 | Inputs and verification | data/enterprise/ledger.jsonl \| 1 \| 131,641 \| 13a99bfa09f0a736 | A.1 | heading |
+| 294 | Inputs and verification | data/enterprise/roster.json \| 1 \| 129,730 \| 6779e84c3f598b8f | A.1 | heading |
+| 295 | Inputs and verification | data/enterprise/shift-starts.jsonl \| 1 \| 1,827 \| c63ab121d97df3d1 | A.1 | heading |
+| 296 | Inputs and verification | data/enterprise/shifts \| 71 \| 5,492,877 \| bfb36b1c1f258f49 | A.1 | heading |
+| 297 | Inputs and verification | data/enterprise/tickets \| 41 \| 126,737 \| 9817e12997abd1c3 | A.1 | heading |
+| 298 | Inputs and verification | data/proving-ground \| 1,821 \| 262,478,081 \| c14058044e036c5a | A.1 | heading |
+| 299 | Inputs and verification | data/proving-ground/folds \| 14 \| 61,768 \| 1bcb94a44d402448 | A.1 | heading |
+| 300 | Inputs and verification | data/transcripts/live/enterprise-cycles \| 38 \| 58,614 \| de019aa2f1c9079b | A.1 | heading |
+| 301 | Inputs and verification | examples/headless-agent/tests/fixtures/proving-ground-bench/environments \| 44 \| 171,312 \| 085622d1978d280e | A.1 | heading |
+| 302 | Inputs and verification | Open its source note: it names the paths read and the computation. | none | none |
+| 303 | Inputs and verification | Open the path on the branch; the Proving Ground and code-safety records carry their own manifests with each file’s SHA-256. | none | none |
+| 304 | Inputs and verification | Rebuild with pnpm run enterprise:briefing on a checkout of the branch and compare apps/command-deck/public/fixtures/briefing.json. | none | none |
+| 305 | Inputs and verification | Read the claims register, briefing-claims.md: every sentence of this page with the notes it cites. | A.2 | sentence |
 
 ## Notes
 
@@ -341,20 +345,21 @@ Every sentence of the Command Deck's client briefing (`/briefing`), rendered fro
 | 3.11 | Started by: scheduler. Its cycle record states scheduler: the cycle script records scheduler when scripts/enterprise-scheduler.sh is its parent process, and operator otherwise. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts/2026-09-29-101309-c95c`, `data/enterprise/cycles/cycle-20260929T101300Z.json`, `data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T101300Z.log-2a33c8237b`, `data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b` |
 | 3.12 | Started by: scheduler. Its cycle record states scheduler: the cycle script records scheduler when scripts/enterprise-scheduler.sh is its parent process, and operator otherwise. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts/2026-09-29-121310-3eae`, `data/enterprise/cycles/cycle-20260929T121300Z.json`, `data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T121300Z.log-56cf41c17d`, `data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b` |
 | 3.13 | Started by: scheduler. The captured scheduler log announced the slot 2026-09-29T14:13:00.000Z, and this is the first cycle to start at or after it. | `data/enterprise/ledger.jsonl`, `data/enterprise/shift-starts.jsonl`, `data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T141300Z.log-391c6f7548`, `data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b` |
-| 3.14 | Started by: scheduler. The captured scheduler log announced the slot 2026-09-29T16:13:00.000Z, and this is the first cycle to start at or after it. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts/2026-09-29-161311-58c9`, `data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T161300Z.log-b810ae2bd6`, `data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b` |
-| 3.15 | What the container resets of 2026-09-28 erased, stated from commits and files on the branch: the shift the 22:07Z reset interrupted, and why no line or record of it exists. | `data/transcripts/LOSSES.md` |
-| 3.16 | Each shift record's result.json and manifest.json: the tickets worked, the tickets shipped, the start and the end, and the reason a partial record gives. | `data/enterprise/shifts` |
-| 3.17 | The line that shipped each ticket any line of which names a shipped commit, with the queue file's title, the seat's name, the shift record's base commit and the review session's tool calls. | `data/enterprise/ledger.jsonl`, `data/enterprise/tickets`, `data/enterprise/shifts`, `data/enterprise/roster.json` |
-| 3.18 | The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains 1d6a5d343 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
-| 3.19 | The shift engine note: the first shipped commit edited a README pair without re-recording its pairing record; the queue policy’s documentation gate now runs that check in the department, the integration and the recertification. | `.agents/notes/implemented/architecture/2026-09-28-enterprise-shift-engine.md` |
-| 3.20 | The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains cba8e4682 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
-| 3.21 | The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains b157e0908 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
-| 3.22 | The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains e086cb101 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
-| 3.23 | The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains 816997324 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
-| 3.24 | Every Branch CI run of claude/coding-agent-harness-u9l4gt, oldest first, with its conclusion. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
-| 3.25 | Completed Branch CI runs of claude/coding-agent-harness-u9l4gt. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
-| 3.26 | Per division: seats defined; seats with an attributed session or a ledger line; seats whose status is active. | `data/enterprise/roster.json` |
-| 3.27 | The vacancy table: five judge seats whose CI lanes this fork does not run and five observer seats whose backends nothing here composes. | `data/enterprise/README.md`, `.agents/notes/implemented/architecture/2026-09-28-enterprise-functions-and-occupancy.md` |
+| 3.14 | Started by: scheduler. Its cycle record states scheduler: the cycle script records scheduler when scripts/enterprise-scheduler.sh is its parent process, and operator otherwise. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts/2026-09-29-161311-58c9`, `data/enterprise/shift-starts.jsonl`, `data/enterprise/cycles/cycle-20260929T161300Z.json`, `data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T161300Z.log-b810ae2bd6`, `data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b` |
+| 3.15 | Started by: scheduler. The captured scheduler log announced the slot 2026-09-29T20:13:00.000Z, and this is the first cycle to start at or after it. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts/2026-09-29-201313-0965`, `data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T201301Z.log-d6ab0a5cd0`, `data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b` |
+| 3.16 | What the container resets of 2026-09-28 erased, stated from commits and files on the branch: the shift the 22:07Z reset interrupted, and why no line or record of it exists. | `data/transcripts/LOSSES.md` |
+| 3.17 | Each shift record's result.json and manifest.json: the tickets worked, the tickets shipped, the start and the end, and the reason a partial record gives. | `data/enterprise/shifts` |
+| 3.18 | The line that shipped each ticket any line of which names a shipped commit, with the queue file's title, the seat's name, the shift record's base commit and the review session's tool calls. | `data/enterprise/ledger.jsonl`, `data/enterprise/tickets`, `data/enterprise/shifts`, `data/enterprise/roster.json` |
+| 3.19 | The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains 1d6a5d343 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
+| 3.20 | The shift engine note: the first shipped commit edited a README pair without re-recording its pairing record; the queue policy’s documentation gate now runs that check in the department, the integration and the recertification. | `.agents/notes/implemented/architecture/2026-09-28-enterprise-shift-engine.md` |
+| 3.21 | The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains cba8e4682 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
+| 3.22 | The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains b157e0908 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
+| 3.23 | The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains e086cb101 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
+| 3.24 | The Branch CI runs of claude/coding-agent-harness-u9l4gt: the earliest run whose commit contains 816997324 (git merge-base --is-ancestor), the run on the shift's base commit, and the earliest successful run containing it; failed gates read from each failed job's log. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
+| 3.25 | Every Branch CI run of claude/coding-agent-harness-u9l4gt, oldest first, with its conclusion. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
+| 3.26 | Completed Branch CI runs of claude/coding-agent-harness-u9l4gt. | `data/enterprise/ledger.jsonl`, `data/enterprise/shifts`, <https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml> |
+| 3.27 | Per division: seats defined; seats with an attributed session or a ledger line; seats whose status is active. | `data/enterprise/roster.json` |
+| 3.28 | The vacancy table: five judge seats whose CI lanes this fork does not run and five observer seats whose backends nothing here composes. | `data/enterprise/README.md`, `.agents/notes/implemented/architecture/2026-09-28-enterprise-functions-and-occupancy.md` |
 | 4.1 | Environment directories carrying a task.json. | `examples/headless-agent/tests/fixtures/proving-ground-bench/environments` |
 | 4.2 | Distinct domain fields of those task.json files. | `examples/headless-agent/tests/fixtures/proving-ground-bench/environments` |
 | 4.3 | Records whose result.json carries a verdict, an interval and at least one paired cell. | `data/proving-ground` |
