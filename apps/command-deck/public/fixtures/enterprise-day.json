@@ -1,16 +1,16 @@
 {
   "window": {
-    "since": "2026-09-28T13:40:56.861Z",
-    "until": "2026-09-29T13:40:56.861Z"
+    "since": "2026-09-28T16:34:48.944Z",
+    "until": "2026-09-29T16:34:48.944Z"
   },
   "head": {
-    "commit": "c5f61983187369e3054c39e25f7aa1f4cfa4ed49",
-    "committedAt": "2026-09-29T15:32:34.000Z"
+    "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf",
+    "committedAt": "2026-09-29T16:31:49.000Z"
   },
   "cycles": {
-    "count": 9,
+    "count": 11,
     "recorded": 7,
-    "gitOnly": 2,
+    "gitOnly": 4,
     "clean": 2,
     "failed": 5,
     "failedByStep": {
@@ -319,6 +319,38 @@
           },
           "recordOnRemote": "unknown"
         }
+      },
+      {
+        "cycle": "cycle-20260929T141300Z",
+        "startedAt": "2026-09-29T14:13:00.000Z",
+        "source": "git",
+        "outcome": "unknown",
+        "startedBy": {
+          "by": "unknown",
+          "basis": "the cycle has no record"
+        },
+        "commits": [
+          {
+            "commit": "6393dac8eabb655314fcdc82d76da9a2b0a6cbce",
+            "carries": "intake"
+          }
+        ]
+      },
+      {
+        "cycle": "cycle-20260929T161300Z",
+        "startedAt": "2026-09-29T16:13:00.000Z",
+        "source": "git",
+        "outcome": "unknown",
+        "startedBy": {
+          "by": "unknown",
+          "basis": "the cycle has no record"
+        },
+        "commits": [
+          {
+            "commit": "d47799da7bad630f10e66e3db801b520669d380d",
+            "carries": "intake"
+          }
+        ]
       }
     ]
   },
@@ -454,14 +486,38 @@
         "halted": 0
       },
       "evidence": "data/enterprise/shifts/2026-09-29-121310-3eae"
+    },
+    {
+      "shift": "141308-b243",
+      "startedAt": null,
+      "source": "ledger",
+      "outcome": "no shift record in the checkout",
+      "tickets": {
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 2
+      },
+      "evidence": "data/enterprise/ledger.jsonl"
+    },
+    {
+      "shift": "161311-58c9",
+      "startedAt": "2026-09-29T16:13:12.986Z",
+      "source": "record",
+      "outcome": "program released",
+      "tickets": {
+        "shipped": 2,
+        "rejected": 0,
+        "halted": 0
+      },
+      "evidence": "data/enterprise/shifts/2026-09-29-161311-58c9"
     }
   ],
   "tickets": {
-    "lines": 22,
+    "lines": 26,
     "byStatus": {
-      "shipped": 7,
+      "shipped": 9,
       "rejected": 1,
-      "halted": 14
+      "halted": 16
     },
     "byDivision": [
       {
@@ -473,24 +529,24 @@
       },
       {
         "division": "governance",
-        "lines": 2,
-        "shipped": 0,
+        "lines": 3,
+        "shipped": 1,
         "rejected": 0,
         "halted": 2
       },
       {
         "division": "harness-core",
-        "lines": 17,
-        "shipped": 7,
+        "lines": 19,
+        "shipped": 8,
         "rejected": 1,
-        "halted": 9
+        "halted": 10
       },
       {
         "division": "knowledge",
-        "lines": 1,
+        "lines": 2,
         "shipped": 0,
         "rejected": 0,
-        "halted": 1
+        "halted": 2
       },
       {
         "division": "program-departments",
@@ -501,9 +557,9 @@
       }
     ],
     "reviews": {
-      "approved": 9,
+      "approved": 11,
       "rejected": 1,
-      "notReached": 12
+      "notReached": 14
     },
     "shipped": [
       {
@@ -561,6 +617,22 @@
         "commit": "e086cb101806019afe126869b15e67c765c62333",
         "at": "2026-09-29T13:37:07.184Z",
         "shift": "121310-3eae"
+      },
+      {
+        "ticket": "T-0011",
+        "division": "harness-core",
+        "seat": "harness-core-llm-pi-ai-steward",
+        "commit": "81699732468a674ba0bf6338807ebc404ec11c4f",
+        "at": "2026-09-29T16:31:49.326Z",
+        "shift": "161311-58c9"
+      },
+      {
+        "ticket": "T-0027",
+        "division": "governance",
+        "seat": "governance-third-party-notices-standard-author",
+        "commit": "b26f4b959cf440f4f94819f813e20bd8aedfee0f",
+        "at": "2026-09-29T16:31:49.326Z",
+        "shift": "161311-58c9"
       }
     ]
   },
@@ -586,6 +658,20 @@
         "superseded": []
       },
       "verdict": "failure"
+    },
+    {
+      "commit": "81699732468a674ba0bf6338807ebc404ec11c4f",
+      "tickets": [
+        "T-0011"
+      ],
+      "divisions": [
+        "harness-core"
+      ],
+      "ci": {
+        "basis": "none",
+        "superseded": []
+      },
+      "verdict": "no run"
     },
     {
       "commit": "a54154ce7897494822a74d7da81e92774a2f981b",
@@ -630,6 +716,20 @@
         "superseded": []
       },
       "verdict": "success"
+    },
+    {
+      "commit": "b26f4b959cf440f4f94819f813e20bd8aedfee0f",
+      "tickets": [
+        "T-0027"
+      ],
+      "divisions": [
+        "governance"
+      ],
+      "ci": {
+        "basis": "none",
+        "superseded": []
+      },
+      "verdict": "no run"
     },
     {
       "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5",
@@ -721,20 +821,20 @@
     }
   ],
   "seats": {
-    "at": "2026-09-29T13:40:56.861Z",
+    "at": "2026-09-29T16:34:48.944Z",
     "defined": 147,
-    "occupied": 58,
-    "active": 49,
+    "occupied": 61,
+    "active": 52,
     "work": {
       "occupied": {
-        "model": 32,
+        "model": 33,
         "check": 22,
-        "halted": 4
+        "halted": 6
       },
       "active": {
-        "model": 23,
+        "model": 24,
         "check": 22,
-        "halted": 4
+        "halted": 6
       }
     },
     "byDivision": [
@@ -742,12 +842,12 @@
         "id": "harness-core",
         "name": "Harness Core",
         "defined": 24,
-        "occupied": 11,
-        "active": 11,
+        "occupied": 12,
+        "active": 12,
         "work": {
           "model": 9,
           "check": 0,
-          "halted": 2
+          "halted": 3
         }
       },
       {
@@ -826,22 +926,22 @@
         "id": "knowledge",
         "name": "Knowledge",
         "defined": 11,
-        "occupied": 1,
-        "active": 1,
+        "occupied": 2,
+        "active": 2,
         "work": {
           "model": 1,
           "check": 0,
-          "halted": 0
+          "halted": 1
         }
       },
       {
         "id": "governance",
         "name": "Governance",
         "defined": 8,
-        "occupied": 1,
-        "active": 1,
+        "occupied": 2,
+        "active": 2,
         "work": {
-          "model": 1,
+          "model": 2,
           "check": 0,
           "halted": 0
         }
@@ -861,7 +961,7 @@
     ]
   },
   "functions": {
-    "lines": 189,
+    "lines": 211,
     "byDivision": [
       {
         "division": "code-safety",
@@ -871,19 +971,19 @@
       },
       {
         "division": "curation-data",
-        "pass": 9,
+        "pass": 10,
         "fail": 0,
         "error": 0
       },
       {
         "division": "judging",
-        "pass": 29,
+        "pass": 35,
         "fail": 7,
         "error": 0
       },
       {
         "division": "observatory",
-        "pass": 9,
+        "pass": 10,
         "fail": 0,
         "error": 0
       },
@@ -895,8 +995,8 @@
       },
       {
         "division": "verification",
-        "pass": 117,
-        "fail": 9,
+        "pass": 130,
+        "fail": 10,
         "error": 0
       }
     ]
@@ -905,9 +1005,9 @@
     {
       "covers": "ticket lines: the engine's count for each ticket a shift worked, its department's and its review's sessions",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 22,
-      "tokens": 5410220,
-      "seconds": 17335
+      "items": 26,
+      "tokens": 5706053,
+      "seconds": 17858
     },
     {
       "covers": "intake coordinators: each coordinator department an intake ran, as its intake record counts it",
@@ -947,14 +1047,14 @@
     {
       "covers": "recorded sessions under data/enterprise/shifts whose newest event falls in the window: the tokens their usage events state, and their model time",
       "source": "data/enterprise/shifts",
-      "items": 35,
-      "tokens": 8943150,
-      "seconds": 2188.6,
+      "items": 41,
+      "tokens": 9238983,
+      "seconds": 2283,
       "breakdown": {
-        "input": 534,
-        "output": 162020,
-        "cacheRead": 8000958,
-        "cacheWrite": 779638,
+        "input": 566,
+        "output": 169500,
+        "cacheRead": 8229607,
+        "cacheWrite": 839310,
         "reasoning": 0
       }
     },
@@ -975,9 +1075,9 @@
     {
       "covers": "function lines: the seconds each seat's gate, verdict read or fold took; no model is called",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 189,
+      "items": 211,
       "tokens": null,
-      "seconds": 36630.6
+      "seconds": 41184
     },
     {
       "covers": "recorded cycles: each one's wall time from its start to its record",
@@ -987,12 +1087,14 @@
       "seconds": 21829
     }
   ],
-  "headline": "Pilot, 2026-09-28T13:40:56.861Z to 2026-09-29T13:40:56.861Z: 9 cycles started (2 clean, 5 failed, 2 without a record); 11 shifts (10 recorded, 1 shown by ledger lines only); 22 ticket lines (7 shipped, 1 rejected, 14 halted); reviews 9 approved, 1 rejected, 12 not reached; 7 tickets shipped in 7 commits, Branch CI 5 failure, 2 success (7 from a later run containing the commit); 189 function runs (173 pass, 16 fail, 0 error).",
+  "headline": "Pilot, 2026-09-28T16:34:48.944Z to 2026-09-29T16:34:48.944Z: 11 cycles started (2 clean, 5 failed, 4 without a record); 13 shifts (11 recorded, 2 shown by ledger lines only); 26 ticket lines (9 shipped, 1 rejected, 16 halted); reviews 11 approved, 1 rejected, 14 not reached; 9 tickets shipped in 9 commits, Branch CI 5 failure, 2 no run, 2 success (7 from a later run containing the commit); 211 function runs (194 pass, 17 fail, 0 error).",
   "unknowns": [
-    "2 cycles are seen only in git history (cycle-20260928T201148Z, cycle-20260928T221301Z): their steps, outcome and ledger lines are unknown",
+    "4 cycles are seen only in git history (cycle-20260928T201148Z, cycle-20260928T221301Z, cycle-20260929T141300Z, cycle-20260929T161300Z): their steps, outcome and ledger lines are unknown",
     "who started cycle-20260928T221301Z is unknown: the cycle has no record",
     "who started cycle-20260929T001517Z is unknown: its record predates the startedBy field",
     "whether cycle-20260929T121300Z's record reached the remote branch is unknown until a later cycle's record states it",
+    "who started cycle-20260929T141300Z is unknown: the cycle has no record",
+    "who started cycle-20260929T161300Z is unknown: the cycle has no record",
     "4 ticket lines state no token count; the ticket lines' token total leaves them out"
   ]
 }

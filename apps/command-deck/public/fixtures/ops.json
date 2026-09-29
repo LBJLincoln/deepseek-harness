@@ -1,89 +1,89 @@
 {
   "schema": 2,
-  "generatedAt": "2026-09-29T15:41:24.550Z",
+  "generatedAt": "2026-09-29T16:35:05.611Z",
   "producer": "cycle",
   "window": {
-    "since": "2026-09-28T15:41:24.550Z",
-    "until": "2026-09-29T15:41:24.550Z"
+    "since": "2026-09-28T16:35:05.611Z",
+    "until": "2026-09-29T16:35:05.611Z"
   },
   "sources": [
     {
       "id": "roster",
       "state": "ok",
       "detail": "147 seats in 10 divisions",
-      "asOf": "2026-09-29T13:40:56.861Z"
+      "asOf": "2026-09-29T16:34:48.944Z"
     },
     {
       "id": "ledger",
       "state": "ok",
-      "detail": "217 lines",
-      "asOf": "2026-09-29T15:41:00.157Z"
+      "detail": "243 lines",
+      "asOf": "2026-09-29T16:31:56.242Z"
     },
     {
       "id": "tickets",
       "state": "ok",
       "detail": "41 tickets in the queue",
-      "asOf": "2026-09-29T15:41:00.157Z"
+      "asOf": "2026-09-29T16:31:56.242Z"
     },
     {
       "id": "cycle-logs",
       "state": "ok",
-      "detail": "10 cycle logs in <home>/enterprise-cycles",
-      "asOf": "2026-09-29T15:41:24.550Z"
+      "detail": "11 cycle logs in <home>/enterprise-cycles",
+      "asOf": "2026-09-29T16:35:05.611Z"
     },
     {
       "id": "cycle-history",
       "state": "ok",
-      "detail": "7 cycles committed to the branch and 7 cycle records in the window",
-      "asOf": "2026-09-29T15:41:00.157Z"
+      "detail": "8 cycles committed to the branch and 7 cycle records in the window",
+      "asOf": "2026-09-29T16:31:56.242Z"
     },
     {
       "id": "scheduler",
       "state": "ok",
       "detail": "scheduler runs (pid 588)",
-      "asOf": "2026-09-29T15:41:24.550Z"
+      "asOf": "2026-09-29T16:35:05.611Z"
     },
     {
       "id": "shifts",
       "state": "ok",
-      "detail": "3 scratch runs; 9 sessions, 0 working",
-      "asOf": "2026-09-29T15:41:24.550Z"
+      "detail": "4 scratch runs; 14 sessions, 0 working",
+      "asOf": "2026-09-29T16:35:05.611Z"
     },
     {
       "id": "department-transcripts",
       "state": "ok",
       "detail": "no working department to match a transcript to",
-      "asOf": "2026-09-29T15:41:24.550Z"
+      "asOf": "2026-09-29T16:35:05.611Z"
     },
     {
       "id": "operator-agents",
       "state": "ok",
       "detail": "not published: the operator's own sessions are not enterprise agents",
-      "asOf": "2026-09-29T15:41:24.550Z"
+      "asOf": "2026-09-29T16:35:05.611Z"
     },
     {
       "id": "bench",
       "state": "ok",
       "detail": "no bench loop runs; 0 live runs, 16 cells, 1 records in the window",
-      "asOf": "2026-09-29T15:41:24.550Z"
+      "asOf": "2026-09-29T16:35:05.611Z"
     },
     {
       "id": "ci",
       "state": "ok",
       "detail": "50 Branch CI runs read 0 s ago",
-      "asOf": "2026-09-29T15:41:24.550Z"
+      "asOf": "2026-09-29T16:35:05.611Z"
     },
     {
       "id": "host",
       "state": "ok",
       "detail": "1 filesystem",
-      "asOf": "2026-09-29T15:41:24.550Z"
+      "asOf": "2026-09-29T16:35:05.611Z"
     },
     {
       "id": "requests",
       "state": "ok",
       "detail": "0 owner requests, 0 open",
-      "asOf": "2026-09-29T15:41:00.157Z"
+      "asOf": "2026-09-29T16:31:56.242Z"
     }
   ],
   "heartbeats": [
@@ -91,61 +91,49 @@
       "id": "scheduler",
       "label": "Cycle scheduler",
       "state": "alive",
-      "lastRunAt": "2026-09-29T14:13:00.000Z",
+      "lastRunAt": "2026-09-29T16:13:00.000Z",
       "everySeconds": 7200,
-      "detail": "pid 588; last ran 88 minutes ago"
+      "detail": "pid 588; last ran 22 minutes ago"
     },
     {
       "id": "transcript-capture",
       "label": "Transcript capture",
       "state": "alive",
-      "lastRunAt": "2026-09-29T15:32:38.000Z",
+      "lastRunAt": "2026-09-29T16:32:38.000Z",
       "everySeconds": 300,
-      "detail": "pid 588; last ran 9 minutes ago; pushed c5f619831",
+      "detail": "pid 588; last ran 2 minutes ago; pushed 47efd8a7d",
       "lastPush": {
-        "at": "2026-09-29T15:32:38.000Z",
-        "commit": "c5f619831"
+        "at": "2026-09-29T16:32:38.000Z",
+        "commit": "47efd8a7d"
       }
     },
     {
       "id": "ops-loop",
       "label": "Operations loop",
       "state": "alive",
-      "lastRunAt": "2026-09-29T15:41:19.365Z",
+      "lastRunAt": "2026-09-29T16:35:04.254Z",
       "everySeconds": 15,
-      "detail": "pid 588; last ran 5 s ago"
+      "detail": "pid 588; last ran 1 s ago"
     }
   ],
-  "agents": [],
+  "agents": [
+    {
+      "id": "cycle:cycle-20260929T161300Z",
+      "kind": "cycle-step",
+      "label": "cycle-20260929T161300Z · publish",
+      "doing": "running the cycle's publish step",
+      "startedAt": "2026-09-29T16:34:49.000Z",
+      "lastEventAt": "2026-09-29T16:35:05.486Z",
+      "run": "cycle-20260929T161300Z",
+      "evidence": {
+        "label": "cycle-20260929T161300Z"
+      },
+      "elapsedSeconds": 17,
+      "idleSeconds": 0,
+      "state": "working"
+    }
+  ],
   "attention": [
-    {
-      "id": "shift-abandoned:141308-b243",
-      "kind": "shift-abandoned",
-      "severity": "high",
-      "title": "Shift 141308-b243 was abandoned",
-      "detail": "No process holds it, no shift record reached the branch, and its scratch run has been silent for 86 minutes: the shift stopped before it recorded (a crash, a reset or a stop by hand).",
-      "at": "2026-09-29T14:14:56.338Z",
-      "evidence": [
-        {
-          "label": "shift 141308-b243 scratch run"
-        }
-      ],
-      "next": "Read /tmp/dsh-enterprise/141308-b243/run.log for its last lines; its tickets stay open and the next shift takes them again."
-    },
-    {
-      "id": "cycle-interrupted:cycle-20260929T141300Z",
-      "kind": "cycle-interrupted",
-      "severity": "high",
-      "title": "cycle-20260929T141300Z stopped during shift",
-      "detail": "Its log has no closing line and no cycle process runs: the cycle was killed, most likely by a container reset.",
-      "at": "2026-09-29T14:13:07.000Z",
-      "evidence": [
-        {
-          "label": "cycle-20260929T141300Z"
-        }
-      ],
-      "next": "The next scheduled cycle starts over. Check the cycle checkout for uncommitted changes first: they make the next cycle refuse to run (exit 5)."
-    },
     {
       "id": "ticket:T-0023:halted",
       "kind": "ticket-halted",
@@ -183,6 +171,44 @@
         }
       ],
       "next": "It halted in 2 shifts; read the department report in the record of shift 221520-e979 before a shift takes it again."
+    },
+    {
+      "id": "ticket:T-0006:halted",
+      "kind": "ticket-halted",
+      "severity": "low",
+      "title": "T-0006 halted in shift 141308-b243",
+      "detail": "Pin and document the UNSUPPORTED_SCHEMA refusal of the tool registry. abandoned",
+      "at": "2026-09-29T16:13:12.986Z",
+      "evidence": [
+        {
+          "label": "ledger.jsonl line 218",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/ledger.jsonl#L218"
+        },
+        {
+          "label": "data/enterprise/tickets/T-0006.json",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/tickets/T-0006.json"
+        }
+      ],
+      "next": "Nothing to do: it stays open and a later shift works it again."
+    },
+    {
+      "id": "ticket:T-0026:halted",
+      "kind": "ticket-halted",
+      "severity": "low",
+      "title": "T-0026 halted in shift 141308-b243",
+      "detail": "Describe every pre-commit hook job in the pre-push-checks skill. abandoned",
+      "at": "2026-09-29T16:13:12.986Z",
+      "evidence": [
+        {
+          "label": "ledger.jsonl line 219",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/ledger.jsonl#L219"
+        },
+        {
+          "label": "data/enterprise/tickets/T-0026.json",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/tickets/T-0026.json"
+        }
+      ],
+      "next": "Nothing to do: it stays open and a later shift works it again."
     },
     {
       "id": "ticket:T-0014:halted",
@@ -321,16 +347,16 @@
   "big": {
     "seats": {
       "defined": 147,
-      "occupied": 58,
-      "activeToday": 49,
+      "occupied": 61,
+      "activeToday": 52,
       "workingNow": 0,
       "divisions": [
         {
           "id": "harness-core",
           "name": "Harness Core",
           "defined": 24,
-          "occupied": 11,
-          "activeToday": 11,
+          "occupied": 12,
+          "activeToday": 12,
           "workingNow": 0
         },
         {
@@ -385,16 +411,16 @@
           "id": "knowledge",
           "name": "Knowledge",
           "defined": 11,
-          "occupied": 1,
-          "activeToday": 1,
+          "occupied": 2,
+          "activeToday": 2,
           "workingNow": 0
         },
         {
           "id": "governance",
           "name": "Governance",
           "defined": 8,
-          "occupied": 1,
-          "activeToday": 1,
+          "occupied": 2,
+          "activeToday": 2,
           "workingNow": 0
         },
         {
@@ -408,26 +434,18 @@
       ]
     },
     "tickets": {
-      "queued": 25,
-      "halted": 9,
-      "shipped": 7,
+      "queued": 21,
+      "halted": 11,
+      "shipped": 9,
       "rejected": 0
     },
     "cycles": {
-      "last24h": 10,
-      "lastStartedAt": "2026-09-29T14:13:00.000Z",
-      "nextAt": "2026-09-29T16:13:00.000Z"
+      "last24h": 11,
+      "lastStartedAt": "2026-09-29T16:13:00.000Z",
+      "running": "cycle-20260929T161300Z"
     },
     "throughput": {
       "hours": [
-        {
-          "hour": "2026-09-28T16:00:00.000Z",
-          "shipped": 0,
-          "rejected": 0,
-          "halted": 0,
-          "functions": 0,
-          "runs": 0
-        },
         {
           "hour": "2026-09-28T17:00:00.000Z",
           "shipped": 0,
@@ -611,12 +629,40 @@
           "halted": 0,
           "functions": 0,
           "runs": 0
+        },
+        {
+          "hour": "2026-09-29T16:00:00.000Z",
+          "shipped": 2,
+          "rejected": 0,
+          "halted": 2,
+          "functions": 22,
+          "runs": 35
         }
       ],
-      "shippedPerHour": 0.29,
-      "deliverablesPerHour": 8.79
+      "shippedPerHour": 0.38,
+      "deliverablesPerHour": 9.88
     },
     "shipped": [
+      {
+        "commit": "81699732468a674ba0bf6338807ebc404ec11c4f",
+        "at": "2026-09-29T16:31:49.326Z",
+        "tickets": [
+          "T-0011"
+        ],
+        "ci": "running",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36598394797",
+        "ciCommit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      {
+        "commit": "b26f4b959cf440f4f94819f813e20bd8aedfee0f",
+        "at": "2026-09-29T16:31:49.326Z",
+        "tickets": [
+          "T-0027"
+        ],
+        "ci": "running",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36598394797",
+        "ciCommit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
       {
         "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5",
         "at": "2026-09-29T13:37:07.184Z",
@@ -689,6 +735,30 @@
       }
     ],
     "shippedTickets": [
+      {
+        "ticket": "T-0011",
+        "title": "Pin that one pi-ai stream() call makes exactly one provider request on a retryable failure",
+        "seat": "harness-core-llm-pi-ai-steward",
+        "division": "harness-core",
+        "shift": "161311-58c9",
+        "at": "2026-09-29T16:31:49.326Z",
+        "commit": "81699732468a674ba0bf6338807ebc404ec11c4f",
+        "ci": "running",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36598394797",
+        "ciCommit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      {
+        "ticket": "T-0027",
+        "title": "Drop the oxlint metadata overrides the installed manifests now answer",
+        "seat": "governance-third-party-notices-standard-author",
+        "division": "governance",
+        "shift": "161311-58c9",
+        "at": "2026-09-29T16:31:49.326Z",
+        "commit": "b26f4b959cf440f4f94819f813e20bd8aedfee0f",
+        "ci": "running",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36598394797",
+        "ciCommit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
       {
         "ticket": "T-0040",
         "title": "Resolve cmd.exe and codex to absolute paths before the Codex provider spawns in the delegating workspace",
@@ -779,21 +849,26 @@
     "ci": {
       "branch": "claude/coding-agent-harness-u9l4gt",
       "latest": {
-        "commit": "cb75784a88d986aedbb2c581c4c87eeed5177780",
+        "commit": "d47799da7bad630f10e66e3db801b520669d380d",
         "conclusion": "success",
-        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36581119441",
-        "at": "2026-09-29T14:32:44Z",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36596105185",
+        "at": "2026-09-29T16:28:10Z",
         "failingJobs": []
+      },
+      "running": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf",
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36598394797",
+        "startedAt": "2026-09-29T16:31:55Z"
       }
     },
     "host": {
       "disks": [
         {
           "mount": "/",
-          "usedPct": 61.8
+          "usedPct": 61.9
         }
       ],
-      "memoryAvailablePct": 93.9,
+      "memoryAvailablePct": 93.3,
       "swapUsedPct": 0
     }
   },
@@ -851,8 +926,8 @@
       "id": "harness-core-tools-steward",
       "name": "Tools Steward",
       "division": "harness-core",
-      "occupied": false,
-      "activeToday": false
+      "occupied": true,
+      "activeToday": true
     },
     {
       "id": "harness-core-llm-steward",
@@ -1698,8 +1773,8 @@
       "id": "knowledge-dsh-pre-push-checks-skill-keeper",
       "name": "Dsh Pre Push Checks Skill Keeper",
       "division": "knowledge",
-      "occupied": false,
-      "activeToday": false
+      "occupied": true,
+      "activeToday": true
     },
     {
       "id": "knowledge-dsh-prose-standard-skill-keeper",
@@ -1768,8 +1843,8 @@
       "id": "governance-third-party-notices-standard-author",
       "name": "Third-Party Notices Standard Author",
       "division": "governance",
-      "occupied": false,
-      "activeToday": false
+      "occupied": true,
+      "activeToday": true
     },
     {
       "id": "governance-doc-budgets-standard-author",
@@ -4788,10 +4863,622 @@
       "startedAt": "2026-09-29T14:14:56.354Z",
       "endedAt": "2026-09-29T14:19:20.095Z",
       "outcome": "unknown"
+    },
+    {
+      "id": "cycle:cycle-20260929T161300Z:pull",
+      "kind": "cycle-step",
+      "label": "20260929T161300Z pull",
+      "startedAt": "2026-09-29T16:13:00.000Z",
+      "endedAt": "2026-09-29T16:13:01.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T161300Z:intake",
+      "kind": "cycle-step",
+      "label": "20260929T161300Z intake",
+      "startedAt": "2026-09-29T16:13:01.000Z",
+      "endedAt": "2026-09-29T16:13:06.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T161300Z:intake-push",
+      "kind": "cycle-step",
+      "label": "20260929T161300Z intake-push",
+      "startedAt": "2026-09-29T16:13:06.000Z",
+      "endedAt": "2026-09-29T16:13:10.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T161300Z:shift",
+      "kind": "cycle-step",
+      "label": "20260929T161300Z shift",
+      "startedAt": "2026-09-29T16:13:10.000Z",
+      "endedAt": "2026-09-29T16:31:54.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:241",
+      "kind": "function-gate",
+      "label": "ci-coverage · Ci Coverage Judge",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "startedAt": "2026-09-29T16:13:15.000Z",
+      "endedAt": "2026-09-29T16:23:21.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:236",
+      "kind": "function-gate",
+      "label": "ci-static · Ci Static Judge",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "startedAt": "2026-09-29T16:13:16.000Z",
+      "endedAt": "2026-09-29T16:16:46.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:237",
+      "kind": "function-gate",
+      "label": "ci-consumers · Ci Consumers Judge",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "startedAt": "2026-09-29T16:13:16.000Z",
+      "endedAt": "2026-09-29T16:28:05.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:238",
+      "kind": "function-gate",
+      "label": "ci-lint-contracts-ready · Ci Lint Contracts Ready Judge",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "startedAt": "2026-09-29T16:13:16.000Z",
+      "endedAt": "2026-09-29T16:28:05.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:239",
+      "kind": "function-gate",
+      "label": "ci-snapshot · Ci Snapshot Judge",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "startedAt": "2026-09-29T16:13:16.000Z",
+      "endedAt": "2026-09-29T16:28:05.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:240",
+      "kind": "function-gate",
+      "label": "ci-artifacts · Ci Artifacts Judge",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "startedAt": "2026-09-29T16:13:16.000Z",
+      "endedAt": "2026-09-29T16:28:05.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50-t-0011",
+      "kind": "department",
+      "label": "T-0011 · Llm Pi Ai Steward",
+      "seat": "harness-core-llm-pi-ai-steward",
+      "division": "harness-core",
+      "startedAt": "2026-09-29T16:15:04.118Z",
+      "endedAt": "2026-09-29T16:19:25.612Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50-t-0027",
+      "kind": "department",
+      "label": "T-0027 · Third-Party Notices Standard Author",
+      "seat": "governance-third-party-notices-standard-author",
+      "division": "governance",
+      "startedAt": "2026-09-29T16:19:25.634Z",
+      "endedAt": "2026-09-29T16:23:28.675Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50-@integration",
+      "kind": "department",
+      "label": "integration",
+      "startedAt": "2026-09-29T16:23:31.582Z",
+      "endedAt": "2026-09-29T16:26:54.108Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:review-t-0011-46d9ba45",
+      "kind": "reviewer",
+      "label": "review of T-0011",
+      "startedAt": "2026-09-29T16:26:54.161Z",
+      "endedAt": "2026-09-29T16:27:03.599Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "session:review-t-0027-edabf50d",
+      "kind": "reviewer",
+      "label": "review of T-0027",
+      "startedAt": "2026-09-29T16:27:03.622Z",
+      "endedAt": "2026-09-29T16:27:13.369Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T161300Z:pull-after-shift",
+      "kind": "cycle-step",
+      "label": "20260929T161300Z pull-after-shift",
+      "startedAt": "2026-09-29T16:31:54.000Z",
+      "endedAt": "2026-09-29T16:31:56.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T161300Z:functions",
+      "kind": "cycle-step",
+      "label": "20260929T161300Z functions",
+      "startedAt": "2026-09-29T16:31:56.000Z",
+      "endedAt": "2026-09-29T16:34:44.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:222",
+      "kind": "function-gate",
+      "label": "verify-agent-note-classification · Agent Note Classification Verifier",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:31:58.990Z",
+      "endedAt": "2026-09-29T16:32:00.190Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:223",
+      "kind": "function-gate",
+      "label": "verify-agent-note-format · Agent Note Format Verifier",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:32:00.198Z",
+      "endedAt": "2026-09-29T16:32:03.098Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:224",
+      "kind": "function-gate",
+      "label": "verify-archived-agent-notes · Archived Agent Notes Verifier",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:32:03.125Z",
+      "endedAt": "2026-09-29T16:32:04.325Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:225",
+      "kind": "function-gate",
+      "label": "verify-client-domain-graph · Client Domain Graph Verifier",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:32:04.329Z",
+      "endedAt": "2026-09-29T16:32:05.629Z",
+      "outcome": "failed"
+    },
+    {
+      "id": "ledger:226",
+      "kind": "function-gate",
+      "label": "verify-config-source-ownership · Config Source Ownership Verifier",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:32:05.579Z",
+      "endedAt": "2026-09-29T16:32:06.779Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:227",
+      "kind": "function-gate",
+      "label": "verify-cordis-config · Cordis Config Verifier",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:32:06.757Z",
+      "endedAt": "2026-09-29T16:32:10.457Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:228",
+      "kind": "function-gate",
+      "label": "verify-doc-budgets · Doc Budgets Verifier",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:32:10.463Z",
+      "endedAt": "2026-09-29T16:32:11.663Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:229",
+      "kind": "function-gate",
+      "label": "verify-doc-refs · Doc Refs Verifier",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:32:11.665Z",
+      "endedAt": "2026-09-29T16:32:14.165Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:230",
+      "kind": "function-gate",
+      "label": "verify-doc-site-fragments · Doc Site Fragments Verifier",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:32:14.195Z",
+      "endedAt": "2026-09-29T16:33:06.795Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:231",
+      "kind": "function-gate",
+      "label": "verify-dsh-package-licenses · Dsh Package Licenses Verifier",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:33:06.824Z",
+      "endedAt": "2026-09-29T16:33:08.024Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:232",
+      "kind": "function-gate",
+      "label": "verify-export-jsdoc · Export Jsdoc Verifier",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:33:07.980Z",
+      "endedAt": "2026-09-29T16:33:17.180Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:233",
+      "kind": "function-gate",
+      "label": "verify-md-links · Md Links Verifier",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:33:17.144Z",
+      "endedAt": "2026-09-29T16:33:38.644Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:234",
+      "kind": "function-gate",
+      "label": "verify-md-wrap · Md Wrap Verifier",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:33:38.616Z",
+      "endedAt": "2026-09-29T16:33:53.116Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:235",
+      "kind": "function-gate",
+      "label": "verify-mermaid · Mermaid Verifier",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "startedAt": "2026-09-29T16:33:53.080Z",
+      "endedAt": "2026-09-29T16:34:13.680Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:242",
+      "kind": "function-gate",
+      "label": "session-stats · Session Stats Observer",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "startedAt": "2026-09-29T16:34:20.988Z",
+      "endedAt": "2026-09-29T16:34:44.288Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "ledger:243",
+      "kind": "function-gate",
+      "label": "scoreboard · Usage Scorekeeper",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "startedAt": "2026-09-29T16:34:21.000Z",
+      "endedAt": "2026-09-29T16:34:44.300Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T161300Z:roster",
+      "kind": "cycle-step",
+      "label": "20260929T161300Z roster",
+      "startedAt": "2026-09-29T16:34:44.000Z",
+      "endedAt": "2026-09-29T16:34:49.000Z",
+      "outcome": "ok"
+    },
+    {
+      "id": "cycle:cycle-20260929T161300Z:publish",
+      "kind": "cycle-step",
+      "label": "20260929T161300Z publish",
+      "startedAt": "2026-09-29T16:34:49.000Z",
+      "outcome": "running"
     }
   ],
-  "activity": [],
+  "activity": [
+    {
+      "ts": 1790699285000,
+      "seq": 237,
+      "sessionId": "ledger",
+      "agentId": "judging-ci-consumers",
+      "kind": "certificate",
+      "label": "ci-consumers pass"
+    },
+    {
+      "ts": 1790699285000,
+      "seq": 238,
+      "sessionId": "ledger",
+      "agentId": "judging-ci-lint-contracts-ready",
+      "kind": "certificate",
+      "label": "ci-lint-contracts-ready pass"
+    },
+    {
+      "ts": 1790699285000,
+      "seq": 239,
+      "sessionId": "ledger",
+      "agentId": "judging-ci-snapshot",
+      "kind": "certificate",
+      "label": "ci-snapshot pass"
+    },
+    {
+      "ts": 1790699285000,
+      "seq": 240,
+      "sessionId": "ledger",
+      "agentId": "judging-ci-artifacts",
+      "kind": "certificate",
+      "label": "ci-artifacts pass"
+    },
+    {
+      "ts": 1790699509326,
+      "seq": 220,
+      "sessionId": "ledger",
+      "agentId": "harness-core-llm-pi-ai-steward",
+      "kind": "merge",
+      "label": "T-0011 shipped"
+    },
+    {
+      "ts": 1790699509326,
+      "seq": 221,
+      "sessionId": "ledger",
+      "agentId": "governance-third-party-notices-standard-author",
+      "kind": "merge",
+      "label": "T-0027 shipped"
+    },
+    {
+      "ts": 1790699514000,
+      "seq": 4,
+      "sessionId": "cycle:cycle-20260929T161300Z",
+      "kind": "step",
+      "label": "shift exit=0"
+    },
+    {
+      "ts": 1790699516000,
+      "seq": 5,
+      "sessionId": "cycle:cycle-20260929T161300Z",
+      "kind": "step",
+      "label": "pull-after-shift exit=0"
+    },
+    {
+      "ts": 1790699520190,
+      "seq": 222,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-agent-note-classification",
+      "kind": "certificate",
+      "label": "verify-agent-note-classification pass"
+    },
+    {
+      "ts": 1790699523098,
+      "seq": 223,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-agent-note-format",
+      "kind": "certificate",
+      "label": "verify-agent-note-format pass"
+    },
+    {
+      "ts": 1790699524325,
+      "seq": 224,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-archived-agent-notes",
+      "kind": "certificate",
+      "label": "verify-archived-agent-notes pass"
+    },
+    {
+      "ts": 1790699525629,
+      "seq": 225,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-client-domain-graph",
+      "kind": "refusal",
+      "label": "verify-client-domain-graph fail"
+    },
+    {
+      "ts": 1790699526779,
+      "seq": 226,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-config-source-ownership",
+      "kind": "certificate",
+      "label": "verify-config-source-ownership pass"
+    },
+    {
+      "ts": 1790699530457,
+      "seq": 227,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-cordis-config",
+      "kind": "certificate",
+      "label": "verify-cordis-config pass"
+    },
+    {
+      "ts": 1790699531663,
+      "seq": 228,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-doc-budgets",
+      "kind": "certificate",
+      "label": "verify-doc-budgets pass"
+    },
+    {
+      "ts": 1790699534165,
+      "seq": 229,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-doc-refs",
+      "kind": "certificate",
+      "label": "verify-doc-refs pass"
+    },
+    {
+      "ts": 1790699586795,
+      "seq": 230,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-doc-site-fragments",
+      "kind": "certificate",
+      "label": "verify-doc-site-fragments pass"
+    },
+    {
+      "ts": 1790699588024,
+      "seq": 231,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-dsh-package-licenses",
+      "kind": "certificate",
+      "label": "verify-dsh-package-licenses pass"
+    },
+    {
+      "ts": 1790699597180,
+      "seq": 232,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-export-jsdoc",
+      "kind": "certificate",
+      "label": "verify-export-jsdoc pass"
+    },
+    {
+      "ts": 1790699618644,
+      "seq": 233,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-md-links",
+      "kind": "certificate",
+      "label": "verify-md-links pass"
+    },
+    {
+      "ts": 1790699633116,
+      "seq": 234,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-md-wrap",
+      "kind": "certificate",
+      "label": "verify-md-wrap pass"
+    },
+    {
+      "ts": 1790699653680,
+      "seq": 235,
+      "sessionId": "ledger",
+      "agentId": "verification-verify-mermaid",
+      "kind": "certificate",
+      "label": "verify-mermaid pass"
+    },
+    {
+      "ts": 1790699684000,
+      "seq": 6,
+      "sessionId": "cycle:cycle-20260929T161300Z",
+      "kind": "step",
+      "label": "functions exit=0"
+    },
+    {
+      "ts": 1790699684288,
+      "seq": 242,
+      "sessionId": "ledger",
+      "agentId": "observatory-session-stats-observer",
+      "kind": "certificate",
+      "label": "session-stats pass"
+    },
+    {
+      "ts": 1790699684300,
+      "seq": 243,
+      "sessionId": "ledger",
+      "agentId": "curation-data-scorekeeper",
+      "kind": "certificate",
+      "label": "scoreboard pass"
+    },
+    {
+      "ts": 1790699689000,
+      "seq": 7,
+      "sessionId": "cycle:cycle-20260929T161300Z",
+      "kind": "step",
+      "label": "roster exit=0"
+    }
+  ],
   "cycles": [
+    {
+      "cycle": "cycle-20260929T161300Z",
+      "startedAt": "2026-09-29T16:13:00.000Z",
+      "outcome": "running",
+      "source": "log",
+      "steps": [
+        {
+          "name": "pull",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T16:13:01.000Z",
+          "seconds": 1
+        },
+        {
+          "name": "intake",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T16:13:06.000Z",
+          "seconds": 5
+        },
+        {
+          "name": "intake-push",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T16:13:10.000Z",
+          "seconds": 4
+        },
+        {
+          "name": "shift",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T16:31:54.000Z",
+          "seconds": 1124
+        },
+        {
+          "name": "pull-after-shift",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T16:31:56.000Z",
+          "seconds": 2
+        },
+        {
+          "name": "functions",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T16:34:44.000Z",
+          "seconds": 168
+        },
+        {
+          "name": "roster",
+          "state": "ok",
+          "exit": 0,
+          "at": "2026-09-29T16:34:49.000Z",
+          "seconds": 5
+        },
+        {
+          "name": "publish",
+          "state": "running",
+          "at": "2026-09-29T16:34:49.000Z",
+          "seconds": 17
+        },
+        {
+          "name": "record",
+          "state": "pending"
+        },
+        {
+          "name": "push",
+          "state": "pending"
+        }
+      ],
+      "shift": "161311-58c9",
+      "tickets": {
+        "shipped": 2,
+        "rejected": 0,
+        "halted": 0
+      },
+      "evidence": {
+        "label": "cycle-20260929T161300Z"
+      }
+    },
     {
       "cycle": "cycle-20260929T141300Z",
       "startedAt": "2026-09-29T14:13:00.000Z",
@@ -4822,6 +5509,11 @@
         }
       ],
       "shift": "141308-b243",
+      "tickets": {
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 2
+      },
       "evidence": {
         "label": "cycle-20260929T141300Z"
       }
@@ -5598,30 +6290,34 @@
     }
   ],
   "shift": {
-    "shift": "141308-b243",
+    "shift": "161311-58c9",
     "state": "ended",
-    "startedAt": "2026-09-29T14:14:56.337Z",
-    "source": "scratch",
+    "startedAt": "2026-09-29T16:13:12.986Z",
+    "endedAt": "2026-09-29T16:31:49.326Z",
+    "source": "record",
     "tickets": [
       {
-        "ticket": "T-0006",
-        "title": "Pin and document the UNSUPPORTED_SCHEMA refusal of the tool registry.",
-        "seat": "harness-core-tools-steward",
+        "title": "Pin that one pi-ai stream() call makes exactly one provider request on a retryable failure",
+        "seat": "harness-core-llm-pi-ai-steward",
         "division": "harness-core",
-        "stage": "working",
-        "since": "2026-09-29T14:14:56.387Z"
+        "ticket": "T-0011",
+        "stage": "shipped",
+        "since": "2026-09-29T16:31:49.326Z",
+        "commit": "81699732468a674ba0bf6338807ebc404ec11c4f"
       },
       {
-        "ticket": "T-0026",
-        "title": "Describe every pre-commit hook job in the pre-push-checks skill.",
-        "seat": "knowledge-dsh-pre-push-checks-skill-keeper",
-        "division": "knowledge",
-        "stage": "queued",
-        "since": "2026-09-29T14:14:56.339Z"
+        "title": "Drop the oxlint metadata overrides the installed manifests now answer",
+        "seat": "governance-third-party-notices-standard-author",
+        "division": "governance",
+        "ticket": "T-0027",
+        "stage": "shipped",
+        "since": "2026-09-29T16:31:49.326Z",
+        "commit": "b26f4b959cf440f4f94819f813e20bd8aedfee0f"
       }
     ],
     "evidence": {
-      "label": "shift 141308-b243 run.log"
+      "label": "data/enterprise/shifts/2026-09-29-161311-58c9/result.json",
+      "url": "https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/shifts/2026-09-29-161311-58c9/result.json"
     }
   }
 }
