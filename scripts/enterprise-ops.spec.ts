@@ -817,6 +817,9 @@ describe('collectOps', () => {
       ['low', 'cycle-20260928T223000Z: shift exited 1; the supervisor recorded shift 223005-abcd afterwards'],
     ])
     expect(items[0]?.detail).toBe('The shift\'s ledger lines reached the branch at 22:38 UTC, written after the fact by the supervisor.')
+    // The cycle's row counts its shift's lines in the ledger, the ones recorded after it ended included.
+    expect(failed.cycles?.find(cycle => cycle.cycle === 'cycle-20260928T223000Z')?.tickets).toBeUndefined()
+    expect(settled.cycles?.find(cycle => cycle.cycle === 'cycle-20260928T223000Z')?.tickets).toEqual({ shipped: 1, rejected: 0, halted: 0 })
   })
 
   it('lists each shipped ticket with its commit and the verdict enterprise:verdicts gives it', async () => {

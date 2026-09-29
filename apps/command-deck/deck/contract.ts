@@ -856,7 +856,7 @@ export interface OpsCycle {
   steps: OpsCycleStep[]
   /** The shift the cycle ran. */
   shift?: string
-  /** The ticket lines the ledger gained during the cycle, from its record. */
+  /** The ledger's ticket lines of the cycle's shift, including lines recorded after the cycle, else those its record counted. */
   tickets?: Record<'shipped' | 'rejected' | 'halted', number>
   /** The function lines the ledger gained during the cycle, from its record. */
   functions?: Record<'pass' | 'fail' | 'error', number>

@@ -648,16 +648,44 @@ function endedSteps(startedAt: number, steps: readonly { name: string; exit: num
 }
 
 /**
+ * The ledger's ticket lines of some shifts, by status.
+ * @param ledger - The ledger, when it was read.
+ * @param shifts - The shift ids.
+ * @returns The counts, or `undefined` when the ledger holds no line of those shifts.
+ */
+function shiftTicketCounts(ledger: { lines: NumberedLine[] } | undefined, shifts: readonly string[]): OpsCycle['tickets'] {
+  const counts = { shipped: 0, rejected: 0, halted: 0 }
+  let any = false
+  for (const shift of shifts) {
+    for (const line of shiftLines(ledger, shift).values()) {
+      counts[ticketStatus(line)] += 1
+      any = true
+    }
+  }
+  return any ? counts : undefined
+}
+
+/**
  * One cycle log as a timeline entry: its logged steps, then, while it runs,
- * its running step and the steps it has still to reach.
+ * its running step and the steps it has still to reach. Its tickets are its
+ * shift's lines in the ledger, which include lines recorded after the cycle
+ * ended, else the record's count.
  * @param c - The collection.
  * @param log - The log.
  * @param live - Whether the cycle runs now.
  * @param record - Its committed record, when the checkout has one.
  * @param exit - The cycle's exit code as the scheduler logged it.
+ * @param ledger - The ledger, when it was read.
  * @returns The entry.
  */
-function logCycle(c: Collection, log: CycleLog, live: boolean, record: CycleRecord | undefined, exit: number | undefined): OpsCycle {
+function logCycle(
+  c: Collection,
+  log: CycleLog,
+  live: boolean,
+  record: CycleRecord | undefined,
+  exit: number | undefined,
+  ledger: { lines: NumberedLine[] } | undefined,
+): OpsCycle {
   const cycle = log.cycle ?? log.file.replace(/\.log$/, '')
   const started = Date.parse(log.startedAt)
   const steps = endedSteps(started, log.steps.map(step => ({ name: step.step, exit: step.exit, at: step.at })))
@@ -674,6 +702,7 @@ function logCycle(c: Collection, log: CycleLog, live: boolean, record: CycleReco
         : log.done !== undefined ? 'clean'
           : 'interrupted'
   const endedAt = live ? undefined : record?.endedAt ?? last
+  const tickets = (log.shift === undefined ? undefined : shiftTicketCounts(ledger, [log.shift])) ?? record?.tickets
   return {
     cycle,
     startedAt: log.startedAt,
@@ -683,20 +712,28 @@ function logCycle(c: Collection, log: CycleLog, live: boolean, record: CycleReco
     source: 'log',
     steps,
     ...log.shift === undefined ? {} : { shift: log.shift },
-    ...record === undefined ? {} : { tickets: record.tickets, functions: record.functions },
+    ...tickets === undefined ? {} : { tickets },
+    ...record === undefined ? {} : { functions: record.functions },
     ...log.refused === undefined ? {} : { detail: log.refused },
     evidence: cycleLink(c.inputs.branch, cycle, record !== undefined),
   }
 }
 
 /**
- * A committed cycle record as a timeline entry, for a cycle whose log is gone.
+ * A committed cycle record as a timeline entry, for a cycle whose log is gone;
+ * its tickets are its shifts' lines in the ledger, else the record's count.
  * @param c - The collection.
  * @param record - The record.
  * @param exit - The cycle's exit code as the scheduler logged it.
+ * @param ledger - The ledger, when it was read.
  * @returns The entry.
  */
-function recordCycle(c: Collection, record: CycleRecord, exit: number | undefined): OpsCycle {
+function recordCycle(
+  c: Collection,
+  record: CycleRecord,
+  exit: number | undefined,
+  ledger: { lines: NumberedLine[] } | undefined,
+): OpsCycle {
   return {
     cycle: record.cycle,
     startedAt: record.startedAt,
@@ -706,7 +743,7 @@ function recordCycle(c: Collection, record: CycleRecord, exit: number | undefine
     source: 'record',
     steps: endedSteps(Date.parse(record.startedAt), record.steps),
     ...record.shifts[0] === undefined ? {} : { shift: record.shifts[0] },
-    tickets: record.tickets,
+    tickets: shiftTicketCounts(ledger, record.shifts) ?? record.tickets,
     functions: record.functions,
     evidence: cycleLink(c.inputs.branch, record.cycle, true),
   }
@@ -784,7 +821,7 @@ function collectCycles(
     }
     const live = log === newest && log.done === undefined && log.refused === undefined && cycleProcess !== undefined
     if (Date.parse(log.startedAt) >= c.since) {
-      timeline.push(logCycle(c, log, live, recorded.find(record => record.cycle === cycle), scheduler.exits.get(log.file.replace(/\.log$/, ''))))
+      timeline.push(logCycle(c, log, live, recorded.find(record => record.cycle === cycle), scheduler.exits.get(log.file.replace(/\.log$/, '')), ledger))
     }
     if (live) {
       running = log
@@ -864,7 +901,7 @@ function collectCycles(
   for (const record of recorded) {
     if (logs.some(log => log.cycle === record.cycle)) continue
     recordRuns(c, record, committed?.get(record.cycle)?.commit, Date.parse(record.startedAt) > newestStart && record === recorded.at(-1))
-    if (Date.parse(record.startedAt) >= c.since) timeline.push(recordCycle(c, record, scheduler.exits.get(record.cycle)))
+    if (Date.parse(record.startedAt) >= c.since) timeline.push(recordCycle(c, record, scheduler.exits.get(record.cycle), ledger))
   }
   for (const [cycle, times] of committed ?? []) {
     if (logs.some(log => log.cycle === cycle) || recorded.some(record => record.cycle === cycle)) continue
