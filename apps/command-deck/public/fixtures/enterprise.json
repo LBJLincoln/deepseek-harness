@@ -1,21 +1,21 @@
 {
-  "asOf": "2026-09-29T00:10:30.703Z",
+  "asOf": "2026-09-29T00:14:56.809Z",
   "window": {
-    "since": "2026-09-28T00:10:30.703Z",
-    "until": "2026-09-29T00:10:30.703Z"
+    "since": "2026-09-28T00:14:56.809Z",
+    "until": "2026-09-29T00:14:56.809Z"
   },
   "counts": {
     "defined": 147,
-    "occupied": 45,
-    "active": 37
+    "occupied": 47,
+    "active": 39
   },
   "divisions": [
     {
       "id": "harness-core",
       "name": "Harness Core",
       "defined": 24,
-      "occupied": 2,
-      "active": 2
+      "occupied": 3,
+      "active": 3
     },
     {
       "id": "proving-ground",
@@ -63,8 +63,8 @@
       "id": "knowledge",
       "name": "Knowledge",
       "defined": 11,
-      "occupied": 0,
-      "active": 0
+      "occupied": 1,
+      "active": 1
     },
     {
       "id": "governance",
@@ -83,13 +83,6 @@
   ],
   "tickets": {
     "queued": [
-      {
-        "ticket": "T-0001",
-        "seat": "harness-core-agent-steward",
-        "division": "harness-core",
-        "status": "queued",
-        "title": "Prune the producerless 'clear' and 'compact' SessionStartSource variants"
-      },
       {
         "ticket": "T-0002",
         "seat": "harness-core-agent-steward",
@@ -215,13 +208,6 @@
         "division": "harness-core",
         "status": "queued",
         "title": "Self-skip the ACP search-permission cwd test when the process runs as root"
-      },
-      {
-        "ticket": "T-0022",
-        "seat": "knowledge-dsh-doc-site-sync-skill-keeper",
-        "division": "knowledge",
-        "status": "queued",
-        "title": "Bring the doc-site-sync skill's manifest guidance back in line with website/docs.ts"
       },
       {
         "ticket": "T-0023",
@@ -380,7 +366,26 @@
       }
     ],
     "rejected": [],
-    "halted": []
+    "halted": [
+      {
+        "ticket": "T-0001",
+        "seat": "harness-core-agent-steward",
+        "division": "harness-core",
+        "status": "halted",
+        "at": "2026-09-28T22:53:59.804Z",
+        "shift": "221520-e979",
+        "reason": "no certificate after 3 rounds"
+      },
+      {
+        "ticket": "T-0022",
+        "seat": "knowledge-dsh-doc-site-sync-skill-keeper",
+        "division": "knowledge",
+        "status": "halted",
+        "at": "2026-09-28T22:53:59.804Z",
+        "shift": "221520-e979",
+        "reason": "no certificate after 3 rounds"
+      }
+    ]
   },
   "functions": [
     {
@@ -1359,8 +1364,8 @@
     }
   ],
   "ledger": {
-    "lines": 61,
-    "tickets": 2,
+    "lines": 63,
+    "tickets": 4,
     "functions": 59,
     "skipped": 0
   }

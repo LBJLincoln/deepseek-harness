@@ -1,35 +1,71 @@
 {
   "window": {
-    "since": "2026-09-27T20:06:11.397Z",
-    "until": "2026-09-28T20:06:11.397Z"
+    "since": "2026-09-28T00:14:56.809Z",
+    "until": "2026-09-29T00:14:56.809Z"
   },
   "head": {
-    "commit": "29161bc0e3747f7a4392d62dae80132051c1e81e",
-    "committedAt": "2026-09-28T23:15:47.000Z"
+    "commit": "74cae2486399019cc9ec7d6d523c121027560e19",
+    "committedAt": "2026-09-29T00:14:42.000Z"
   },
   "cycles": {
-    "count": 0,
+    "count": 2,
     "recorded": 0,
-    "gitOnly": 0,
+    "gitOnly": 2,
     "clean": 0,
     "failed": 0,
     "failedByStep": {},
-    "list": []
+    "list": [
+      {
+        "cycle": "cycle-20260928T201148Z",
+        "startedAt": "2026-09-28T20:11:48.000Z",
+        "source": "git",
+        "outcome": "unknown",
+        "commits": [
+          {
+            "commit": "7ec9cecb3fc64f51032ec40648ba73f15bcbfc78",
+            "carries": "intake"
+          }
+        ]
+      },
+      {
+        "cycle": "cycle-20260928T221301Z",
+        "startedAt": "2026-09-28T22:13:01.000Z",
+        "source": "git",
+        "outcome": "unknown",
+        "commits": [
+          {
+            "commit": "c81168966a9567918f4bca196c3edaeaaa548410",
+            "carries": "intake"
+          },
+          {
+            "commit": "74cae2486399019cc9ec7d6d523c121027560e19",
+            "carries": "functions, roster and deck"
+          }
+        ]
+      }
+    ]
   },
   "tickets": {
-    "lines": 2,
+    "lines": 4,
     "byStatus": {
       "shipped": 2,
       "rejected": 0,
-      "halted": 0
+      "halted": 2
     },
     "byDivision": [
       {
         "division": "harness-core",
-        "lines": 2,
+        "lines": 3,
         "shipped": 2,
         "rejected": 0,
-        "halted": 0
+        "halted": 1
+      },
+      {
+        "division": "knowledge",
+        "lines": 1,
+        "shipped": 0,
+        "rejected": 0,
+        "halted": 1
       }
     ],
     "shipped": [
@@ -96,17 +132,17 @@
     }
   ],
   "seats": {
-    "at": "2026-09-28T20:06:11.397Z",
+    "at": "2026-09-29T00:14:56.809Z",
     "defined": 147,
-    "occupied": 45,
-    "active": 37,
+    "occupied": 47,
+    "active": 39,
     "byDivision": [
       {
         "id": "harness-core",
         "name": "Harness Core",
         "defined": 24,
-        "occupied": 2,
-        "active": 2
+        "occupied": 3,
+        "active": 3
       },
       {
         "id": "proving-ground",
@@ -154,8 +190,8 @@
         "id": "knowledge",
         "name": "Knowledge",
         "defined": 11,
-        "occupied": 0,
-        "active": 0
+        "occupied": 1,
+        "active": 1
       },
       {
         "id": "governance",
@@ -174,7 +210,7 @@
     ]
   },
   "functions": {
-    "lines": 37,
+    "lines": 59,
     "byDivision": [
       {
         "division": "code-safety",
@@ -184,19 +220,19 @@
       },
       {
         "division": "curation-data",
-        "pass": 1,
+        "pass": 2,
         "fail": 0,
         "error": 0
       },
       {
         "division": "judging",
-        "pass": 6,
+        "pass": 12,
         "fail": 6,
         "error": 0
       },
       {
         "division": "observatory",
-        "pass": 1,
+        "pass": 2,
         "fail": 0,
         "error": 0
       },
@@ -208,23 +244,25 @@
       },
       {
         "division": "verification",
-        "pass": 13,
-        "fail": 1,
+        "pass": 26,
+        "fail": 2,
         "error": 0
       }
     ]
   },
   "effort": {
     "tokens": {
-      "total": 1523167,
-      "lines": 2,
+      "total": 2156950,
+      "lines": 4,
       "withoutCount": 0
     },
     "seconds": {
-      "tickets": 923,
-      "functions": 12702.9,
+      "tickets": 3151,
+      "functions": 21769.3,
       "cycles": 0
     }
   },
-  "unknowns": []
+  "unknowns": [
+    "2 cycles are seen only in git history (cycle-20260928T201148Z, cycle-20260928T221301Z): their steps, outcome and ledger lines are unknown"
+  ]
 }
