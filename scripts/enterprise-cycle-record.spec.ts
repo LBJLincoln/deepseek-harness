@@ -279,10 +279,12 @@ describe('writeCycleRecord', () => {
 const hasFlock = process.platform === 'linux' && spawnSync('flock', ['--version']).status === 0
 
 /**
- * A stand-in for pnpm: the intake and roster do nothing, the shift records the
- * heavy lock it was handed and commits and pushes one ticket line past the
+ * A stand-in for pnpm: the intake does nothing, the shift records the heavy
+ * and push locks it was handed and commits and pushes one ticket line past the
  * hooks as the real shift does, the functions append one function line, the
- * roster exits with `ROSTER_EXIT`, and the cycle record runs the real script.
+ * roster writes the ledger's line count to `roster.json` and exits with
+ * `ROSTER_EXIT`, the publish has another writer push a conflicting roster once
+ * when `RIVAL_ONCE` is set, and the cycle record runs the real script.
  */
 const FAKE_PNPM = `#!/bin/sh
 script=$3
@@ -296,10 +298,24 @@ case "$script" in
     printf '%s\\n' "$TICKET_LINE" >> data/enterprise/ledger.jsonl
     git -c user.name=t -c user.email=t@example.com commit -q --no-verify -am shift && git push -q --no-verify origin "HEAD:$ENTERPRISE_BRANCH" ;;
   enterprise:functions) printf '%s\\n' "$FUNCTION_LINE" >> data/enterprise/ledger.jsonl ;;
-  roster) exit "$ROSTER_EXIT" ;;
+  roster) grep -c '' data/enterprise/ledger.jsonl > data/enterprise/roster.json; exit "$ROSTER_EXIT" ;;
+  enterprise:publish)
+    if [ -n "\${RIVAL_ONCE:-}" ] && [ ! -e "$TMPDIR/rival-done" ]; then
+      : > "$TMPDIR/rival-done"
+      git clone -q --branch "$ENTERPRISE_BRANCH" "$(git config --get remote.origin.url)" "$TMPDIR/rival" &&
+        printf 'rival\\n' > "$TMPDIR/rival/data/enterprise/roster.json" &&
+        git -C "$TMPDIR/rival" -c user.name=r -c user.email=r@example.com commit -q --no-verify -am 'another writer regenerates the roster' &&
+        git -C "$TMPDIR/rival" push -q --no-verify origin "HEAD:$ENTERPRISE_BRANCH" || exit 1
+    fi ;;
 esac
 exit 0
 `
+
+/** One run of the cycle script: its exit code and what it printed. */
+interface CycleRun {
+  status: number | null
+  stdout: string
+}
 
 describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
   it('commits a record of every step in its final commit past a refusing pre-push hook, and the next cycle finds it on the remote', { timeout: 60_000 }, async () => {
@@ -376,5 +392,120 @@ describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
     expect(blocked.stdout).toContain(`the push lock ${env.ENTERPRISE_PUSH_LOCK} was not taken within 1 s`)
     expect(blocked.status).toBe(1)
     expect(git(origin, 'log', '-1', '--format=%s', 'cycle-test')).toBe('shift')
+  })
+  /**
+   * A cycle checkout over a bare remote, with the record scripts, the fake
+   * pnpm and a lock of its own, as a linked worktree of the clone (the
+   * dedicated checkout the cycle runs from) or as the clone itself.
+   */
+  function cycleHarness(linked: boolean): { origin: string; dir: string; run: (extra?: Record<string, string>) => CycleRun } {
+    const { origin, work } = checkout({
+      'package.json': '{ "type": "module" }\n',
+      'apps/command-deck/public/fixtures/.keep': '',
+      'data/enterprise/roster.json': 'seed\n',
+      'scripts/enterprise-cycle.sh': readFileSync(join(repoRoot, 'scripts/enterprise-cycle.sh'), 'utf8'),
+    })
+    for (const file of ['enterprise-cycle-record.ts', 'enterprise-ledger.ts']) copyFileSync(join(repoRoot, 'scripts', file), join(work, 'scripts', file))
+    git(work, 'add', '-A')
+    git(work, 'commit', '-q', '-m', 'the record scripts')
+    git(work, 'push', '-q', 'origin', 'HEAD:cycle-test')
+    const settings = [['commit.gpgsign', 'false'], ['push.negotiate', 'false'], ['core.hooksPath', '/dev/null'], ['user.name', 't'], ['user.email', 't@example.com']] as const
+    for (const [key, value] of settings) git(work, 'config', key, value)
+    const dir = linked ? join(work, '..', 'cycle-worktree') : work
+    if (linked) git(work, 'worktree', 'add', '-q', '-B', 'cycle-worktree', dir, 'HEAD')
+    const bin = tempDir('cycle-bin-')
+    writeFileSync(join(bin, 'pnpm'), FAKE_PNPM)
+    chmodSync(join(bin, 'pnpm'), 0o755)
+    const {
+      ENTERPRISE_COMMIT_TRAILERS: _trailers,
+      ENTERPRISE_HEAVY_LOCK: _heavyLock,
+      ENTERPRISE_PUSH_LOCK_WAIT: _pushWait,
+      ...parent
+    } = process.env
+    const tmp = tempDir('cycle-tmp-')
+    const env = {
+      ...parent,
+      PATH: `${bin}:${process.env.PATH ?? ''}`,
+      TMPDIR: tmp,
+      ENTERPRISE_PUSH_LOCK: join(tmp, 'push.lock'),
+      TSX: join(repoRoot, 'node_modules/.bin/tsx'),
+      ENTERPRISE_BRANCH: 'cycle-test',
+      TICKET_LINE: JSON.stringify(TICKET),
+      FUNCTION_LINE: JSON.stringify({ ...GATE, at: '2026-09-29T08:50:00.000Z' }),
+      ROSTER_EXIT: '0',
+    }
+    const run = (extra: Record<string, string> = {}): CycleRun => {
+      const result = spawnSync('bash', ['scripts/enterprise-cycle.sh'], { cwd: dir, env: { ...env, ...extra }, encoding: 'utf8' })
+      return { status: result.status, stdout: result.stdout }
+    }
+    return { origin, dir, run }
+  }
+
+  /** Commit one change to the remote branch from a scratch clone, as another writer of the branch would. */
+  function rivalCommit(origin: string, path: string, text: string): string {
+    const rival = tempDir('cycle-rival-')
+    git(rival, 'clone', '-q', '--branch', 'cycle-test', origin, '.')
+    mkdirSync(join(rival, path, '..'), { recursive: true })
+    writeFileSync(join(rival, path), text)
+    git(rival, 'add', '-A')
+    git(rival, 'commit', '-q', '-m', 'another writer regenerates the roster')
+    git(rival, 'push', '-q', 'origin', 'HEAD:cycle-test')
+    return git(rival, 'rev-parse', 'HEAD')
+  }
+
+  it('rebuilds its final commit on the remote tip when the rebase conflicts on a generated file, and pushes it', { timeout: 60_000 }, () => {
+    const { origin, run } = cycleHarness(true)
+    const { status, stdout } = run({ RIVAL_ONCE: '1' })
+    expect(status, stdout).toBe(0)
+    expect(stdout).toContain('the rebase onto the remote tip conflicted; rebuilding')
+    expect(git(origin, 'log', '-1', '--format=%s', 'cycle-test')).toMatch(/^chore\(enterprise\): cycle-\d{8}T\d{6}Z rebuilds unpushed data on [0-9a-f]{10}$/)
+    const rival = git(origin, 'log', '--format=%H', '--grep=another writer', 'cycle-test')
+    expect(rival).toMatch(/^[0-9a-f]{40}$/)
+    const ledger = git(origin, 'show', `cycle-test:${LEDGER_PATH}`).split('\n')
+    expect(ledger.filter(line => line === JSON.stringify(TICKET))).toHaveLength(1)
+    expect(ledger.filter(line => line.includes('2026-09-29T08:50:00.000Z'))).toHaveLength(1)
+    const records = git(origin, 'ls-tree', '--name-only', 'cycle-test', `${CYCLES_DIR}/`).split('\n').filter(Boolean)
+    expect(records).toHaveLength(1)
+    // The roster was regenerated over the rebuilt ledger, not kept from either side.
+    expect(git(origin, 'show', 'cycle-test:data/enterprise/roster.json')).toBe(String(ledger.length))
+  })
+
+  it('pushes a checkout\'s unpushed commits before the cycle, rebuilding them on the tip when their rebase conflicts', { timeout: 60_000 }, () => {
+    const { origin, dir, run } = cycleHarness(true)
+    const stranded = 'cycle-20260928T201148Z'
+    const strandedLine = JSON.stringify({ ...GATE, at: '2026-09-28T20:30:00.000Z' })
+    mkdirSync(join(dir, CYCLES_DIR), { recursive: true })
+    writeFileSync(join(dir, CYCLES_DIR, `${stranded}.json`), `${JSON.stringify(buildCycleRecord(input({ cycle: stranded })), null, 2)}\n`)
+    writeFileSync(join(dir, LEDGER_PATH), `${readFileSync(join(dir, LEDGER_PATH), 'utf8')}${strandedLine}\n`)
+    writeFileSync(join(dir, 'data/enterprise/roster.json'), 'stranded\n')
+    git(dir, 'add', '-A')
+    git(dir, 'commit', '-q', '-m', 'a cycle commit that never reached the remote')
+    rivalCommit(origin, 'data/enterprise/roster.json', 'rival\n')
+
+    const { status, stdout } = run()
+    expect(status, stdout).toBe(0)
+    expect(stdout).toContain('the checkout holds 1 unpushed commit(s); pushing them first')
+    expect(stdout).toContain('rebuilding 1 unpushed commit(s)')
+    expect(git(origin, 'ls-tree', '--name-only', 'cycle-test', `${CYCLES_DIR}/${stranded}.json`)).toBe(`${CYCLES_DIR}/${stranded}.json`)
+    expect(git(origin, 'show', `cycle-test:${LEDGER_PATH}`).split('\n').filter(line => line === strandedLine)).toHaveLength(1)
+    // The previous cycle's own push had not delivered its record by this cycle's start.
+    const newest = git(origin, 'ls-tree', '--name-only', 'cycle-test', `${CYCLES_DIR}/`).split('\n').filter(Boolean).at(-1) ?? ''
+    const record = JSON.parse(git(origin, 'show', `cycle-test:${newest}`)) as CycleRecord
+    expect(record.steps[0]).toMatchObject({ name: 'pull', exit: 0 })
+    expect(record.previous).toEqual({ cycle: stranded, recordOnRemote: false })
+  })
+
+  it('never resets a checkout that is not a dedicated worktree', { timeout: 60_000 }, () => {
+    const { origin, dir, run } = cycleHarness(false)
+    writeFileSync(join(dir, 'data/enterprise/roster.json'), 'stranded\n')
+    git(dir, 'add', '-A')
+    git(dir, 'commit', '-q', '-m', 'a cycle commit that never reached the remote')
+    const stranded = git(dir, 'rev-parse', 'HEAD')
+    rivalCommit(origin, 'data/enterprise/roster.json', 'rival\n')
+
+    const { status, stdout } = run()
+    expect(status).not.toBe(0)
+    expect(stdout).toContain('this checkout is not a dedicated worktree, so it is not reset')
+    expect(spawnSync('git', ['merge-base', '--is-ancestor', stranded, 'HEAD'], { cwd: dir }).status).toBe(0)
   })
 })

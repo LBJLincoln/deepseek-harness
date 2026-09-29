@@ -12,7 +12,9 @@ Status: implemented
 
 **每个周期提交它自己的记录。** 在最后一个数据步骤（`publish`）之后、最后一个提交之前，周期运行 `pnpm run enterprise:cycle-record`，写出 `data/enterprise/cycles/<cycle id>.json`，最后一个提交包含它。shell 保持精简：`step()` 向周期锁旁边的一个临时文件追加 `<name> <exit> <UTC time>`，脚本记下 `start`（周期开始时的 HEAD，即运行的周期脚本所在的修订）、`pulled`（首次拉取之后的 HEAD）以及那次拉取之后的远程跟踪分支顶端。`scripts/enterprise-cycle-record.ts` 由这些信息和检出构建记录：按顺序的每个步骤、自 `pulled` 以来台账新增的行（按多重集合比较；工单行按状态计数，职能行按结果计数，工单行所属的班次 id，无法读取的行）、`firstFailure`，以及 `end`，即构建记录时所在的提交。同一个校验器 `cycleRecordProblems` 同时把守写入和每一次读取。无法写出的记录是失败的步骤 `record`，推送照常运行，因此周期的数据从不等待它的记录。
 
-**最后一次推送由下一个周期报告。** 一条记录无法包含送达它的那次推送的结果。下一个周期的记录写明其检出中较早记录里最新的一条，以及首次拉取时远程分支是否已包含它（`previous.recordOnRemote`）：`false` 恰好表示最后一次推送没有落地，此时检出保留的那个提交会随下一个周期的推送一起送出。
+**最后一次推送由下一个周期报告。** 一条记录无法包含送达它的那次推送的结果。下一个周期的记录写明其检出中较早记录里最新的一条，以及首次拉取时远程分支是否已包含它（`previous.recordOnRemote`）：`false` 恰好表示最后一次推送没有落地，此时下一个周期会在拉取之前推送检出保留的提交。
+
+**未推送的数据在顶端上重建，从不手工变基。** 周期 `cycle-20260929T001517Z` 的最后提交无法变基到顶端：它重新生成的花名册、计分板、遥测与指挥台数据也被其他写入者重新生成过；此后每个周期的快进拉取都失败（退出码 128），又在上面堆一个未推送的提交，直到操作者手工恢复数据。现在周期的推送会中止冲突的变基，并在远端顶端上重建它未推送的数据：未推送提交在 `data/enterprise/` 下新增的每个文件（职能日志、受理与周期记录、获准的工单）以及它们追加的每条台账行都保存到 `TMPDIR` 下，检出被重置到顶端，恢复顶端缺少的文件和它尚未包含的行，`pnpm run roster` 与 `pnpm run enterprise:publish` 重新生成其余部分，并在推送锁下推送一个 `chore(enterprise): <cycle> rebuilds unpushed data on <tip>` 提交。开始时持有未推送提交的周期会在拉取之前以同样方式推送它们。数据只追加，生成文件是它的函数，因此什么也不会丢失；只有专用的链接 worktree 才会被重置，在其他任何检出中重建都会失败，提交保持不动。
 
 **没有记录的周期从 git 计数，并加以标注。** 记录出现之前的周期、记录失败的周期、被容器重置中断的周期，以及因锁或检出不干净而退出的周期，至多留下它推送过的提交，其主题带有周期 id（`chore(enterprise): <cycle id> intake`、`chore(enterprise): <cycle id> functions, roster and deck`）；读取方把它们计为只在 git 历史中可见的周期，从不计为干净或失败。
 
@@ -42,6 +44,6 @@ Status: implemented
 
 ## Verification
 
-`scripts/enterprise-cycle-record.spec.ts` 固定了步骤文件的解析、在新增了工单行、职能行和残缺行的台账上的记录计数、`firstFailure`、校验器的拒绝理由、读取方对命名错误和残缺文件的处理，以及 `previous.recordOnRemote` 对照临时 origin 的三种状态。其中一个测试在临时克隆中用一个替身 `pnpm` 两次运行真实的 `scripts/enterprise-cycle.sh`，替身的 roster 步骤第一次失败：第一条记录按顺序列出八个步骤并带有 `firstFailure: { step: "roster", exit: 1 }`，它被提交在 origin 上的最后一个提交中，该提交的父提交是记录的 `end`；第二个周期的记录在远程找到了它。
+`scripts/enterprise-cycle-record.spec.ts` 固定了步骤文件的解析、在新增了工单行、职能行和残缺行的台账上的记录计数、`firstFailure`、校验器的拒绝理由、读取方对命名错误和残缺文件的处理，以及 `previous.recordOnRemote` 对照临时 origin 的三种状态。其中一个测试在临时克隆中用一个替身 `pnpm` 两次运行真实的 `scripts/enterprise-cycle.sh`，替身的 roster 步骤第一次失败：第一条记录按顺序列出八个步骤并带有 `firstFailure: { step: "roster", exit: 1 }`，它被提交在 origin 上的最后一个提交中，该提交的父提交是记录的 `end`；第二个周期的记录在远程找到了它。另外三个测试在链接 worktree 和克隆中运行它：最后提交因另一写入者推送的花名册而变基冲突时，会带着它的记录与台账行在顶端上重建、重新生成花名册并推送；持有未推送的记录、台账行与冲突花名册的 worktree 会在拉取之前推送重建后的它们，新记录报告那条滞留的记录不在远程；而克隆不是专用 worktree，它拒绝重建并保留未推送的提交。
 
 `scripts/enterprise-report.spec.ts` 在一个含有残缺行的固定台账、三条周期记录、指名一个无记录周期的提交，以及一个录制的 Branch CI API 上构建报告：周期按来源计数并标注，每条记录的推送取自下一条记录；工单行按状态与事业部统计；四个已交付提交分别得到本提交上的运行、包含它的后续运行、无运行，以及因检出缺少运行 head 而未知的裁决；无法读取的 API 让每个裁决都成为带原因的未知，而报告的其余部分照常成立；席位来自时间窗结束时刻的花名册生成器；未知项被逐条准确列出；相同输入上的 Markdown 完全相同；`--write` 在时间窗结束时刻的名下写出两个文件。同一个测试还固定了：由记录或调度器脚本首次提交得出的每个周期的启动者、一个有记录的班次、一个只有台账行的班次与一个丢失的班次、评审结果、标明覆盖内容的开销总计，以及标题。`scripts/enterprise-publish.spec.ts` 证明发布器在花名册时间窗上以花名册的席位写出 24 小时报告，且在输入未变时不重写任何文件；指挥台的 `next build` 对契约、fixture 读取函数与该标签页做类型检查。
