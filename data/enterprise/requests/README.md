@@ -16,9 +16,13 @@ The deck is too bright when I read it at night. Follow the phone's dark setting,
 
 Requests are trusted input: only people with push access to the branch can add one, and the enterprise takes each as the owner's word.
 
+## What happens to a request
+
+Every run of the coordinators' [intake](../../../examples/headless-agent/tests/fixtures/enterprise-intake/README.md), which the enterprise's cycle starts every two hours, takes up the requests no ticket answers yet, at most two per run in file-name order, whether or not the queue needs more work. A Program Departments coordinator reads the request and writes exactly one ticket for the seat whose code or document it is about, small enough for one implementer and with checks that fail before the change. The ticket carries the request's file and title line as its source and priority `0`, which the queue reserves for tickets answering requests, so the next shift takes it before every ticket not yet tried. Admission, the deterministic rules every ticket passes, may refuse it; the intake record then says why, and the next intake tries again, so editing a refused request gets it a new attempt. A request whose first line is not `# <title>` is refused without being read.
+
 ## Reading its status
 
-A ticket answers a request when its `source.path` is the request's file, and it carries priority `0`, which the queue reserves for tickets answering requests. `pnpm run enterprise:requests` prints every request's file, title and state, and `--json` prints the same as one JSON array. The states are derived from committed files alone: the queue, the ticket lines of the [ledger](../README.md#the-ledger), and the intake records under `../intake/`.
+`pnpm run enterprise:requests` prints every request's file, title and state, and `--json` prints the same as one JSON array. A ticket answers a request when its `source.path` is the request's file. The states are derived from committed files alone: the queue, the ticket lines of the [ledger](../README.md#the-ledger), and the intake records under `../intake/`.
 
 | State | Meaning |
 |---|---|

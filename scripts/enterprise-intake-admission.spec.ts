@@ -34,6 +34,9 @@ const ALPHA = 'program-departments-alpha-coordinator'
 const BETA = 'program-departments-beta-coordinator'
 const CORE = 'harness-core-alpha-core-steward'
 
+/** One of the owner's requests, which the tree holds. */
+const REQUEST = { path: 'data/enterprise/requests/cap-the-drain.md', anchor: '# Cap the alpha drain' }
+
 const ROSTER = {
   divisions: [{ id: 'program-departments' }, { id: 'harness-core' }],
   agents: [
@@ -57,6 +60,7 @@ function tree(queued: readonly Ticket[] = []): string {
     'notes/one.md': '# note\n',
     'scripts/verify-thing.ts': 'export {}\n',
     'data/enterprise/roster.json': JSON.stringify(ROSTER),
+    [REQUEST.path]: `${REQUEST.anchor}\n\nOne drain should take at most a hundred jobs.\n`,
   }
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(dirname(join(root, path)), { recursive: true })
@@ -117,6 +121,10 @@ function stubRunner(exitCodes: Record<string, number | 'timeout'> = {}): { runCh
 
 function context(root: string, runCheck: AdmissionContext['runCheck'], admitted: readonly Ticket[] = []): AdmissionContext {
   return { roster: ROSTER, tip: root, queue: readQueue(root), admitted, runCheck }
+}
+
+function answering(root: string, runCheck: AdmissionContext['runCheck']): AdmissionContext {
+  return { ...context(root, runCheck), request: REQUEST }
 }
 
 describe('ticketStatuses', () => {
@@ -263,6 +271,33 @@ describe('admitProposals', () => {
       verdicts: [],
       error: 'the proposals file must hold one JSON array of tickets',
     })
+  })
+
+  it('admits a request\'s department only a ticket carrying the request\'s source and priority 0, and no other department a request as its source', async () => {
+    const root = tree()
+    const { runCheck } = stubRunner()
+    const request = proposal({ source: REQUEST, priority: 0 })
+    const { verdicts } = await admitProposals([
+      proposal({ priority: 0 }),
+      proposal({ source: { ...REQUEST, anchor: 'Cap the alpha drain' }, priority: 0 }),
+      proposal({ source: REQUEST, priority: 1 }),
+      request,
+      request,
+    ], 4, answering(root, runCheck))
+    expect(verdicts.map(verdict => [verdict.admitted ? verdict.id : verdict.code, verdict.reason])).toEqual([
+      ['request', `a ticket answering ${REQUEST.path} carries the source ${JSON.stringify(REQUEST)}: the request's file and its title line`],
+      ['request', `a ticket answering ${REQUEST.path} carries the source ${JSON.stringify(REQUEST)}: the request's file and its title line`],
+      ['request', 'a ticket answering a request takes priority 0'],
+      ['T-0001', undefined],
+      ['over-limit', 'only the first 4 proposals of a coordinator are admitted'],
+    ])
+    expect(verdicts[3]?.ticket).toMatchObject({ source: REQUEST, priority: 0 })
+
+    const refilling = await admitProposals([request, proposal({ source: REQUEST })], 3, context(root, runCheck))
+    expect(refilling.verdicts.map(verdict => [verdict.code, verdict.reason])).toEqual([
+      ['request', `${REQUEST.path} is one of the owner's requests, which only its own department answers`],
+      ['request', `${REQUEST.path} is one of the owner's requests, which only its own department answers`],
+    ])
   })
 
   it('turns every admission of an uncertified department into a refusal', async () => {

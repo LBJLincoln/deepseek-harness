@@ -47,7 +47,7 @@ const CHECK_ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/
 const EVIDENCE_PATTERN = /[\w./-]+\.(?:ts|tsx|md|json|ya?ml|mjs):\d+/
 const LOWEST_PRIORITY = 3
 /** The priority of a ticket answering a request, before every other priority. */
-const REQUEST_PRIORITY = 0
+export const REQUEST_PRIORITY = 0
 
 /**
  * The acceptance commands one queue requires of every ticket, beside the

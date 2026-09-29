@@ -20,7 +20,7 @@
  * - `refused`: no ticket answers it, and the latest intake record naming it
  *   refused it, with the reason.
  * - `waiting`: no ticket answers it, and no intake record refused it last:
- *   none names it yet, or the latest one naming it did not reach it.
+ *   none names it yet, or the latest one naming it left it unanswered.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -43,6 +43,21 @@ export interface Request {
   /** The whole file. */
   readonly text: string
 }
+
+/** A request whose first line names its title. */
+export type TitledRequest = Request & { readonly title: string; readonly anchor: string }
+
+/**
+ * Whether a request's first line names its title, so a ticket can carry it as its source anchor.
+ * @param request - the request.
+ * @returns true for a titled request.
+ */
+export function isTitled(request: Request): request is TitledRequest {
+  return request.title !== null && request.anchor !== null
+}
+
+/** Why a request without a title line is refused before any department reads it. */
+export const UNTITLED_REASON = 'its first line is not `# <title>`, so no ticket can carry it as its source anchor'
 
 const UNTITLED = { title: null, anchor: null } as const
 
@@ -107,11 +122,12 @@ export function unansweredRequests(requests: readonly Request[], tickets: readon
 /**
  * One request as an intake record's `requests` names it, with the fields the
  * status reads: the intake admitted a ticket answering it, refused it for the
- * reason stated, or never reached it because the route stopped first.
+ * reason stated, or left it unanswered because its department was cut before
+ * it finished.
  */
 export type IntakeRequestEntry =
   | { readonly path: string; readonly result: 'refused'; readonly reason: string }
-  | { readonly path: string; readonly result: 'admitted' | 'not-reached' }
+  | { readonly path: string; readonly result: 'admitted' | 'unanswered' }
 
 /** The requests one intake record names. */
 export interface IntakeRecordRequests {
@@ -131,7 +147,7 @@ function requestEntry(value: unknown): IntakeRequestEntry | undefined {
   const { path, result, reason } = value
   if (typeof path !== 'string') return undefined
   if (result === 'refused') return typeof reason === 'string' ? { path, result, reason } : undefined
-  return result === 'admitted' || result === 'not-reached' ? { path, result } : undefined
+  return result === 'admitted' || result === 'unanswered' ? { path, result } : undefined
 }
 
 /**

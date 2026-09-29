@@ -94,11 +94,11 @@
 
 ## 受理
 
-当[工单队列](tickets/README.md)中的开放工单少于其下限时，由 Program Departments 协调人补充队列：`pnpm run enterprise:intake` 运行一个以协调人为部门的 program，每位协调人为自己的包族提出工单，只有其确定性准入接受的拟议工单才会被提交。每次运行都在 `intake/` 下写出记录，并为部门运行过的每位协调人向 `ledger.jsonl` 追加一行职能行。[enterprise-intake fixture](../../examples/headless-agent/tests/fixtures/enterprise-intake/README.md) 说明命令、准入与记录；[Agent Note](../../.agents/notes/implemented/architecture/2026-09-28-coordinators-intake.md) 记录这一决策。
+当[工单队列](tickets/README.md)中的开放工单少于其下限时，由 Program Departments 协调人补充队列：`pnpm run enterprise:intake` 运行一个以协调人为部门的 program，每位协调人为自己的包族提出工单，只有其确定性准入接受的拟议工单才会被提交。每次运行都先答复所有者的[请求](#requests)，在 `intake/` 下写出记录，并为运行过的每个部门向 `ledger.jsonl` 追加一行职能行，写明担任该部门的协调人。[enterprise-intake fixture](../../examples/headless-agent/tests/fixtures/enterprise-intake/README.md) 说明命令、准入与记录；[Agent Note](../../.agents/notes/implemented/architecture/2026-09-28-coordinators-intake.md) 记录这一决策。
 
 ## 请求
 
-所有者通过提交一个请求 `requests/<name>.md` 向企业交派工作：第一行为 `# <title>`，其下是自由文本，别无其他。当一张工单的 `source.path` 就是某个请求的文件时，这张工单即答复了该请求；只有这样的工单可以取优先级 `0`，[班次](#shifts)的队列顺序会把它排在每一张未尝试过的工单之前。`pnpm run enterprise:requests`（[`scripts/enterprise-requests.ts`](../../scripts/enterprise-requests.ts)）打印每个请求的文件、标题与状态——`waiting`、`refused`、`queued`、`halted`、`shipped` 或 `rejected`——这些状态只从队列、台账与受理记录推导。[请求 README](requests/README.md) 说明如何撰写请求以及每种状态的含义。
+所有者通过提交一个请求 `requests/<name>.md` 向企业交派工作：第一行为 `# <title>`，其下是自由文本，别无其他。每次[受理](#intake)运行都会在补充队列之前、且与补充互不相干地，让一位协调人的部门把每个尚无工单答复的请求——按文件名顺序至多 `--max-requests` 个（默认 2）——变成恰好一张工单，其 source 是该请求的文件及其标题行；被准入拒绝的请求连同原因记入受理记录，并由下一次运行再次处理。当一张工单的 `source.path` 就是某个请求的文件时，这张工单即答复了该请求；只有这样的工单可以取优先级 `0`，[班次](#shifts)的队列顺序会把它排在每一张未尝试过的工单之前。`pnpm run enterprise:requests`（[`scripts/enterprise-requests.ts`](../../scripts/enterprise-requests.ts)）打印每个请求的文件、标题与状态——`waiting`、`refused`、`queued`、`halted`、`shipped` 或 `rejected`——这些状态只从队列、台账与受理记录推导。[请求 README](requests/README.md) 说明如何撰写请求以及每种状态的含义；[Agent Note](../../.agents/notes/implemented/architecture/2026-09-28-owner-requests.md) 记录这一决策。
 
 ## 代码安全专精方向指的是目标，而非已实现的扫描器
 
@@ -120,7 +120,7 @@ pnpm run enterprise:publish     # the deck's fixtures from the roster and the le
 
 ## 周期
 
-[`scripts/enterprise-cycle.sh`](../../scripts/enterprise-cycle.sh) 依次运行企业一次：开放工单少于 `ENTERPRISE_MIN_OPEN`（默认 8）张时，由协调人执行[受理](#intake)，并先提交、推送，使班次的克隆能看到新工单；以 `--push` 对按引擎队列顺序排在最前的 `ENTERPRISE_TICKETS`（默认 2）张开放工单运行一个[班次](#shifts)，周期把 `ENTERPRISE_HEAVY_LOCK`（默认 `/tmp/dsh-heavy.lock`）导出给它，使其每个重型验收运行仅在运行期间持有这把锁；在新的分支顶端运行不需要工单的[职能](#functions)，每个重型关卡同样仅在运行期间持有这把锁；运行 `pnpm run roster` 与 `pnpm run enterprise:publish`；写出本周期的[记录](#the-cycle-record)；最后把职能行与证据、花名册、指挥台数据和记录合为一个提交并推送。无论前面步骤结果如何，每一步都会运行，例外只有两个：被用量上限停下的受理（退出码 3）会跳过班次；无法写出的记录是失败的步骤 `record`，之后推送照常运行。另一个周期持有锁时，周期以退出码 4 退出；检出中已跟踪文件有未提交修改时以退出码 5 退出；其余情况以第一个失败步骤的退出码退出；设置了 `ENTERPRISE_COMMIT_TRAILERS` 时，周期自身的提交会带上它。周期的提交与推送只携带机器写出的数据，并与班次和转录捕获循环一样带 `--no-verify`：仓库的 pre-push 钩子会对整个工作区做约三分钟的类型检查，其间捕获循环的推送会移动分支顶端，运行了钩子的推送因而被拒。每次推送都先变基到远端顶端，并在 2、4、8、16 秒后重试，失败的变基会在下一次尝试前中止。企业每两小时从开发分支的专用检出运行一次周期，因此不会写入任何操作者的工作树。
+[`scripts/enterprise-cycle.sh`](../../scripts/enterprise-cycle.sh) 依次运行企业一次：由协调人执行[受理](#intake)，它答复所有者的[请求](#requests)，并在开放工单少于 `ENTERPRISE_MIN_OPEN`（默认 8）张时补充队列，其结果先提交、推送，使班次的克隆能看到新工单；以 `--push` 对按引擎队列顺序排在最前的 `ENTERPRISE_TICKETS`（默认 2）张开放工单运行一个[班次](#shifts)，周期把 `ENTERPRISE_HEAVY_LOCK`（默认 `/tmp/dsh-heavy.lock`）导出给它，使其每个重型验收运行仅在运行期间持有这把锁；在新的分支顶端运行不需要工单的[职能](#functions)，每个重型关卡同样仅在运行期间持有这把锁；运行 `pnpm run roster` 与 `pnpm run enterprise:publish`；写出本周期的[记录](#the-cycle-record)；最后把职能行与证据、花名册、指挥台数据和记录合为一个提交并推送。无论前面步骤结果如何，每一步都会运行，例外只有两个：被用量上限停下的受理（退出码 3）会跳过班次；无法写出的记录是失败的步骤 `record`，之后推送照常运行。另一个周期持有锁时，周期以退出码 4 退出；检出中已跟踪文件有未提交修改时以退出码 5 退出；其余情况以第一个失败步骤的退出码退出；设置了 `ENTERPRISE_COMMIT_TRAILERS` 时，周期自身的提交会带上它。周期的提交与推送只携带机器写出的数据，并与班次和转录捕获循环一样带 `--no-verify`：仓库的 pre-push 钩子会对整个工作区做约三分钟的类型检查，其间捕获循环的推送会移动分支顶端，运行了钩子的推送因而被拒。每次推送都先变基到远端顶端，并在 2、4、8、16 秒后重试，失败的变基会在下一次尝试前中止。企业每两小时从开发分支的专用检出运行一次周期，因此不会写入任何操作者的工作树。
 
 [`scripts/enterprise-scheduler.sh`](../../scripts/enterprise-scheduler.sh) 让周期在没有操作员会话时仍按时运行。它在该检出中启动一次并脱离终端运行，在每个能被 `ENTERPRISE_SCHEDULE_HOURS`（默认 2）整除的 UTC 小时的第 `ENTERPRISE_SCHEDULE_MINUTE`（默认 13）分钟运行周期，把每个周期的输出写到 `<ENTERPRISE_CYCLE_LOGS>/cycle-<UTC 时间戳>.log`（默认 `/home/user/enterprise-cycles`），把自己的环境传给每个周期，并等待它启动的每个周期结束；若到某个时间点时一个手动启动的周期仍在运行，它先等该周期结束再启动自己的周期，因此一个较长的周期只会推迟下一个周期，而不会让它被跳过。第二个调度器以退出码 4 退出，小时不在 1 到 24 的整数范围内或分钟不在 0 到 59 的整数范围内的调度以退出码 2 退出。容器重启会结束它，因此看守企业的定时 Routine 在它未运行时会重新启动它。
 

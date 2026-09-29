@@ -7,13 +7,17 @@
  * every rule holds, checked in this order:
  *
  * 1. it is one of the first `maxTickets` entries of the array;
- * 2. with the next free id of the queue assigned, {@link validateTickets}
+ * 2. it answers a request exactly when its department is that request's: the
+ *    department of one of the owner's requests files a ticket carrying the
+ *    request's file and title line as its source and priority `0`, and no other
+ *    department takes a request as its source;
+ * 3. with the next free id of the queue assigned, {@link validateTickets}
  *    accepts it beside every ticket already queued;
- * 3. its `seat` is the owner of its `scope`: a seat among the most specific
+ * 4. its `seat` is the owner of its `scope`: a seat among the most specific
  *    roster seats whose `source` covers every scope entry;
- * 4. no open or shipped ticket, and no ticket admitted earlier in the same
+ * 5. no open or shipped ticket, and no ticket admitted earlier in the same
  *    intake, has the same source path and anchor;
- * 5. it carries at least one check of its own, and every one of them fails on
+ * 6. it carries at least one check of its own, and every one of them fails on
  *    a clean checkout of the tip.
  *
  * A check of its own is every acceptance command except the queue's guards:
@@ -29,7 +33,7 @@ import { resolve } from 'node:path'
 
 import { SECRET_PATTERN_NAMES, redactText } from '../data/transcripts/tools/secret-patterns.mjs'
 import type { Roster, RosterAgentDefinition } from './enterprise-roster.ts'
-import { loadTickets, TICKETS_DIR, validateTickets } from './enterprise-tickets.ts'
+import { isRequestFile, loadTickets, REQUEST_PRIORITY, TICKETS_DIR, validateTickets } from './enterprise-tickets.ts'
 import type { LoadedTicket } from './enterprise-tickets.ts'
 
 /** The enterprise ledger, relative to the repository root. */
@@ -45,13 +49,13 @@ const INTAKE_DIVISION = 'program-departments'
 const COORDINATOR_ROLE = 'coordinator'
 
 /**
- * The file a coordinator's department writes its proposals to, relative to its
- * worktree root.
- * @param seat - the coordinator's roster seat id.
+ * The file a department writes its proposals to, relative to its worktree
+ * root.
+ * @param key - the department's key: a refilling coordinator's seat id, or a request's department key.
  * @returns the path.
  */
-export function proposalsPath(seat: string): string {
-  return `.intake/${seat}.json`
+export function proposalsPath(key: string): string {
+  return `.intake/${key}.json`
 }
 
 /** One queued ticket, with exactly the fields the queue README lists. */
@@ -409,6 +413,7 @@ interface SettledCommand {
 /** Why a proposal was refused. */
 type RefusalCode =
   | 'over-limit'
+  | 'request'
   | 'invalid'
   | 'owner'
   | 'duplicate'
@@ -436,15 +441,23 @@ export interface Verdict {
   readonly ticket?: Ticket
 }
 
+/** The source every ticket answering one request carries: the request's file and its title line. */
+export interface RequestSource {
+  readonly path: string
+  readonly anchor: string
+}
+
 /** What admission reads besides the proposals. */
 export interface AdmissionContext {
   readonly roster: Roster
   /** The clean checkout of the tip: sources and scopes are validated there and checks run there. */
   readonly tip: string
   readonly queue: Queue
-  /** Tickets admitted earlier in the same intake, from other coordinators; they take ids before this batch. */
+  /** Tickets admitted earlier in the same intake, from other departments; they take ids before this batch. */
   readonly admitted: readonly Ticket[]
   readonly runCheck: RunCheck
+  /** The request the proposals answer, for a request's department; absent for a refilling coordinator's. */
+  readonly request?: RequestSource
 }
 
 /** Admission's result for one coordinator's file. */
@@ -520,12 +533,36 @@ export async function admitProposals(proposals: unknown, maxTickets: number, con
   return { verdicts }
 }
 
+/**
+ * Why a proposal breaks the request rule: a request's department files only a
+ * ticket carrying the request's source and priority `0`, and no other
+ * department takes a request as its source.
+ * @param proposal - the proposal as the department wrote it.
+ * @param request - the request the department answers, if it answers one.
+ * @returns the reason, or undefined when the rule holds.
+ */
+function requestRefusal(proposal: Record<string, unknown>, request: RequestSource | undefined): string | undefined {
+  const source = isRecord(proposal['source']) ? proposal['source'] : {}
+  if (request === undefined) {
+    const path = source['path']
+    return typeof path === 'string' && isRequestFile(path) ? `${path} is one of the owner's requests, which only its own department answers` : undefined
+  }
+  if (source['path'] !== request.path || source['anchor'] !== request.anchor) {
+    const expected = JSON.stringify({ path: request.path, anchor: request.anchor })
+    return `a ticket answering ${request.path} carries the source ${expected}: the request's file and its title line`
+  }
+  if (proposal['priority'] !== REQUEST_PRIORITY) return `a ticket answering a request takes priority ${REQUEST_PRIORITY}`
+  return undefined
+}
+
 async function admitOne(
   index: number,
   proposal: Record<string, unknown>,
   batch: readonly Ticket[],
   context: AdmissionContext,
 ): Promise<Verdict> {
+  const answering = requestRefusal(proposal, context.request)
+  if (answering !== undefined) return refuse(index, proposal, 'request', answering)
   const earlier = [...context.admitted, ...batch]
   const id = ticketId(context.queue.tickets.length + earlier.length + 1)
   const candidate = withId(proposal, id)

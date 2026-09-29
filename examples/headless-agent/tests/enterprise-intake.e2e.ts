@@ -5,21 +5,23 @@
  * roster and a one-ticket queue — booting `fixtures/enterprise-intake/cordis.yml`
  * through the fixture's driver on the scripted route.
  *
- * The scripted coordinators commit the proposal files under the fixture's
+ * The scripted departments commit the proposal files under the fixture's
  * `scripted/`, so what this proves is the intake's own behaviour: the count
- * that decides whether anything is needed, admission as each department's
- * verifier and again across departments, the tickets it writes, the function
- * lines it appends, the record it keeps, and the stop at the first usage-limit
- * refusal. The overlay under the fixture's `overlays/` is the same program on
- * the operator's Claude Code route.
+ * that decides whether anything is needed, the owner's requests answered
+ * whether or not it is, admission as each department's verifier and again
+ * across departments, the tickets it writes, the function lines it appends,
+ * the record it keeps and the request states read back from it, and the stop
+ * at the first usage-limit refusal. The overlay under the fixture's
+ * `overlays/` is the same program on the operator's Claude Code route.
  */
 
 import { execFile, execFileSync } from 'node:child_process'
-import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterAll, describe, expect, it } from 'vitest'
+import type { RequestStatus } from '../../../scripts/enterprise-requests.ts'
 import type { Roster } from '../../../scripts/enterprise-roster.ts'
 import { loadTickets, validateTickets } from '../../../scripts/enterprise-tickets.ts'
 
@@ -27,6 +29,7 @@ const fixtureDir = fileURLToPath(new URL('./fixtures/enterprise-intake/', import
 const seedDir = join(fixtureDir, 'seed')
 const composition = join(fixtureDir, 'cordis.yml')
 const intakeScript = fileURLToPath(new URL('../../../scripts/enterprise-intake.ts', import.meta.url))
+const requestsScript = fileURLToPath(new URL('../../../scripts/enterprise-requests.ts', import.meta.url))
 const tsx = fileURLToPath(new URL('../../../node_modules/.bin/tsx', import.meta.url))
 
 /** Booting the composition, two departments, two admissions and the integration outrun the default window. */
@@ -34,6 +37,16 @@ const PHASE_TIMEOUT_MS = 300_000
 
 const ALPHA = 'program-departments-alpha-coordinator'
 const BETA = 'program-departments-beta-coordinator'
+
+/** The owner's requests one run meets: two it answers, one without a title line, one past `--max-requests`. */
+const DRAIN_REQUEST = 'data/enterprise/requests/a-drain-cap.md'
+const RETRIES_REQUEST = 'data/enterprise/requests/b-retries.md'
+const UNTITLED_REQUEST = 'data/enterprise/requests/c-untitled.md'
+const LATER_REQUEST = 'data/enterprise/requests/d-later.md'
+
+/** The department keys the intake derives from the answered requests' file names. */
+const DRAIN_KEY = 'request-a-drain-cap'
+const RETRIES_KEY = 'request-b-retries'
 
 /** The product's notice for a spent session window, as the Claude Code route receives it. */
 const LIMIT_NOTICE = 'You\'ve hit your session limit · resets 8:20pm (UTC)'
@@ -71,6 +84,13 @@ interface IntakeResult {
     readonly principal: { readonly kind: string; readonly id: string; readonly decidedBy: string }
   }[]
   readonly routeLimit?: { readonly message: string; readonly resetsAtIso?: string }
+  readonly requests?: readonly {
+    readonly path: string
+    readonly result: string
+    readonly ticket?: string
+    readonly reason?: string
+    readonly department?: { readonly key: string; readonly seat: string; readonly status: string; readonly outcome: string }
+  }[]
   readonly coordinators?: readonly {
     readonly seat: string
     readonly openInSubsystem: number
@@ -100,12 +120,16 @@ afterAll(() => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
 })
 
-/** A git repository holding the seed, committed, as a clean checkout the intake counts and fills. */
-function mintRepository(): string {
+/** A git repository holding the seed and any extra files, committed, as a clean checkout the intake counts and fills. */
+function mintRepository(extra: Record<string, string>): string {
   const root = mkdtempSync(join(tmpdir(), 'enterprise-intake-e2e-'))
   roots.push(root)
   const repo = join(root, 'repo')
   cpSync(seedDir, repo, { recursive: true })
+  for (const [path, text] of Object.entries(extra)) {
+    mkdirSync(dirname(join(repo, path)), { recursive: true })
+    writeFileSync(join(repo, path), text)
+  }
   const git = (...args: string[]): string => execFileSync('git', args, { cwd: repo, encoding: 'utf8' })
   git('init', '-q', '.')
   git('config', 'user.email', 'intake-seed@example.test')
@@ -117,13 +141,14 @@ function mintRepository(): string {
 
 /**
  * Run the intake as `pnpm run enterprise:intake` does, over a freshly minted
- * repository, with the scripted coordinators the script names.
+ * repository, with the scripted departments the script names.
  * @param args - the intake's arguments after the ones every run shares.
- * @param script - seat id to scripted part, as `intake-llm.ts` reads it.
- * @returns the exit code, the streams, the repository and the seats the route served.
+ * @param script - department key to scripted part, as `intake-llm.ts` reads it.
+ * @param extra - files committed beside the seed, by repository path.
+ * @returns the exit code, the streams, the repository and the department keys the route served.
  */
-function runIntake(args: readonly string[], script: Record<string, unknown>): Promise<IntakeRun> {
-  const repo = mintRepository()
+function runIntake(args: readonly string[], script: Record<string, unknown>, extra: Record<string, string> = {}): Promise<IntakeRun> {
+  const repo = mintRepository(extra)
   const root = join(repo, '..')
   const scratch = join(root, 'scratch')
   const scriptPath = join(root, 'script.json')
@@ -258,6 +283,70 @@ describe('the coordinators\' intake through a real cordis.yml', () => {
     // The intake changed nothing committed and removed its clone.
     expect(execFileSync('git', ['status', '--porcelain', '--untracked-files=no'], { cwd: run.repo, encoding: 'utf8' })).toBe('')
     expect(run.calls.filter(seat => seat === ALPHA).length).toBeGreaterThan(0)
+    expect(existsSync(run.scratch) && readdirSync(run.scratch).length > 0).toBe(false)
+  }, PHASE_TIMEOUT_MS)
+
+  it('answers the owner\'s requests whether or not the queue needs a refill, and reads their states back', async () => {
+    const run = await runIntake(
+      ['--min-open', '1', '--max-requests', '2'],
+      { [DRAIN_KEY]: { proposals: 'request-drain.json' }, [RETRIES_KEY]: { proposals: 'request-retries.json' } },
+      {
+        [DRAIN_REQUEST]: '# Cap the alpha drain\n\nOne drain should take at most a hundred jobs.\n',
+        [RETRIES_REQUEST]: '# Bound the beta retries\n\nRetries should stop after a few attempts.\n',
+        [UNTITLED_REQUEST]: 'Make the queue faster.\n',
+        [LATER_REQUEST]: '# Answer me later\n\nThis one waits for the next intake.\n',
+      },
+    )
+    expect(run.stderr).toBe('')
+    expect(run.code).toBe(0)
+    const summary = summaryOf(run)
+    expect(summary.outcome).toBe('ran')
+    expect(summary.admitted).toEqual(['T-0002'])
+
+    // The one open ticket meets --min-open 1, so no coordinator refilled: only
+    // the first two titled requests' departments reached the route, in
+    // file-name order, staffed by the coordinators in turn, fewest open first.
+    expect(run.stdout).toContain('1 open tickets, at least 1: no refill')
+    expect(run.stdout).toContain(`${DRAIN_REQUEST} (${ALPHA}), ${RETRIES_REQUEST} (${BETA}); 1 left for a later intake`)
+    expect([...new Set(run.calls)]).toEqual([DRAIN_KEY, RETRIES_KEY])
+
+    // The admitted ticket answers its request at priority 0, and the queue still validates.
+    const ticket = readJson(join(run.repo, 'data/enterprise/tickets/T-0002.json')) as { seat: string; source: unknown; priority: number }
+    expect(ticket).toMatchObject({ seat: ALPHA, source: { path: DRAIN_REQUEST, anchor: '# Cap the alpha drain' }, priority: 0 })
+    const roster = readJson(join(run.repo, 'data/enterprise/roster.json')) as Roster
+    expect(validateTickets(loadTickets(run.repo), roster, run.repo)).toEqual([])
+
+    // The record states what became of every request the run took up; the
+    // request past --max-requests is not among them.
+    const result = readJson(join(run.repo, summary.record, 'result.json')) as IntakeResult
+    expect(result.coordinators).toEqual([])
+    const requests = result.requests?.map(entry => [
+      entry.path,
+      entry.result,
+      entry.ticket ?? entry.reason,
+      entry.department?.key,
+      entry.department?.seat,
+    ])
+    expect(requests).toEqual([
+      [DRAIN_REQUEST, 'admitted', 'T-0002', DRAIN_KEY, ALPHA],
+      [RETRIES_REQUEST, 'refused', 'a ticket answering a request takes priority 0', RETRIES_KEY, BETA],
+      [UNTITLED_REQUEST, 'refused', expect.stringContaining('its first line is not `# <title>`'), undefined, undefined],
+    ])
+
+    // Each request's department that reached the route has its coordinator's function line.
+    expect(ledgerOf(run.repo).map(line => [line.seat, line.function, line.outcome, line.evidence.path])).toEqual([
+      [ALPHA, 'intake', 'pass', `${summary.record}/${DRAIN_KEY}.json`],
+      [BETA, 'intake', 'fail', `${summary.record}/${RETRIES_KEY}.json`],
+    ])
+
+    // The owner reads the same back from the files the run left.
+    const statuses = JSON.parse(execFileSync(tsx, [requestsScript, '--root', run.repo, '--json'], { encoding: 'utf8' })) as RequestStatus[]
+    expect(statuses.map(status => [status.file, status.state, status.ticket ?? status.reason])).toEqual([
+      [DRAIN_REQUEST, 'queued', 'T-0002'],
+      [RETRIES_REQUEST, 'refused', 'a ticket answering a request takes priority 0'],
+      [UNTITLED_REQUEST, 'refused', expect.stringContaining('its first line is not `# <title>`')],
+      [LATER_REQUEST, 'waiting', undefined],
+    ])
     expect(existsSync(run.scratch) && readdirSync(run.scratch).length > 0).toBe(false)
   }, PHASE_TIMEOUT_MS)
 

@@ -1,0 +1,19 @@
+[
+  {
+    "id": "T-0002",
+    "title": "Cap how many jobs one alpha drain takes, as the owner asks",
+    "division": "program-departments",
+    "seat": "program-departments-alpha-coordinator",
+    "kind": "feature",
+    "source": { "path": "data/enterprise/requests/a-drain-cap.md", "anchor": "# Cap the alpha drain" },
+    "task": "Problem: the owner asks that one drain take at most a hundred jobs, and packages/alpha/src/queue.json:2 drains in fifo order with no cap. Required: add maxJobs 100 to the drain.",
+    "scope": ["packages/alpha/"],
+    "acceptance": [
+      { "id": "drain-capped", "run": "grep -q maxJobs packages/alpha/src/queue.json" },
+      { "id": "coverage", "run": "pnpm exec vitest run packages/alpha/ --coverage --coverage.include='packages/alpha/src/**'" },
+      { "id": "typecheck", "run": "pnpm run typecheck" }
+    ],
+    "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+    "priority": 0
+  }
+]

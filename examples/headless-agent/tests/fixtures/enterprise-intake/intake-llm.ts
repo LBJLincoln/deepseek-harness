@@ -1,14 +1,16 @@
 /**
- * Keyless adapter that plays the coordinators of the intake program from a
- * script: for each coordinator seat the script names, either commit the
- * proposals file committed under `scripted/`, or refuse the request the way
- * the Claude Code route classifies a spent usage window.
+ * Keyless adapter that plays the departments of the intake program from a
+ * script: for each department the script names by its key — a refilling
+ * coordinator's seat id, or a request's `request-<name>` — either commit the
+ * proposals file under `scripted/`, or refuse the request the way the Claude
+ * Code route classifies a spent usage window. A department's key is the stem
+ * of the proposals path its objective names.
  *
- * `DSH_TEST_INTAKE_SCRIPT` is the script, a JSON object from seat id to
+ * `DSH_TEST_INTAKE_SCRIPT` is the script, a JSON object from department key to
  * `{ "proposals": "<file under scripted/>" }` or `{ "limit": "<the product's notice>" }`.
  * `DSH_TEST_INTAKE_CALLS`, when set, is a file the adapter appends one line
- * per request it serves to, naming the seat, so a test sees which departments
- * reached the route. A department answers a `<checks_failed>` or
+ * per request it serves to, naming the department key, so a test sees which
+ * departments reached the route. A department answers a `<checks_failed>` or
  * `<uncommitted_work>` turn with a refusal to continue, so a department whose
  * proposals admission refused fails on its rounds instead of repeating itself.
  */
@@ -30,13 +32,13 @@ import {
 /** The turn texts the program delivers after a measured attempt that did not certify. */
 const RETRY_MARKERS = ['<checks_failed>', '<uncommitted_work>']
 
-/** The phrase every coordinator objective opens with, before the seat id in backticks. */
-const SEAT_MARKER = /roster seat `([a-z0-9-]+)`/
+/** The instruction every department objective carries, naming the proposals file whose stem is the department key. */
+const KEY_MARKER = / to `\.intake\/([a-z0-9-]+)\.json` at the root of this worktree/
 
 /** The answer that ends a department's turn. */
 const DONE = 'TURN COMPLETE'
 
-/** One coordinator's scripted part. */
+/** One department's scripted part. */
 type Part = { readonly proposals: string } | { readonly limit: string }
 
 /** The script, read once at load. */
@@ -62,12 +64,12 @@ function position(options: GenerateOptions): { readonly text: string; readonly r
   return { text: '', results }
 }
 
-/** The coordinator seat this session works, from its goal objective. */
-function seatOf(options: GenerateOptions): string | undefined {
+/** The department key this session works, from its goal objective. */
+function keyOf(options: GenerateOptions): string | undefined {
   for (const message of options.messages) {
     for (const block of message.content ?? []) {
       if (block.type !== 'text') continue
-      const match = SEAT_MARKER.exec(block.text)
+      const match = KEY_MARKER.exec(block.text)
       if (match?.[1] !== undefined) return match[1]
     }
   }
@@ -75,14 +77,14 @@ function seatOf(options: GenerateOptions): string | undefined {
 }
 
 /**
- * The one shell call that writes and commits a coordinator's proposals.
- * @param seat - the coordinator seat, which names the file.
+ * The one shell call that writes and commits a department's proposals.
+ * @param key - the department key, which names the file.
  * @param body - the scripted file's contents.
  * @returns the `bash` call's arguments.
  */
-function commitCall(seat: string, body: string): object {
+function commitCall(key: string, body: string): object {
   return {
-    command: `mkdir -p .intake && cat > .intake/${seat}.json <<'EOF'\n${body.trimEnd()}\nEOF\ngit add .intake && git commit -q -m '${seat}: proposed tickets'`,
+    command: `mkdir -p .intake && cat > .intake/${key}.json <<'EOF'\n${body.trimEnd()}\nEOF\ngit add .intake && git commit -q -m '${key}: proposed tickets'`,
     description: 'Write the proposed tickets and commit them.',
   }
 }
@@ -95,12 +97,12 @@ class IntakeAdapter extends LlmAdapter {
   }
 
   async * stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
-    const seat = seatOf(options)
+    const key = keyOf(options)
     const calls = process.env['DSH_TEST_INTAKE_CALLS']
-    if (calls !== undefined) appendFileSync(calls, `${seat ?? '(none)'}\n`)
-    const part = seat === undefined ? undefined : this.script.get(seat)
-    if (seat === undefined || part === undefined) {
-      yield * reply('NO SCRIPTED COORDINATOR IN THIS SESSION')
+    if (calls !== undefined) appendFileSync(calls, `${key ?? '(none)'}\n`)
+    const part = key === undefined ? undefined : this.script.get(key)
+    if (key === undefined || part === undefined) {
+      yield * reply('NO SCRIPTED DEPARTMENT IN THIS SESSION')
       return
     }
     if ('limit' in part) {
@@ -116,7 +118,7 @@ class IntakeAdapter extends LlmAdapter {
     }
     if (results === 0) {
       const body = readFileSync(new URL(`scripted/${part.proposals}`, import.meta.url), 'utf8')
-      yield * call('commit-proposals', 'bash', commitCall(seat, body))
+      yield * call('commit-proposals', 'bash', commitCall(key, body))
       return
     }
     yield * reply(DONE)
@@ -157,7 +159,7 @@ export const name = 'intake-llm'
 export const inject = ['llm']
 
 /**
- * Register the keyless `cli-mock` adapter this composition's coordinators run on.
+ * Register the keyless `cli-mock` adapter this composition's departments run on.
  * @param ctx - the plugin context carrying the LLM runtime.
  */
 export function apply(ctx: Context): void {

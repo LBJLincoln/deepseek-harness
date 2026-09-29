@@ -10,6 +10,7 @@ import type { TicketLine } from './enterprise-ledger.ts'
 import {
   answeringTickets,
   formatStatus,
+  isTitled,
   parseRequestsCommand,
   readIntakeRequests,
   readRequests,
@@ -83,6 +84,7 @@ describe('a request file', () => {
       { path: `${REQUESTS_DIR}/b-bound.md`, title: 'Bound the drain', anchor: '# Bound the drain', text: '# Bound the drain\n\nIt never stops.\n' },
       { path: `${REQUESTS_DIR}/c-untitled.md`, title: null, anchor: null, text: 'Make it faster.\n' },
     ])
+    expect(readRequests(root).map(isTitled)).toEqual([true, true, false])
     expect(readRequests(tree({}))).toEqual([])
   })
 })
@@ -117,7 +119,7 @@ describe('the status of a request', () => {
     at: '2026-09-29T03:00:00.000Z',
     requests: [
       { path: request('refused').path, result: 'refused', reason: 'the second reason' },
-      { path: request('reached-once').path, result: 'not-reached' },
+      { path: request('reached-once').path, result: 'unanswered' },
     ],
   }
 
