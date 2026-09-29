@@ -1,0 +1,212 @@
+{
+  "type": "result",
+  "shift": "221307-dd9a",
+  "startedAt": "2026-09-29T22:13:08.209Z",
+  "base": "63a044bd1dd686bbadf7d89c97d0f1d6e3d7e269",
+  "remote": "https://github.com/LBJLincoln/deepseek-harness",
+  "branch": "claude/coding-agent-harness-u9l4gt",
+  "implementer": "route",
+  "model": "Claude Code sonnet",
+  "programId": "program-e81177c1ba8a7f792baf12fd5a3459e72585187545f1996ec259413904550266",
+  "report": {
+    "programId": "program-e81177c1ba8a7f792baf12fd5a3459e72585187545f1996ec259413904550266",
+    "sessionId": "program-e81177c1ba8a7f792baf12fd5a3459e72585187545f1996ec259413904550266",
+    "outcome": "released",
+    "mergedRevision": "a5634e02c9e0bcb12c9e3367b79c78267d9cf56e",
+    "goals": [
+      {
+        "key": "t-0017",
+        "status": "merged",
+        "sessionId": "program-e81177c1ba8a7f792baf12fd5a3459e72585187545f1996ec259413904550266-t-0017",
+        "revision": "2e3ce932af0645bd38779a4c559f981f55cad752",
+        "tree": "196a94b42b7cc28cd42cf28f49218aeac3e5ca6d"
+      },
+      {
+        "key": "t-0029",
+        "status": "merged",
+        "sessionId": "program-e81177c1ba8a7f792baf12fd5a3459e72585187545f1996ec259413904550266-t-0029",
+        "revision": "6f81d0a09d98f49c812e99c34cac009d3a903b18",
+        "tree": "839f086437481faa86d1c05ed629236113bb992f"
+      }
+    ]
+  },
+  "halt": null,
+  "decisions": [
+    {
+      "transition": "spec-freeze",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 221307-dd9a"
+      },
+      "artefactSha256": "2774065df20f3bc8ea8f3b984d9bbe751cf3bb96285f0869eb1e54b7cd2c1a26"
+    },
+    {
+      "transition": "release",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 221307-dd9a"
+      },
+      "artefactSha256": "2774065df20f3bc8ea8f3b984d9bbe751cf3bb96285f0869eb1e54b7cd2c1a26"
+    }
+  ],
+  "tickets": [
+    {
+      "type": "ticket",
+      "at": "2026-09-29T23:07:01.571Z",
+      "shift": "221307-dd9a",
+      "ticket": "T-0017",
+      "seat": "harness-core-subagent-claude-code-steward",
+      "division": "harness-core",
+      "programId": "program-e81177c1ba8a7f792baf12fd5a3459e72585187545f1996ec259413904550266",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-e81177c1ba8a7f792baf12fd5a3459e72585187545f1996ec259413904550266-t-0017"
+      },
+      "checks": [
+        {
+          "id": "note-implemented",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "doc-sync",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-lint",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0017-dfbe8005"
+      },
+      "reviewer": {
+        "sessionId": "review-t-0017-dfbe8005",
+        "route": "claude-code",
+        "model": "sonnet",
+        "verdict": "approve"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "84651be1bfc78c37bb7741ecd1af4ac93baa158d"
+      },
+      "reason": "approved and assembled",
+      "tokens": 2215923,
+      "seconds": 708,
+      "rationale": "**Lifecycle move.** All three files of the triplet (`.md`, `.zh.md`, `.i18n.yaml`) are renamed into `.agents/notes/implemented/architecture/` with the filename kept, and nothing is left under `proposed/`. Line 3 reads `Status: implemented` in both languages. The `note-implemented` check passes.\n\n**Acceptance criteria.**\n- The diff shows the implementer checked each bullet against the tree and did not leave the note in place, which the ticket's constraint would only require for an unmet criterion.\n- Where the shipped code differs from the proposal, the note now states what shipped:\n  - The missing-tool-server refusal is `BRIDGE_UNAVAILABLE`, exported as `SUBAGENT_BRIDGE_UNAVAILABLE`.\n  - `BRIDGE_TOOL_PREFIX` and `BRIDGE_TOOL_DENIAL` are exported.\n  - `bridge/end` carries `model` and `costUsd`.\n  - The bridged child does not compose `toolFilter` or `persona`, because the provider advertises neither.\n  - `serve()` is not shipped.\n- The note says the capability table in `service.spec.ts` does not list `harnessTools`, so the `UNSUPPORTED_CAPABILITY` refusal is covered only through the shared capability check. The refusal itself is real, and the note records the gap instead of hiding it.\n- The Testing section names the Loader-booted `agent-bridge.e2e.ts` fixture, `mcp-tool-server.spec.ts`, `bridge.spec.ts`, and the black-box `subagent-claude-code.spec.ts`. That covers the round trip, denial at the executor, disposal, the pinned SDK options, the `bridge/*` event order, and the unchanged black-box mode. I could not open these specs, so I am relying on the note and on the passing coverage run.\n\n**Rewrite.**\n- Future-tense sentences are turned into facts, and \"Proposal\" becomes \"Decision\". \"Acceptance criteria\" and \"Risks\" are folded into \"Testing\" and \"Consequences\".\n- This goes beyond a minimal rewrite, but the content is all shipped fact, and the agent-note format and classification gates pass.\n- The relative links to the two notes that stay proposed (`read-barrier`, `bud…"
+    },
+    {
+      "type": "ticket",
+      "at": "2026-09-29T23:07:01.571Z",
+      "shift": "221307-dd9a",
+      "ticket": "T-0029",
+      "seat": "program-departments-workspace-coordinator",
+      "division": "program-departments",
+      "programId": "program-e81177c1ba8a7f792baf12fd5a3459e72585187545f1996ec259413904550266",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-e81177c1ba8a7f792baf12fd5a3459e72585187545f1996ec259413904550266-t-0029"
+      },
+      "checks": [
+        {
+          "id": "title-parameter-gone",
+          "ok": true
+        },
+        {
+          "id": "todo-gone",
+          "ok": true
+        },
+        {
+          "id": "readme-signature-current",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "doc-sync",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-lint",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0029-3e7cbf28"
+      },
+      "reviewer": {
+        "sessionId": "review-t-0029-3e7cbf28",
+        "route": "claude-code",
+        "model": "sonnet",
+        "verdict": "approve"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "46d9a57469c165a565512ca5962abe4eaf8ef5b6"
+      },
+      "reason": "approved and assembled",
+      "tokens": 311048,
+      "seconds": 1034,
+      "rationale": "- **Source change:** `title` is removed from both `create()` and `createCanonical()`, and the name is now always `basename(canonical)`. The TODO comment and the `@param title` line are deleted. The rest of the JSDoc contract stays: `realpath` canonicalization, rejection of a missing or non-directory path, reuse per canonical path, prepend to durable order, and different paths may share a title. The wording change (\"titled `basename(canonical)`\") is accurate.\n- **Persisted record:** The persisted `Workspace.title` field and the header-index refresh are untouched, as the ticket requires.\n- **Tests:** Every call that passed a title is rewritten to assert the derived title. The three behaviours the ticket names are still pinned:\n  - **Reuse:** an alias path returns the same entity, with title `'first'`.\n  - **Concurrent create:** two creates of one path collapse into one entity, and the table size is 1.\n  - **Shared basename:** two different paths that both end in `app` get the same title `'app'`. The new test builds real nested directories, which is a stronger check than the old test, whose two directories only shared an explicit title.\n- **Docs:**\n  - **README pair:** both READMEs now say `create(path)` with the title clause changed, and the i18n hashes are re-recorded.\n  - **Generated files:** `docs/subsystems/workspace{,.zh}.md` and their i18n file, plus `tool-cordis/src/api-catalog.ts`, were regenerated. All of these are on the ticket's `generated` list and mirror the JSDoc change.\n- **Scope and constraints:** Nothing outside `packages/workspace/workspace/` and the listed generated paths changed. `dsh-host-apiproxy` and the client `workspaces` remote are untouched, and no Agent Note was added. The commit message cites the one-route simplification note, as required.\n- **Checks:** All six acceptance checks pass. Coverage is 100% on statements, branches, functions and lines. Typecheck passes. `doc-sync` passes 29 of 29 gates, including translation pairing across 1109…"
+    }
+  ],
+  "held": [],
+  "redacted": 16
+}
