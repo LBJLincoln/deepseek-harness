@@ -171,6 +171,8 @@ export interface TierRow {
   found: number
   knownIssues: number
   findings: number
+  /** How many of the findings land on a documented issue; absent from a briefing.json written before the field existed. */
+  onKnown?: number
   verifiedAtLine: boolean
   /** The time as the comparison states it, for a tier without a measured duration. */
   wall: string | null

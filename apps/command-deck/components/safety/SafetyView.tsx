@@ -13,6 +13,7 @@ import { usePrefersReducedMotion } from '@/deck/motion'
 import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
+import { DATA_HANDLING_URL } from '@/deck/repository'
 import { onActivate } from '@/components/shell/activate'
 import { WebGLGate } from '@/components/three/WebGLGate'
 import { BenchmarkPanel } from './BenchmarkPanel'
@@ -233,6 +234,9 @@ export function SafetyView(): ReactNode {
             {safety === undefined
               ? '—'
               : `${safety.target.files.length} files · ${Object.keys(safety.target.languages).length} languages · ${findings.length} findings`}
+          </p>
+          <p className="panel__sub">
+            <a className="panel__link" href={DATA_HANDLING_URL} target="_blank" rel="noreferrer">Where the reviewed code and its records go</a>
           </p>
           <FilesOpened />
         </div>

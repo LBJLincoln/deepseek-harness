@@ -4,12 +4,10 @@
  * print. Times are UTC because every record states UTC.
  */
 
+import { REPOSITORY } from '../../deck/repository.ts'
 import type { Figure, TierRow } from './types.ts'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-/** The repository the records live in, for links to files and commits. */
-const REPOSITORY = 'https://github.com/LBJLincoln/deepseek-harness'
 
 /**
  * @param value - an integer.

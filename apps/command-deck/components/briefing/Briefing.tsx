@@ -22,6 +22,7 @@ const RESULTS_NOTE = '.agents/notes/proposed/architecture/2026-09-08-hypothesis-
 const GOALS_NOTE = '.agents/notes/proposed/process/2026-09-22-four-goals-rethink.md'
 const COMPARISON_README = 'data/code-safety/comparisons/2026-09-22-nodegoat/README.md'
 const SAFETY_README = 'data/code-safety/README.md'
+const DATA_HANDLING = 'docs/client/data-handling.md'
 const SHIFT_COMPOSITION = 'examples/headless-agent/tests/fixtures/enterprise-shift/cordis.yml'
 const SHIFT_OVERLAY = 'examples/headless-agent/tests/fixtures/enterprise-shift/overlays/claude-code.cordis.yml'
 const ENGINE_README = 'examples/headless-agent/tests/fixtures/enterprise-shift/README.md'
@@ -419,6 +420,11 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
     .filter(Number.isFinite)
   const withChecklists = nodegoat.filter(row => row.iteration?.pair === '3' && row.iteration.arm === 'with')
   const withoutChecklists = nodegoat.filter(row => row.iteration?.pair === '3' && row.iteration.arm === 'without')
+  const untuned = nodegoat.filter(row => !withChecklists.includes(row))
+  const untunedFound = untuned.map(row => row.found)
+  const enterpriseTier = tiers.find(row => row.id === 'enterprise')
+  // A briefing.json written before the tiers carried `onKnown` has none to subtract.
+  const beyond = enterpriseTier?.onKnown === undefined ? undefined : enterpriseTier.findings - enterpriseTier.onKnown
   const cycles = pilot.filter(row => row.kind === 'cycle')
   const schedulerCycles = cycles.filter(row => row.startedBy === 'scheduler')
   const latestScheduled = schedulerCycles.at(-1)
@@ -525,6 +531,7 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
     runs: n4.cite(f('safety.nodegoatRuns') ?? data.safety.recall),
     seeded: n4.cite(data.safety.seeded),
     seededNote: n4.cite({ paths: [SAFETY_README], computation: 'The code-safety README: three of the eight planted sites wrap an already narrowed value and carry no reachable defect; on the five that do, the review caught five.' }),
+    dataHandling: n4.cite({ paths: [DATA_HANDLING], computation: 'Where a reviewed codebase and its records go: each movement of the data with the file that shows it, the terms of each destination, and what a client engagement needs first.' }),
   }
 
   // ---- 5. Data handling and governance ---------------------------------------
@@ -559,6 +566,7 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
     audit: n5.cite({ paths: [README, SHIFT_NOTE, 'AGENTS.md'], computation: 'The ledger is appended and never rewritten; a shift record holds result.json, manifest.json with every file’s SHA-256 and every session log; each ticket commit names the shift, ticket, seat, program and sessions; model-visible input is logged.' }),
     ledger: n5.cite(f('ledger.lines') ?? data.shifts),
     sessions: n5.cite(f('sessions.recorded') ?? data.divisions),
+    dataHandling: n5.cite({ paths: [DATA_HANDLING], computation: 'The full data flow of a review: each movement of the data with the file that shows it, the terms of each destination, what the repository does not record about them, and what a client engagement needs first.' }),
   }
   const flows: Flow[] = [
     {
@@ -877,19 +885,19 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
             </ul>
 
             <h3>Security-review recall against documented defects</h3>
-            <p>The code-safety program reviews a codebase in six departments &mdash; secrets, injection, access, data, dependencies and platform &mdash; and a committed examiner rejects any finding whose cited line does not hold. Recall is read against targets whose defects are documented{nodegoat[0] === undefined ? '' : `: ${nodegoat[0].target}, with ${nodegoat[0].knownIssues} issues`}{dvja === undefined ? '' : `, and ${dvja.target}, with ${dvja.knownIssues}`}. A documented issue counts as found when a finding cites its file within three lines of the issue&rsquo;s lines<Cite note={c4.recallRule} branch={branch} />.</p>
+            <p>The code-safety program reviews a codebase in six departments &mdash; secrets, injection, access, data, dependencies and platform &mdash; and a committed examiner rejects any finding whose cited line does not hold; a finding it passes is line-verified: the quoted text is at the cited line of the cited file, which does not show that the finding is a real defect. Every review sends the code it reads to the model API and commits records that quote it<Cite note={c4.dataHandling} branch={branch} />. Recall is read against targets whose defects are documented{nodegoat[0] === undefined ? '' : `: ${nodegoat[0].target}, with ${nodegoat[0].knownIssues} issues`}{dvja === undefined ? '' : `, and ${dvja.target}, with ${dvja.knownIssues}`}. A documented issue counts as found when a finding cites its file within three lines of the issue&rsquo;s lines<Cite note={c4.recallRule} branch={branch} />.</p>
             {tiers.length === 0 ? null : (
               <>
                 <h4>Three ways to review the same application<Cite note={c4.tiers} branch={branch} /></h4>
                 <TierBars rows={tiers} />
-                <p>On this small application one model in one pass found {single?.found ?? 'unknown'} of {single?.knownIssues ?? 'unknown'} documented issues, more than the enterprise&rsquo;s {enterprise?.found ?? 'unknown'}; the scanner found {scanner?.found ?? 'unknown'}. The enterprise released {enterprise?.findings ?? 'unknown'} findings, each checked by the examiner at the line it cites, with a record of how every finding was reached; the single pass released {single?.findings ?? 'unknown'}, none checked<Cite note={c4.comparison} branch={branch} />.</p>
+                <p>Each tier ran once. On this small application one model in one pass found {single?.found ?? 'unknown'} of {single?.knownIssues ?? 'unknown'} documented issues, more than the enterprise&rsquo;s {enterprise?.found ?? 'unknown'}; the scanner found {scanner?.found ?? 'unknown'}. The single pass released {single?.findings ?? 'unknown'} findings, unverified: nothing checked them against the code. The enterprise released {enterprise?.findings ?? 'unknown'}, each line-verified, with a record of how every finding was reached{beyond === undefined ? '' : `; ${beyond} of them land on no documented issue and are untriaged candidates, not established defects`}<Cite note={c4.comparison} branch={branch} />.</p>
               </>
             )}
             {nodegoat.length === 0 ? null : (
               <>
                 <h4>Every review of {nodegoat[0]?.target ?? 'the target'}, in order<Cite note={c4.runs} branch={branch} /></h4>
                 <RecallRuns rows={nodegoat} />
-                <p>{nodegoat.length} reviews of the same revision found between {text(f('safety.nodegoatMin'))} and {text(f('safety.nodegoatMax'))} of {nodegoat[0]?.knownIssues ?? 'unknown'} documented issues, each within three lines. A generalist department added nothing. Checklists written from a diagnosis of the enterprise&rsquo;s misses on this application found {listed(withChecklists.map(row => String(row.found)))} in their two runs against {listed(withoutChecklists.map(row => String(row.found)))} without them; whether they transfer to another codebase is untested. {dvja === undefined ? '' : `On ${dvja.target} the review found ${dvja.found} of ${dvja.knownIssues}.`}</p>
+                <p>The {untuned.length} reviews of the same revision without the diagnosed checklists found between {untunedFound.length === 0 ? 'unknown' : Math.min(...untunedFound)} and {untunedFound.length === 0 ? 'unknown' : Math.max(...untunedFound)} of {nodegoat[0]?.knownIssues ?? 'unknown'} documented issues, each within three lines. A generalist department added nothing. Checklists written from a diagnosis of the enterprise&rsquo;s misses on this application found {listed(withChecklists.map(row => String(row.found)))} in their two runs against {listed(withoutChecklists.map(row => String(row.found)))} without them, an in-sample reading, because the checklists were written from the application they were scored on; whether they transfer to another codebase is untested. {dvja === undefined ? '' : `On ${dvja.target} the review found ${dvja.found} of ${dvja.knownIssues}.`}</p>
               </>
             )}
             {seeded === null ? null : (
@@ -917,7 +925,9 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
             <p>
               The repository&rsquo;s visibility on GitHub is {text(visibility)}<Cite note={c5.visibility} branch={branch} />. A
               client&rsquo;s code read by a department therefore reaches Anthropic&rsquo;s model API under the operator&rsquo;s
-              Claude Code login, and the session logs and transcripts that hold it are published with the repository.
+              Claude Code login, and the session logs and transcripts that hold it are published with the repository. Every
+              movement of the data, the terms of each destination and what the repository does not record about them are on the
+              data-handling page<Cite note={c5.dataHandling} branch={branch} />.
             </p>
             <div className="bf-callout bf-callout--requirement">
               <h4>Required before a client&rsquo;s code is read</h4>

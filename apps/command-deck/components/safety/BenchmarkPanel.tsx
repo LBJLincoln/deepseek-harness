@@ -10,9 +10,12 @@ const TIER_COLOR: Record<string, string> = {
   semgrep: '#7a8699',
 }
 
+/** What a line-verified finding is, and what it is not, in the words every client-facing text uses. */
+const LINE_VERIFIED = 'the examiner found the quoted text at the cited line of the cited file, which does not show that a finding is a real defect'
+
 /**
- * One tier's row: a recall bar scaled to the known-issue count, with the counts
- * and whether every finding was verified beside it.
+ * One tier's row: a recall bar scaled to the known-issue count, with the counts,
+ * whether its findings were line-verified, and its cost as the record states it.
  * @param props.tier - The tier to draw.
  * @param props.known - The ground truth's issue count, the bar's full width.
  * @returns The row.
@@ -22,7 +25,7 @@ function TierRow({ tier, known }: { tier: ComparisonTier; known: number }): Reac
   const pct = Math.round((tier.found / known) * 100)
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
         <span style={{ fontWeight: 600 }}>{tier.name}</span>
         <span className="mono" style={{ fontSize: 12, opacity: 0.8 }}>{tier.found}/{known} · {tier.findings} findings · {tier.wall}</span>
       </div>
@@ -34,9 +37,10 @@ function TierRow({ tier, known }: { tier: ComparisonTier; known: number }): Reac
         {tier.kind}
         {' · '}
         {tier.verified
-          ? <span style={{ color: '#4fd1c5' }}>every finding verified</span>
+          ? <span style={{ color: '#4fd1c5' }} title={LINE_VERIFIED}>line-verified</span>
           : <span style={{ color: '#f0b429' }}>unverified</span>}
       </div>
+      <div style={{ fontSize: 12, opacity: 0.7 }}>{tier.cost}</div>
     </div>
   )
 }
@@ -47,11 +51,13 @@ function Mark({ on }: { on: boolean }): ReactNode {
 }
 
 /**
- * The read a client needs beside the bars. Recall alone can favour a single
- * unverified pass, so this names which approach out-recalls on this target and
- * why the enterprise's verified, repeatable result is the number that can be
- * acted on. A pure function of the two model-run tiers; renders nothing when
- * either is absent from the record.
+ * The read a client needs beside the bars: each tier ran once, which approach
+ * out-recalls on this target, what line-verified does and does not establish,
+ * how many of the enterprise's findings are untriaged candidates, and how far a
+ * second run of the program agrees with the first. The program-wide readings,
+ * the rerun overlap and the recall bands with and without the diagnosed
+ * checklists, are the ones `data/code-safety/README.md` states. Renders nothing
+ * when either model-run tier is absent from the record.
  * @param props.comparison - The target's comparison record.
  * @returns The callout, or null.
  */
@@ -62,11 +68,17 @@ function ReadTheBars({ comparison }: { comparison: Comparison }): ReactNode {
   const pct = (tier: ComparisonTier): number => Math.round((tier.found / comparison.knownIssues) * 100)
   return (
     <div style={{ fontSize: 12.5, lineHeight: 1.55, padding: '10px 12px', margin: '2px 0 6px', borderLeft: '2px solid #4fd1c5', background: 'rgba(79,209,197,0.06)' }}>
-      <b>Read the bars with the verification label.</b>{' '}
+      <b>Read the bars with their conditions.</b> Each tier ran once.{' '}
       {model.found > enterprise.found
         ? `The single pass reads higher on recall here — ${pct(model)}% to ${pct(enterprise)}%, and we say so.`
         : `The enterprise reads at least level on recall here — ${pct(enterprise)}% to ${pct(model)}%.`}{' '}
-      A single pass is <span style={{ color: '#f0b429' }}>unverified</span> and non-deterministic: a second run returns a different set, with no transcript and no certificate. Only the enterprise <span style={{ color: '#4fd1c5' }}>verifies every finding at its line</span> and leaves a repeatable, auditable result. On a small application the harness&rsquo;s worth is auditability, not a higher count.
+      The single pass is <span style={{ color: '#f0b429' }}>unverified</span>: nothing checked its {model.findings} findings against
+      the code, and it left no session log. The enterprise&rsquo;s {enterprise.findings} findings are{' '}
+      <span style={{ color: '#4fd1c5' }}>line-verified</span>: {LINE_VERIFIED}. Of those, {enterprise.findings - enterprise.onKnown} land
+      on no documented issue and are untriaged candidates, not established defects. The program can be rerun, but a rerun is not
+      identical: two reviews of this revision matched 38 of the first run&rsquo;s 42 findings within three lines of the same file, 31 of
+      them with the same CWE. Across the ten NodeGoat reviews without the diagnosed checklists the enterprise reads 13 to 15 of 18; the
+      two with them read 18 of 18, an in-sample reading, because the checklists were written from this target&rsquo;s misses.
     </div>
   )
 }
@@ -151,7 +163,7 @@ function IterationCard({ iteration, known }: { iteration: ComparisonIteration; k
           Iteration {iteration.id} · {iteration.ran}
           {iteration.pair !== undefined ? ` · pair ${iteration.pair}, ${iteration.arm ?? 'arm'}` : ''}
         </span>
-        <span className="mono" style={{ opacity: 0.8 }}>{iteration.found}/{known} · {iteration.findings} findings · {iteration.wall} · {iteration.verified ? 'verified' : 'unverified'}</span>
+        <span className="mono" style={{ opacity: 0.8 }}>{iteration.found}/{known} · {iteration.findings} findings · {iteration.wall} · {iteration.verified ? 'line-verified' : 'unverified'}</span>
       </div>
       <div style={{ opacity: 0.85 }}>{iteration.change}</div>
       <div className="mono" style={{ marginTop: 4, opacity: 0.8 }}>

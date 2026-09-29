@@ -34,6 +34,8 @@ Status: implemented
 
 **用人能读懂的名字称呼运行。** `deck/display-name.ts` 根据已知审查主题表和运行类型，把运行的目录名和时间变成 `OWASP NodeGoat · security review · 19 Sep 2026 · 20 min`，实验的分组写在括号里；标题、标题卡、运行选择器和记录卡片都使用它，id 保留在页脚中。审查目标以其检出目录的名称称呼，工作流视图把程序的根会话称为 `Program`，而不是用它的摘要。事件流把每一段连续的工具调用和步骤折叠为一行，列出其中最常见的调用，**Show every step** 则逐条列出；feed 把证书所在行组合为 `certificate · 3 of 3 checks pass`（`scripts/harness-feed.ts` 中的 `certificateLine`），指挥台把记录收在一个展开项后面。
 
+**代码安全数字附带其条件。** 依据[面向客户的陈述](../process/2026-09-29-code-safety-client-claims.md)，Benchmark 面板和简报说明每个对比层只运行了一次，把企业的发现称为行级验证（line-verified）并给出定义，把落在任何已记录问题之外的发现计为未分诊的候选，按实测给出重跑的重合度，并把使用诊断检查清单时读到的召回标为样本内；代码安全面板和简报的数据处理段落通过 `deck/repository.ts` 链接[数据处理页面](../../../../docs/client/data-handling.md)。
+
 **分部颜色以已发布的花名册为准。** `deck/palette.ts` 中的 `DIVISION_COLOR` 恰好以花名册中的分部为键；某个分部没有颜色、两个分部共用一种颜色，或调色板键入了花名册已不再定义的分部时，`tests/palette.spec.ts` 都会失败。
 
 **不发布任何主机路径。** `deck/host-paths.ts` 把记录机器上的绝对路径改写为占位符（`<repo>`、`<targets>`、`<scratchpad>`、`<tmp>`、`<home>`）。feed 的折叠把它应用于所转发的每个工具结果、指令和证书；`scripts/snapshot-fixtures.ts` 把它应用于写出的每份载荷；运营收集器把它应用于自己的快照；指挥台把它应用于读到的任何快照。已发布的 fixture 中出现主机路径时，`tests/fixtures.spec.ts` 会失败。

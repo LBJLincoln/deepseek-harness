@@ -527,6 +527,8 @@ export interface TierRow {
   found: number
   knownIssues: number
   findings: number
+  /** How many of the findings land on a documented issue, by the same three-line rule as `found`. */
+  onKnown: number
   verifiedAtLine: boolean
   /** The time as the comparison states it, for a tier without a measured duration. */
   wall: string | null
@@ -1180,11 +1182,21 @@ export function recallAgainst(
   const found: string[] = []
   const missed: string[] = []
   for (const issue of issues) {
-    const locations = [{ file: issue.file, lines: issue.lines }, ...(issue.alsoAt ?? [])]
-    const hit = findings.some(finding => locations.some(location => within(finding, location.file, location.lines)))
+    const hit = findings.some(finding => cites(finding, issue))
     ;(hit ? found : missed).push(issue.id)
   }
   return { found, missed }
+}
+
+/**
+ * Whether a finding lands on a documented issue: it cites the issue's file, or another location the issue lists, within three lines.
+ * @param finding - the finding.
+ * @param issue - the documented issue.
+ * @returns `true` when it does.
+ */
+function cites(finding: FindingInput, issue: GroundTruthIssue): boolean {
+  const locations = [{ file: issue.file, lines: issue.lines }, ...(issue.alsoAt ?? [])]
+  return locations.some(location => within(finding, location.file, location.lines))
 }
 
 function targetOf(record: string): string | null {
@@ -1282,6 +1294,7 @@ export function tierRows(inputs: BriefingInputs['safety']): TierRow[] | undefine
     found: recallAgainst(tier.findings, truth.issues).found.length,
     knownIssues: truth.issues.length,
     findings: tier.findings.length,
+    onKnown: tier.findings.filter(finding => truth.issues.some(issue => cites(finding, issue))).length,
     verifiedAtLine: tier.verified,
     wall: str(authored.get(tier.id)?.wall),
     wallSeconds: tier.wallSeconds,

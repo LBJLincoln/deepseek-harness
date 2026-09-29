@@ -464,6 +464,7 @@ describe('code-safety figures', () => {
       expect(byRecord.get(iteration.record.split('/').at(-1) ?? '')).toBe(iteration.found)
     }
     expect(tierRows(real)?.map(tier => tier.found)).toEqual((comparison?.tiers as { found: number }[]).map(tier => tier.found))
+    expect(tierRows(real)?.map(tier => tier.onKnown)).toEqual((comparison?.tiers as { onKnown: number }[]).map(tier => tier.onKnown))
   })
 })
 

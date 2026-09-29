@@ -6,6 +6,7 @@ import type { OpsAgent, OpsAttention, OpsHeartbeat, OpsSnapshot, OpsSource, OpsS
 import { factsAsOf, formatAge, snapshotAge, STATION_NAME, STATIONS, stationCounts, type OpsReading } from '@/deck/ops'
 import { stopOps, useOps } from '@/deck/ops-store'
 import { divisionColor } from '@/deck/palette'
+import { REPOSITORY } from '@/deck/repository'
 import { useDeck } from '@/deck/store'
 import { isOccupied } from '@/components/enterprise/evidence'
 import { Age, useNow } from './Age.tsx'
@@ -527,7 +528,7 @@ function Shipped({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
         <div className={`${styles.card} ${styles.rows}`}>
           {shipped.map(entry => (
             <div key={entry.commit} className={styles.commit}>
-              <a href={`https://github.com/LBJLincoln/deepseek-harness/commit/${entry.commit}`} target="_blank" rel="noreferrer">{entry.commit.slice(0, 7)}</a>
+              <a href={`${REPOSITORY}/commit/${entry.commit}`} target="_blank" rel="noreferrer">{entry.commit.slice(0, 7)}</a>
               <span title={entry.tickets.join(', ')}>{entry.tickets.join(', ')} · {entry.at.slice(5, 16).replace('T', ' ')}</span>
               {entry.url === undefined
                 ? <span className={styles.verdict}><i className={styles.statusDot} data-tone={tone[entry.ci]} />{words[entry.ci]}</span>
