@@ -2203,9 +2203,38 @@ function scratchShift(
   }
 }
 
+/** Where a shift's start line is committed: the tickets it selected, before its program ledger exists. */
+const SHIFT_STARTS = 'data/enterprise/shift-starts.jsonl'
+
 /**
- * The shift the view follows: the one holding the shift lock; else the newest
- * of the committed shift records and the scratch runs no record covers yet.
+ * The start line of one shift in {@link SHIFT_STARTS}.
+ * @param root - The checkout.
+ * @param shift - The shift's id.
+ * @returns When it started and the tickets it selected, or `undefined` when the checkout holds no line for it.
+ */
+function shiftStart(root: string, shift: string): { at?: number; tickets: string[] } | undefined {
+  let found: { at?: number; tickets: string[] } | undefined
+  for (const row of readText(join(root, SHIFT_STARTS))?.split('\n') ?? []) {
+    if (!row.includes(`"${shift}"`)) continue
+    let decoded: unknown
+    try {
+      decoded = JSON.parse(row)
+    } catch {
+      // A torn row: another row of the file may still name the shift.
+      continue
+    }
+    if (!isRecord(decoded) || decoded.shift !== shift || !Array.isArray(decoded.tickets)) continue
+    const at = msOf(decoded.at)
+    found = { ...at === undefined ? {} : { at }, tickets: decoded.tickets.filter((ticket): ticket is string => typeof ticket === 'string') }
+  }
+  return found
+}
+
+/**
+ * The shift the view follows: the one holding the shift lock, with the
+ * tickets its start line selected, queued, while it prepares its clone; else
+ * the newest of the committed shift records and the scratch runs no record
+ * covers yet.
  * Either way the ledger's lines for the shift decide its tickets' stages and
  * commits, since a record names the commits as the shift assembled them,
  * before any rebase of its push.
@@ -2223,7 +2252,18 @@ function collectShift(
 ): OpsShift | null {
   const shifts = scratchRuns.filter(run => !run.intake)
   const running = shifts.find(run => run.live)
-  if (running !== undefined) return scratchShift(c, running, tickets, ledger) ?? null
+  if (running !== undefined) {
+    // A shift holds the lock from its start; it writes its program ledger only once its clone is ready.
+    const start = shiftStart(c.inputs.root, running.id)
+    return scratchShift(c, running, tickets, ledger) ?? {
+      shift: running.id,
+      state: 'running',
+      startedAt: iso(start?.at ?? mtimeOf(running.dir) ?? c.now),
+      source: 'scratch',
+      tickets: (start?.tickets ?? []).map(id => ({ ticket: id, ...ticketFacts(id, tickets, undefined), stage: 'queued' })),
+      evidence: { label: `shift ${running.id} run.log` },
+    }
+  }
   const dir = join(c.inputs.root, 'data/enterprise/shifts')
   const newestRecord = (listDir(dir) ?? []).filter(name => /^\d{4}-\d{2}-\d{2}-\d{6}-[0-9a-f]{4}$/.test(name)).sort().at(-1)
   // A scratch run is named `<HHMMSS>-<hex>` for its start; one newer than every record has not reached the checkout.

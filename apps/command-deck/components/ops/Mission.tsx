@@ -300,7 +300,11 @@ function ShiftBoard({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
       </div>
       {shift === null ? <div className={styles.empty}>No shift has run on this machine and none is recorded on the branch.</div> : (
         <>
-          {shift.tickets.length === 0 ? <div className={styles.empty}>The shift names no ticket.</div> : null}
+          {shift.tickets.length === 0 ? (
+            <div className={styles.empty}>
+              {live ? 'No ticket selected yet: the shift is preparing its clone of the branch.' : 'The shift names no ticket.'}
+            </div>
+          ) : null}
           <div className={styles.tickets}>
             {shift.tickets.map(ticket => <ShiftTicketRow key={ticket.ticket} ticket={ticket} live={live} day={day} />)}
           </div>

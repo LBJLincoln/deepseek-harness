@@ -711,6 +711,28 @@ describe('collectOps', () => {
     expect(snapshot.shift?.tickets[0]).toMatchObject({ seat: 'harness-core-agent-steward', division: 'harness-core' })
   })
 
+  it('shows a shift that holds the lock as running before it writes its program ledger', async () => {
+    const inputs = machine()
+    write(join(inputs.scratch, 'shift.lock'), JSON.stringify({ pid: 4242, shift: '223800-f00d' }))
+    mkdirSync(join(inputs.scratch, '223800-f00d/repo'), { recursive: true })
+    utimesSync(join(inputs.scratch, '223800-f00d'), new Date('2026-09-28T22:38:00Z'), new Date('2026-09-28T22:38:00Z'))
+    const snapshot = await collectOps(inputs)
+    expect(snapshot.shift).toEqual({
+      shift: '223800-f00d', state: 'running', startedAt: '2026-09-28T22:38:00.000Z', source: 'scratch', tickets: [], evidence: { label: 'shift 223800-f00d run.log' },
+    })
+    // Its start line, committed as it starts, names the tickets it selected.
+    write(join(inputs.root, 'data/enterprise/shift-starts.jsonl'), `${[
+      JSON.stringify({ type: 'shift-start', at: '2026-09-28T20:00:00.000Z', shift: '200000-beef', tickets: ['T-0001'] }),
+      JSON.stringify({ type: 'shift-start', at: '2026-09-28T22:38:01.000Z', shift: '223800-f00d', tickets: ['T-0004', 'T-0009'] }),
+    ].join('\n')}\n{"torn\n`)
+    const started = await collectOps({ ...inputs, state: emptyOpsState() })
+    expect(started.shift).toMatchObject({ shift: '223800-f00d', state: 'running', startedAt: '2026-09-28T22:38:01.000Z' })
+    expect(started.shift?.tickets).toEqual([
+      { ticket: 'T-0004', title: 'Ticket T-0004', seat: 'harness-core-agent-steward', division: 'harness-core', stage: 'queued' },
+      { ticket: 'T-0009', stage: 'queued' },
+    ])
+  })
+
   it('shows the newest committed shift once none runs, each ticket where it stopped', async () => {
     const inputs = machine()
     const name = '2026-09-28-221600-0005'
