@@ -187,6 +187,9 @@ function rootOf(ids: readonly string[]): string | undefined {
   return root
 }
 
+/** The name of a program's root session, the one every department and the integration hang off. */
+const ROOT_NAME = 'Program'
+
 /**
  * A short, stable name for a session no admitted frame acts in.
  * @param id - The session id.
@@ -394,7 +397,7 @@ export function layoutWorkflow(events: readonly RunEvent[], agents: Map<string, 
       const unseated = principal === undefined || principal === draft.id
       nodes.push({
         id: draft.id,
-        label: agent?.name ?? (unseated ? (member === '' ? shortId(draft.id) : member) : principal),
+        label: agent?.name ?? (unseated ? (draft.id === root ? ROOT_NAME : member === '' ? shortId(draft.id) : member) : principal),
         agentId: principal,
         tier: column,
         x: (column - ((spread.length - 1) / 2)) * TIER_SPAN,

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 import type { ProgramRecord } from '@/deck/contract'
+import { displayName, targetName } from '@/deck/display-name'
 import { clock, duration, stamp } from '@/deck/format'
 import { useDeck } from '@/deck/store'
 import { onActivate } from '@/components/shell/activate'
@@ -54,8 +55,8 @@ function chainOf(program: ProgramRecord): ChainStep[] {
 
 /**
  * One department or integration row. The row opens its session in the Workflow
- * view when the deck lists the program's run, and names the session log's file
- * otherwise (its full path is the row's tooltip).
+ * view when the deck lists the program's run, and says whether the record
+ * holds its session log otherwise (the log's path is the row's tooltip).
  * @param props - The program, the row's figures, and whether the deck lists the run.
  * @returns The table row.
  */
@@ -98,7 +99,7 @@ function SessionRow({
     >
       <td>
         <div>{name}</div>
-        <div className="mono">{listed ? `${status} · open session` : `${status} · ${where.split('/').at(-1) ?? where}`}</div>
+        <div className="mono">{`${status} · ${listed ? 'open session' : sessionPath === undefined ? where : 'log recorded'}`}</div>
       </td>
       <td style={{ textAlign: 'right', width: 44 }}>{steps}</td>
       <td style={{ textAlign: 'right', width: 44 }}>{toolCalls}</td>
@@ -117,17 +118,19 @@ function SessionRow({
 function ProgramCard({ program, listed }: { program: ProgramRecord; listed: boolean }): ReactNode {
   const released = program.outcome === 'released'
   const certified = program.departments.filter(department => department.certified).length
+  const { runId: name, kind, startedAt, endedAt } = program
+  const heading = displayName({ name, kind, startedAt, ...endedAt === undefined ? {} : { endedAt } })
   return (
     <div className={`card record ${released ? 'card--verified' : ''}`}>
       <div className="card__head">
-        <h4>{program.runId}</h4>
+        <h4 title={program.runId}>{heading}</h4>
         <span className="status-tag" data-status={released ? 'certified' : program.outcome === undefined ? 'active' : 'failed'}>
           {program.outcome ?? 'running'}
         </span>
       </div>
       <p className="record__what">
         {program.kind === 'code-safety'
-          ? `Code-safety review of ${program.target ?? 'an unrecorded target'}`
+          ? `Code-safety review of ${program.target === undefined ? 'an unrecorded target' : targetName(program.target)}`
           : program.spec?.objective ?? 'Program run'}
       </p>
       <p className="record__meta">

@@ -25,6 +25,9 @@ const SUBJECTS: Record<string, string> = {
   nodegoat: 'OWASP NodeGoat',
   dvja: 'DVJA, the Damn Vulnerable Java Application',
   'csv-tools': 'CSV tools',
+  'readme-rows': 'README rows',
+  'self-assessment': 'Self-assessment',
+  'dsh-self-review': 'DeepSeek Harness self-review',
 }
 
 /** What each kind of run is, as a heading says it. */
@@ -45,16 +48,21 @@ const RECORDED = /^(\d{4}-\d{2}-\d{2})-(.+)$/
 const STARTED = /^(.+)-(\d{4}-\d{2}-\d{2})T\d{2}-\d{2}-\d{2}$/
 
 /**
- * The subject a run slug names: a known target by its proper name, else the
- * slug's words, without the run's ordinal and without the words that only say
- * what kind of run it is.
- * @param slug - The slug after its date, such as `nodegoat-2` or `bench-h3-baseline-sonnet-t5`.
- * @returns The subject, such as `OWASP NodeGoat` or `H3 baseline sonnet t5`.
+ * The subject a run slug names: a known target by its proper name, with the
+ * arm of an experiment in parentheses, else the slug's words, without the
+ * run's ordinal and without the words that only say what kind of run it is.
+ * @param slug - The slug after its date, such as `nodegoat-2`, `nodegoat-9-misses-a` or `bench-h3-baseline-sonnet-t5`.
+ * @returns The subject, such as `OWASP NodeGoat`, `OWASP NodeGoat (misses a)` or `H3 baseline sonnet t5`.
  */
 function subjectOf(slug: string): string {
   const bare = slug.toLowerCase().replace(/-\d+$/, '').replace(/-program$/, '')
   const known = SUBJECTS[bare]
   if (known !== undefined) return known
+  const key = Object.keys(SUBJECTS).find(subject => bare.startsWith(`${subject}-`))
+  if (key !== undefined) {
+    const arm = bare.slice(key.length + 1).replace(/^\d+(?:-|$)/, '').replaceAll('-', ' ')
+    return arm === '' ? SUBJECTS[key] ?? key : `${SUBJECTS[key] ?? key} (${arm})`
+  }
   const words = bare.replace(/^bench-/, '').split('-').filter(word => word !== '')
   const text = words.join(' ')
   return text === '' ? slug : text.charAt(0).toUpperCase() + text.slice(1)
@@ -96,6 +104,16 @@ export function subjectName(name: string): string {
   if (started !== null) return subjectOf(started[1] ?? name)
   const recorded = RECORDED.exec(name)
   return subjectOf(recorded?.[2] ?? name)
+}
+
+/**
+ * The subject of a review target, from the path its record keeps.
+ * @param path - The target's checkout, with host paths already replaced by placeholders such as `<targets>`.
+ * @returns A known target by its proper name, such as `OWASP NodeGoat` for `<targets>/NodeGoat`, else the checkout's directory name.
+ */
+export function targetName(path: string): string {
+  const directory = path.split('/').filter(part => part !== '' && part !== 'repo' && !/^<[^>]*>$/.test(part)).at(-1) ?? path
+  return SUBJECTS[directory.toLowerCase()] ?? directory
 }
 
 /**

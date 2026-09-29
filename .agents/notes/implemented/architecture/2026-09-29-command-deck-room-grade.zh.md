@@ -32,7 +32,7 @@ Status: implemented
 
 **标签彼此避让。** `components/enterprise/labels.ts` 为每个舞台提供一个 `LabelField`：每帧清空标签已占的矩形，每 500 ms 测量一次视图指定的舞台文案（标题、提示和卡片）。每个标签在附近几个位置中取第一个空闲的，否则取重叠最少的，并保持该位置直到另一个位置明显更好，因此标签不会闪动。手机上隐藏城市的街区名，因为在那个宽度下它们无法并排放下。
 
-**用人能读懂的名字称呼运行。** `deck/display-name.ts` 根据已知审查主题表和运行类型，把运行的目录名和时间变成 `OWASP NodeGoat · security review · 19 Sep 2026 · 20 min`；标题、标题卡和运行选择器都使用它，id 保留在页脚中。事件流把每一段连续的工具调用和步骤折叠为一行，列出其中最常见的调用，**Show every step** 则逐条列出；feed 把证书所在行组合为 `certificate · 3 of 3 checks pass`（`scripts/harness-feed.ts` 中的 `certificateLine`），指挥台把记录收在一个展开项后面。
+**用人能读懂的名字称呼运行。** `deck/display-name.ts` 根据已知审查主题表和运行类型，把运行的目录名和时间变成 `OWASP NodeGoat · security review · 19 Sep 2026 · 20 min`，实验的分组写在括号里；标题、标题卡、运行选择器和记录卡片都使用它，id 保留在页脚中。审查目标以其检出目录的名称称呼，工作流视图把程序的根会话称为 `Program`，而不是用它的摘要。事件流把每一段连续的工具调用和步骤折叠为一行，列出其中最常见的调用，**Show every step** 则逐条列出；feed 把证书所在行组合为 `certificate · 3 of 3 checks pass`（`scripts/harness-feed.ts` 中的 `certificateLine`），指挥台把记录收在一个展开项后面。
 
 **分部颜色以已发布的花名册为准。** `deck/palette.ts` 中的 `DIVISION_COLOR` 恰好以花名册中的分部为键；某个分部没有颜色、两个分部共用一种颜色，或调色板键入了花名册已不再定义的分部时，`tests/palette.spec.ts` 都会失败。
 

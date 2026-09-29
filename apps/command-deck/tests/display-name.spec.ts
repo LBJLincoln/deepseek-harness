@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import type { Run } from '../deck/contract.ts'
-import { displayName, subjectName } from '../deck/display-name.ts'
+import { displayName, subjectName, targetName } from '../deck/display-name.ts'
 
 /** The runs the committed replay carried on 2026-09-29, as `runs.json` lists them. */
 const RUNS: Run[] = [
@@ -29,6 +29,18 @@ describe('displayName', () => {
   it('reads a review started from the deck by its target and its timestamp', () => {
     expect(displayName({ name: 'NodeGoat-2026-09-19T20-49-35', kind: 'code-safety' })).toBe('OWASP NodeGoat · security review · 19 Sep 2026')
     expect(subjectName('webgoat-2026-09-28T10-00-00')).toBe('Webgoat')
+  })
+
+  it('names an arm of an experiment on a known subject in parentheses', () => {
+    expect(subjectName('2026-09-27-nodegoat-12-base-d')).toBe('OWASP NodeGoat (base d)')
+    expect(subjectName('2026-09-22-nodegoat-4-improved')).toBe('OWASP NodeGoat (improved)')
+    expect(subjectName('2026-09-21-nodegoat-3')).toBe('OWASP NodeGoat')
+    expect(subjectName('2026-09-27-readme-rows-program')).toBe('README rows')
+  })
+
+  it('names a review target by its checkout, never by the path it was read from', () => {
+    expect(targetName('<targets>/NodeGoat')).toBe('OWASP NodeGoat')
+    expect(targetName('<home>/enterprise-scratch/dsh-subagent-providers/repo')).toBe('dsh-subagent-providers')
   })
 
   it('leaves out what a review read without its run does not record', () => {
