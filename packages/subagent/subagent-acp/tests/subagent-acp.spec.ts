@@ -303,7 +303,8 @@ describe('cwd resolution', () => {
   })
 
   // Windows ACLs do not expose the POSIX directory search-bit state this fixture creates.
-  it.skipIf(process.platform === 'win32')('rejects a config cwd directory without search permission at load', async () => {
+  // uid 0 bypasses discretionary permission checks, so the search-bit fixture cannot deny access to root.
+  it.skipIf(process.platform === 'win32' || process.getuid?.() === 0)('rejects a config cwd directory without search permission at load', async () => {
     // statSync().isDirectory() is true for a mode-600 directory, but a
     // subprocess cwd needs SEARCH permission — spawn would fail EACCES.
     const tmp = mkdtempSync(join(tmpdir(), 'acp-noexec-'))
