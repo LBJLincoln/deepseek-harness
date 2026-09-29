@@ -4,7 +4,9 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import type { OpsAttention } from '../apps/command-deck/deck/contract.ts'
-import { collectOps, parseOpsArgs, rankAttention, sessionRole, type OpsInputs, type OpsState } from './enterprise-ops.ts'
+import {
+  collectOps, emptyOpsState, loadOpsState, OPS_STATE_FORMAT, parseOpsArgs, rankAttention, sessionRole, type OpsInputs, type OpsState,
+} from './enterprise-ops.ts'
 import {
   claudeProjectName,
   currentCycleStep,
@@ -365,7 +367,7 @@ describe('collectOps', () => {
       abandonMs: 30 * 60_000,
       opsLoopState: join(base, 'ops-live-state.json'),
       ciMaxAgeMs: 120_000,
-      state: { transcripts: {}, records: {} },
+      state: emptyOpsState(),
       github: async path => (path.includes('/jobs') ? jobs : runs),
       processes: () => processes,
       alive: pid => pid === 4242,
@@ -407,7 +409,7 @@ describe('collectOps', () => {
     const running = snapshot.agents.find(agent => agent.kind === 'cycle-step')
     expect(running?.evidence).toEqual({ label: 'cycle-20260928T221301Z' })
     write(join(inputs.root, 'data/enterprise/cycles/cycle-20260928T221301Z.json'), '{}\n')
-    const recorded = await collectOps({ ...machine(), state: { transcripts: {}, records: {} } })
+    const recorded = await collectOps({ ...machine(), state: emptyOpsState() })
     expect(recorded.attention.find(item => item.kind === 'cycle-step-failed')?.evidence[0]).toEqual({
       label: 'cycle-20260928T221301Z',
       url: 'https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260928T221301Z.json',
@@ -420,6 +422,24 @@ describe('collectOps', () => {
     expect(snapshot.runs.find(run => run.label === 'Durable live transcript capture')?.outcome).toBe('ok')
     expect(snapshot.agents.some(agent => agent.id.includes('readme-rows'))).toBe(false)
     expect(snapshot.attention.filter(item => item.kind === 'agent-stuck').map(item => item.title)).toEqual([expect.stringContaining('T-0005')])
+  })
+
+  it('reads a finished transcript again when its state was folded under another format', async () => {
+    const inputs = machine()
+    await collectOps(inputs)
+    const file = join(base, 'ops-state.json')
+    // An older collector cached the finished transcript as a turn still open, and a finished transcript never grows again.
+    const transcripts = Object.fromEntries(
+      Object.entries(inputs.state.transcripts).map(([path, state]) => [path, { ...state, endedTurn: false }]),
+    )
+    writeFileSync(file, JSON.stringify({ ...inputs.state, format: OPS_STATE_FORMAT - 1, transcripts }))
+    const discarded = loadOpsState(file)
+    expect(discarded).toEqual(emptyOpsState())
+    const snapshot = await collectOps({ ...machine(), state: discarded })
+    expect(snapshot.agents.some(agent => agent.label === 'Durable live transcript capture')).toBe(false)
+    // A state of the current format is trusted as written.
+    writeFileSync(file, JSON.stringify({ ...inputs.state, transcripts }))
+    expect(loadOpsState(file).transcripts).toEqual(transcripts)
   })
 
   it('ranks the attention queue with evidence and a next action for each item', async () => {

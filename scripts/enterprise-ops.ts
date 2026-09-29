@@ -123,8 +123,18 @@ const SWAP_PRESSURE_PCT = 50
 // Inputs
 // ---------------------------------------------------------------------------
 
+/**
+ * The format of the collector's state file. The state caches folds of sources
+ * that may never change again, such as a finished agent's transcript, so a
+ * change to what a fold records bumps it; a state file of another format is
+ * discarded, and every source is read again from its start.
+ */
+export const OPS_STATE_FORMAT = 2
+
 /** What the collector keeps between runs: incremental transcript reads, committed-record facts, and Branch CI reads. */
 export interface OpsState {
+  /** The {@link OPS_STATE_FORMAT} the state was folded under. */
+  format: typeof OPS_STATE_FORMAT
   transcripts: Record<string, TranscriptState>
   records: Record<string, { size: number; facts: RecordFacts }>
   ci?: { fetchedAt: number; runs: CiRun[]; jobs: Record<string, CiJob[]>; error?: string; errorAt?: number }
@@ -2085,10 +2095,22 @@ function githubJson(): GitHubJson {
   }
 }
 
-function loadState(file: string): OpsState {
+/** @returns A state nothing has been read into. */
+export function emptyOpsState(): OpsState {
+  return { format: OPS_STATE_FORMAT, transcripts: {}, records: {} }
+}
+
+/**
+ * Read the collector's state file.
+ * @param file - The state file.
+ * @returns Its state, or an empty state when the file is missing, unreadable, or of another {@link OPS_STATE_FORMAT}.
+ */
+export function loadOpsState(file: string): OpsState {
   const raw = readJson(file)
-  if (isRecord(raw) && isRecord(raw.transcripts) && isRecord(raw.records)) return raw as unknown as OpsState
-  return { transcripts: {}, records: {} }
+  if (isRecord(raw) && raw.format === OPS_STATE_FORMAT && isRecord(raw.transcripts) && isRecord(raw.records)) {
+    return raw as unknown as OpsState
+  }
+  return emptyOpsState()
 }
 
 /**
@@ -2150,7 +2172,7 @@ export function cliInputs(cli: OpsCli, state: OpsState): OpsInputs {
 
 async function main(argv: readonly string[]): Promise<number> {
   const cli = parseOpsArgs(argv, process.env)
-  const state = loadState(cli.state)
+  const state = loadOpsState(cli.state)
   const snapshot = await collectOps(cliInputs(cli, state))
   const json = `${JSON.stringify(snapshot, null, 2)}\n`
   let status = 0

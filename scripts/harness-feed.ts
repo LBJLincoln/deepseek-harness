@@ -41,7 +41,7 @@ import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 
 import type { OpsSnapshot } from '../apps/command-deck/deck/contract.ts'
-import { cliInputs, collectOps, parseOpsArgs, type OpsState } from './enterprise-ops.ts'
+import { cliInputs, collectOps, emptyOpsState, parseOpsArgs, type OpsState } from './enterprise-ops.ts'
 import { hostlessText } from '../apps/command-deck/deck/host-paths.ts'
 import { CODE_SAFETY_DEPARTMENTS, type Roster, type RosterAgentDefinition } from './enterprise-roster.ts'
 import {
@@ -1586,7 +1586,7 @@ const OPS_CACHE_MS = 5_000
  * @returns A reader of the current snapshot.
  */
 export function liveOps(): () => Promise<OpsSnapshot> {
-  const state: OpsState = { transcripts: {}, records: {} }
+  const state: OpsState = emptyOpsState()
   let cached: { at: number; snapshot: Promise<OpsSnapshot> } | undefined
   return () => {
     if (cached === undefined || Date.now() - cached.at > OPS_CACHE_MS) {
