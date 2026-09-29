@@ -414,6 +414,25 @@ describe('the fold and mapping functions directly', () => {
     expect(foldSessionEvent({ type: 42, seq: 1, time: 1 }, state)).toBeUndefined()
   })
 
+  it('publishes a tool result and a certificate without the recording machine\'s absolute paths', () => {
+    const state = { sessionId: 's1', callNameById: new Map([['call-1', 'read']]) }
+    const read = foldSessionEvent({
+      type: 'tool/result',
+      seq: 1,
+      time: 1,
+      data: { message: { source: { callId: 'call-1' }, content: [{ content: [{ text: 'read /home/user/deepseek-harness/packages/core/a.ts and /tmp/claude-0/-home-user-x/abc/scratchpad/notes.md' }] }] } },
+    }, state)
+    expect(read?.detail).toBe('read <repo>/packages/core/a.ts and <scratchpad>/notes.md')
+    const certificate = foldSessionEvent({
+      type: 'verification/certificate',
+      seq: 2,
+      time: 1,
+      data: { verifier: 'examiner', evidence: 'exit 0\nok: 8 findings verified against /home/user/targets/NodeGoat' },
+    }, state)
+    expect(certificate?.detail).toContain('verified against <targets>/NodeGoat')
+    expect(certificate?.detail).not.toContain('/home/user')
+  })
+
 })
 
 describe('GET /roster', () => {

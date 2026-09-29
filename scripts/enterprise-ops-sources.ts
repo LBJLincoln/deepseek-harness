@@ -287,7 +287,11 @@ export interface TranscriptState {
   firstAt?: number
   lastAt?: number
   doing?: string
-  /** The newest assistant message stopped at the end of its turn rather than on a tool call. */
+  /**
+   * The agent's turn is over: the newest assistant row stopped at the end of its
+   * turn, or, in a streamed transcript whose rows carry no stop reason, is text
+   * with no tool call after it and no user row since.
+   */
   endedTurn: boolean
   frames: Frame[]
 }
@@ -324,6 +328,8 @@ export function foldTranscript(state: TranscriptState, chunk: string): Transcrip
       if (next.lastAt === undefined || at > next.lastAt) next.lastAt = at
     }
     const message = isRecord(entry.message) ? entry.message : undefined
+    // A user row, a prompt or a tool result, reopens the turn the agent had ended.
+    if (entry.type === 'user') next.endedTurn = false
     if (entry.type !== 'assistant' || message === undefined) continue
     const id = stringOf(message.id)
     if (id !== undefined && !seen.has(id)) {
@@ -334,8 +340,12 @@ export function foldTranscript(state: TranscriptState, chunk: string): Transcrip
         + (numberOf(usage.cache_read_input_tokens) ?? 0) + (numberOf(usage.cache_creation_input_tokens) ?? 0)
     }
     const stop = stringOf(message.stop_reason)
-    if (stop !== undefined) next.endedTurn = stop === 'end_turn'
     const content = Array.isArray(message.content) ? message.content : []
+    // A streamed transcript records each block of a message as its own row with
+    // no stop reason, so a row of text is the turn's end until a tool call or a
+    // user row follows it: an agent whose last row is its final report is finished.
+    if (stop !== undefined) next.endedTurn = stop === 'end_turn'
+    else if (content.some(block => isRecord(block) && block.type === 'text')) next.endedTurn = true
     for (const block of content) {
       if (!isRecord(block) || block.type !== 'tool_use') continue
       next.endedTurn = false

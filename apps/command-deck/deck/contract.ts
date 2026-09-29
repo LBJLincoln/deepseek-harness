@@ -604,13 +604,13 @@ export const OPS_AGENT_KINDS: readonly OpsAgentKind[] = [
 
 /**
  * A link to the record a statement rests on: a GitHub page (a commit, a CI run
- * or job, a ledger line on the branch) when one exists, else a path on the
- * producing machine, which a viewer elsewhere cannot open.
+ * or job, a committed record on the branch) when one exists, else the record's
+ * name alone. A snapshot names a file on the producing machine by its label and
+ * carries no path of that machine.
  */
 export interface OpsLink {
   label: string
   url?: string
-  path?: string
 }
 
 /**

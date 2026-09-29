@@ -28,7 +28,7 @@ import { FLASH_MS, useOps } from '@/deck/ops-store'
 import { divisionColor } from '@/deck/palette'
 import { createGlowMaterial } from '@/components/three/glow'
 import { Stage } from '@/components/three/Stage'
-import { stageClamped } from '@/components/enterprise/labels'
+import { beginLabelFrame, createLabelField, fieldPlaced, stageClamped, type LabelField } from '@/components/enterprise/labels'
 import styles from './ops.module.css'
 
 /** The pipeline's own colour: the deck's cyan, the colour of work moving. */
@@ -103,6 +103,19 @@ function agentPoints(agents: readonly OpsAgent[], layout: OpsLayout): Map<string
   return points
 }
 
+/** The stage copy the scene's labels keep clear of: the title block, the ticker and the pipeline strip. */
+const LABEL_KEEP_OUT = [`.${styles.overlayTitle}`, `.${styles.ticker}`, `.${styles.stageBottom}`]
+
+/**
+ * Starts each frame of the scene's label field before any label is placed.
+ * @param props - The field the division and station labels share.
+ * @returns Nothing; it only runs in the frame loop.
+ */
+function LabelFrame({ field }: { field: LabelField }): ReactNode {
+  useFrame(({ gl }) => beginLabelFrame(field, gl.domElement, LABEL_KEEP_OUT), -1)
+  return null
+}
+
 /**
  * The Operations scene: the enterprise's seats on a ring, the pipeline's five
  * stations across its centre, a beam from every working agent to the station
@@ -122,11 +135,14 @@ export function OpsStage({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
   const layout = cached.current.layout
   const points = useMemo(() => agentPoints(snapshot.agents, layout), [snapshot.agents, layout])
 
+  const labels = useMemo(createLabelField, [])
+
   return (
     <Stage camera={{ position: [0, 58, 100], fov: 42 }} fogNear={150} fogFar={460}>
+      <LabelFrame field={labels} />
       <Floor layout={layout} />
-      {layout.seats.length === 0 ? null : <SeatRing snapshot={snapshot} layout={layout} />}
-      <Pipeline snapshot={snapshot} layout={layout} />
+      {layout.seats.length === 0 ? null : <SeatRing snapshot={snapshot} layout={layout} labels={labels} />}
+      <Pipeline snapshot={snapshot} layout={layout} labels={labels} />
       <Beams agents={snapshot.agents} points={points} layout={layout} />
       <Operators agents={snapshot.agents} points={points} />
       <Comets points={points} layout={layout} />
@@ -201,7 +217,7 @@ function Floor({ layout }: { layout: OpsLayout }): ReactNode {
  * the roster's day; a seat held by a working agent wears a turning ring, and a
  * played frame flares it. Division names stand outside their arcs.
  */
-function SeatRing({ snapshot, layout }: { snapshot: OpsSnapshot; layout: OpsLayout }): ReactNode {
+function SeatRing({ snapshot, layout, labels }: { snapshot: OpsSnapshot; layout: OpsLayout; labels: LabelField }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const cores = useRef<InstancedMesh>(null)
   const orbits = useRef<InstancedMesh>(null)
@@ -297,7 +313,10 @@ function SeatRing({ snapshot, layout }: { snapshot: OpsSnapshot; layout: OpsLayo
   const hoveredPlace = hovered === undefined ? undefined : layout.seats[hovered]
   const hoveredSeat = hoveredPlace === undefined ? undefined : byId.get(hoveredPlace.id)
   const hoveredAgent = hoveredPlace === undefined ? undefined : working.get(hoveredPlace.id)
-  const labelPosition = useMemo(() => stageClamped(70, 14), [])
+  const labelPositions = useMemo(
+    () => new Map(layout.divisions.map(division => [division.id, fieldPlaced(labels, 70, 14)])),
+    [labels, layout.divisions],
+  )
   const busyByDivision = useMemo(() => {
     const counts = new Map<string, number>()
     for (const agent of snapshot.agents) {
@@ -325,7 +344,7 @@ function SeatRing({ snapshot, layout }: { snapshot: OpsSnapshot; layout: OpsLayo
       </instancedMesh>
       {layout.divisions.map(division => (
         <group key={division.id} position={[division.x, division.y + 2, division.z]}>
-          <Html center calculatePosition={labelPosition} zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
+          <Html center calculatePosition={labelPositions.get(division.id) ?? stageClamped(70, 14)} zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
             <div className={styles.division}>
               <i style={{ background: divisionColor(division.id) }} />
               {division.name}
@@ -359,12 +378,12 @@ function SeatRing({ snapshot, layout }: { snapshot: OpsSnapshot; layout: OpsLayo
  * brighter while an agent works there and lit by the frames that land on it;
  * what the snapshot counts at each gate is printed over the stage.
  */
-function Pipeline({ snapshot, layout }: { snapshot: OpsSnapshot; layout: OpsLayout }): ReactNode {
+function Pipeline({ snapshot, layout, labels }: { snapshot: OpsSnapshot; layout: OpsLayout; labels: LabelField }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const gates = useRef<(Mesh | null)[]>([])
   const stationFlashes = useOps(state => state.stationFlashes)
   const counts = useMemo(() => stationCounts(snapshot), [snapshot])
-  const labelPosition = useMemo(() => stageClamped(40, 10), [])
+  const labelPositions = useMemo(() => new Map(STATIONS.map(station => [station, fieldPlaced(labels, 40, 10)])), [labels])
   const rail = useMemo(() => {
     const first = layout.stations.intake
     const last = layout.stations.ship
@@ -409,7 +428,7 @@ function Pipeline({ snapshot, layout }: { snapshot: OpsSnapshot; layout: OpsLayo
               <meshBasicMaterial color={PIPE_COLOR} transparent opacity={0.22} depthWrite={false} toneMapped={false} />
             </mesh>
             <group position={[0, -point.y - 1.2, 6]}>
-              <Html center calculatePosition={labelPosition} zIndexRange={[25, 0]} style={{ pointerEvents: 'none' }}>
+              <Html center calculatePosition={labelPositions.get(station) ?? stageClamped(40, 10)} zIndexRange={[25, 0]} style={{ pointerEvents: 'none' }}>
                 <div className={styles.station}><b>{STATION_NAME[station]}</b></div>
               </Html>
             </group>

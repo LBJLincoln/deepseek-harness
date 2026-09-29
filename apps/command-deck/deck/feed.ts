@@ -152,6 +152,26 @@ export function getRoster(source: FeedSource): Promise<Roster> {
 }
 
 /**
+ * The roster the deck shows: the source's, or the committed fixture when that
+ * one is newer by `generatedAt`. A relay keeps the last roster its pusher sent,
+ * which can be many cycles older than the roster the enterprise has published
+ * since, and every seat count on screen comes from this one roster.
+ * @param source - Source from {@link resolveFeed}.
+ * @returns The newer of the two rosters; the source's when the fixture cannot be read or is not newer.
+ */
+export async function getNewestRoster(source: FeedSource): Promise<Roster> {
+  const read = await getRoster(source)
+  if (source.mode === 'replay') return read
+  let published: Roster | undefined
+  try {
+    published = await getRoster({ mode: 'replay', base: FIXTURE_BASE, configured: source.configured })
+  } catch {
+    // No roster bundled with this build, or it could not be fetched: the feed's roster is the only reading.
+  }
+  return published !== undefined && published.generatedAt > read.generatedAt ? published : read
+}
+
+/**
  * `GET /runs`.
  * @param source - Source from {@link resolveFeed}.
  * @returns Every run the feed knows about.

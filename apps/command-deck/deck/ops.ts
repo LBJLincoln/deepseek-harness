@@ -16,6 +16,7 @@
 
 import { OPS_SCHEMA, type OpsAgentKind, type OpsSnapshot, type OpsSourceId, type RunEvent } from './contract.ts'
 import { FIXTURE_BASE, feedUrl } from './feed.ts'
+import { hostlessJson } from './host-paths.ts'
 
 /** Which snapshot the view shows, and how it knows. */
 type OpsMode = 'live' | 'recent' | 'offline'
@@ -150,7 +151,9 @@ export function chooseReading(feed: OpsFetch, fixture: OpsFetch, now: number, ur
 }
 
 /**
- * Read one snapshot from a URL.
+ * Read one snapshot from a URL. A snapshot a collector wrote before it cleared
+ * its machine's paths (a relay's last push, an older committed fixture) is
+ * cleared here, so no absolute path of that machine reaches the screen.
  * @param url - `…/ops` or `…/fixtures/ops.json`.
  * @param what - How the reason names the source.
  * @returns The snapshot, or why there is none.
@@ -160,7 +163,7 @@ async function fetchSnapshot(url: string, what: string): Promise<OpsFetch> {
     const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(PROBE_TIMEOUT_MS) })
     if (!response.ok) return { reason: `${what} answered ${response.status}` }
     const body = await response.json() as unknown
-    return isOpsSnapshot(body) ? { snapshot: body } : { reason: `${what} is not an operations snapshot of schema ${OPS_SCHEMA}` }
+    return isOpsSnapshot(body) ? { snapshot: hostlessJson(body) } : { reason: `${what} is not an operations snapshot of schema ${OPS_SCHEMA}` }
   } catch (error) {
     // A refused connection, a blocked cross-origin read, a timeout and a body that is not JSON all end here.
     const timedOut = error instanceof DOMException && error.name === 'TimeoutError'

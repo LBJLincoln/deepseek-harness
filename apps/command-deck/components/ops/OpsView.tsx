@@ -2,10 +2,12 @@
 
 import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { OpsAgent, OpsAttention, OpsHeartbeat, OpsSnapshot, OpsSource, OpsSourceId, Severity } from '@/deck/contract'
+import type { OpsAgent, OpsAttention, OpsHeartbeat, OpsSnapshot, OpsSource, OpsSourceId, Roster, Severity } from '@/deck/contract'
 import { factsAsOf, formatAge, snapshotAge, STATION_NAME, STATIONS, stationCounts, type OpsReading } from '@/deck/ops'
 import { stopOps, useOps } from '@/deck/ops-store'
 import { divisionColor } from '@/deck/palette'
+import { useDeck } from '@/deck/store'
+import { isOccupied } from '@/components/enterprise/evidence'
 import { Age, useNow } from './Age.tsx'
 import { WebGLGate } from '@/components/three/WebGLGate'
 import { FlatFloor } from './FlatFloor.tsx'
@@ -204,9 +206,56 @@ function TopStrip({ reading, theme, setTheme }: TopStripProps): ReactNode {
   )
 }
 
+/** Seats of one division, or of the whole enterprise, as the view counts them. */
+interface SeatCount {
+  defined: number
+  occupied: number
+  activeToday: number
+}
+
+/** The view's seat counts: one reading, with the time it describes. */
+interface SeatReading extends SeatCount {
+  /** When the roster the counts come from was stamped; `undefined` when it cannot be told. */
+  asOf: string | undefined
+  divisions: (SeatCount & { id: string; name: string; workingNow: number })[]
+}
+
+/**
+ * The seat counts the view shows: the deck's roster, which the header counts
+ * from, whenever the deck has read one, so the tile, the divisions and the
+ * header never disagree; the snapshot's own reading of the roster otherwise.
+ * Working-now counts always come from the snapshot, which is the only record
+ * of who is working.
+ * @param roster - The deck's roster, if read.
+ * @param snapshot - The operations snapshot.
+ * @returns The reading, or `undefined` when neither holds seats.
+ */
+function seatReading(roster: Roster | undefined, snapshot: OpsSnapshot): SeatReading | undefined {
+  const working = new Map((snapshot.big.seats?.divisions ?? []).map(division => [division.id, division.workingNow]))
+  if (roster === undefined) {
+    const seats = snapshot.big.seats
+    return seats === null ? undefined : { ...seats, asOf: factsAsOf(snapshot, ['roster']), divisions: seats.divisions }
+  }
+  const divisions = roster.divisions.map((division) => {
+    const members = roster.agents.filter(agent => agent.division === division.id)
+    return {
+      id: division.id,
+      name: division.name,
+      defined: members.length,
+      occupied: members.filter(isOccupied).length,
+      activeToday: members.filter(agent => agent.status === 'active').length,
+      workingNow: working.get(division.id) ?? 0,
+    }
+  })
+  const { defined, occupied, active } = roster.counts
+  return { defined, occupied, activeToday: active, asOf: roster.generatedAt, divisions }
+}
+
 /** The six glance tiles, each counted from the snapshot, each saying unknown when its source was. */
 function Tiles({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
   const { big } = snapshot
+  const roster = useDeck(state => state.roster)
+  const seats = seatReading(roster, snapshot)
   const bySeverity = (severity: Severity): number => snapshot.attention.filter(item => item.severity === severity).length
   const worst = snapshot.attention[0]?.severity
   const unknown = snapshot.sources.filter(source => source.state === 'unknown').length
@@ -276,9 +325,9 @@ function Tiles({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
         </div>
       </div>
       <div className={styles.tile}>
-        <p className={styles.tileLabel}>Seats occupied <FactsAge snapshot={snapshot} sources={['roster']} short /></p>
-        <div className={styles.tileValue}>{big.seats === null ? 'unknown' : big.seats.occupied}<small>{big.seats === null ? '' : `of ${big.seats.defined}`}</small></div>
-        <div className={styles.tileSub}>{big.seats === null ? 'the roster could not be read' : `${big.seats.activeToday} active in the roster's day · ${big.seats.workingNow} working now`}</div>
+        <p className={styles.tileLabel}>Seats occupied <Age at={seats?.asOf} short /></p>
+        <div className={styles.tileValue}>{seats === undefined ? 'unknown' : seats.occupied}<small>{seats === undefined ? '' : `of ${seats.defined}`}</small></div>
+        <div className={styles.tileSub}>{seats === undefined ? 'the roster could not be read' : `${seats.activeToday} active in the roster's day · ${big.seats?.workingNow ?? 0} working now`}</div>
       </div>
     </>
   )
@@ -435,7 +484,7 @@ function AttentionCard({ item }: { item: OpsAttention }): ReactNode {
       {item.evidence.length === 0 ? null : (
         <div className={styles.links}>
           {item.evidence.map(link => (link.url === undefined
-            ? <span key={`${link.label}:${link.path ?? ''}`} title="a path on the enterprise's machine">{link.path ?? link.label}</span>
+            ? <span key={link.label} title="a record kept on the enterprise's machine, not published">{link.label}</span>
             : <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label}</a>))}
         </div>
       )}
@@ -445,11 +494,12 @@ function AttentionCard({ item }: { item: OpsAttention }): ReactNode {
 
 /** Seats by division: occupied against defined, with the day's active seats and those working now. */
 function Divisions({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
-  const seats = snapshot.big.seats
+  const roster = useDeck(state => state.roster)
+  const seats = seatReading(roster, snapshot)
   return (
     <section className={styles.section} aria-label="Seats by division">
-      <h2>Divisions <small>{seats === null ? 'roster unknown' : `${seats.occupied} of ${seats.defined} seats occupied`}</small><FactsAge snapshot={snapshot} sources={['roster']} /></h2>
-      {seats === null ? <div className={styles.empty}>The roster could not be read.</div> : (
+      <h2>Divisions <small>{seats === undefined ? 'roster unknown' : `${seats.occupied} of ${seats.defined} seats occupied`}</small><Age at={seats?.asOf} /></h2>
+      {seats === undefined ? <div className={styles.empty}>The roster could not be read.</div> : (
         <div className={`${styles.card} ${styles.rows}`}>
           {seats.divisions.map(division => (
             <div key={division.id} className={styles.row}>

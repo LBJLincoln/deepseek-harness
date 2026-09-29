@@ -3,14 +3,32 @@
 import Link from 'next/link'
 import { useViewPathname } from './pathname.ts'
 import { useEffect, type ReactNode } from 'react'
+import { formatAge } from '@/deck/ops'
 import { useDeck } from '@/deck/store'
 import { useOps } from '@/deck/ops-store'
+import { useNow } from '@/components/ops/Age'
 import { Opening } from './Opening.tsx'
 import { RollingNumber } from './RollingNumber.tsx'
 import { TitleCard } from './TitleCard.tsx'
 import { useEventRate } from './rate.ts'
 import { usePresentation } from './usePresentation.ts'
 import { VIEWS } from './views.ts'
+
+/**
+ * When the roster behind every seat count on screen was stamped, and how old
+ * that is by the viewer's clock, so a count read from an old roster says so.
+ * @param props - The roster's `generatedAt`.
+ * @returns The stamp beside the header's counts.
+ */
+function RosterStamp({ at }: { at: string }): ReactNode {
+  const now = useNow()
+  return (
+    <div className="count" data-tone="stamp" title={`Every seat count on screen is read from the roster stamped ${at.slice(0, 19).replace('T', ' ')} UTC`}>
+      <b><time dateTime={at}>{at.slice(11, 16)} UTC</time></b>
+      <span>roster · {formatAge(Math.max(0, now - Date.parse(at)))} old</span>
+    </div>
+  )
+}
 
 /**
  * The persistent frame around every view: header, status footer, global
@@ -47,7 +65,6 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
   const onOps = pathname === '/ops'
   const mode = onOps ? (opsMode === undefined ? 'probing' : opsMode === 'live' ? 'live' : 'replay') : source?.mode ?? 'probing'
   const modeName = onOps && opsMode !== undefined ? opsMode : mode === 'probing' ? 'connecting' : mode
-  const certified = roster?.agents.filter(agent => agent.status === 'certified').length
   const run = runs.find(entry => entry.id === selectedRunId)
 
   return (
@@ -82,10 +99,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
             <b><RollingNumber value={roster?.counts.active} /></b>
             <span>active</span>
           </div>
-          <div className="count" data-tone="certified">
-            <b><RollingNumber value={certified} /></b>
-            <span>certified</span>
-          </div>
+          {roster === undefined ? null : <RosterStamp at={roster.generatedAt} />}
         </div>
 
         <span className="badge" data-mode={mode}>

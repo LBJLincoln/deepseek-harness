@@ -42,6 +42,7 @@ import { fileURLToPath } from 'node:url'
 
 import type { OpsSnapshot } from '../apps/command-deck/deck/contract.ts'
 import { cliInputs, collectOps, parseOpsArgs, type OpsState } from './enterprise-ops.ts'
+import { hostlessText } from '../apps/command-deck/deck/host-paths.ts'
 import { CODE_SAFETY_DEPARTMENTS, type Roster, type RosterAgentDefinition } from './enterprise-roster.ts'
 import {
   attributeRun,
@@ -744,6 +745,10 @@ interface ToolResultMessage {
  * not-yet-shipped code-safety scanner is expected to emit (`agent/step`, a
  * `finding`-prefixed type, `code-safety/finding`), so no change is needed
  * here once that scanner starts writing real logs.
+ *
+ * A `detail` quoting the recording machine's absolute paths carries them with
+ * their host prefix replaced (`<repo>`, `<targets>`, `<scratchpad>`, `<home>`;
+ * see `apps/command-deck/deck/host-paths.ts`) before it is cut to length.
  * @param line - one decoded `session.jsonl` row.
  * @param state - per-file fold state (tool-call name correlation).
  * @returns the folded event (`agentId` not yet attached), or `undefined` to drop the line.
@@ -779,7 +784,7 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
     const callId = message?.source?.callId ?? ''
     const name = state.callNameById.get(callId) ?? 'tool'
     const result = message?.content?.[0]
-    const text = result?.content?.map(part => part.text).filter((value): value is string => value !== undefined).join(' ') ?? ''
+    const text = hostlessText(result?.content?.map(part => part.text).filter((value): value is string => value !== undefined).join(' ') ?? '')
     if (result?.isError === true && REFUSAL_PATTERN.test(text)) {
       return { ...base, kind: 'refusal', label: name, detail: text.slice(0, 500), severity: 'medium' }
     }
@@ -797,7 +802,8 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
 
   if (type === 'agent/inbox/spliced' || type.startsWith('hook/')) {
     const inserted = data.inserted as { content?: { text?: string }[] }[] | undefined
-    const preview = inserted?.[0]?.content?.[0]?.text?.slice(0, 200)
+    const text = inserted?.[0]?.content?.[0]?.text
+    const preview = text === undefined ? undefined : hostlessText(text).slice(0, 200)
     return { ...base, kind: 'directive', label: 'directive queued', ...preview === undefined ? {} : { detail: preview } }
   }
 
@@ -806,7 +812,7 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
       ...base,
       kind: 'certificate',
       label: stringField(data, 'verifier', 'certificate'),
-      detail: JSON.stringify(data).slice(0, 500),
+      detail: hostlessText(JSON.stringify(data)).slice(0, 500),
     }
   }
   if (type === 'program/integration' || type.startsWith('program/integration')) {

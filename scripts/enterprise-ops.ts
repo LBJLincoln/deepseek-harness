@@ -81,6 +81,7 @@ import {
   type TranscriptState,
 } from './enterprise-ops-sources.ts'
 import { readRequestStatuses, type RequestState } from './enterprise-requests.ts'
+import { hostlessJson, hostlessText } from '../apps/command-deck/deck/host-paths.ts'
 import { sessionFilesIn } from './session-records.ts'
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -250,6 +251,34 @@ function githubUrl(path: string): string {
 
 function commitLink(commit: string): OpsLink {
   return { label: `commit ${commit.slice(0, 9)}`, url: githubUrl(`commit/${commit}`) }
+}
+
+/**
+ * A link as a collector finds it: a published link, or a file on this machine
+ * (`path`), which {@link publishLink} names by its label alone.
+ */
+type MachineLink = OpsLink & { path?: string }
+
+/**
+ * The link a snapshot carries: a GitHub page as it is, a file on this machine
+ * by its label alone, with the label cleared of the machine's absolute paths,
+ * so no path of the producing machine reaches the screen or the relay.
+ * @param link - The link as collected.
+ * @returns The published link.
+ */
+function publishLink(link: MachineLink): OpsLink {
+  return { label: hostlessText(link.label), ...link.url === undefined ? {} : { url: link.url } }
+}
+
+/**
+ * The committed record of one enterprise cycle, named by the cycle's id.
+ * @param branch - The branch the records are committed to.
+ * @param cycle - `cycle-20260928T221301Z`.
+ * @param committed - Whether `data/enterprise/cycles/<cycle>.json` is committed.
+ * @returns A link to the record, or the id alone while no record is committed.
+ */
+function cycleLink(branch: string, cycle: string, committed: boolean): OpsLink {
+  return committed ? { label: cycle, url: githubUrl(`blob/${branch}/data/enterprise/cycles/${cycle}.json`) } : { label: cycle }
 }
 
 function blobLink(branch: string, path: string, line?: number): OpsLink {
@@ -431,10 +460,12 @@ class Collection {
    * @param agent - Everything but the derived times and state.
    * @param frames - Its activity frames.
    */
-  agent(agent: Omit<OpsAgent, 'elapsedSeconds' | 'idleSeconds' | 'state'>, frames: readonly Frame[] = []): void {
+  agent(agent: Omit<OpsAgent, 'elapsedSeconds' | 'idleSeconds' | 'state' | 'evidence'> & { evidence?: MachineLink }, frames: readonly Frame[] = []): void {
     const idle = Math.max(0, this.now - Date.parse(agent.lastEventAt))
+    const { evidence, ...rest } = agent
     const full: OpsAgent = {
-      ...agent,
+      ...rest,
+      ...evidence === undefined ? {} : { evidence: publishLink(evidence) },
       elapsedSeconds: Math.max(0, Math.round((this.now - Date.parse(agent.startedAt)) / 1000)),
       idleSeconds: Math.round(idle / 1000),
       state: idle > this.inputs.stuckMs ? 'stuck' : 'working',
@@ -443,8 +474,12 @@ class Collection {
     this.addFrames(agent.id, frames, agent.seat)
   }
 
-  flag(item: OpsAttention): void {
-    this.attention.push(item)
+  /**
+   * Add one attention item.
+   * @param item - The item, its evidence as collected.
+   */
+  flag(item: Omit<OpsAttention, 'evidence'> & { evidence: MachineLink[] }): void {
+    this.attention.push({ ...item, evidence: item.evidence.map(publishLink) })
   }
 }
 
@@ -498,7 +533,8 @@ export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
   }
 
   const frames = c.frames.sort((a, b) => a.ts - b.ts || a.seq - b.seq).slice(-ACTIVITY_LIMIT)
-  return {
+  // The snapshot leaves the machine (the relay, the committed fixture), so no string in it keeps an absolute path of this machine.
+  return hostlessJson<OpsSnapshot>({
     schema: OPS_SCHEMA,
     generatedAt: inputs.now.toISOString(),
     producer: inputs.producer,
@@ -518,7 +554,7 @@ export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
     })),
     runs: [...c.runs.values()].sort((a, b) => a.startedAt.localeCompare(b.startedAt) || a.id.localeCompare(b.id)),
     activity: frames,
-  }
+  })
 }
 
 /** The order the snapshot lists its sources in. */
@@ -621,7 +657,7 @@ function collectCycles(
   for (const log of logs) {
     const cycle = log.cycle ?? log.file
     const commits = committed?.get(cycle)
-    const evidence: OpsLink[] = [{ label: log.file, path: join(cyclesDir, log.file) }]
+    const evidence: OpsLink[] = [cycleLink(c.inputs.branch, cycle, existsSync(join(c.inputs.root, `data/enterprise/cycles/${cycle}.json`)))]
     let from = Date.parse(log.startedAt)
     for (const step of log.steps) {
       const at = Date.parse(step.at)
@@ -897,7 +933,10 @@ function collectScratch(
   let sessions = 0
   let working = 0
   for (const run of runsHere) {
-    for (const file of sessionFilesIn(run.dir)) {
+    // A shift or an intake writes its sessions under `.sessions` alone; the rest of the run is a clone of
+    // the branch whose committed records are history, not agents at work, so a run without it has none yet.
+    const sessionsDir = join(run.dir, '.sessions')
+    for (const file of existsSync(sessionsDir) ? sessionFilesIn(sessionsDir) : []) {
       const facts = foldHarnessSession(parseJsonl(readText(file) ?? ''), basename(dirname(file)))
       const role = sessionRole(facts.sessionId, roster, tickets)
       if (role === undefined || facts.createdAt === undefined) continue

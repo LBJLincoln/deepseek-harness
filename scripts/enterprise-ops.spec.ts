@@ -323,6 +323,19 @@ describe('collectOps', () => {
       { type: 'user', timestamp: '2026-09-28T22:20:00.000Z', message: { content: 'brief' } },
       { type: 'assistant', timestamp: '2026-09-28T22:39:30.000Z', message: { id: 'm1', usage: { input_tokens: 10, output_tokens: 20 }, content: [{ type: 'tool_use', name: 'Bash', input: { description: 'Build the deck' } }] } },
     ]))
+    // A streamed transcript whose last row is the agent's final report: finished, however long ago it spoke.
+    write(join(subagents, 'agent-def456.meta.json'), JSON.stringify({ description: 'Durable live transcript capture' }))
+    write(join(subagents, 'agent-def456.jsonl'), jsonl([
+      { type: 'user', timestamp: '2026-09-28T21:00:00.000Z', message: { content: 'brief' } },
+      { type: 'assistant', timestamp: '2026-09-28T21:10:00.000Z', message: { id: 'm1', stop_reason: null, content: [{ type: 'tool_use', name: 'Bash', input: { description: 'Start the loop' } }] } },
+      { type: 'user', timestamp: '2026-09-28T21:10:05.000Z', message: { content: [{ type: 'tool_result', content: 'ok' }] } },
+      { type: 'assistant', timestamp: '2026-09-28T21:11:00.000Z', message: { id: 'm2', stop_reason: null, content: [{ type: 'text', text: 'The loop runs; here is my report.' }] } },
+    ]))
+    // The running shift's clone of the branch carries committed records; they are history, not agents at work.
+    write(join(scratch, '221520-e979/repo/data/proving-ground/2026-09-27-readme-rows-program/sessions/program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows.jsonl'), jsonl([
+      { type: 'session', id: 'program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows', createdAt: at('2026-09-27T12:00:00Z') },
+      { type: 'tool/call', seq: 2, time: at('2026-09-27T12:01:00Z'), data: { name: 'bash', arguments: '{}' } },
+    ]))
 
     const processes: ProcessInfo[] = [
       { pid: 10, ppid: 1, cmdline: 'bash scripts/enterprise-scheduler.sh', startedAt: at('2026-09-28T20:00:00Z') },
@@ -378,6 +391,35 @@ describe('collectOps', () => {
     expect(department).toMatchObject({ seat: 'harness-core-agent-steward', division: 'harness-core', doing: 'bash: Run typecheck', tokens: 1050, idleSeconds: 119, run: 'shift 221520-e979' })
     expect(snapshot.agents.find(agent => agent.kind === 'operator-agent')).toMatchObject({ doing: 'Bash: Build the deck', tokens: 30 })
     expect(snapshot.activity.some(frame => frame.sessionId === `session:${PROGRAM}-t-0004` && frame.agentId === 'harness-core-agent-steward')).toBe(true)
+  })
+
+  it('publishes no path of the machine that collected it, and names a cycle by its id and committed record', async () => {
+    const inputs = machine()
+    const snapshot = await collectOps(inputs)
+    // The fixture's machine keeps its files under a temporary directory, which the attention queue and the agents never name;
+    // the operator's own tree (/home/user/deepseek-harness here) is a host path no string of the snapshot keeps.
+    expect(JSON.stringify([snapshot.attention, snapshot.agents])).not.toContain(base)
+    const text = JSON.stringify(snapshot)
+    expect(text).not.toContain('/home/user')
+    expect(text).not.toMatch(/"path":/)
+    const failed = snapshot.attention.find(item => item.kind === 'cycle-step-failed')
+    expect(failed?.evidence[0]).toEqual({ label: 'cycle-20260928T221301Z' })
+    const running = snapshot.agents.find(agent => agent.kind === 'cycle-step')
+    expect(running?.evidence).toEqual({ label: 'cycle-20260928T221301Z' })
+    write(join(inputs.root, 'data/enterprise/cycles/cycle-20260928T221301Z.json'), '{}\n')
+    const recorded = await collectOps({ ...machine(), state: { transcripts: {}, records: {} } })
+    expect(recorded.attention.find(item => item.kind === 'cycle-step-failed')?.evidence[0]).toEqual({
+      label: 'cycle-20260928T221301Z',
+      url: 'https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/cycles/cycle-20260928T221301Z.json',
+    })
+  })
+
+  it('never counts a finished agent or a committed record as working, so neither can be stuck', async () => {
+    const snapshot = await collectOps(machine())
+    expect(snapshot.agents.some(agent => agent.label === 'Durable live transcript capture')).toBe(false)
+    expect(snapshot.runs.find(run => run.label === 'Durable live transcript capture')?.outcome).toBe('ok')
+    expect(snapshot.agents.some(agent => agent.id.includes('readme-rows'))).toBe(false)
+    expect(snapshot.attention.filter(item => item.kind === 'agent-stuck').map(item => item.title)).toEqual([expect.stringContaining('T-0005')])
   })
 
   it('ranks the attention queue with evidence and a next action for each item', async () => {
