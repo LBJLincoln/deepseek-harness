@@ -1,0 +1,208 @@
+{
+  "type": "result",
+  "shift": "161311-58c9",
+  "startedAt": "2026-09-29T16:13:12.986Z",
+  "base": "29c7a275309331762eef0623a44f0409d507cca8",
+  "remote": "https://github.com/LBJLincoln/deepseek-harness",
+  "branch": "claude/coding-agent-harness-u9l4gt",
+  "implementer": "route",
+  "model": "Claude Code sonnet",
+  "programId": "program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50",
+  "report": {
+    "programId": "program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50",
+    "sessionId": "program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50",
+    "outcome": "released",
+    "mergedRevision": "b16dd2aba2a9952cb28ea29088fe05c8cb0d8130",
+    "goals": [
+      {
+        "key": "t-0011",
+        "status": "merged",
+        "sessionId": "program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50-t-0011",
+        "revision": "fea1f07762776692bce1c6464afe0d877ff25e81",
+        "tree": "15a732fa71a8b510c52a4e06b6d9109a8978bff2"
+      },
+      {
+        "key": "t-0027",
+        "status": "merged",
+        "sessionId": "program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50-t-0027",
+        "revision": "1944c1713cb3fad5d5773bfee9bd72f470e589fb",
+        "tree": "c5be0fe5fac7c16db3a99f5b038173c9ee6537f8"
+      }
+    ]
+  },
+  "halt": null,
+  "decisions": [
+    {
+      "transition": "spec-freeze",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 161311-58c9"
+      },
+      "artefactSha256": "f66c1079ff124960a4344285e6ba81d279c965a9f821b1b086f6acfe4f3b3907"
+    },
+    {
+      "transition": "release",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 161311-58c9"
+      },
+      "artefactSha256": "f66c1079ff124960a4344285e6ba81d279c965a9f821b1b086f6acfe4f3b3907"
+    }
+  ],
+  "tickets": [
+    {
+      "type": "ticket",
+      "at": "2026-09-29T16:31:49.326Z",
+      "shift": "161311-58c9",
+      "ticket": "T-0011",
+      "seat": "harness-core-llm-pi-ai-steward",
+      "division": "harness-core",
+      "programId": "program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50-t-0011"
+      },
+      "checks": [
+        {
+          "id": "spec",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-lint",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0011-46d9ba45"
+      },
+      "reviewer": {
+        "sessionId": "review-t-0011-46d9ba45",
+        "route": "claude-code",
+        "model": "sonnet",
+        "verdict": "approve"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "81699732468a674ba0bf6338807ebc404ec11c4f"
+      },
+      "reason": "approved and assembled",
+      "tokens": 174226,
+      "seconds": 270,
+      "rationale": "- **Scope:** The diff adds only `packages/llm/llm-pi-ai/tests/single-attempt.spec.ts`. There is no source change, no edit to `mock-server.ts`, and no mocking of pi-ai. The engine-scope check passed.\n- **Cases:** It has the two cases the ticket names, via `it.each`. A 500 must map to `SERVER`. A 429 with a `retry-after` header must map to `RATE_LIMIT`. Both use `mockServer`'s existing status-and-headers script, so no helper extension was needed.\n- **Real adapter:** The test builds a `Context`, loads `LlmRuntime` and `LlmPiAi` with a `baseURL` pointing at the mock server, and drives the stream through the `assemble` helper. It does not mock the adapter or the SDK.\n- **Assertions:** The test checks `finish` matches `{ kind: 'error', failure: { code } }` and that `server.requests` has length 1. `assemble` waits for the stream to finish, so the request count is read after the finish has settled.\n- **Sensitivity:** The mock server has two successful `textEvents` responses queued behind the failure. If an SDK retry came back, the request count would exceed 1 and the finish would no longer be an error, so a lost `maxRetries: 0` would fail the test. I did not run it with retries re-enabled, so that follows from the script rather than from an observed failure.\n- **Checks:** The spec ran 2 of 2 passing. The full package run passed 215 tests at 100% coverage. Typecheck, lint, whitespace, documentation and committed checks all passed."
+    },
+    {
+      "type": "ticket",
+      "at": "2026-09-29T16:31:49.326Z",
+      "shift": "161311-58c9",
+      "ticket": "T-0027",
+      "seat": "governance-third-party-notices-standard-author",
+      "division": "governance",
+      "programId": "program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-c0f2c5a22bb5eff06f0d48fbc02b13b51d89536801b003c20ef35661f1e01d50-t-0027"
+      },
+      "checks": [
+        {
+          "id": "oxlint-override-gone",
+          "ok": true
+        },
+        {
+          "id": "tsgolint-override-gone",
+          "ok": true
+        },
+        {
+          "id": "notices-fresh",
+          "ok": true
+        },
+        {
+          "id": "generator-spec",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-lint",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0027-edabf50d"
+      },
+      "reviewer": {
+        "sessionId": "review-t-0027-edabf50d",
+        "route": "claude-code",
+        "model": "sonnet",
+        "verdict": "approve"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "b26f4b959cf440f4f94819f813e20bd8aedfee0f"
+      },
+      "reason": "approved and assembled",
+      "tokens": 121607,
+      "seconds": 253,
+      "rationale": "- **Diff matches the ticket.** The only change is in `scripts/gen-third-party-notices.ts`. It removes the `oxlint` and `oxlint-tsgolint` entries and the comment above them (\"Rust workspaces publishing npm bins without `license`…\"). The `@modelcontextprotocol/server-*` entries and the `node-addon-require-builtin` entry are untouched. Nothing else in the file changed: tier policy and `DEV_ONLY_AREAS` are as before.\n- **No regenerated notices file was needed.** The ticket asked for a `THIRD_PARTY_NOTICES.md` commit only \"if the repository URL rendering changes\". `verify-third-party-notices` runs the generator with `--check` and reports \"THIRD_PARTY_NOTICES.md is up to date.\" So the generator now produces the same output from the installed manifests, and the committed file already matches it.\n- **All acceptance checks pass.**\n  - Both grep checks confirm the override keys are gone.\n  - The freshness check passes.\n  - The generator spec passes (26 of 26).\n  - The `skill-filesystem` coverage run passes at 100%.\n  - Typecheck passes.\n  - The engine checks for commit, scope, whitespace, lint and documentation also pass.\n- **Scope and process are fine.** The commit is a single, mechanical, ticket-tagged change, with no Agent Note as the ticket required. Its message ends with the attribution trailers."
+    }
+  ],
+  "held": [],
+  "redacted": 12
+}
