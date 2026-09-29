@@ -5,8 +5,9 @@
  * tab — what the enterprise delivered inside the window (tickets shipped,
  * model-driven runs, automated checks by outcome), seats occupied and active
  * per division split by what they did, the tickets of the enterprise's
- * current day by status, the function runs of that day, and the latest shipped
- * commits with the CI verdicts the judges recorded on them; and
+ * current day by status, the function runs of that day, the latest shipped
+ * commits with the CI verdicts the judges recorded on them, and every review
+ * the ledger records with its reviewer; and
  * `enterprise-day.json`, the view's 24 hours tab — the report
  * `scripts/enterprise-report.ts` builds over the roster's window. The first
  * two files are a pure function of `data/enterprise/roster.json`,
@@ -84,6 +85,37 @@ export interface TicketSummary {
   shift?: string
   commit?: string
   reason?: string
+  /** The newest line's review verdict and session, for a worked ticket whose line records a review. */
+  review?: { verdict: string; sessionId?: string }
+  /** The reviewer's route and model, when the newest line names them; a line written before the engine recorded them lacks it. */
+  reviewer?: { route: string; model: string }
+}
+
+/** One review a ticket line records. */
+export interface ReviewSummary {
+  ticket: string
+  seat: string
+  division: string
+  shift: string
+  at: string
+  verdict: 'approve' | 'reject'
+  /** The review session, when the line names it. */
+  sessionId?: string
+  /** The reviewer's route and model, when the line names them; absent on a line written before the engine recorded them. */
+  reviewer?: { route: string; model: string }
+  /** For a rejection: the commit a later line of the same ticket shipped, which overturned it. */
+  overturnedBy?: string
+}
+
+/** Every approving or rejecting review the ledger records, over its whole history, newest first. */
+export interface ReviewRecord {
+  approved: number
+  rejected: number
+  /** Reviews whose line names the reviewer's route and model. */
+  reviewerRecorded: number
+  /** Rejections of a ticket a later line shipped. */
+  overturned: number
+  reviews: ReviewSummary[]
 }
 
 /** One CI verdict a judge recorded on a commit. */
@@ -148,6 +180,8 @@ export interface EnterpriseReport {
   functions: FunctionLine[]
   /** The latest shipped commits, newest first, with their CI verdicts. */
   shipped: ShippedCommit[]
+  /** Every review the ledger records, over its whole history rather than the window. */
+  reviews: ReviewRecord
   /** What the ledger held: lines read by type, and lines no reader could use. */
   ledger: { lines: number; tickets: number; functions: number; skipped: number }
 }
@@ -190,7 +224,37 @@ function summarize(line: TicketLine): TicketSummary {
   }
   if (line.shipped !== null) summary.commit = line.shipped.commit
   if (line.reason !== undefined) summary.reason = line.reason
+  if (line.review !== undefined && line.review.verdict !== 'none') summary.review = line.review
+  if (line.reviewer !== undefined) summary.reviewer = { route: line.reviewer.route, model: line.reviewer.model }
   return summary
+}
+
+/**
+ * Every line whose review approved or rejected, newest first, with the
+ * reviewer the line names. A rejection counts as overturned when a line of
+ * the same ticket dated after it shipped a commit.
+ * @param tickets - every ticket line of the ledger.
+ * @returns the counts and the reviews.
+ */
+export function reviewRecord(tickets: readonly TicketLine[]): ReviewRecord {
+  const reviews: ReviewSummary[] = []
+  for (const line of newestFirst(tickets)) {
+    const verdict = line.review?.verdict.trim().toLowerCase()
+    if (verdict !== 'approve' && verdict !== 'reject') continue
+    const review: ReviewSummary = { ticket: line.ticket, seat: line.seat, division: line.division, shift: line.shift, at: line.at, verdict }
+    if (line.review?.sessionId !== undefined) review.sessionId = line.review.sessionId
+    if (line.reviewer !== undefined) review.reviewer = { route: line.reviewer.route, model: line.reviewer.model }
+    const shippedLater = verdict === 'reject' ? tickets.find(other => other.ticket === line.ticket && other.shipped !== null && ms(other.at) > ms(line.at)) : undefined
+    if (shippedLater !== undefined && shippedLater.shipped !== null) review.overturnedBy = shippedLater.shipped.commit
+    reviews.push(review)
+  }
+  return {
+    approved: reviews.filter(review => review.verdict === 'approve').length,
+    rejected: reviews.filter(review => review.verdict === 'reject').length,
+    reviewerRecorded: reviews.filter(review => review.reviewer !== undefined).length,
+    overturned: reviews.filter(review => review.overturnedBy !== undefined).length,
+    reviews,
+  }
 }
 
 /**
@@ -293,6 +357,7 @@ export function buildEnterpriseReport(roster: Roster, ledger: LedgerRead, ticket
     tickets: byStatus,
     functions: newestFirst(functionLines.filter(line => inWindow(line.at, window))),
     shipped,
+    reviews: reviewRecord(ticketLines),
     ledger: { lines: ledger.lines.length, tickets: ticketLines.length, functions: functionLines.length, skipped: ledger.skipped.length },
   }
 }
@@ -348,6 +413,7 @@ if (isMain) {
     `as of ${report.asOf}: ${report.outcomes.shipped} tickets shipped, ${report.outcomes.checks.pass} of ${report.outcomes.checks.runs} automated checks passed in the window;`,
     `${report.counts.occupied} of ${report.counts.defined} seats occupied, ${report.counts.active} active since ${report.window.since} (${workSummary(report.counts.work.active)});`,
     `tickets ${tickets}; ${report.functions.length} function runs in the window; ${report.shipped.length} shipped commits listed;`,
+    `reviews ${report.reviews.approved} approved, ${report.reviews.rejected} rejected (${report.reviews.overturned} overturned), ${report.reviews.reviewerRecorded} naming the reviewer;`,
     `24 hours: ${day.cycles.count} cycles, ${day.tickets.shipped.length} tickets shipped, ${day.unknowns.length} unknowns`,
   ].join(' '))
 }

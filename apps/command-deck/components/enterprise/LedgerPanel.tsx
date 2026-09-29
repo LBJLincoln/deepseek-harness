@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, type ReactNode } from 'react'
-import type { EnterpriseReport, FunctionOutcome, FunctionRun, TicketStatus, TicketSummary } from '@/deck/contract'
+import type { EnterpriseReport, FunctionOutcome, FunctionRun, ReviewSummary, TicketStatus, TicketSummary } from '@/deck/contract'
 import { stamp } from '@/deck/format'
 import { divisionColor } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
@@ -18,12 +18,35 @@ const OUTCOME_COLOR: Record<FunctionOutcome, string> = {
 const TICKET_STATUSES: readonly { status: TicketStatus; label: string; meaning: string }[] = [
   { status: 'queued', label: 'queued', meaning: 'in the queue, no ledger line yet' },
   { status: 'shipped', label: 'shipped', meaning: 'reviewed, integrated and merged as a commit' },
-  { status: 'rejected', label: 'rejected', meaning: 'an acceptance check failed or the reviewer did not approve' },
+  { status: 'rejected', label: 'rejected', meaning: 'the independent reviewer rejected it; held for a person to triage, never reviewed again' },
   { status: 'halted', label: 'halted', meaning: 'the department stopped short of review' },
 ]
 
 /** How many tickets of one status the panel names before it counts the rest. */
 const TICKETS_SHOWN = 8
+
+/** How many reviews the panel names before it counts the rest. */
+const REVIEWS_SHOWN = 12
+
+/** What a line without the reviewer's route and model says in their place. */
+const REVIEWER_NOT_RECORDED = 'reviewer not recorded'
+
+/** Colour of one review verdict. */
+const VERDICT_COLOR: Record<ReviewSummary['verdict'], string> = {
+  approve: 'var(--green)',
+  reject: 'var(--red)',
+}
+
+/**
+ * Who reviewed, as a ticket line states it.
+ * @param reviewer - The route and model the line names, if it names them.
+ * @param sessionId - The review session the line names, if any.
+ * @returns Such as `sonnet on claude-code, session review-t-0012-fb58af6f`, or `reviewer not recorded, session …` for an older line.
+ */
+function reviewerPhrase(reviewer: { route: string; model: string } | undefined, sessionId: string | undefined): string {
+  const who = reviewer === undefined ? REVIEWER_NOT_RECORDED : `${reviewer.model} on ${reviewer.route}`
+  return sessionId === undefined ? who : `${who}, session ${sessionId}`
+}
 
 /** How many seats a shift's runs are named for; older shifts are summed. */
 const SHIFTS_NAMED = 1
@@ -76,6 +99,7 @@ function TicketRow({ ticket }: { ticket: TicketSummary }): ReactNode {
           ? ticket.title ?? ''
           : ticket.at === undefined ? '' : stamp(ticket.at)}
         {ticket.commit === undefined ? '' : ` · ${ticket.commit.slice(0, 10)}`}
+        {ticket.review === undefined ? '' : ` · review ${ticket.review.verdict} by ${reviewerPhrase(ticket.reviewer, ticket.review.sessionId)}`}
         {ticket.reason === undefined ? '' : ` · ${ticket.reason}`}
       </span>
     </div>
@@ -83,10 +107,49 @@ function TicketRow({ ticket }: { ticket: TicketSummary }): ReactNode {
 }
 
 /**
+ * Every review the ledger records: approvals and rejections counted over its
+ * whole history, and each review with its reviewer's model and session, or
+ * that the line predates the engine recording them.
+ * @returns The section, or nothing for a report built before reviews were published.
+ */
+function ReviewSection({ report }: { report: EnterpriseReport }): ReactNode {
+  const record = report.reviews
+  if (record === undefined) return null
+  const total = record.approved + record.rejected
+  return (
+    <div className="section">
+      <h3>Independent reviews · the whole ledger</h3>
+      <p className="evidence-lead">
+        {record.approved} approved · {record.rejected} rejected
+        {record.overturned === 0 ? '' : ` · ${record.overturned} ${record.overturned === 1 ? 'rejection' : 'rejections'} overturned when a later review approved the ticket and it shipped`}.
+        Each review ran in a session of its own that never saw the department's; {record.reviewerRecorded} of {total} {total === 1 ? 'line names' : 'lines name'} the
+        reviewer's model and route, and the rest were written before the engine recorded them.
+      </p>
+      {total === 0 ? <div className="panel__empty">No review has decided a ticket yet.</div> : (
+        <div className="routes">
+          {record.reviews.slice(0, REVIEWS_SHOWN).map(review => (
+            <div className="routes__row" data-run="true" key={`${review.shift}-${review.ticket}-${review.sessionId ?? review.at}`}>
+              <span className="mono">{review.ticket}</span>
+              <b style={{ color: VERDICT_COLOR[review.verdict] }}>{review.verdict}</b>
+              <span>
+                {stamp(review.at)} · shift {review.shift} · {reviewerPhrase(review.reviewer, review.sessionId)}
+                {review.overturnedBy === undefined ? '' : ` · overturned: shipped later as ${review.overturnedBy.slice(0, 10)}`}
+              </span>
+            </div>
+          ))}
+          {record.reviews.length > REVIEWS_SHOWN ? <div className="routes__row" data-run="false"><span /><b /><span>and {record.reviews.length - REVIEWS_SHOWN} more</span></div> : null}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
  * The Ledger tab: seats occupied and active per division, the tickets of the
- * enterprise's current day by status, the function runs of that day by
- * shift, and the latest shipped commits with their CI verdicts, all read from
- * the published `enterprise.json`.
+ * enterprise's current day by status with each one's reviewer, every review
+ * of the whole ledger, the function runs of that day by shift, and the latest
+ * shipped commits with their CI verdicts, all read from the published
+ * `enterprise.json`.
  * @returns The tab body.
  */
 export function LedgerPanel(): ReactNode {
@@ -148,6 +211,8 @@ export function LedgerPanel(): ReactNode {
           )
         })}
       </div>
+
+      <ReviewSection report={report} />
 
       <div className="section">
         <h3>Function runs in the window</h3>

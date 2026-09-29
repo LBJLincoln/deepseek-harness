@@ -144,6 +144,18 @@ export interface SessionScan {
   toolCalls: number
   /** The log's `signoff/recorded` events, with the principal's id and the kind the event declares for it. */
   signoffs: { transition: string; principal: string; kind: string; time: number }[]
+  /** The route and model the log's first model request was sent with, from its `request/header` event; absent when it made none. */
+  request?: { route: string; model: string }
+  /** For a review log (`review-*.jsonl`): the verdict line its last answer opens with; absent when it answered none. */
+  verdict?: 'approve' | 'reject'
+}
+
+/** One later commit on the branch that names a shipped commit and changes a file in a directory the shipped commit changed. */
+export interface FollowUpCommit {
+  commit: string
+  /** Committer time, ISO. */
+  at: string
+  subject: string
 }
 
 /** One shift record under `data/enterprise/shifts/`. */
@@ -262,6 +274,8 @@ export interface BriefingInputs {
   sessions: Record<SessionFamily, SessionScan[]>
   /** The input sets read, with their digests. */
   digests: InputDigest[]
+  /** Per shipped commit the ledger names, the later commits that rework it (see {@link followUpCommits}); absent when git was not read. */
+  followUps?: Record<string, FollowUpCommit[]>
 }
 
 /** The record families whose session logs the governance figures count. */
@@ -570,6 +584,30 @@ export interface ReviewRow {
   toolCalls: number
 }
 
+/** One review that decided a ticket, from its ledger line or, for a shift that never wrote its lines, from its shift record. */
+export interface ReviewRecordRow {
+  ticket: string
+  shift: string
+  /** The ledger line's time, or the shift record's end for a review only the record holds. */
+  at: string | null
+  verdict: 'approve' | 'reject'
+  sessionId: string | null
+  /** The reviewer's route and model as the ledger line names them; `null` for a line written before the engine recorded them. */
+  reviewer: { route: string; model: string } | null
+  /** The route and model the review session's request was sent with, from its log in the shift record; `null` without a log. */
+  requested: { route: string; model: string } | null
+  /** Tool calls in the review session's log; `null` when the record holds no log. */
+  toolCalls: number | null
+  /** `ledger` for a review a ledger line records, `shift record` for one only its shift record's session log holds. */
+  recordedIn: 'ledger' | 'shift record'
+  /** The commit this review's line shipped. */
+  shipped: string | null
+  /** For a rejection: the commit a later line of the same ticket shipped. */
+  overturnedBy: string | null
+  /** For a shipped approval: the later commits that reworked the shipped change. */
+  followUps: FollowUpCommit[]
+}
+
 /** A record of a seeded copy: the planted defects caught, with the Wilson interval `seeded-recall.mjs` wrote. */
 export interface SeededReading {
   record: string
@@ -607,6 +645,8 @@ export interface Briefing {
     terms: Figure<TermsRow[]>
     signoffs: Figure<SignoffRow[]>
     reviews: Figure<ReviewRow[]>
+    /** Every review that decided a ticket, oldest first. */
+    reviewRecord: Figure<ReviewRecordRow[]>
   }
   economics: {
     tickets: Figure<{ ticket: string; tokens: number; seconds: number }[]>
@@ -1387,6 +1427,82 @@ export function reviewRows(shifts: readonly ShiftRecordInput[]): ReviewRow[] {
     .filter(row => row.reviews > 0)
 }
 
+/** The session id a review log is named for, from its path. */
+const REVIEW_LOG = /\/(review-(t-\d{4})-[^/]+)\.jsonl$/
+
+/**
+ * Every review that decided a ticket, oldest first: each ticket line whose review approved or rejected, with the
+ * reviewer it names and what its session log in the shift record shows, then each review log of a shift record that
+ * no ledger line names — a shift that crashed before it wrote its lines — with the verdict its last answer states. A
+ * rejection is overturned when a later line of the same ticket shipped; a shipped approval lists the commits that
+ * reworked it.
+ * @param ledger - the ledger.
+ * @param shifts - the shift records.
+ * @param followUps - per shipped commit, the later commits that reworked it.
+ * @returns one row per review.
+ */
+export function reviewRecordRows(
+  ledger: LedgerRead,
+  shifts: readonly ShiftRecordInput[],
+  followUps: Readonly<Record<string, FollowUpCommit[]>>,
+): ReviewRecordRow[] {
+  const logs = new Map<string, { scan: SessionScan; shift: ShiftRecordInput }>()
+  for (const shift of shifts) {
+    for (const scan of shift.sessions) {
+      const id = REVIEW_LOG.exec(scan.file)?.[1]
+      if (id !== undefined) logs.set(id, { scan, shift })
+    }
+  }
+  const lines = ticketLines(ledger)
+  const overturn = (ticket: string, at: string | null): string | null => {
+    const later = lines.find(line => line.ticket === ticket && line.shipped !== null && (at === null || ms(line.at) > ms(at)))
+    return later?.shipped?.commit ?? null
+  }
+  const rows: ReviewRecordRow[] = []
+  for (const line of [...lines].sort((left, right) => ms(left.at) - ms(right.at))) {
+    const verdict = line.review?.verdict.trim().toLowerCase()
+    if (verdict !== 'approve' && verdict !== 'reject') continue
+    const sessionId = line.review?.sessionId ?? null
+    const log = sessionId === null ? undefined : logs.get(sessionId)
+    const shipped = line.shipped?.commit ?? null
+    rows.push({
+      ticket: line.ticket,
+      shift: line.shift,
+      at: line.at,
+      verdict,
+      sessionId,
+      reviewer: line.reviewer === undefined ? null : { route: line.reviewer.route, model: line.reviewer.model },
+      requested: log?.scan.request ?? null,
+      toolCalls: log?.scan.toolCalls ?? null,
+      recordedIn: 'ledger',
+      shipped,
+      overturnedBy: verdict === 'reject' ? overturn(line.ticket, line.at) : null,
+      followUps: shipped === null ? [] : followUps[shipped] ?? [],
+    })
+  }
+  const named = new Set(lines.flatMap(line => (line.review?.sessionId === undefined ? [] : [line.review.sessionId])))
+  for (const [sessionId, { scan, shift }] of logs) {
+    if (named.has(sessionId) || scan.verdict === undefined) continue
+    const ticket = (REVIEW_LOG.exec(scan.file)?.[2] ?? '').toUpperCase()
+    const at = str(shift.result.endedAt) ?? str(shift.result.startedAt)
+    rows.push({
+      ticket,
+      shift: str(shift.result.shift) ?? shift.dir,
+      at: at === null ? null : new Date(at).toISOString(),
+      verdict: scan.verdict,
+      sessionId,
+      reviewer: null,
+      requested: scan.request ?? null,
+      toolCalls: scan.toolCalls,
+      recordedIn: 'shift record',
+      shipped: null,
+      overturnedBy: scan.verdict === 'reject' ? overturn(ticket, at) : null,
+      followUps: [],
+    })
+  }
+  return rows.sort((left, right) => ms(left.at ?? '') - ms(right.at ?? '') || left.ticket.localeCompare(right.ticket))
+}
+
 // ---------------------------------------------------------------------------
 // Branch CI
 // ---------------------------------------------------------------------------
@@ -1692,6 +1808,16 @@ export function buildBriefing(inputs: BriefingInputs, ci: CiReading, branch: str
     'bench.frozenPairs': known(experiments.length, { paths: [PROVING_GROUND_DIR], computation: 'Records whose result.json carries a verdict, an interval and at least one paired cell.' }),
     'bench.decisive': known(experiments.filter(row => (row.reread?.verdict ?? row.verdict) !== 'inconclusive').length, { paths: [PROVING_GROUND_DIR], computation: 'Frozen pairs whose current verdict (a re-read fold\'s when one exists) is promote or reject.' }),
   }
+  const reviewRecord = reviewRecordRows(ledger, inputs.shifts, inputs.followUps ?? {})
+  const ledgerReviews = reviewRecord.filter(row => row.recordedIn === 'ledger')
+  figures['reviews.approved'] = known(ledgerReviews.filter(row => row.verdict === 'approve').length, ledgerSource('Ticket lines whose review verdict is approve.'))
+  figures['reviews.rejected'] = known(ledgerReviews.filter(row => row.verdict === 'reject').length, ledgerSource('Ticket lines whose review verdict is reject.'))
+  figures['reviews.reviewerRecorded'] = known(ledgerReviews.filter(row => row.reviewer !== null).length, ledgerSource('Ticket lines with an approving or rejecting review that name the reviewer\'s route and model.'))
+  figures['reviews.overturned'] = known(reviewRecord.filter(row => row.overturnedBy !== null).length, { paths: [LEDGER_PATH, SHIFTS_DIR], computation: 'Rejections, on a ticket line or in a shift record\'s review log, of a ticket a later ticket line shipped.' })
+  figures['reviews.recordOnly'] = known(reviewRecord.length - ledgerReviews.length, { paths: [SHIFTS_DIR], computation: 'Review logs in a shift record whose session no ticket line names and whose last answer states a verdict.' })
+  figures['reviews.reworked'] = inputs.followUps === undefined
+    ? unknownFigure('the git history was not read', ledgerSource('Shipped approvals a later commit reworked.'))
+    : known(ledgerReviews.filter(row => row.followUps.length > 0).length, ledgerSource('Approving ticket lines whose shipped commit a later commit on the branch names in its message while changing a file in a directory the shipped commit changed (git log).'))
   const pilotSource = (computation: string): Source => ({ paths: PILOT_PATHS, computation })
   const cycleUnits = pilot.filter(row => row.kind === 'cycle')
   const shippedBy = (starter: Starter): number => pilot
@@ -1824,6 +1950,12 @@ export function buildBriefing(inputs: BriefingInputs, ci: CiReading, branch: str
           + 'and time, and every entry of the decisions their result.json states, with its transition, principal id and kind.',
       }),
       reviews: known(reviewRows(inputs.shifts), { paths: [SHIFTS_DIR], computation: 'Per shift: its review-*.jsonl session logs and the tool/call events they record.' }),
+      reviewRecord: known(reviewRecord, {
+        paths: [LEDGER_PATH, SHIFTS_DIR],
+        computation: 'Every ticket line whose review approved or rejected, with the reviewer it names and the route, model and tool calls of its review log; '
+          + 'then every review log of a shift record no ticket line names, with the verdict line of its last answer; a rejection is overturned when a '
+          + 'later line of the ticket shipped, and a shipped approval lists the later commits that name its commit and change a file in a directory it changed.',
+      }),
     },
     economics: {
       tickets: known(economics, ledgerSource('The tokens and seconds fields of each shipped ticket\'s line: the department\'s and the review\'s model tokens and time.')),
@@ -1862,6 +1994,7 @@ function scanSession(root: string, file: string, book: DigestBook): SessionScan 
   const scan: SessionScan = { file, dataUseTerms: false, toolCalls: 0, signoffs: [] }
   const content = readFileSync(join(root, file), 'utf8')
   book.add(file, content)
+  let answer: string | undefined
   for (const raw of content.split('\n')) {
     if (raw === '') continue
     let event: unknown
@@ -1874,6 +2007,11 @@ function scanSession(root: string, file: string, book: DigestBook): SessionScan 
     if (!isRecord(event)) continue
     if (event.type === 'dataUse/terms') scan.dataUseTerms = true
     else if (event.type === 'tool/call') scan.toolCalls += 1
+    else if (event.type === 'request/header' && scan.request === undefined) {
+      const request = requestOf(event.data)
+      if (request !== undefined) scan.request = request
+    }
+    else if (event.type === 'assistant/message') answer = answerOf(event.data) ?? answer
     else if (event.type === 'signoff/recorded' && isRecord(event.data) && isRecord(event.data.principal)) {
       const { principal } = event.data
       scan.signoffs.push({
@@ -1884,7 +2022,33 @@ function scanSession(root: string, file: string, book: DigestBook): SessionScan 
       })
     }
   }
+  const verdict = REVIEW_LOG.test(file) && answer !== undefined ? VERDICT_LINE.exec(answer)?.[1]?.toLowerCase() : undefined
+  if (verdict === 'approve' || verdict === 'reject') scan.verdict = verdict
   return scan
+}
+
+/** The verdict line a reviewer's answer opens with, as the shift engine reads it. */
+const VERDICT_LINE = /^[ \t]*verdict:[ \t]*(approve|reject)[ \t]*$/im
+
+/**
+ * @param data - a `request/header` event's data.
+ * @returns the route and model its header's config names, or `undefined` when it names none.
+ */
+function requestOf(data: unknown): { route: string; model: string } | undefined {
+  const config = isRecord(data) && isRecord(data.header) && isRecord(data.header.config) ? data.header.config : undefined
+  const route = str(config?.provider)
+  const model = str(config?.model)
+  return route === null || model === null ? undefined : { route, model }
+}
+
+/**
+ * @param data - an `assistant/message` event's data.
+ * @returns the message's text blocks joined, or `undefined` when it has none.
+ */
+function answerOf(data: unknown): string | undefined {
+  const content = isRecord(data) && isRecord(data.message) && Array.isArray(data.message.content) ? data.message.content : []
+  const texts = content.filter(isRecord).flatMap(block => (block.type === 'text' && typeof block.text === 'string' ? [block.text] : []))
+  return texts.length === 0 ? undefined : texts.join('')
 }
 
 function scanSessions(root: string, familyDir: string, book: DigestBook): SessionScan[] {
@@ -1937,6 +2101,7 @@ function readCapturedLogs(root: string, book: DigestBook): CapturedLog[] {
  * @param root - repository root.
  * @param commits - the enterprise commits on the branch, from {@link enterpriseCommits}.
  * @param scripts - when the cycle and scheduler scripts reached the branch, from {@link scriptHistory}.
+ * @param followUpsOf - the later commits that rework each shipped commit, from {@link followUpCommits}; omitted, none are read.
  * @returns the inputs.
  * @throws when the generated roster is missing, because every seat figure derives from it, or when a cycle record is
  * unreadable, because the pilot's rows would silently lose that cycle.
@@ -1945,6 +2110,7 @@ export function readInputs(
   root: string,
   commits: EnterpriseCommit[],
   scripts: ScriptHistory = { cycle: null, scheduler: null },
+  followUpsOf?: (shipped: readonly string[]) => Record<string, FollowUpCommit[]>,
 ): BriefingInputs {
   const book = new DigestBook()
   const read = (path: string): string => {
@@ -2057,6 +2223,7 @@ export function readInputs(
       singleModelMeta: optionalJson(`${COMPARISON_DIR}/t1-single-model-meta.json`) ?? {},
     }
 
+  const shippedCommits = [...new Set(ticketLines(ledger).flatMap(line => (line.shipped === null ? [] : [line.shipped.commit])))]
   const sessions: BriefingInputs['sessions'] = {
     bench: scanSessions(root, PROVING_GROUND_DIR, book),
     codeSafety: scanSessions(root, CODE_SAFETY_DIR, book),
@@ -2078,7 +2245,46 @@ export function readInputs(
     safety: { records: safetyRecords, groundTruths, ...comparison === undefined ? {} : { comparison } },
     sessions,
     digests: book.summarize(),
+    ...followUpsOf === undefined ? {} : { followUps: followUpsOf(shippedCommits) },
   }
+}
+
+/**
+ * The later commits on the checked-out branch that rework each shipped commit: a commit after it whose message names
+ * it by a prefix of at least seven characters and that changes a file in a directory the shipped commit changed. Two
+ * such commits with the same subject and files, a cherry-pick beside its original, count once, the older kept.
+ * @param root - repository root.
+ * @param shipped - the shipped commits.
+ * @returns the follow-ups per shipped commit, oldest first; empty for a commit git cannot read here.
+ */
+export function followUpCommits(root: string, shipped: readonly string[]): Record<string, FollowUpCommit[]> {
+  const git = (...args: string[]): string | undefined => {
+    try {
+      return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 })
+    } catch {
+      // A commit this clone does not hold, or no git history at all: nothing reworks what cannot be read.
+      return undefined
+    }
+  }
+  const dirsOf = (commit: string): Set<string> => new Set((git('show', '--name-only', '--format=', commit) ?? '').split('\n').filter(path => path !== '').map(path => dirname(path)))
+  const byCommit: Record<string, FollowUpCommit[]> = {}
+  for (const commit of shipped) {
+    const dirs = dirsOf(commit)
+    const log = git('log', '--reverse', '--format=%H%x1f%cI%x1f%s%x1f%B%x1e', `--grep=${commit.slice(0, 7)}`, `${commit}..HEAD`)
+    const named = new RegExp(`\\b${commit.slice(0, 7)}[0-9a-f]*\\b`)
+    const seen = new Set<string>()
+    byCommit[commit] = (log ?? '').split('\x1e').map(entry => entry.trim()).filter(entry => entry !== '').flatMap((entry) => {
+      const [sha = '', at = '', subject = '', body = ''] = entry.split('\x1f')
+      const match = named.exec(body)
+      if (match === null || !commit.startsWith(match[0])) return []
+      const changed = [...dirsOf(sha)]
+      const key = `${subject}\x1f${(git('show', '--name-only', '--format=', sha) ?? '').trim()}`
+      if (!changed.some(dir => dirs.has(dir)) || seen.has(key)) return []
+      seen.add(key)
+      return [{ commit: sha, at: new Date(at).toISOString(), subject }]
+    })
+  }
+  return byCommit
 }
 
 /**
@@ -2165,7 +2371,7 @@ export async function publishBriefing(
   github: GitHubReader,
   git: GitReader,
 ): Promise<{ briefing: Briefing; changed: boolean }> {
-  const inputs = readInputs(root, enterpriseCommits(root), scriptHistory(root))
+  const inputs = readInputs(root, enterpriseCommits(root), scriptHistory(root), shipped => followUpCommits(root, shipped))
   const ci = await readCi(github, git, shipmentsOf(inputs), DEFAULT_CI_BRANCH)
   const briefing = buildBriefing(inputs, ci)
   return { briefing, changed: writeIfChanged(join(root, BRIEFING_FIXTURE), serializeBriefing(briefing)) }

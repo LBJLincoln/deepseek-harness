@@ -164,6 +164,36 @@ export interface TicketSummary {
   shift?: string
   commit?: string
   reason?: string
+  /** The newest line's review verdict and session, for a worked ticket whose line records a review. */
+  review?: { verdict: string; sessionId?: string }
+  /** The reviewer's route and model; absent where the newest line predates the engine recording them. */
+  reviewer?: { route: string; model: string }
+}
+
+/** One approving or rejecting review a ticket line records. */
+export interface ReviewSummary {
+  ticket: string
+  seat: string
+  division: string
+  shift: string
+  at: string
+  verdict: 'approve' | 'reject'
+  sessionId?: string
+  /** The reviewer's route and model; absent on a line written before the engine recorded them. */
+  reviewer?: { route: string; model: string }
+  /** For a rejection: the commit a later line of the same ticket shipped. */
+  overturnedBy?: string
+}
+
+/** Every review the ledger records, over its whole history, newest first. */
+export interface ReviewRecord {
+  approved: number
+  rejected: number
+  /** Reviews whose line names the reviewer's route and model. */
+  reviewerRecorded: number
+  /** Rejections of a ticket a later line shipped. */
+  overturned: number
+  reviews: ReviewSummary[]
 }
 
 /** How a function ended: the gate or verdict itself, or a failure to obtain one. */
@@ -234,6 +264,8 @@ export interface EnterpriseReport {
   functions: FunctionRun[]
   /** The latest shipped commits, newest first. */
   shipped: ShippedCommit[]
+  /** Every review of the whole ledger; absent from a report built before it existed. */
+  reviews?: ReviewRecord
   ledger: { lines: number; tickets: number; functions: number; skipped: number }
 }
 

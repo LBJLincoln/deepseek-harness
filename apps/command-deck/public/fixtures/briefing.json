@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "asOf": "2026-09-29T09:41:21.384Z",
+  "asOf": "2026-09-29T10:13:53.000Z",
   "repository": {
     "name": "LBJLincoln/deepseek-harness",
     "branch": "claude/coding-agent-harness-u9l4gt",
@@ -207,8 +207,63 @@
         "computation": "Frozen pairs whose current verdict (a re-read fold's when one exists) is promote or reject."
       }
     },
+    "reviews.approved": {
+      "value": 4,
+      "source": {
+        "paths": [
+          "data/enterprise/ledger.jsonl"
+        ],
+        "computation": "Ticket lines whose review verdict is approve."
+      }
+    },
+    "reviews.rejected": {
+      "value": 0,
+      "source": {
+        "paths": [
+          "data/enterprise/ledger.jsonl"
+        ],
+        "computation": "Ticket lines whose review verdict is reject."
+      }
+    },
+    "reviews.reviewerRecorded": {
+      "value": 0,
+      "source": {
+        "paths": [
+          "data/enterprise/ledger.jsonl"
+        ],
+        "computation": "Ticket lines with an approving or rejecting review that name the reviewer's route and model."
+      }
+    },
+    "reviews.overturned": {
+      "value": 1,
+      "source": {
+        "paths": [
+          "data/enterprise/ledger.jsonl",
+          "data/enterprise/shifts"
+        ],
+        "computation": "Rejections, on a ticket line or in a shift record's review log, of a ticket a later ticket line shipped."
+      }
+    },
+    "reviews.recordOnly": {
+      "value": 2,
+      "source": {
+        "paths": [
+          "data/enterprise/shifts"
+        ],
+        "computation": "Review logs in a shift record whose session no ticket line names and whose last answer states a verdict."
+      }
+    },
+    "reviews.reworked": {
+      "value": 1,
+      "source": {
+        "paths": [
+          "data/enterprise/ledger.jsonl"
+        ],
+        "computation": "Approving ticket lines whose shipped commit a later commit on the branch names in its message while changing a file in a directory the shipped commit changed (git log)."
+      }
+    },
     "pilot.cycles": {
-      "value": 7,
+      "value": 8,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -223,7 +278,7 @@
       }
     },
     "pilot.schedulerCycles": {
-      "value": 6,
+      "value": 7,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -433,7 +488,7 @@
       }
     },
     "ci.completed": {
-      "value": 90,
+      "value": 98,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -446,7 +501,7 @@
       }
     },
     "ci.success": {
-      "value": 13,
+      "value": 14,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -459,7 +514,7 @@
       }
     },
     "ci.failure": {
-      "value": 36,
+      "value": 40,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -472,7 +527,7 @@
       }
     },
     "ci.cancelled": {
-      "value": 41,
+      "value": 44,
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -520,11 +575,11 @@
         "urls": [
           "https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml"
         ],
-        "computation": "The newest run that rendered a verdict (success or failure), https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016."
+        "computation": "The newest run that rendered a verdict (success or failure), https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554507148."
       }
     },
     "ci.latestAt": {
-      "value": "2026-09-29T09:23:55Z",
+      "value": "2026-09-29T10:41:31Z",
       "source": {
         "paths": [
           "data/enterprise/ledger.jsonl",
@@ -533,7 +588,7 @@
         "urls": [
           "https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml"
         ],
-        "computation": "The newest run that rendered a verdict (success or failure), https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016."
+        "computation": "The newest run that rendered a verdict (success or failure), https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554507148."
       }
     }
   },
@@ -1584,7 +1639,7 @@
         "kind": "cycle",
         "startedAt": "2026-09-29T08:13:00.000Z",
         "startedBy": "scheduler",
-        "basis": "The captured scheduler log announced the slot 2026-09-29T08:13:00.000Z, and this is the first cycle to start at or after it.",
+        "basis": "Its cycle record states scheduler: the cycle script records scheduler when scripts/enterprise-scheduler.sh is its parent process, and operator otherwise.",
         "shifts": [
           "081308-24b5"
         ],
@@ -1623,13 +1678,78 @@
             "name": "intake-push",
             "exit": 0,
             "at": "2026-09-29T08:13:06.000Z"
+          },
+          {
+            "name": "shift",
+            "exit": 0,
+            "at": "2026-09-29T09:37:19.000Z"
+          },
+          {
+            "name": "pull-after-shift",
+            "exit": 0,
+            "at": "2026-09-29T09:37:20.000Z"
+          },
+          {
+            "name": "functions",
+            "exit": 0,
+            "at": "2026-09-29T09:41:16.000Z"
+          },
+          {
+            "name": "roster",
+            "exit": 0,
+            "at": "2026-09-29T09:41:21.000Z"
+          },
+          {
+            "name": "publish",
+            "exit": 0,
+            "at": "2026-09-29T09:42:03.000Z"
+          }
+        ],
+        "finished": true,
+        "paths": [
+          "data/enterprise/ledger.jsonl",
+          "data/enterprise/shifts/2026-09-29-081308-24b5",
+          "data/enterprise/cycles/cycle-20260929T081300Z.json",
+          "data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T081300Z.log-0571b3c174",
+          "data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b"
+        ]
+      },
+      {
+        "id": "cycle-20260929T101300Z",
+        "kind": "cycle",
+        "startedAt": "2026-09-29T10:13:00.000Z",
+        "startedBy": "scheduler",
+        "basis": "The captured scheduler log announced the slot 2026-09-29T10:13:00.000Z, and this is the first cycle to start at or after it.",
+        "shifts": [
+          "101309-c95c"
+        ],
+        "attempted": 2,
+        "shipped": [],
+        "failed": [],
+        "lost": 2,
+        "tokens": null,
+        "steps": [
+          {
+            "name": "pull",
+            "exit": 0,
+            "at": "2026-09-29T10:13:02.000Z"
+          },
+          {
+            "name": "intake",
+            "exit": 0,
+            "at": "2026-09-29T10:13:03.000Z"
+          },
+          {
+            "name": "intake-push",
+            "exit": 0,
+            "at": "2026-09-29T10:13:07.000Z"
           }
         ],
         "finished": false,
         "paths": [
           "data/enterprise/ledger.jsonl",
-          "data/enterprise/shifts/2026-09-29-081308-24b5",
-          "data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T081300Z.log-0571b3c174",
+          "data/enterprise/shift-starts.jsonl",
+          "data/transcripts/live/enterprise-cycles/2026-09-29/enterprise-cycles_cycle-20260929T101300Z.log-2a33c8237b",
           "data/transcripts/live/enterprise-cycles/2026-09-28/enterprise-cycles_scheduler.log-3a345e4a9b"
         ]
       }
@@ -2463,28 +2583,80 @@
         {
           "id": 36550098961,
           "head": "8ab94ad80dd1c7466223c8b420b1fa723e585986",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "failure",
           "createdAt": "2026-09-29T09:34:59Z",
-          "updatedAt": "2026-09-29T09:35:12Z",
+          "updatedAt": "2026-09-29T09:46:39Z",
           "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36550098961"
         },
         {
           "id": 36550330735,
           "head": "53c5dc6a54220dad70bebead39df0d5ce9cf941d",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "cancelled",
           "createdAt": "2026-09-29T09:37:11Z",
-          "updatedAt": "2026-09-29T09:37:12Z",
+          "updatedAt": "2026-09-29T09:42:13Z",
           "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36550330735"
+        },
+        {
+          "id": 36550860563,
+          "head": "12e32731eb1b588504d691ab8540f00e8bcb8cab",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "createdAt": "2026-09-29T09:42:12Z",
+          "updatedAt": "2026-09-29T09:46:02Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36550860563"
+        },
+        {
+          "id": 36551277198,
+          "head": "70d94e5234afc7d88d3e8ca440e4af5ba9be2ec1",
+          "status": "completed",
+          "conclusion": "failure",
+          "createdAt": "2026-09-29T09:46:01Z",
+          "updatedAt": "2026-09-29T09:59:43Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36551277198"
+        },
+        {
+          "id": 36552755920,
+          "head": "8059bdc37f47f04777ce977386eb2fba3eebd4cb",
+          "status": "completed",
+          "conclusion": "failure",
+          "createdAt": "2026-09-29T09:59:53Z",
+          "updatedAt": "2026-09-29T10:14:26Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36552755920"
+        },
+        {
+          "id": 36554187763,
+          "head": "73b323d475ae191da8880a0d884d467c60c06b16",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "createdAt": "2026-09-29T10:13:09Z",
+          "updatedAt": "2026-09-29T10:13:59Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554187763"
+        },
+        {
+          "id": 36554273440,
+          "head": "0d24d0d8f67f7c7f3d90a36eca0f4915dccf127c",
+          "status": "completed",
+          "conclusion": "success",
+          "createdAt": "2026-09-29T10:13:57Z",
+          "updatedAt": "2026-09-29T10:29:25Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554273440"
+        },
+        {
+          "id": 36554507148,
+          "head": "3291b64022a18f546d04d88a087973b00b7a5930",
+          "status": "completed",
+          "conclusion": "failure",
+          "createdAt": "2026-09-29T10:16:09Z",
+          "updatedAt": "2026-09-29T10:41:31Z",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554507148"
         }
       ],
       "counts": {
-        "failure": 36,
-        "cancelled": 41,
-        "success": 13,
-        "in_progress": 1,
-        "pending": 1
+        "failure": 40,
+        "cancelled": 44,
+        "success": 14
       }
     },
     "source": {
@@ -3633,6 +3805,125 @@
         ],
         "computation": "Per shift: its review-*.jsonl session logs and the tool/call events they record."
       }
+    },
+    "reviewRecord": {
+      "value": [
+        {
+          "ticket": "T-0012",
+          "shift": "171951-516d",
+          "at": "2026-09-28T18:19:48.000Z",
+          "verdict": "approve",
+          "sessionId": "review-t-0012-79328c42",
+          "reviewer": null,
+          "requested": {
+            "route": "claude-code",
+            "model": "sonnet"
+          },
+          "toolCalls": 6,
+          "recordedIn": "shift record",
+          "shipped": null,
+          "overturnedBy": null,
+          "followUps": []
+        },
+        {
+          "ticket": "T-0019",
+          "shift": "171951-516d",
+          "at": "2026-09-28T18:19:48.000Z",
+          "verdict": "reject",
+          "sessionId": "review-t-0019-e3dd7355",
+          "reviewer": null,
+          "requested": {
+            "route": "claude-code",
+            "model": "sonnet"
+          },
+          "toolCalls": 0,
+          "recordedIn": "shift record",
+          "shipped": null,
+          "overturnedBy": "cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38",
+          "followUps": []
+        },
+        {
+          "ticket": "T-0012",
+          "shift": "182951-78a6",
+          "at": "2026-09-28T19:04:29.582Z",
+          "verdict": "approve",
+          "sessionId": "review-t-0012-fb58af6f",
+          "reviewer": null,
+          "requested": {
+            "route": "claude-code",
+            "model": "sonnet"
+          },
+          "toolCalls": 0,
+          "recordedIn": "ledger",
+          "shipped": "1d6a5d3430aef9893b1a28adfea1f1841238c866",
+          "overturnedBy": null,
+          "followUps": [
+            {
+              "commit": "b7cf48055c75bf173594a7f79c0fdbea1877cb03",
+              "at": "2026-09-28T19:20:40.000Z",
+              "subject": "fix(llm-pi-ai): re-record the README pair the first shipped ticket left unrecorded"
+            }
+          ]
+        },
+        {
+          "ticket": "T-0019",
+          "shift": "182951-78a6",
+          "at": "2026-09-28T19:04:29.582Z",
+          "verdict": "approve",
+          "sessionId": "review-t-0019-da50c0af",
+          "reviewer": null,
+          "requested": {
+            "route": "claude-code",
+            "model": "sonnet"
+          },
+          "toolCalls": 0,
+          "recordedIn": "ledger",
+          "shipped": "cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38",
+          "overturnedBy": null,
+          "followUps": []
+        },
+        {
+          "ticket": "T-0007",
+          "shift": "001527-881f",
+          "at": "2026-09-29T02:04:38.491Z",
+          "verdict": "approve",
+          "sessionId": "review-t-0007-51a05d12",
+          "reviewer": null,
+          "requested": {
+            "route": "claude-code",
+            "model": "sonnet"
+          },
+          "toolCalls": 0,
+          "recordedIn": "ledger",
+          "shipped": "cba8e46823c6fa946e5ee4f86d3945590a3fb1bc",
+          "overturnedBy": null,
+          "followUps": []
+        },
+        {
+          "ticket": "T-0016",
+          "shift": "081308-24b5",
+          "at": "2026-09-29T09:37:06.598Z",
+          "verdict": "approve",
+          "sessionId": "review-t-0016-f22a14a7",
+          "reviewer": null,
+          "requested": {
+            "route": "claude-code",
+            "model": "sonnet"
+          },
+          "toolCalls": 0,
+          "recordedIn": "ledger",
+          "shipped": null,
+          "overturnedBy": null,
+          "followUps": []
+        }
+      ],
+      "source": {
+        "paths": [
+          "data/enterprise/ledger.jsonl",
+          "data/enterprise/shifts"
+        ],
+        "computation": "Every ticket line whose review approved or rejected, with the reviewer it names and the route, model and tool calls of its review log; then every review log of a shift record no ticket line names, with the verdict line of its last answer; a rejection is overturned when a later line of the ticket shipped, and a shipped approval lists the later commits that name its commit and change a file in a directory it changed."
+      }
     }
   },
   "economics": {
@@ -3678,15 +3969,15 @@
     },
     {
       "path": "data/enterprise/cycles",
-      "files": 4,
-      "bytes": 5687,
-      "sha256": "6d65aeed3054a232c63a4cf7a3461db31356aa5f1ef26a9ace72bb7f224f44ee"
+      "files": 5,
+      "bytes": 7113,
+      "sha256": "5d5fd8fdf7abaf5fb63e8184eea29a0dd0addda080f47570320fd0efde522356"
     },
     {
       "path": "data/enterprise/intake",
-      "files": 12,
-      "bytes": 992363,
-      "sha256": "624d85787cb89a6dada50a4370cee97530c8b9fc4d06fffba16ed7c588818021"
+      "files": 13,
+      "bytes": 992626,
+      "sha256": "a6dcd519eecdc8d5ac2bc39a4166dc0db3d1d41d106f4226a2a7aa3dbd24eb5d"
     },
     {
       "path": "data/enterprise/ledger.jsonl",
@@ -3703,8 +3994,8 @@
     {
       "path": "data/enterprise/shift-starts.jsonl",
       "files": 1,
-      "bytes": 812,
-      "sha256": "17a160e43b655d709fb561d6d78bdc1d95d023f8d4f54920f636b3a07694e85e"
+      "bytes": 1015,
+      "sha256": "a0fec8dd124277c48f612f170f9a4b7247d9403a8212c0344beb9c67e7eaf943"
     },
     {
       "path": "data/enterprise/shifts",
@@ -3732,9 +4023,9 @@
     },
     {
       "path": "data/transcripts/live/enterprise-cycles",
-      "files": 19,
-      "bytes": 38245,
-      "sha256": "a405c0070fb61d51f25858b615871f1ca5835eda98b524945880c7ecab89f38f"
+      "files": 23,
+      "bytes": 42880,
+      "sha256": "bd5b8c357d49bbb49baeea7e78a5a9973943ccba884dc8f5d262c370ed18848e"
     },
     {
       "path": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments",

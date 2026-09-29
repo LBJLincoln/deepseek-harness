@@ -381,7 +381,11 @@
         "at": "2026-09-28T19:04:29.582Z",
         "shift": "182951-78a6",
         "commit": "1d6a5d3430aef9893b1a28adfea1f1841238c866",
-        "reason": "approved and assembled"
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0012-fb58af6f"
+        }
       },
       {
         "ticket": "T-0019",
@@ -391,7 +395,11 @@
         "at": "2026-09-28T19:04:29.582Z",
         "shift": "182951-78a6",
         "commit": "cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38",
-        "reason": "approved and assembled"
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0019-da50c0af"
+        }
       }
     ],
     "rejected": [],
@@ -412,7 +420,11 @@
         "status": "halted",
         "at": "2026-09-29T09:37:06.598Z",
         "shift": "081308-24b5",
-        "reason": "acceptance failed over the assembled tree: T-0016 doc-sync:  the pair: \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk-… vs \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk-…\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.zh.md: missing language switcher — no link to README.md\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.md: missing language switcher — no link back to README.zh.md\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.md ↔ program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.zh.md: link target #1 diverges between the pair: \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk/… vs \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk/…\nrun-gates: unsuccessful gates:\n  - FAILED translation pairing (50.40s, exit 1)\n    pnpm run verify-translation-pairing"
+        "reason": "acceptance failed over the assembled tree: T-0016 doc-sync:  the pair: \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk-… vs \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk-…\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.zh.md: missing language switcher — no link to README.md\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.md: missing language switcher — no link back to README.zh.md\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.md ↔ program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.zh.md: link target #1 diverges between the pair: \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk/… vs \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk/…\nrun-gates: unsuccessful gates:\n  - FAILED translation pairing (50.40s, exit 1)\n    pnpm run verify-translation-pairing",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0016-f22a14a7"
+        }
       },
       {
         "ticket": "T-0008",
@@ -2863,6 +2875,50 @@
       "verdicts": []
     }
   ],
+  "reviews": {
+    "approved": 4,
+    "rejected": 0,
+    "reviewerRecorded": 0,
+    "overturned": 0,
+    "reviews": [
+      {
+        "ticket": "T-0016",
+        "seat": "harness-core-tool-subagent-steward",
+        "division": "harness-core",
+        "shift": "081308-24b5",
+        "at": "2026-09-29T09:37:06.598Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0016-f22a14a7"
+      },
+      {
+        "ticket": "T-0007",
+        "seat": "harness-core-llm-steward",
+        "division": "harness-core",
+        "shift": "001527-881f",
+        "at": "2026-09-29T02:04:38.491Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0007-51a05d12"
+      },
+      {
+        "ticket": "T-0012",
+        "seat": "harness-core-llm-pi-ai-steward",
+        "division": "harness-core",
+        "shift": "182951-78a6",
+        "at": "2026-09-28T19:04:29.582Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0012-fb58af6f"
+      },
+      {
+        "ticket": "T-0019",
+        "seat": "harness-core-subagent-in-process-driver-steward",
+        "division": "harness-core",
+        "shift": "182951-78a6",
+        "at": "2026-09-28T19:04:29.582Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0019-da50c0af"
+      }
+    ]
+  },
   "ledger": {
     "lines": 165,
     "tickets": 14,

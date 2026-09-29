@@ -5,7 +5,7 @@ import { Controls } from './Controls.tsx'
 import { DataFlow, FlowDiagram, OrgChart, type Flow } from './diagrams.tsx'
 import { clock, commitUrl, count, duration, interval, listed, minutes, moment, numberOf, pathUrl, percent, short, shown, signed, tierCost, tierTime } from './format.ts'
 import { Cite, Notes, SourceNotes, type Note } from './notes.tsx'
-import type { Briefing as BriefingData, ExperimentRow, Figure, PilotRow, ShipmentCi, ShippedRow, Source, Starter } from './types.ts'
+import type { Briefing as BriefingData, ExperimentRow, Figure, PilotRow, ReviewRecordRow, ShipmentCi, ShippedRow, Source, Starter } from './types.ts'
 
 /*
  * The client briefing: an executive account of the enterprise's pilot in eight
@@ -26,6 +26,7 @@ const DATA_HANDLING = 'docs/client/data-handling.md'
 const SHIFT_COMPOSITION = 'examples/headless-agent/tests/fixtures/enterprise-shift/cordis.yml'
 const SHIFT_OVERLAY = 'examples/headless-agent/tests/fixtures/enterprise-shift/overlays/claude-code.cordis.yml'
 const ENGINE_README = 'examples/headless-agent/tests/fixtures/enterprise-shift/README.md'
+const REVIEW_NOTE = '.agents/notes/implemented/architecture/2026-09-29-enterprise-review-independence.md'
 const INTAKE_OVERLAY = 'examples/headless-agent/tests/fixtures/enterprise-intake/overlays/claude-code.cordis.yml'
 const CLAUDE_CODE_ROUTE = 'packages/llm/llm-claude-code/README.md'
 const TRANSCRIPTS_README = 'data/transcripts/README.md'
@@ -53,6 +54,24 @@ const SECTIONS = [
 ] as const
 
 const STARTER_LABEL: Record<Starter, string> = { scheduler: 'Scheduler', operator: 'Operator', unknown: 'Unknown' }
+
+/** A rejection a later shipped line of the same ticket overturned. */
+type Overturned = ReviewRecordRow & { overturnedBy: string }
+
+/** An approval that shipped. */
+type Reworked = ReviewRecordRow & { shipped: string }
+
+/**
+ * What became of a reviewed change.
+ * @param row - one review.
+ * @returns the later shipment that overturned a rejection, or the change's own shipment and the commits that reworked it.
+ */
+function afterwards(row: ReviewRecordRow): string {
+  if (row.overturnedBy !== null) return `overturned: shipped later as ${short(row.overturnedBy)}`
+  if (row.shipped === null) return 'not shipped'
+  const rework = row.followUps.length === 0 ? '' : `, reworked by ${listed(row.followUps.map(commit => short(commit.commit)))}`
+  return `shipped as ${short(row.shipped)}${rework}`
+}
 
 type Fig = Figure<number | string> | undefined
 
@@ -395,6 +414,9 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
   const terms = data.governance.terms.value ?? []
   const signoffs = data.governance.signoffs.value ?? []
   const reviews = data.governance.reviews.value ?? []
+  const reviewRecord = data.governance.reviewRecord?.value ?? []
+  const overturned = reviewRecord.filter((row): row is Overturned => row.overturnedBy !== null)
+  const reworked = reviewRecord.filter((row): row is Reworked => row.shipped !== null && row.followUps.length > 0)
   const routes = data.routes.value ?? []
   const economics = data.economics.tickets.value ?? []
   const ciRuns = data.ci.value?.runs ?? []
@@ -548,8 +570,14 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
     shiftIsolation: n5.cite({ paths: [SHIFT_COMPOSITION, SHIFT_OVERLAY, SHIFT_NOTE], computation: 'The shift composition runs shell commands through the local bash provider, not the sandbox; each department works in its own worktree of a scratch clone and pushes through an origin whose push URL is unreachable; the Claude Code overlay states the edits and version-control commands a department may run without a prompt.' }),
     barrier: n5.cite({ paths: ['packages/verification/read-barrier/README.md', 'packages/fs/fs-read-barrier/README.md'], computation: 'The read barrier: implementer and judge sessions are denied the validator-owned tree; the filesystem capability enforces the decision where it opens a path.' }),
     refusals: n5.cite(f('safety.barrierRefusals') ?? data.safety.recall),
-    reviewer: n5.cite({ paths: [SHIFT_NOTE, 'packages/verification/judge/README.md'], computation: 'The shift’s reviewer: a fresh session with no parent and no seed, the judge preset, an empty working directory, and a history of the ticket and the evidence only; since the second shift every tool is restricted away from it.' }),
+    reviewer: n5.cite({ paths: [SHIFT_NOTE, REVIEW_NOTE, 'packages/verification/judge/README.md'], computation: 'The shift’s reviewer: a fresh session with no parent and no seed, the judge preset, an empty working directory, and a history of the ticket and the evidence only; since the second shift every tool is restricted away from it; it runs on the route and model of the composition’s enterprise-review-model entry, configured apart from the departments’, and a rejected ticket is held for a person rather than reviewed again.' }),
     reviews: n5.cite(data.governance.reviews),
+    reviewRecord: n5.cite(data.governance.reviewRecord ?? data.governance.reviews),
+    approved: n5.cite(f('reviews.approved') ?? data.governance.reviews),
+    recordOnly: n5.cite(f('reviews.recordOnly') ?? data.governance.reviews),
+    reviewerRecorded: n5.cite(f('reviews.reviewerRecorded') ?? data.governance.reviews),
+    overturned: n5.cite(f('reviews.overturned') ?? data.governance.reviews),
+    reworked: n5.cite(f('reviews.reworked') ?? data.governance.reviews),
     examinerRule: n5.cite({ paths: [SAFETY_README, 'examples/headless-agent/tests/fixtures/program-code-safety/README.md'], computation: 'What a code-safety record proves: every released finding existed at the line it cites, in the locked tree, when the committed examiner ran over the merged head.' }),
     examiner: n5.cite(f('safety.examinerPassed') ?? data.safety.recall),
     signoff: n5.cite({
@@ -964,7 +992,7 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
               </div>
               <div className="bf-controls-table__row" role="row">
                 <span role="cell" data-label="Control"><b>Separation of duties</b></span>
-                <span role="cell" data-label="Mechanism">The reviewer of a change is a separate session with no parent and an empty directory, and has had no tools since the second shift; it sees the diff, the commit messages and the check output, not the implementer&rsquo;s work<Cite note={c5.reviewer} branch={branch} />.</span>
+                <span role="cell" data-label="Mechanism">The reviewer of a change is a separate session with no parent and an empty directory, and has had no tools since the second shift; it sees the diff, the commit messages and the check output, not the implementer&rsquo;s work. It runs on a route and model configured apart from the departments&rsquo;, and a ticket it rejects is held for a person, never reviewed again<Cite note={c5.reviewer} branch={branch} />.</span>
                 <span role="cell" data-label="Evidence">{reviews.length === 0 ? 'No review is on record.' : `${reviews.map(row => `Shift ${row.shift}: ${row.reviews} reviews, ${row.toolCalls} tool calls`).join('; ')}.`}<Cite note={c5.reviews} branch={branch} /></span>
               </div>
               <div className="bf-controls-table__row" role="row">
@@ -1001,6 +1029,56 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
                 <span role="cell" data-label="Evidence">Ledger lines: <V figure={f('ledger.lines')} note={c5.ledger} branch={branch} />; session logs in committed records: <V figure={f('sessions.recorded')} note={c5.sessions} branch={branch} />.</span>
               </div>
             </div>
+
+            <h3>The review record<Cite note={c5.reviewRecord} branch={branch} /></h3>
+            <p>
+              The ledger records {text(f('reviews.approved'))} approvals and {text(f('reviews.rejected'))} rejections by the independent
+              reviewer<Cite note={c5.approved} branch={branch} />
+              {numberOf(f('reviews.recordOnly')) === 0 ? null : <>, and the record of a shift that crashed before it wrote its ledger lines holds {text(f('reviews.recordOnly'))} more<Cite note={c5.recordOnly} branch={branch} /></>}.
+              Each review ran in a session of its own that never saw the department&rsquo;s.
+              {' '}{text(f('reviews.reviewerRecorded'))} of the ledger&rsquo;s reviews name the reviewer&rsquo;s model and route; the older
+              lines read reviewer not recorded, and the model each review&rsquo;s request was sent with is read from its own session
+              log<Cite note={c5.reviewerRecorded} branch={branch} />.
+            </p>
+            {overturned.length + reworked.length === 0 ? null : (
+              <ul className="bf-points bf-points--compact">
+                {overturned.map(row => (
+                  <li key={`overturned-${row.shift}-${row.ticket}`}>
+                    <b>{row.ticket}</b>, shift {row.shift}: the reviewer rejected the change; a later review approved the same ticket and it
+                    shipped as <a href={commitUrl(row.overturnedBy)}><code>{short(row.overturnedBy)}</code></a>, which overturned the
+                    rejection<Cite note={c5.overturned} branch={branch} />.
+                  </li>
+                ))}
+                {reworked.map(row => (
+                  <li key={`reworked-${row.shift}-${row.ticket}`}>
+                    <b>{row.ticket}</b>, shift {row.shift}: the reviewer approved the change and it shipped as{' '}
+                    <a href={commitUrl(row.shipped)}><code>{short(row.shipped)}</code></a>; it was reworked afterwards
+                    by {listed(row.followUps.map(commit => `${short(commit.commit)} (“${commit.subject}”)`))}<Cite note={c5.reworked} branch={branch} />.
+                  </li>
+                ))}
+              </ul>
+            )}
+            {reviewRecord.length === 0 ? null : (
+              <div className="bf-table" role="table" aria-label="Reviews">
+                <div className="bf-table__row bf-table__row--head" role="row">
+                  <span role="columnheader">Ticket</span><span role="columnheader">Shift</span><span role="columnheader">Verdict</span><span role="columnheader">Reviewer on the ledger line</span><span role="columnheader">Request sent on</span><span role="columnheader">Tool calls</span><span role="columnheader">Afterwards</span>
+                </div>
+                {reviewRecord.map(row => (
+                  <div className="bf-table__row" role="row" key={`${row.shift}-${row.ticket}-${row.sessionId ?? ''}`}>
+                    <span role="cell" data-label="Ticket"><b>{row.ticket}</b> {row.sessionId === null ? '' : <code>{row.sessionId}</code>}</span>
+                    <span role="cell" data-label="Shift">{row.shift}{row.at === null ? '' : `, ${moment(row.at)}`}</span>
+                    <span role="cell" data-label="Verdict">{row.verdict === 'approve' ? 'approved' : 'rejected'}</span>
+                    <span role="cell" data-label="Reviewer">{row.recordedIn === 'shift record' ? 'no ledger line: shift record only' : row.reviewer === null ? 'reviewer not recorded' : `${row.reviewer.model} on ${row.reviewer.route}`}</span>
+                    <span role="cell" data-label="Request sent on">{row.requested === null ? 'no session log' : `${row.requested.model} on ${row.requested.route}`}</span>
+                    <span role="cell" data-label="Tool calls" className="bf-num">{row.toolCalls === null ? 'unknown' : count(row.toolCalls)}</span>
+                    <span role="cell" data-label="Afterwards">
+                      {afterwards(row)}
+                      <Cite note={c5.reviewRecord} branch={branch} />
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </Section>
 
           <Section index={6} notes={n6} branch={branch} lead={<>{LEADS.economics}<Cite note={c6.currency} branch={branch} />.</>}>

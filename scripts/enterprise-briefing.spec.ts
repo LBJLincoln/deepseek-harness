@@ -1,4 +1,5 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -13,9 +14,11 @@ import {
   pilotRows,
   pooledRows,
   readCi,
+  followUpCommits,
   readInputs,
   recallAgainst,
   recallRows,
+  reviewRecordRows,
   reviewRows,
   serializeBriefing,
   shiftRows,
@@ -496,6 +499,92 @@ describe('governance figures', () => {
       { run: '011500-aaaa', record: 'shift', transition: 'spec-freeze', principal: 'daliesk-enterprise-shift', kind: 'machine', at: null, form: 'decision' },
       { run: '011500-aaaa', record: 'shift', transition: 'release', principal: 'daliesk-enterprise-shift', kind: 'machine', at: null, form: 'decision' },
     ])
+  })
+})
+
+describe('the review record', () => {
+  const LATER = 'cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38'
+  const crashed = shiftRecord({
+    dir: 'data/enterprise/shifts/2026-09-28-171951-516d',
+    result: { type: 'partial', shift: '171951-516d', startedAt: '2026-09-28T17:19:51.258Z', endedAt: '2026-09-28T18:19:48Z' },
+    sessions: [
+      { file: 'data/enterprise/shifts/2026-09-28-171951-516d/sessions/review-t-0012-79328c42.jsonl', dataUseTerms: false, toolCalls: 6, signoffs: [], request: { route: 'claude-code', model: 'sonnet' }, verdict: 'approve' },
+      { file: 'data/enterprise/shifts/2026-09-28-171951-516d/sessions/review-t-0019-e3dd7355.jsonl', dataUseTerms: false, toolCalls: 0, signoffs: [], request: { route: 'claude-code', model: 'sonnet' }, verdict: 'reject' },
+      { file: 'data/enterprise/shifts/2026-09-28-171951-516d/sessions/program-x-t-0019.jsonl', dataUseTerms: false, toolCalls: 9, signoffs: [], request: { route: 'claude-code', model: 'sonnet' } },
+    ],
+  })
+  const reviewer = { sessionId: 'review-t-0020-1', route: 'claude-code', model: 'opus', verdict: 'reject' }
+  const ledger: LedgerRead = {
+    lines: [
+      ticketLine({}),
+      ticketLine({ ticket: 'T-0019', shipped: { commit: LATER }, review: { verdict: 'approve', sessionId: 'review-t-0019-da50c0af' } }),
+      ticketLine({ ticket: 'T-0020', shift: '121300-abcd', at: '2026-09-29T12:00:00.000Z', shipped: null, review: { verdict: 'reject', sessionId: 'review-t-0020-1' }, reviewer }),
+      ticketLine({ ticket: 'T-0021', shipped: null, review: { verdict: 'none' } }),
+    ],
+    skipped: [],
+  }
+  const followUps = { [SHIPPED]: [{ commit: FIX, at: '2026-09-28T19:25:00.000Z', subject: 'fix(llm-pi-ai): re-record the README pair' }] }
+
+  it('lists every review oldest first, a crashed shift\'s from its record, each with its reviewer, an overturned rejection, a reworked approval', () => {
+    const rows = reviewRecordRows(ledger, [crashed, shiftRecord()], followUps)
+    const read = rows.map(({ ticket, shift, verdict, recordedIn, reviewer, requested, toolCalls, overturnedBy }) => (
+      [ticket, shift, verdict, recordedIn, reviewer, requested, toolCalls, overturnedBy]
+    ))
+    expect(rows.map(row => row.followUps.map(entry => entry.commit))).toEqual([[], [], [FIX], [], []])
+    expect(read).toEqual([
+      ['T-0012', '171951-516d', 'approve', 'shift record', null, { route: 'claude-code', model: 'sonnet' }, 6, null],
+      ['T-0019', '171951-516d', 'reject', 'shift record', null, { route: 'claude-code', model: 'sonnet' }, 0, LATER],
+      ['T-0012', '182951-78a6', 'approve', 'ledger', null, null, 0, null],
+      ['T-0019', '182951-78a6', 'approve', 'ledger', null, null, null, null],
+      ['T-0020', '121300-abcd', 'reject', 'ledger', { route: 'claude-code', model: 'opus' }, null, null, null],
+    ])
+    expect(rows[1]?.at).toBe('2026-09-28T18:19:48.000Z')
+  })
+
+  it('counts approvals and rejections from the ledger, apart from the reviews only a shift record holds', async () => {
+    const briefing = buildBriefing(inputs({ ledger, shifts: [crashed, shiftRecord()], followUps }), await readCi(github(), GIT, [{ commit: SHIPPED, base: BASE }], 'dev'))
+    const values = ['approved', 'rejected', 'reviewerRecorded', 'overturned', 'recordOnly', 'reworked'].map(id => briefing.figures[`reviews.${id}`]?.value)
+    expect(values).toEqual([2, 1, 1, 1, 2, 1])
+    expect(briefing.governance.reviewRecord.value).toHaveLength(5)
+    const unread = buildBriefing(inputs({ ledger }), await readCi(github(), GIT, [{ commit: SHIPPED, base: BASE }], 'dev'))
+    expect(unknownOf(unread.figures['reviews.reworked'])).toBe('the git history was not read')
+  })
+
+  it('reads a committed review log\'s verdict and the route and model its request was sent with', () => {
+    const record = readInputs(root, []).shifts.find(shift => shift.dir.endsWith('171951-516d'))
+    const review = record?.sessions.find(session => session.file.endsWith('/review-t-0019-e3dd7355.jsonl'))
+    expect(review).toMatchObject({ verdict: 'reject', request: { route: 'claude-code', model: 'sonnet' }, toolCalls: 0 })
+    expect(record?.sessions.find(session => session.file.includes('/program-'))?.verdict).toBeUndefined()
+  })
+
+  it('finds the later commits that name a shipped commit and change a file beside the ones it changed, a cherry-pick once', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'briefing-git-'))
+    try {
+      const git = (...args: string[]): string => execFileSync('git', ['-C', dir, '-c', 'user.name=t', '-c', 'user.email=t@example.test', ...args], { encoding: 'utf8' }).trim()
+      const commit = (path: string, message: string): string => {
+        mkdirSync(join(dir, path, '..'), { recursive: true })
+        writeFileSync(join(dir, path), `${message}\n`, { flag: 'a' })
+        git('add', '--', path)
+        git('commit', '-qm', message)
+        return git('rev-parse', 'HEAD')
+      }
+      git('init', '-q')
+      commit('pkg/a/src/index.ts', 'base')
+      const shipped = commit('pkg/a/README.md', 'T-0001: the shipped change')
+      const rework = commit('pkg/a/README.i18n.yaml', `fix(a): re-record what ${shipped.slice(0, 9)} left unrecorded`)
+      git('checkout', '-q', '-b', 'side', `${rework}~1`)
+      commit('pkg/a/README.i18n.yaml', `fix(a): re-record what ${shipped.slice(0, 9)} left unrecorded`)
+      git('checkout', '-q', '-')
+      git('merge', '-q', '--no-edit', '-X', 'ours', 'side')
+      commit('scripts/report.ts', `feat(report): read ${shipped.slice(0, 9)}'s verdict`)
+      commit('pkg/a/other.ts', 'fix(a): an unrelated fix')
+      expect(followUpCommits(dir, [shipped, 'f'.repeat(40)])).toEqual({
+        [shipped]: [{ commit: rework, at: expect.any(String) as string, subject: `fix(a): re-record what ${shipped.slice(0, 9)} left unrecorded` }],
+        ['f'.repeat(40)]: [],
+      })
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })
 

@@ -64,6 +64,32 @@ export interface ShipmentCi {
   preExisting: string[]
 }
 
+/** One later commit that reworked a shipped change. */
+export interface FollowUpCommit {
+  commit: string
+  at: string
+  subject: string
+}
+
+/** One review that decided a ticket, from its ledger line or, for a shift that never wrote its lines, its shift record. */
+export interface ReviewRecordRow {
+  ticket: string
+  shift: string
+  at: string | null
+  verdict: 'approve' | 'reject'
+  sessionId: string | null
+  /** The route and model the ledger line names; `null` for a line written before the engine recorded them. */
+  reviewer: { route: string; model: string } | null
+  /** The route and model the review session's request was sent with, from its log; `null` without a log. */
+  requested: { route: string; model: string } | null
+  toolCalls: number | null
+  recordedIn: 'ledger' | 'shift record'
+  shipped: string | null
+  /** For a rejection: the commit a later line of the ticket shipped. */
+  overturnedBy: string | null
+  followUps: FollowUpCommit[]
+}
+
 export interface ShippedRow {
   ticket: string
   title: string | null
@@ -228,6 +254,8 @@ export interface Briefing {
       form: 'event' | 'decision'
     }[]>
     reviews: Figure<{ shift: string; reviews: number; toolCalls: number }[]>
+    /** Every review that decided a ticket; absent from a briefing built before it existed. */
+    reviewRecord?: Figure<ReviewRecordRow[]>
   }
   economics: { tickets: Figure<{ ticket: string; tokens: number; seconds: number }[]> }
   inputs: InputDigest[]

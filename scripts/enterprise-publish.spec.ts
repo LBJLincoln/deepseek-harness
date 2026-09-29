@@ -7,6 +7,7 @@ import { LEDGER_PATH, type FunctionLine, type LedgerLine, type TicketLine } from
 import {
   buildEnterpriseReport,
   DAY_FIXTURE,
+  reviewRecord,
   ENTERPRISE_FIXTURE,
   publishDeckData,
   ROSTER_FIXTURE,
@@ -114,7 +115,7 @@ describe('buildEnterpriseReport', () => {
 
   it('lists the day\'s tickets by the status of their newest line, and the queue\'s unworked tickets as queued', () => {
     expect(report.tickets.queued).toEqual([{ ticket: 'T-0005', seat: 'harness-core-agent-loop-steward', division: 'harness-core', status: 'queued', title: 'Still open' }])
-    expect(report.tickets.shipped).toEqual([{ ticket: 'T-0001', seat: 'harness-core-session-steward', division: 'harness-core', status: 'shipped', at: '2026-09-28T12:00:00.000Z', shift: 'shift-1', commit: COMMIT }])
+    expect(report.tickets.shipped).toEqual([{ ticket: 'T-0001', seat: 'harness-core-session-steward', division: 'harness-core', status: 'shipped', at: '2026-09-28T12:00:00.000Z', shift: 'shift-1', commit: COMMIT, review: { verdict: 'approve' } }])
     expect(report.tickets.rejected.map(entry => entry.ticket)).toEqual(['T-0002'])
     expect(report.tickets.halted).toEqual([{ ticket: 'T-0003', seat: 'harness-core-agent-steward', division: 'harness-core', status: 'halted', at: '2026-09-28T15:00:00.000Z', shift: 'shift-1', reason: 'budget exhausted' }])
     // T-0004 shipped two days ago: not today's ticket.
@@ -177,6 +178,37 @@ describe('buildEnterpriseReport', () => {
     const listed = buildEnterpriseReport(roster, { lines: many, skipped: [] }, []).shipped
     expect(listed).toHaveLength(SHIPPED_LIMIT)
     expect(listed[0]?.commit).toBe(`c0ffee${String(SHIPPED_LIMIT + 2).padStart(6, '0')}`)
+  })
+
+  it('counts every review of the whole ledger, the ones older than the window included, newest first', () => {
+    expect(report.reviews).toEqual({
+      approved: 2,
+      rejected: 1,
+      reviewerRecorded: 0,
+      overturned: 0,
+      reviews: [
+        { ticket: 'T-0002', seat: 'harness-core-tools-steward', division: 'harness-core', shift: 'shift-1', at: '2026-09-28T14:00:00.000Z', verdict: 'reject', sessionId: 'review-t-0002' },
+        { ticket: 'T-0001', seat: 'harness-core-session-steward', division: 'harness-core', shift: 'shift-1', at: '2026-09-28T12:00:00.000Z', verdict: 'approve' },
+        { ticket: 'T-0004', seat: 'harness-core-agent-steward', division: 'harness-core', shift: 'shift-1', at: '2026-09-26T15:00:00.000Z', verdict: 'approve' },
+      ],
+    })
+  })
+
+  it('names the reviewer where the line records it, and counts a rejection a later shipped line overturned', () => {
+    const reviewer = { sessionId: 'review-t-0002-b', route: 'claude-code', model: 'opus', verdict: 'approve' }
+    const lines = [
+      ticket({ ticket: 'T-0002', at: '2026-09-28T14:00:00.000Z', shipped: null, review: { verdict: 'reject', sessionId: 'review-t-0002-a' } }),
+      ticket({ ticket: 'T-0002', shift: 'shift-2', at: '2026-09-28T16:00:00.000Z', review: { verdict: 'approve', sessionId: 'review-t-0002-b' }, reviewer }),
+      ticket({ ticket: 'T-0003', at: '2026-09-28T15:00:00.000Z', shipped: null, review: { verdict: 'none' } }),
+    ]
+    const record = reviewRecord(lines)
+    expect(record).toMatchObject({ approved: 1, rejected: 1, reviewerRecorded: 1, overturned: 1 })
+    expect(record.reviews.map(review => [review.shift, review.verdict, review.reviewer, review.overturnedBy])).toEqual([
+      ['shift-2', 'approve', { route: 'claude-code', model: 'opus' }, undefined],
+      ['shift-1', 'reject', undefined, COMMIT],
+    ])
+    const listed = buildEnterpriseReport(roster, { lines, skipped: [] }, []).tickets.shipped
+    expect(listed.map(entry => [entry.ticket, entry.review, entry.reviewer])).toEqual([['T-0002', { verdict: 'approve', sessionId: 'review-t-0002-b' }, { route: 'claude-code', model: 'opus' }]])
   })
 
   it('takes the last line\'s time as the moment when the ledger is newer than the roster', () => {
