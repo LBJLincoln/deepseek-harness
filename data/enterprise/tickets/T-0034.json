@@ -17,11 +17,11 @@
   "acceptance": [
     {
       "id": "missing-rows-added",
-      "run": "test \"$(grep -c '](ui-deliverables/README.md)\\|](ui-directory-picker-browse/README.md)\\|](ui-directory-picker-native/README.md)\\|](ui-message-feedback/README.md)' packages/client/README.md)\" = 4"
+      "run": "grep -q '](ui-deliverables/README.md)' packages/client/README.md && grep -q '](ui-directory-picker-browse/README.md)' packages/client/README.md && grep -q '](ui-directory-picker-native/README.md)' packages/client/README.md && grep -q '](ui-message-feedback/README.md)' packages/client/README.md"
     },
     {
       "id": "zh-rows-added",
-      "run": "test \"$(grep -c '](ui-deliverables/README.md)\\|](ui-directory-picker-browse/README.md)\\|](ui-directory-picker-native/README.md)\\|](ui-message-feedback/README.md)' packages/client/README.zh.md)\" = 4"
+      "run": "grep -q '](ui-deliverables/README.md)' packages/client/README.zh.md && grep -q '](ui-directory-picker-browse/README.md)' packages/client/README.zh.md && grep -q '](ui-directory-picker-native/README.md)' packages/client/README.zh.md && grep -q '](ui-message-feedback/README.md)' packages/client/README.zh.md"
     },
     {
       "id": "permission-label-fixed",

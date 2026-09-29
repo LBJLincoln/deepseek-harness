@@ -27,7 +27,7 @@
     },
     {
       "id": "ui-consumer-linked-in-both",
-      "run": "test \"$(grep -l 'ui-message-feedback' packages/feedback/message-feedback/README.md packages/feedback/README.md | wc -l)\" = 2"
+      "run": "grep -q 'ui-message-feedback' packages/feedback/message-feedback/README.md && grep -q 'ui-message-feedback' packages/feedback/README.md"
     },
     {
       "id": "coverage",

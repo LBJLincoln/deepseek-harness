@@ -24,7 +24,7 @@
     },
     {
       "id": "current-pin-cited-in-both",
-      "run": "test \"$(grep -l 'built-bin.e2e.ts' .agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.md .agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.md | wc -l)\" = 2"
+      "run": "grep -q 'built-bin.e2e.ts' .agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.md && grep -q 'built-bin.e2e.ts' .agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.md"
     },
     {
       "id": "pairs-recorded",

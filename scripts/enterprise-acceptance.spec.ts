@@ -86,22 +86,12 @@ describe('acceptanceRefusal', () => {
 })
 
 describe('the committed queue under the allowed forms', () => {
-  // These four were admitted before admission checked the forms: three count
-  // matching lines through `$(…)` and one reads a JSON value with `node -e`.
-  // The engine refuses to work each until its acceptance is rewritten.
-  const ADMITTED_BEFORE_THE_FORMS = {
-    'T-0025': 'ui-consumer-linked-in-both: command substitution `$(…)` is not allowed',
-    'T-0028': 'current-pin-cited-in-both: command substitution `$(…)` is not allowed',
-    'T-0031': 'architecture-ceiling-ratcheted: `node` is not an allowed acceptance command in this queue',
-    'T-0034': 'missing-rows-added: command substitution `$(…)` is not allowed',
-  }
-
-  it('holds every ticket to the forms except those admitted before them', () => {
+  it('holds every committed ticket to the forms', () => {
     const refused = Object.fromEntries(loadTickets(root).flatMap(({ value }) => {
       const ticket = value as { id: string; acceptance: { id: string; run: string }[] }
       const reason = ticketAcceptanceRefusal(ticket.acceptance, HARNESS_ACCEPTANCE_FORMS)
       return reason === undefined ? [] : [[ticket.id, reason]]
     }))
-    expect(refused).toEqual(ADMITTED_BEFORE_THE_FORMS)
+    expect(refused).toEqual({})
   })
 })

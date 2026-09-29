@@ -15,7 +15,7 @@
   "acceptance": [
     {
       "id": "architecture-ceiling-ratcheted",
-      "run": "node -e \"const m=require('./scripts/doc-budgets.manifest.json'); const c=m['docs/architecture.md']; process.exit(Number.isInteger(c) && c>=1353 && c<=1400 ? 0 : 1)\""
+      "run": "grep -qE '\"docs/architecture.md\": (135[3-9]|13[6-9][0-9]|1400),' scripts/doc-budgets.manifest.json"
     },
     {
       "id": "budgets-pass",
