@@ -17,3 +17,15 @@ data/transcripts/*/raw/** -text -whitespace
 # Pairing records are generated from the three confirmed owner-blob pairs.
 # The worktree-local installer registers the fail-closed driver command.
 *.i18n.yaml merge=dsh-translation-pairing
+
+# Append-only machine ledgers: several writers (the shift engine, the
+# enterprise functions, the nightly loop, an operator's recovered record)
+# append to the same file and push concurrently, so a rebase meets two sides
+# that each added lines at the end, which stopped a cycle mid-rebase. The
+# built-in union driver keeps both sides' lines. Two writers never append for
+# the same ticket or run at once, so the latest-line-per-ticket reading is
+# unchanged; the roster names the prefix it covers and the next cycle
+# regenerates it over the merged file.
+data/enterprise/ledger.jsonl merge=union
+data/proving-ground/loop/ledger.jsonl merge=union
+data/proving-ground/loop/preflight.jsonl merge=union
