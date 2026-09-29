@@ -195,9 +195,10 @@ function runInstaller(
   fixture: Fixture,
   root: string,
   extraEnv: NodeJS.ProcessEnv = {},
+  args: string[] = [],
 ): Promise<CommandResult> {
   return new Promise((resolveResult, reject) => {
-    const child = spawn(process.execPath, [installer], {
+    const child = spawn(process.execPath, [installer, ...args], {
       cwd: root,
       env: { ...fixture.env, ...extraEnv },
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -453,6 +454,25 @@ describe('worktree-local Lefthook installer', { timeout: 15_000 }, () => {
     expect(gitResult(fixture, fixture.main, ['config', '--get', 'extensions.worktreeConfig']).status).toBe(1)
     expect(gitResult(fixture, fixture.main, ['status', '--porcelain']).status).toBe(0)
     expect(existsSync(hooksPath(fixture, fixture.main))).toBe(false)
+  })
+
+  it('checks the repository configuration alone, even in CI, and refuses what the install refuses', async () => {
+    const fixture = createFixture()
+    const commonConfig = join(commonDirectory(fixture), 'config')
+    const check = (): Promise<CommandResult> => runInstaller(fixture, fixture.linked, { CI: 'true' }, ['--check'])
+
+    expect((await check()).status).toBe(0)
+    git(fixture, fixture.main, ['config', 'extensions.worktreeConfig', 'true'])
+    const refused = await check()
+    expect(refused.status).toBe(1)
+    expect(refused.stderr).toContain(
+      'cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig',
+    )
+    git(fixture, fixture.main, ['config', '--file', commonConfig, 'core.repositoryFormatVersion', '1'])
+    const accepted = await check()
+    expect(accepted.status, accepted.stderr).toBe(0)
+    expect(existsSync(hooksPath(fixture, fixture.linked))).toBe(false)
+    expect(gitResult(fixture, fixture.linked, ['config', '--worktree', '--get', 'core.hooksPath']).status).toBe(1)
   })
 
   it('refuses direct core.worktree before enabling worktree config', async () => {

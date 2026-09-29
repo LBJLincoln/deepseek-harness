@@ -688,7 +688,27 @@ function probePairingMergeDriver(root) {
   capture(process.execPath, PAIRING_MERGE_DRIVER_PROBE, { cwd: root })
 }
 
+/**
+ * `--check`: the repository-configuration preflight of an install, alone and
+ * read-only, in every environment and whether or not Lefthook is installed. It
+ * fails with the install's own message wherever the install would refuse the
+ * repository configuration, so a checkout that installs nothing (CI, or a
+ * repository without Lefthook) can still prove that a real install passes.
+ */
+function checkRepository() {
+  const root = stripGitLineTerminator(git(['rev-parse', '--show-toplevel'], process.cwd()).stdout)
+  assertSupportedGit(root)
+  const gitDirectory = stripGitLineTerminator(git(['rev-parse', '--absolute-git-dir'], root).stdout)
+  const commonOutput = stripGitLineTerminator(git(['rev-parse', '--git-common-dir'], root).stdout)
+  const commonDirectory = isAbsolute(commonOutput) ? commonOutput : resolve(root, commonOutput)
+  const commonConfigPath = join(commonDirectory, 'config')
+  assertCommonConfigFile(commonConfigPath)
+  assertWorktreeConfigFiles(root, commonDirectory, commonConfigPath, join(gitDirectory, 'config.worktree'))
+  planWorktreeConfigMigration(root, commonConfigPath)
+}
+
 async function main() {
+  if (process.argv[2] === '--check') return checkRepository()
   if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') return
   if (typeof lefthookPackage.bin?.lefthook !== 'string') return
   const probe = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' })

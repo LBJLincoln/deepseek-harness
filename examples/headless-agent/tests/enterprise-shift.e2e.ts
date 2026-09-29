@@ -17,7 +17,7 @@
  */
 
 import { execFileSync, spawnSync } from 'node:child_process'
-import { chmodSync, cpSync, mkdirSync, writeFileSync } from 'node:fs'
+import { chmodSync, cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { hostname, tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -33,6 +33,10 @@ const seedDir = join(fixtureDir, 'seed')
 const binScript = join(fixtureDir, 'driver.ts')
 const configPath = join(fixtureDir, 'cordis.yml')
 const repoTsconfig = fileURLToPath(new URL('../../../tsconfig.json', import.meta.url))
+const installHook = fileURLToPath(new URL('../../../scripts/install-lefthook.mjs', import.meta.url))
+
+/** The file the seed's postinstall writes once the repository's install hook accepted the checkout. */
+const INSTALL_GUARD_PASSED = 'node_modules/.install-guard-passed'
 
 /** Several departments, their reviews, an assembly and a push outrun the default window. */
 const PHASE_TIMEOUT_MS = 300_000
@@ -70,12 +74,25 @@ function git(cwd: string, ...args: string[]): string {
   return execFileSync('git', args, { cwd, encoding: 'utf8' }).trimEnd()
 }
 
-/** A bare remote holding the seed as `main`, and the tip it holds. */
+/**
+ * A bare remote holding the seed as `main`, and the tip it holds. The seed is
+ * a pnpm project without dependencies whose postinstall runs this
+ * repository's install hook in its read-only `--check` mode, so every offline
+ * install of a shift's worktree or checkout passes the same repository
+ * configuration guard a real install of this repository does.
+ */
 async function seedRemote(): Promise<{ remote: string; base: string }> {
   const work = await mkdtemp(join(tmpdir(), 'enterprise-seed-'))
   const remotes = await mkdtemp(join(tmpdir(), 'enterprise-remote-'))
   roots.push(work, remotes)
   cpSync(seedDir, work, { recursive: true })
+  writeFileSync(join(work, 'package.json'), `${JSON.stringify({
+    name: 'enterprise-seed',
+    private: true,
+    scripts: { postinstall: `node '${installHook}' --check && mkdir -p node_modules && touch ${INSTALL_GUARD_PASSED}` },
+  }, null, 2)}\n`)
+  writeFileSync(join(work, 'pnpm-lock.yaml'), "lockfileVersion: '9.0'\n\nsettings:\n  autoInstallPeers: true\n  excludeLinksFromLockfile: false\n\nimporters:\n\n  .: {}\n")
+  writeFileSync(join(work, '.gitignore'), 'node_modules/\n')
   git(work, 'init', '-q', '-b', 'main', '.')
   git(work, 'config', 'user.email', 'seed@example.test')
   git(work, 'config', 'user.name', 'seed')
@@ -209,6 +226,16 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(failed.review).toEqual({ verdict: 'none', sessionId: null })
     expect(failed.integration.outcome).toBe('skipped')
     expect(failed.shipped).toBeNull()
+
+    // Every worktree of the program and the clone's checkout installed through
+    // the repository's install hook, which refuses a format-0 repository that
+    // carries the worktree-config extension the departments' push block needs.
+    expect(git(observed.repo, 'config', 'core.repositoryFormatVersion')).toBe('1')
+    expect(git(observed.repo, 'config', 'extensions.worktreeConfig')).toBe('true')
+    for (const key of ['t-0001', 't-0002', 't-0004', '@integration']) {
+      expect(existsSync(join(observed.repo, observed.programId, key, INSTALL_GUARD_PASSED)), key).toBe(true)
+    }
+    expect(existsSync(join(observed.repo, INSTALL_GUARD_PASSED))).toBe(true)
 
     const outside = lineOf(observed, 'T-0004')
     // The T-0004 department also tried to push its branch, through `origin` and

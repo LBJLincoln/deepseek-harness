@@ -363,9 +363,12 @@ function programSpec(
  * rewrites a push to any URL to {@link DEPARTMENT_PUSH_URL}, so only the
  * engine, pushing from the clone's own checkout, reaches the remote; fetching
  * is untouched. It stops a department's push, not a department set on
- * undoing its own config.
+ * undoing its own config. The clone is raised to repository format 1 before
+ * the extension is set: the repository's install hook refuses a format-0
+ * repository that carries any extension, so every install would fail.
  */
 function prepareWorktrees(repo: string, programId: string, keys: readonly string[], base: string): void {
+  git(repo, 'config', 'core.repositoryFormatVersion', '1')
   git(repo, 'config', 'extensions.worktreeConfig', 'true')
   for (const key of [...keys, '@integration']) {
     const workspace = join(repo, programId, key)
