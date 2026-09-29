@@ -433,7 +433,7 @@ function Panel({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
           : <AttentionGroup key={`${entry.kind}:${entry.severity}`} severity={entry.severity} kind={entry.kind} items={entry.items} />))}
       </section>
       <section className={styles.section} aria-label="Agents working now">
-        <h2>Working now <small>{snapshot.agents.length} agents</small><FactsAge snapshot={snapshot} /></h2>
+        <h2>Working now <small>{snapshot.agents.length} {snapshot.agents.length === 1 ? 'agent' : 'agents'}</small><FactsAge snapshot={snapshot} /></h2>
         {snapshot.agents.length === 0 ? <div className={styles.empty}>No agent is working in this snapshot.</div> : null}
         {snapshot.agents.map(agent => (
           <div key={agent.id} className={`${styles.card} ${styles.agent}`} data-state={agent.state}>

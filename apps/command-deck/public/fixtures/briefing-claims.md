@@ -1,6 +1,6 @@
 # Client briefing: claims register
 
-Every sentence of the Command Deck's client briefing (`/briefing`), rendered from `briefing.json` with its committed records as of 2026-09-29T13:40:56.861Z, with the source notes it cites; then every note with its computation and what it read. A sentence with no note of its own takes the notes of its paragraph or of the heading above it, as the Cited column states; `none` marks a sentence no note sources, such as a lead, a requirement or a statement of method, and no such sentence states a number. `pnpm run enterprise:briefing` writes this file with `briefing.json` and fails when the page holds a forbidden phrase or a sentence that states a number with no note.
+Every sentence of the Command Deck's client briefing (`/briefing`), rendered from `briefing.json` with its committed records as of 2026-09-29T13:41:44.000Z, with the source notes it cites; then every note with its computation and what it read. A sentence with no note of its own takes the notes of its paragraph or of the heading above it, as the Cited column states; `none` marks a sentence no note sources, such as a lead, a requirement or a statement of method, and no such sentence states a number. `pnpm run enterprise:briefing` writes this file with `briefing.json` and fails when the page holds a forbidden phrase or a sentence that states a number with no note.
 
 ## Claims
 
@@ -119,7 +119,7 @@ Every sentence of the Command Deck's client briefing (`/briefing`), rendered fro
 | 111 | The pilot record | ✕ · snapshots and artifacts · failed | 3.20 | heading |
 | 112 | The pilot record | ✓ · static · passed | 3.20 | heading |
 | 113 | The pilot record | Branch CI runs the static, coverage and snapshot lanes on every push to the development branch. | 3.22 | paragraph |
-| 114 | The pilot record | Of 125 completed runs since 27 Sep 2026, 15:36 UTC, 19 passed, 44 failed and 62 were cancelled by a later push before a verdict. | 3.22 | sentence |
+| 114 | The pilot record | Of 126 completed runs since 27 Sep 2026, 15:36 UTC, 19 passed, 44 failed and 63 were cancelled by a later push before a verdict. | 3.22 | sentence |
 | 115 | The pilot record | The newest run with a verdict finished at 29 Sep 2026, 13:00 UTC and failed. | 3.22 | paragraph |
 | 116 | The pilot record | 58 of 147 seats are occupied by a recorded deliverable, and 49 delivered in the 24 hours to 29 Sep 2026, 13:40 UTC. | 3.24 | paragraph |
 | 117 | The pilot record | Ten seats are vacant by construction: five CI judges whose lanes this fork does not run and five observers whose backends nothing here composes. | 3.24 | sentence |
@@ -203,7 +203,7 @@ Every sentence of the Command Deck's client briefing (`/briefing`), rendered fro
 | 195 | Economics | The records carry no currency. | 6.1 | sentence |
 | 196 | Economics | Tokens per shipped ticket · 537,933 · mean of 7, department and review | 6.2 | sentence |
 | 197 | Economics | Agent time per ticket · 20.8 min · mean of 7, department and review | 6.3 | sentence |
-| 198 | Economics | Shift, clone to push · 70.3 min · mean of 4 shifts that shipped | 6.4 | sentence |
+| 198 | Economics | Shift, clone to its recorded end · 70.3 min · mean of 4 shifts that shipped; a push a person completed later is not counted | 6.4 | sentence |
 | 199 | Economics | Security review time · 20.4–28.8 min · per review, over 14 reviews | 6.5 | sentence |
 | 200 | Economics | T-0012 \| 1,047,317 \| 9 min 7 s | 6.6 | heading |
 | 201 | Economics | T-0019 \| 475,850 \| 6 min 16 s | 6.6 | heading |
@@ -225,7 +225,7 @@ Every sentence of the Command Deck's client briefing (`/briefing`), rendered fro
 | 217 | Limits and risks | Shift work is not yet sandboxed. | 7.5 | paragraph |
 | 218 | Limits and risks | A department runs its commands unconfined in a worktree of a scratch clone that cannot push; the sandbox and the sealed workspace are in use on the bench only. | 7.5 | sentence |
 | 219 | Limits and risks | Continuous integration is not green. | 7.6, 7.7 | paragraph |
-| 220 | Limits and risks | 19 of 125 completed Branch CI runs passed. | 7.6 | sentence |
+| 220 | Limits and risks | 19 of 126 completed Branch CI runs passed. | 7.6 | sentence |
 | 221 | Limits and risks | No run tested a shipped commit on its own (0 of 7). | 7.7 | sentence |
 | 222 | Limits and risks | Of the 4 pushes that carried them, the containing run of 1 failed and of 2 was cancelled by a later push before a verdict. | 7.6, 7.7 | paragraph |
 | 223 | Limits and risks | The name DeepSeek is provenance, not a supplier. | 7.4 | paragraph |

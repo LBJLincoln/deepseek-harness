@@ -1156,9 +1156,9 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
               <Kpi label="Tokens per shipped ticket" value={text(f('economics.tokensPerShipped'))} detail={`mean of ${economics.length}, department and review`} note={c6.tokens} branch={branch} />
               <Kpi label="Agent time per ticket" value={text(f('economics.secondsPerShipped'), minutes)} detail={`mean of ${economics.length}, department and review`} note={c6.seconds} branch={branch} />
               <Kpi
-                label="Shift, clone to push"
+                label="Shift, clone to its recorded end"
                 value={text(f('economics.shiftSeconds'), minutes)}
-                detail={`mean of ${text(f('economics.shippingShifts'))} ${plural(numberOf(f('economics.shippingShifts')), 'shift', 'shifts')} that shipped`}
+                detail={`mean of ${text(f('economics.shippingShifts'))} ${plural(numberOf(f('economics.shippingShifts')), 'shift', 'shifts')} that shipped; a push a person completed later is not counted`}
                 note={c6.shift}
                 branch={branch}
               />

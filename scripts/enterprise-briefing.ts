@@ -438,7 +438,7 @@ export interface ShiftRow {
   reason: string | null
   /** Credential-shaped strings the record cut. */
   redacted: number | null
-  /** From the start to the end the record states: for a shift that pushed, from the clone to the push. */
+  /** From the start to the end the record states: for a shift whose own push step succeeded, from the clone to the push. */
   seconds: number | null
 }
 
