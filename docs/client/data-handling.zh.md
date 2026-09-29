@@ -40,7 +40,7 @@
 
 harness 自己的数据使用条款 [`dsh-data-use`](../../packages/governance/data-use/README.md) 会在包含该插件的组合的每个会话上钉住一个客户、一份协议、用途、驻留地、保留期与一个脱敏配置。代码安全程序没有包含它，因此没有任何代码安全会话携带条款，任何班次或接收会话也都没有（[简报的数据](../../apps/command-deck/public/fixtures/briefing-claims.md)）。确实携带条款的 bench 会话钉住的是 `purposes: [evaluation]`、`residency: eu-west` 与 `retentionDays: 90`（[bench 组合](../../examples/headless-agent/tests/fixtures/proving-ground-bench/cordis.yml)）：这些是 harness 写进日志的标签，[curator](../../packages/governance/curator/README.md) 读取它们来决定一次数据集导出可以包含什么。它们不是模型提供方的条款，而且该插件无法检查驻留地是否就是转录实际所在的位置；这些转录位于一个公开仓库中，其历史会一直保留它们。
 
-操作者的个人电子邮件地址以明文形式在八份已提交的代码安全记录的 15 个文件中出现了 67 次，这些记录都是在 [`record-run.mjs`](../../data/code-safety/tools/record-run.mjs) 开始遮盖电子邮件地址之前提交的；较早的实时转录分块中也有它（[`data/transcripts/README.md`](../../data/transcripts/README.md)）。
+截至 2026-09-29 14:15 UTC，操作者的个人电子邮件地址以明文形式在分支的 173 个文件中出现了 274 次，其背后的历史中也有：已提交的代码安全记录的 14 个文件中 62 次、一份实验场记录中 4 次，这些都是在 [`record-run.mjs`](../../data/code-safety/tools/record-run.mjs) 开始遮盖电子邮件地址之前提交的；两组在实时捕获开始遮盖它之前提交的转录 `data/transcripts/2026-09-06-build` 与 `data/transcripts/2026-09-28-postreset` 的 158 个文件中 208 次（[`data/transcripts/README.md`](../../data/transcripts/README.md)）。
 
 ## 一次客户合作需要什么
 
