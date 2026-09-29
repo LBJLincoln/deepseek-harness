@@ -7,12 +7,15 @@ import {
   ACTIVE_WINDOW_MS,
   activeWindow,
   appendLedger,
+  countWork,
   ledgerBySeat,
   occupancyByDivision,
   occupancyOf,
   parseLedgerLine,
   readLedger,
+  seatWork,
   ticketStatus,
+  workOf,
   type FunctionLine,
   type TicketLine,
 } from './enterprise-ledger.ts'
@@ -171,5 +174,53 @@ describe('the occupancy rule', () => {
       { id: 'judging', defined: 1, occupied: 1, active: 0 },
       { id: 'knowledge', defined: 0, occupied: 0, active: 0 },
     ])
+  })
+})
+
+describe('the work a deliverable was', () => {
+  const window = activeWindow(NOW)
+  /** A ticket line of a shift that could not prepare its worktrees: no session, no tokens, nothing shipped. */
+  const HALTED: TicketLine = {
+    type: 'ticket',
+    at: '2026-09-28T16:00:00.000Z',
+    shift: 'shift-2',
+    ticket: 'T-0002',
+    seat: 'harness-core-session-steward',
+    division: 'harness-core',
+    department: { outcome: 'failed' },
+    checks: [],
+    review: { verdict: 'none' },
+    shipped: null,
+    reason: 'the shift could not prepare its worktrees',
+    tokens: 0,
+  }
+
+  it('reads a ticket line as model work when a session ran, it shipped or it spent tokens, and as halted otherwise', () => {
+    expect(workOf(SHIPPED)).toBe('model')
+    expect(workOf({ ...SHIPPED, shipped: null })).toBe('model')
+    expect(workOf({ ...HALTED, department: { outcome: 'failed', sessionId: 'program-1-t-0002' } })).toBe('model')
+    expect(workOf({ ...HALTED, tokens: 312323 })).toBe('model')
+    expect(workOf(HALTED)).toBe('halted')
+  })
+
+  it('reads a function line of a check division as an automated check, and any other as model work', () => {
+    expect(workOf(GATE)).toBe('check')
+    expect(workOf({ ...GATE, seat: 'judging-ci-static', division: 'judging', function: 'ci-static' })).toBe('check')
+    expect(workOf({ ...GATE, seat: 'code-safety-lead', division: 'code-safety', function: 'review' })).toBe('model')
+    expect(workOf({ ...GATE, seat: 'program-departments-jobs-coordinator', division: 'program-departments', function: 'intake' })).toBe('model')
+  })
+
+  it('gives a seat the strongest kind among its deliverables, overall and inside the window', () => {
+    const seat = { id: 'harness-core-session-steward', division: 'harness-core', sessions: 0 }
+    expect(seatWork(seat, [], window)).toBeUndefined()
+    expect(seatWork(seat, [HALTED], window)).toEqual({ occupied: 'halted', active: 'halted' })
+    expect(seatWork(seat, [{ ...SHIPPED, at: '2026-09-20T00:00:00.000Z' }, HALTED], window)).toEqual({ occupied: 'model', active: 'halted' })
+    expect(seatWork(seat, [SHIPPED, HALTED, { ...GATE, seat: 'another-seat' }], window)).toEqual({ occupied: 'model', active: 'model' })
+    expect(seatWork({ ...seat, sessions: 2, lastSeen: '2026-09-20T00:00:00.000Z' }, [], window)).toEqual({ occupied: 'model' })
+    expect(seatWork({ id: GATE.seat, division: 'verification', sessions: 0 }, [GATE], window)).toEqual({ occupied: 'check', active: 'check' })
+  })
+
+  it('counts seats per kind, every kind present', () => {
+    expect(countWork(['model', undefined, 'check', 'model'])).toEqual({ model: 2, check: 1, halted: 0 })
   })
 })

@@ -5,6 +5,7 @@ import type { EnterpriseReport, FunctionOutcome, FunctionRun, TicketStatus, Tick
 import { stamp } from '@/deck/format'
 import { divisionColor } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
+import { workPhrase } from './evidence.ts'
 
 /** Colour of one outcome: the palette's green, red and amber. */
 const OUTCOME_COLOR: Record<FunctionOutcome, string> = {
@@ -50,7 +51,7 @@ function spell(seconds: number): string {
 function OutcomeChip({ run }: { run: FunctionRun }): ReactNode {
   const href = 'url' in run.evidence ? run.evidence.url : undefined
   const body = (
-    <span className="chip" style={{ color: OUTCOME_COLOR[run.outcome], borderColor: 'currentColor' }} title={`${run.function}: ${run.outcome} in ${spell(run.seconds)}`}>
+    <span className="chip" style={{ color: OUTCOME_COLOR[run.outcome], borderColor: 'currentColor' }} title={`${run.function}: ${run.outcome}, ${'url' in run.evidence ? `CI job time ${spell(run.seconds)}, read from GitHub` : `ran ${spell(run.seconds)}`}`}>
       {shortSeat(run.seat, run.division)} · {run.outcome}
     </span>
   )
@@ -110,25 +111,25 @@ export function LedgerPanel(): ReactNode {
       </p>
 
       <div className="section">
-        <h3>Divisions · occupied / defined · active today</h3>
+        <h3>Divisions · occupied / defined · active in the window</h3>
         <div className="routes">
           {report.divisions.map(division => (
             <div className="routes__row" key={division.id} data-run={division.occupied > 0}>
               <span style={{ color: divisionColor(division.id) }}>{division.name}</span>
               <b>{division.occupied} / {division.defined}</b>
-              <span>{division.active === 0 ? 'none active' : `${division.active} active`}</span>
+              <span>{division.active === 0 ? 'none active' : `${division.active} active${division.work === undefined ? '' : `: ${workPhrase(division.work)}`}`}</span>
             </div>
           ))}
           <div className="routes__row" data-run="true">
             <span>All divisions</span>
             <b>{report.counts.occupied} / {report.counts.defined}</b>
-            <span>{report.counts.active} active</span>
+            <span>{report.counts.active} active{report.counts.work === undefined ? '' : `: ${workPhrase(report.counts.work.active)}`}</span>
           </div>
         </div>
       </div>
 
       <div className="section">
-        <h3>Today's tickets</h3>
+        <h3>Tickets in the window</h3>
         {TICKET_STATUSES.map(({ status, label, meaning }) => {
           const tickets = report.tickets[status]
           return (
@@ -149,7 +150,7 @@ export function LedgerPanel(): ReactNode {
       </div>
 
       <div className="section">
-        <h3>Today's function runs</h3>
+        <h3>Function runs in the window</h3>
         {report.functions.length === 0
           ? <div className="panel__empty">No seat performed a function inside the day.</div>
           : (

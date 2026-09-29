@@ -58,7 +58,9 @@ describe('buildRoster', () => {
   it('composes exactly 147 seats with unique ids', () => {
     const roster = buildRoster(root, { generatedAt: STAMP, recorded: NONE, ledger: EMPTY })
     expect(roster.agents).toHaveLength(ROSTER_AGENT_COUNT)
-    expect(roster.counts).toEqual({ defined: 147, occupied: 0, active: 0 })
+    const none = { model: 0, check: 0, halted: 0 }
+    expect(roster.counts).toEqual({ defined: 147, occupied: 0, active: 0, work: { occupied: none, active: none } })
+    expect(roster.agents.some(agent => agent.work !== undefined)).toBe(false)
     expect(new Set(roster.agents.map(agent => agent.id)).size).toBe(ROSTER_AGENT_COUNT)
   })
 
@@ -110,7 +112,14 @@ describe('buildRoster', () => {
     expect(verifier).toMatchObject({ status: 'active', ledger: { lines: 1, lastAt: GATE.at }, evidence: { sessions: 0, routesSeen: [] } })
     const steward = roster.agents.find(agent => agent.id === SHIPPED.seat)
     expect(steward).toMatchObject({ status: 'defined', ledger: { lines: 1, lastAt: SHIPPED.at } })
-    expect(roster.counts).toEqual({ defined: 147, occupied: 2, active: 1 })
+    expect(roster.counts).toEqual({
+      defined: 147,
+      occupied: 2,
+      active: 1,
+      work: { occupied: { model: 1, check: 1, halted: 0 }, active: { model: 0, check: 1, halted: 0 } },
+    })
+    expect(verifier?.work).toEqual({ occupied: 'check', active: 'check' })
+    expect(steward?.work).toEqual({ occupied: 'model' })
     expect(roster.ledger).toEqual({ path: LEDGER_PATH, lines: 3, unseated: 1 })
     expect(roster.agents.filter(agent => agent.ledger.lines > 0).map(agent => agent.id).sort()).toEqual([SHIPPED.seat, GATE.seat].sort())
   })

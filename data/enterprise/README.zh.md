@@ -4,6 +4,10 @@
 
 本目录下的 `roster.json` 是为企业概念验证生成的花名册，包含 147 个席位定义：由本仓库真实定义的来源构建出的"角色 x 事业部 x 专精方向"组合，每个席位都附带已提交的会话记录与台账为它提供的证据。[`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) 生成该文件（`pnpm run roster`）；[`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) 在重新计算实时会话状态后提供服务（`pnpm run feed`）。花名册不是记录在案的组织：记录在案的组织是[台账](#the-ledger)——它旁边的 `ledger.jsonl`，每条交付物一行——以及 feed 在 `GET /programs` 上提供的项目运行。各位包管家领取工作的队列位于 [tickets/](tickets/README.md)，由[班次](#shifts)处理；不需要工单的事业部按计划执行各自的[职能](#functions)。
 
+## 读懂这些计数
+
+这里没有任何计数是 agent 的人头数。花名册陈述三个计数，每个都以它的 `generatedAt` 注明时刻：**已定义**的席位（`counts.defined`，本仓库定义的角色）、有证据的**在岗**席位（`counts.occupied`，被某条已记录交付物指名的席位），以及时间戳之前 24 小时内**活跃**的席位（`counts.active`）。`counts.work` 按交付物的性质拆分在岗与活跃席位：模型驱动（由模型完成工作）、自动检查（一道 `verify-*` 关卡、一个 Branch CI 裁决、一次折叠），以及在任何模型运行之前就停止的工单。2026-09-29 07:07 UTC 盖章、覆盖 141 条台账行的花名册读作：147 个已定义；53 个在岗，其中 27 个模型驱动、22 个自动检查、4 个仅在任何模型运行之前就停止；44 个活跃，其中 18 个模型驱动、22 个自动检查、4 个在任何模型运行之前就停止。企业在该时间窗内交付的内容，即指挥台 `enterprise.json` 中的 `outcomes`，是 3 张工单已发布、3 张由模型处理但未发布任何内容、4 张在任何模型运行之前就停止、7 个代码安全审查席位中 7 个通过、2 位 intake 协调员中 2 位通过，以及 114 项自动检查中 105 项通过。指挥台以这些成果开场，并显示当前计数及其时长。
+
 ## 诚实原则
 
 147 是本仓库**已定义**的席位数量——每条记录的 `source` 字段都指向一个真实存在的仓库路径（一个包 README、一个 `verify-*.ts` 脚本、一个 CI 关卡名称、一份 Agent Note、一个技能目录、一个 Proving Ground 基准测试的任务环境，或一个代码安全审查知识包），并在生成花名册时对照磁盘做过校验。每个事业部的数量都是固定配额（总和为 147）；由可变来源池构建的事业部会从该池中按排序精确取出其配额，若代码树定义的来源少于配额所需，生成器会抛出异常，指明该事业部与缺口数量。一个定义既不是正在运行的智能体，也不是曾有智能体运行过的证据：每个席位都由两个测试夹具预设（`coding`、`reviewing`）之一组合而成，并写明它为之定义的路由，无论是否有会话在该路由上运行过。
@@ -26,7 +30,9 @@
 
 - `counts.occupied` 统计至少拥有一个归属会话或一条台账行的席位；
 - `counts.active` 统计最新交付物——按 `at` 计的台账行，或按其记录最新日志时间计的归属会话——落在 `activeWindow`（以 `generatedAt` 结束的 24 小时，两端均含）之内的席位；
-- 恰好这些席位的 `status` 为 `"active"`，其余均为 `"defined"`；实时会话状态属于 feed，绝不写进这里。
+- 恰好这些席位的 `status` 为 `"active"`，其余均为 `"defined"`；实时会话状态属于 feed，绝不写进这里；
+- 当由模型完成工作时，一条交付物是**模型驱动**的：一个归属会话；一条其部门或评审运行过会话、已发布或记录了模型 token 的工单行；以及检查事业部之外的一条职能行（代码安全 `review`、`intake`）。**自动检查**是验证、裁决、观象台或策展与数据事业部的一条职能行，它们运行脚本、读取 CI 裁决或折叠记录，不调用任何模型；其余任何工单行都是**在任何模型运行之前就停止**的；
+- 一个在岗席位的 `work.occupied` 是它全部交付物中最强的那一类（先模型驱动，再自动检查，再停止），一个活跃席位的 `work.active` 是时间窗内交付物中最强的那一类；`counts.work.occupied` 与 `counts.work.active` 按类统计席位，其和分别等于 `counts.occupied` 与 `counts.active`。
 
 时间窗按 `generatedAt` 而非读取时刻度量，因此该文件是一份写明时刻的快照：在未变的输入上重新生成，字节完全一致；每一条新的台账行或记录都会改变内容，从而重新盖章并重新度量时间窗。[企业运作模型 Agent Note](../../.agents/notes/implemented/architecture/2026-09-28-enterprise-functions-and-occupancy.md) 记录了这条规则为何只计交付物而不计其他。
 
@@ -75,7 +81,7 @@
 
 ## 实时状态
 
-正在运行的 feed（`pnpm run feed`）上的 `GET /roster` 会在它发现的每次运行（包括实时运行）上重新计算每个席位的会话证据、`counts.occupied`、`evidence` 与 `unattributed`，并仅凭这些会话设置每个席位的 `status`：当归属于它的某个会话属于仍在运行的运行时为 `active`；一旦它的某个会话记录了证书事件，变为 `certified`；若它的会话都已结束但未记录证书，则为 `failed`。没有任何被发现会话占据的席位，在 feed 上一律读作 `"defined"`，无论文件里写的是什么；feed 的 `counts.active` 统计的是运行中的会话，而不是台账的一天；文件与指挥台发布的数据才是台账计数所在。一次全新检出、尚无运行时数据时，feed 会报告已提交记录的证据与 `active: 0`，这是正确的答案。
+正在运行的 feed（`pnpm run feed`）上的 `GET /roster` 会在它发现的每次运行（包括实时运行）上重新计算每个席位的会话证据、`evidence` 与 `unattributed`，并仅凭这些会话设置每个席位的 `status`：当归属于它的某个会话属于仍在运行的运行时为 `active`；一旦它的某个会话记录了证书事件，变为 `certified`；若它的会话都已结束但未记录证书，则为 `failed`。没有任何被发现会话占据的席位，在 feed 上一律读作 `"defined"`，无论文件里写的是什么。feed 保留文件的 `counts`（由文件的 `generatedAt` 注明时刻），并加上 `counts.running`，即此刻有会话正在其上运行的席位；指挥台把这个计数标为"正在运行"，从不标为活跃。一次全新检出、尚无运行时数据时，feed 会报告已提交记录的证据与 `running: 0`，这是正确的答案。
 
 ## 事业部
 
@@ -106,7 +112,7 @@
 
 ## 发布指挥台
 
-`pnpm run enterprise:publish`（[`scripts/enterprise-publish.ts`](../../scripts/enterprise-publish.ts)）从花名册、台账与工单队列重新生成指挥台的静态企业数据：`apps/command-deck/public/fixtures/roster.json`，即 `roster.json` 的逐字节副本；以及 `apps/command-deck/public/fixtures/enterprise.json`，即指挥台的台账标签页——`asOf`（花名册盖章时刻与最后一条台账行中较新者）、时间窗、按事业部的在岗与活跃席位、当天按状态分列的工单（queued 来自队列，其余来自每张工单在时间窗内的最新一行）、当天由新到旧的职能运行，以及最近十个已交付提交及其上记录的 CI 裁决（按提交前缀匹配）。它还写出 `apps/command-deck/public/fixtures/enterprise-day.json`，即指挥台的 24 hours 标签页：花名册时间窗（截至其 `generatedAt` 的 24 小时）上的[报告](#the-report)，它像报告本身一样读取周期记录、HEAD 的 git 历史与 Branch CI（包脚本设置了 `NODE_USE_ENV_PROXY=1`）；周期在写出自己的记录之前发布，因此这份报告把正在发布的周期列为没有记录的周期。每个文件都是其输入的纯函数（第三个文件的输入还包括 GitHub 的回答）。它的最后一步运行 `pnpm run enterprise:briefing`（[`scripts/enterprise-briefing.ts`](../../scripts/enterprise-briefing.ts)），写出 `apps/command-deck/public/fixtures/briefing.json`，即指挥台 `/briefing` 客户简报的数据：页面展示的每个数值，连同读取它的仓库路径或 URL 及其计算方法，数据来自花名册、台账、队列、班次与受理记录、周期记录与企业的周期提交、[实时对话记录捕获](../transcripts/README.md#live-capture)保存的周期日志与调度器日志、Proving Ground 与代码安全记录，以及通过 GitHub REST API 读取的本分支 Branch CI 运行与仓库可见性；API 无法读取时，这些数值记为未知，而不是让这一步失败。每个 fixture 都只在字节变化时重写；[`deck-pages.yml`](../../.github/workflows/deck-pages.yml) 在指挥台分支上每一次触及 `apps/command-deck/**` 的推送时重新发布 <https://lbjlincoln.github.io/deepseek-harness/>，fixture 的变化正属于此。
+`pnpm run enterprise:publish`（[`scripts/enterprise-publish.ts`](../../scripts/enterprise-publish.ts)）从花名册、台账与工单队列重新生成指挥台的静态企业数据：`apps/command-deck/public/fixtures/roster.json`，即 `roster.json` 的逐字节副本；以及 `apps/command-deck/public/fixtures/enterprise.json`，即企业视图的开场与台账标签页——`asOf`（花名册盖章时刻与最后一条台账行中较新者）、时间窗、`outcomes`（在时间窗内有一行发布了提交的工单；在时间窗内由模型处理但未发布任何内容的工单；在时间窗内每一行都在任何模型运行之前就停止的工单；按职能计的模型驱动职能运行；按结果计的自动检查）、按事业部的在岗与活跃席位（活跃席位按 `work` 拆分）、当天按状态分列的工单（queued 来自队列，其余来自每张工单在时间窗内的最新一行）、当天由新到旧的职能运行，以及最近十个已交付提交及其上记录的 CI 裁决（按提交前缀匹配）。它还写出 `apps/command-deck/public/fixtures/enterprise-day.json`，即指挥台的 24 hours 标签页：花名册时间窗（截至其 `generatedAt` 的 24 小时）上的[报告](#the-report)，它像报告本身一样读取周期记录、HEAD 的 git 历史与 Branch CI（包脚本设置了 `NODE_USE_ENV_PROXY=1`）；周期在写出自己的记录之前发布，因此这份报告把正在发布的周期列为没有记录的周期。每个文件都是其输入的纯函数（第三个文件的输入还包括 GitHub 的回答）。它的最后一步运行 `pnpm run enterprise:briefing`（[`scripts/enterprise-briefing.ts`](../../scripts/enterprise-briefing.ts)），写出 `apps/command-deck/public/fixtures/briefing.json`，即指挥台 `/briefing` 客户简报的数据：页面展示的每个数值，连同读取它的仓库路径或 URL 及其计算方法，数据来自花名册、台账、队列、班次与受理记录、周期记录与企业的周期提交、[实时对话记录捕获](../transcripts/README.md#live-capture)保存的周期日志与调度器日志、Proving Ground 与代码安全记录，以及通过 GitHub REST API 读取的本分支 Branch CI 运行与仓库可见性；API 无法读取时，这些数值记为未知，而不是让这一步失败。每个 fixture 都只在字节变化时重写；[`deck-pages.yml`](../../.github/workflows/deck-pages.yml) 在指挥台分支上每一次触及 `apps/command-deck/**` 的推送时重新发布 <https://lbjlincoln.github.io/deepseek-harness/>，fixture 的变化正属于此。
 
 ## 重新生成
 

@@ -1,8 +1,10 @@
 /**
  * Regenerates the Command Deck's static enterprise data from the generated
  * roster and the ledger (`pnpm run enterprise:publish`): the roster fixture the
- * deck's Enterprise view draws; `enterprise.json`, the view's ledger tab —
- * seats occupied and active per division, the tickets of the enterprise's
+ * deck's Enterprise view draws; `enterprise.json`, the view's lead and ledger
+ * tab — what the enterprise delivered inside the window (tickets shipped,
+ * model-driven runs, automated checks by outcome), seats occupied and active
+ * per division split by what they did, the tickets of the enterprise's
  * current day by status, the function runs of that day, and the latest shipped
  * commits with the CI verdicts the judges recorded on them; and
  * `enterprise-day.json`, the view's 24 hours tab — the report
@@ -25,6 +27,7 @@ import {
   LEDGER_PATH,
   readLedger,
   ticketStatus,
+  workOf,
   type ActiveWindow,
   type DivisionOccupancy,
   type FunctionLine,
@@ -32,6 +35,7 @@ import {
   type LedgerRead,
   type TicketLine,
   type TicketStatus,
+  type WorkCounts,
 } from './enterprise-ledger.ts'
 import {
   enterpriseReport,
@@ -41,7 +45,7 @@ import {
   type ReportRepository,
   type ReportSources,
 } from './enterprise-report.ts'
-import { divisionSeats, ROSTER_PATH, type Roster } from './enterprise-roster.ts'
+import { divisionSeats, ROSTER_PATH, workSummary, type Roster } from './enterprise-roster.ts'
 import { loadTickets, type LoadedTicket } from './enterprise-tickets.ts'
 
 /** The deck's fixture directory, relative to the repository root. */
@@ -102,6 +106,31 @@ export interface ShippedCommit {
   verdicts: CommitVerdict[]
 }
 
+/** Runs of one model-driven function inside the window, such as the code-safety `review` or the `intake`. */
+export interface ProgramOutcome {
+  function: string
+  runs: number
+  pass: number
+}
+
+/**
+ * What the enterprise delivered inside the window, read from the ledger's
+ * lines dated inside it: the figures the deck's Enterprise view leads with,
+ * before any seat count.
+ */
+export interface EnterpriseOutcomes {
+  /** Tickets with a line inside the window that shipped a commit. */
+  shipped: number
+  /** Tickets worked by a model inside the window that shipped no commit there: halted, blocked or rejected. */
+  notShipped: number
+  /** Tickets whose every line inside the window halted before any model ran, such as a shift that could not prepare its worktrees. */
+  haltedBeforeModel: number
+  /** Model-driven function lines inside the window, per function, in order of first appearance, newest first. */
+  programs: ProgramOutcome[]
+  /** Automated checks inside the window: function lines of the check divisions, by outcome. */
+  checks: { runs: number } & Record<FunctionOutcome, number>
+}
+
 /** `enterprise.json`: what the deck's ledger tab shows. */
 export interface EnterpriseReport {
   /** The newer of the roster's stamp and the last ledger line: the moment the report describes. */
@@ -109,7 +138,10 @@ export interface EnterpriseReport {
   /** The roster's active window: the enterprise's current day. */
   window: ActiveWindow
   counts: Roster['counts']
-  divisions: (DivisionOccupancy & { name: string })[]
+  /** What the enterprise delivered inside the window. */
+  outcomes: EnterpriseOutcomes
+  /** Each division's seats, with its active seats split by what their deliverables inside the window were. */
+  divisions: (DivisionOccupancy & { name: string; work: WorkCounts })[]
   /** Tickets by status: queued ones from the queue, the rest from their newest line inside the window. */
   tickets: Record<'queued' | TicketStatus, TicketSummary[]>
   /** Function lines inside the window, newest first. */
@@ -179,6 +211,36 @@ function queued(tickets: readonly LoadedTicket[], worked: ReadonlySet<string>): 
 }
 
 /**
+ * Tally what the enterprise delivered from the lines dated inside the window.
+ * A ticket counts as shipped when any of its lines inside the window shipped a
+ * commit, even if a later line worked it again; a ticket that did not ship
+ * counts as not shipped when a model worked it in the window, and as halted
+ * before any model ran otherwise.
+ * @param tickets - the ticket lines inside the window.
+ * @param functions - the function lines inside the window.
+ * @returns the outcomes.
+ */
+function outcomesOf(tickets: readonly TicketLine[], functions: readonly FunctionLine[]): EnterpriseOutcomes {
+  const programs = new Map<string, ProgramOutcome>()
+  const checks: EnterpriseOutcomes['checks'] = { runs: 0, pass: 0, fail: 0, error: 0 }
+  for (const line of newestFirst(functions)) {
+    if (workOf(line) === 'check') {
+      checks.runs += 1
+      checks[line.outcome] += 1
+      continue
+    }
+    const entry = programs.get(line.function) ?? { function: line.function, runs: 0, pass: 0 }
+    entry.runs += 1
+    if (line.outcome === 'pass') entry.pass += 1
+    programs.set(line.function, entry)
+  }
+  const shipped = new Set(tickets.filter(line => line.shipped !== null).map(line => line.ticket))
+  const worked = new Set(tickets.filter(line => !shipped.has(line.ticket) && workOf(line) === 'model').map(line => line.ticket))
+  const halted = new Set(tickets.filter(line => !shipped.has(line.ticket) && !worked.has(line.ticket)).map(line => line.ticket))
+  return { shipped: shipped.size, notShipped: worked.size, haltedBeforeModel: halted.size, programs: [...programs.values()], checks }
+}
+
+/**
  * Build the report.
  * @param roster - the generated roster.
  * @param ledger - the ledger as `readLedger` read it.
@@ -226,6 +288,7 @@ export function buildEnterpriseReport(roster: Roster, ledger: LedgerRead, ticket
     asOf,
     window,
     counts: roster.counts,
+    outcomes: outcomesOf(ticketLines.filter(line => inWindow(line.at, window)), functionLines.filter(line => inWindow(line.at, window))),
     divisions,
     tickets: byStatus,
     functions: newestFirst(functionLines.filter(line => inWindow(line.at, window))),
@@ -282,7 +345,8 @@ if (isMain) {
   const tickets = Object.entries(report.tickets).map(([status, list]) => `${list.length} ${status}`).join(', ')
   console.log([
     `enterprise-publish: ${changed.length === 0 ? 'kept' : `wrote ${changed.join(', ')}`};`,
-    `as of ${report.asOf}: ${report.counts.occupied} of ${report.counts.defined} seats occupied, ${report.counts.active} active since ${report.window.since};`,
+    `as of ${report.asOf}: ${report.outcomes.shipped} tickets shipped, ${report.outcomes.checks.pass} of ${report.outcomes.checks.runs} automated checks passed in the window;`,
+    `${report.counts.occupied} of ${report.counts.defined} seats occupied, ${report.counts.active} active since ${report.window.since} (${workSummary(report.counts.work.active)});`,
     `tickets ${tickets}; ${report.functions.length} function runs in the window; ${report.shipped.length} shipped commits listed;`,
     `24 hours: ${day.cycles.count} cycles, ${day.tickets.shipped.length} tickets shipped, ${day.unknowns.length} unknowns`,
   ].join(' '))

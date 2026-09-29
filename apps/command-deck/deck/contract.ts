@@ -45,6 +45,25 @@ export interface SeatEvidence {
   routesSeen: string[]
 }
 
+/**
+ * What a deliverable was: `model` when a model did the work (a recorded
+ * session, a ticket its department spent model tokens on, a code-safety review
+ * or an intake), `check` when a script or a read did it (a `verify-*` gate, a
+ * CI verdict read from GitHub, a fold of recorded sessions), and `halted` for a
+ * ticket its shift stopped before any model ran.
+ */
+export type WorkKind = 'model' | 'check' | 'halted'
+
+/** Seats per kind of work. */
+export type WorkCounts = Record<WorkKind, number>
+
+/** The kind of one occupied seat's work: the strongest kind among all its deliverables, and among those inside the window. */
+export interface SeatWork {
+  occupied: WorkKind
+  /** Present exactly when the seat is active. */
+  active?: WorkKind
+}
+
 /** The ledger lines naming one seat's id: its tickets worked and functions performed. */
 export interface SeatLedger {
   lines: number
@@ -70,6 +89,8 @@ export interface Agent {
   evidence: SeatEvidence
   /** Absent from a feed built before the ledger existed, which the relay may still serve. */
   ledger?: SeatLedger
+  /** Absent for a seat no deliverable occupies, and from a roster built before the split existed. */
+  work?: SeatWork
 }
 
 /** A named cluster of agents; `purpose` is the one-line charter shown in 3D. */
@@ -108,8 +129,14 @@ export interface ActiveWindow {
 /** `GET /roster` payload. */
 export interface Roster {
   generatedAt: string
-  /** Seats defined, seats a recorded deliverable occupies, and seats whose newest deliverable is inside `activeWindow`. */
-  counts: { defined: number; occupied: number; active: number }
+  /**
+   * Seats defined, seats a recorded deliverable occupies, and seats whose
+   * newest deliverable is inside `activeWindow`, all as of `generatedAt`;
+   * `work` splits the occupied and the active seats by what they did (absent
+   * from a roster built before the split existed), and `running`, which only
+   * the live feed adds, counts the seats a session is running on now.
+   */
+  counts: { defined: number; occupied: number; active: number; work?: { occupied: WorkCounts; active: WorkCounts }; running?: number }
   /** The 24 hours ending at `generatedAt`; absent from a feed built before the ledger existed. */
   activeWindow?: ActiveWindow
   divisions: Division[]
@@ -173,6 +200,20 @@ export interface ShippedCommit {
   verdicts: CommitVerdict[]
 }
 
+/** What the enterprise delivered inside the report's window, read from the ledger lines dated inside it. */
+export interface EnterpriseOutcomes {
+  /** Tickets with a line in the window that shipped a commit. */
+  shipped: number
+  /** Tickets a model worked in the window that shipped no commit there. */
+  notShipped: number
+  /** Tickets whose every line in the window halted before any model ran. */
+  haltedBeforeModel: number
+  /** Model-driven function runs in the window, per function, such as the code-safety `review` and the `intake`. */
+  programs: { function: string; runs: number; pass: number }[]
+  /** Automated checks in the window, by outcome. */
+  checks: { runs: number } & Record<FunctionOutcome, number>
+}
+
 /**
  * `fixtures/enterprise.json`: the ledger's reading of the enterprise's current
  * day, published by `pnpm run enterprise:publish` from the roster and the
@@ -184,7 +225,10 @@ export interface EnterpriseReport {
   asOf: string
   window: ActiveWindow
   counts: Roster['counts']
-  divisions: { id: string; name: string; defined: number; occupied: number; active: number }[]
+  /** What the enterprise delivered inside the window; absent from a report built before it existed. */
+  outcomes?: EnterpriseOutcomes
+  /** Each division's seats; `work` splits its active seats and is absent from a report built before the split. */
+  divisions: { id: string; name: string; defined: number; occupied: number; active: number; work?: WorkCounts }[]
   tickets: Record<TicketStatus, TicketSummary[]>
   /** Function runs inside the window, newest first. */
   functions: FunctionRun[]
@@ -314,7 +358,9 @@ export interface EnterpriseDay {
     defined: number
     occupied: number
     active: number
-    byDivision: { id: string; name: string; defined: number; occupied: number; active: number }[]
+    /** The occupied and active seats by what they did; absent from a report an earlier publisher wrote. */
+    work?: { occupied: WorkCounts; active: WorkCounts }
+    byDivision: { id: string; name: string; defined: number; occupied: number; active: number; work?: WorkCounts }[]
   }
   functions: { lines: number; byDivision: ({ division: string } & Record<FunctionOutcome, number>)[] }
   /** Spend, one labelled total per source; an earlier publisher wrote an object here instead. */

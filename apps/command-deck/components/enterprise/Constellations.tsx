@@ -117,7 +117,7 @@ export function Constellations({ roster, layout }: { roster: Roster; layout: Gra
     return ids
   }, [clusters, roster.agents])
 
-  // Seats per division that at least one recorded session occupied, for the division labels.
+  // Seats per division that at least one recorded deliverable occupied, for the division labels.
   const occupiedByDivision = useMemo(() => {
     const counts = new Map<string, number>()
     for (const agent of roster.agents) {

@@ -3,6 +3,8 @@
 import { useViewPathname } from './pathname.ts'
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { displayName } from '@/deck/display-name'
+import { outcomePhrases, workPhrase } from '@/components/enterprise/evidence'
+import { stamp } from '@/deck/format'
 import { layoutWorkflow } from '@/deck/layout-workflow'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { eventsUpTo, useDeck } from '@/deck/store'
@@ -49,6 +51,7 @@ function useCard(pathname: string): Card {
   const cursor = useDeck(state => state.cursor)
   const safety = useDeck(state => state.safety)
   const safetyRunId = useDeck(state => state.safetyRunId)
+  const report = useDeck(state => state.enterprise)
   const operations = useOps(state => state.reading?.snapshot)
 
   const workflow = useMemo(() => {
@@ -99,11 +102,14 @@ function useCard(pathname: string): Card {
   }
 
   if (roster === undefined) return { title: 'Enterprise', lines: [] }
+  const split = roster.counts.work === undefined ? `${roster.counts.active} active` : workPhrase(roster.counts.work.active)
   return {
     title: 'Enterprise',
     lines: [
-      `${roster.counts.defined} seats defined in ${spell(roster.divisions.length)} divisions`,
-      `${roster.counts.occupied} occupied by recorded deliverables · ${roster.counts.active} active today`,
+      report?.outcomes === undefined
+        ? `${roster.counts.defined} seats defined in ${spell(roster.divisions.length)} divisions · ${roster.counts.occupied} with recorded work`
+        : `In the 24 h to ${stamp(report.window.until)} UTC: ${outcomePhrases(report.outcomes).join(' · ')}`,
+      `${roster.counts.defined} seats defined · ${roster.counts.occupied} with recorded work · in the window: ${split}`,
     ],
   }
 }

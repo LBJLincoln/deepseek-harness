@@ -1,31 +1,32 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { outcomePhrases, workPhrase } from '@/components/enterprise/evidence'
+import { stamp } from '@/deck/format'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { useDeck } from '@/deck/store'
 import { kinetic } from './kinetic.tsx'
 import { useOpening } from './useOpening.ts'
 
 /**
- * Compose the claim from what the deck has actually read.
+ * Compose the claim from what the deck has actually read: what the enterprise
+ * delivered in the roster's 24-hour window, named by the window's end; before
+ * the published report arrives, the seats, the active ones split by what they
+ * did, which the header keeps showing beside it.
  *
  * Each fact is counted from a payload that has arrived, and a fact the deck
  * does not yet hold is left out rather than filled in, so the first line a
  * client sees claims nothing the room could not check.
- * @returns The claim, which is empty until the roster lands.
+ * @returns The claim, which is empty until the roster or the report lands.
  */
 function useClaim(): string {
   const roster = useDeck(state => state.roster)
-  const runs = useDeck(state => state.runs)
+  const report = useDeck(state => state.enterprise)
 
-  const facts: string[] = []
-  if (roster !== undefined) {
-    facts.push(`${roster.counts.defined} seats defined`)
-    facts.push(`${roster.counts.occupied} occupied by recorded deliverables`)
-    facts.push(`${roster.counts.active} active today`)
-  }
-  if (runs.length > 0) facts.push(`${runs.length} runs`)
-  return facts.join(' · ')
+  if (report?.outcomes !== undefined) return `In the 24 h to ${stamp(report.window.until)} UTC: ${outcomePhrases(report.outcomes).join(' · ')}`
+  if (roster === undefined) return ''
+  const split = roster.counts.work === undefined ? '' : workPhrase(roster.counts.work.active)
+  return `${roster.counts.defined} seats defined · ${roster.counts.occupied} with recorded work${split === '' ? '' : ` · active: ${split}`}`
 }
 
 /**

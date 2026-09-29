@@ -6,10 +6,48 @@
  * configured route.
  */
 
-import type { Agent, Roster, UnattributedReason } from '@/deck/contract'
+import type { Agent, EnterpriseOutcomes, Roster, UnattributedReason, WorkCounts, WorkKind } from '@/deck/contract'
 
 /** What a seat no recorded deliverable occupied is called, in the hover label and the panel. */
-export const NEVER_RUN = 'defined, never run'
+export const NEVER_RUN = 'provisioned, no work assigned yet'
+
+/** What each kind of work is called where a count of seats names it. */
+export const WORK_TEXT: Record<WorkKind, string> = {
+  model: 'model-driven',
+  check: 'automated checks',
+  halted: 'halted before any model ran',
+}
+
+/**
+ * Some seats split by what they did, zeros left out.
+ * @param work - Seats per kind.
+ * @returns Such as `18 model-driven · 22 automated checks`, or empty when every count is zero.
+ */
+export function workPhrase(work: WorkCounts): string {
+  return (Object.keys(WORK_TEXT) as WorkKind[])
+    .filter(kind => work[kind] > 0)
+    .map(kind => `${work[kind]} ${WORK_TEXT[kind]}`)
+    .join(' · ')
+}
+
+/** What a model-driven function is called in the delivered outcomes; a function not named here shows its own id. */
+const PROGRAM_TEXT: Record<string, string> = {
+  review: 'code-safety review seats',
+  intake: 'intake coordinators',
+}
+
+/**
+ * What the enterprise delivered in the window, one phrase per outcome, in the
+ * order the Enterprise view leads with them.
+ * @param outcomes - The published outcomes.
+ * @returns Such as `3 tickets shipped`, `7 of 7 code-safety review seats passed`, `105 of 114 automated checks passed`.
+ */
+export function outcomePhrases(outcomes: EnterpriseOutcomes): string[] {
+  const phrases = [`${outcomes.shipped} ${outcomes.shipped === 1 ? 'ticket' : 'tickets'} shipped`]
+  for (const program of outcomes.programs) phrases.push(`${program.pass} of ${program.runs} ${PROGRAM_TEXT[program.function] ?? program.function} passed`)
+  if (outcomes.checks.runs > 0) phrases.push(`${outcomes.checks.pass} of ${outcomes.checks.runs} automated checks passed`)
+  return phrases
+}
 
 /**
  * @param agent - One seat.
@@ -30,10 +68,10 @@ export function ledgerLines(agent: Agent): number {
 /**
  * The deliverables a seat's hover label and panel name, in one phrase.
  * @param agent - One seat.
- * @returns Such as `3 recorded sessions · 2 ledger lines`, or {@link NEVER_RUN}.
+ * @returns Such as `model-driven · 3 recorded sessions · 2 ledger lines`, or {@link NEVER_RUN}.
  */
 export function deliverables(agent: Agent): string {
-  const parts: string[] = []
+  const parts: string[] = agent.work === undefined ? [] : [WORK_TEXT[agent.work.occupied]]
   if (agent.evidence.sessions > 0) parts.push(`${agent.evidence.sessions} recorded sessions`)
   const lines = ledgerLines(agent)
   if (lines > 0) parts.push(`${lines} ledger ${lines === 1 ? 'line' : 'lines'}`)

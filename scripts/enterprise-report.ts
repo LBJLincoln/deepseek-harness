@@ -52,8 +52,9 @@ import {
   type LedgerLine,
   type TicketLine,
   type TicketStatus,
+  type WorkCounts,
 } from './enterprise-ledger.ts'
-import { buildRoster, divisionSeats, type Roster } from './enterprise-roster.ts'
+import { buildRoster, divisionSeats, type Roster, type RosterWorkCounts } from './enterprise-roster.ts'
 import { committedRecords, readRecordedSessions } from './roster-evidence.ts'
 
 /** The directory `--write` writes reports to, relative to the repository root. */
@@ -222,6 +223,8 @@ export interface DivisionSeats {
   defined: number
   occupied: number
   active: number
+  /** The active seats by what their deliverables inside the window were. */
+  work: WorkCounts
 }
 
 /** The report, as `--write` stores it and the deck's day view reads it. */
@@ -259,7 +262,7 @@ export interface EnterpriseWindowReport {
   /** Each commit a ticket shipped as inside the window, with its Branch CI answer. */
   commits: ShippedCommitReport[]
   /** Seats at the window's end, from the roster generator run at that moment. */
-  seats: { at: string; defined: number; occupied: number; active: number; byDivision: DivisionSeats[] }
+  seats: { at: string; defined: number; occupied: number; active: number; work: RosterWorkCounts; byDivision: DivisionSeats[] }
   functions: {
     /** Function lines dated inside the window. */
     lines: number
@@ -849,6 +852,7 @@ export async function enterpriseReport(sources: ReportSources, window: ReportWin
       defined: roster.counts.defined,
       occupied: roster.counts.occupied,
       active: roster.counts.active,
+      work: roster.counts.work,
       byDivision,
     },
     functions: {
@@ -973,9 +977,12 @@ export function renderReport(report: EnterpriseWindowReport): string {
     '',
     `## Seats at ${seats.at}`,
     '',
-    `${seats.defined} defined, ${seats.occupied} occupied, ${seats.active} active in the 24 hours before ${seats.at}.`,
+    `${seats.defined} defined, ${seats.occupied} occupied, ${seats.active} active in the 24 hours before ${seats.at}: ${seats.work.active.model} model-driven, ${seats.work.active.check} automated checks, ${seats.work.active.halted} halted before any model ran.`,
     '',
-    ...table(['Division', 'Defined', 'Occupied', 'Active'], seats.byDivision.map(row => [row.name, row.defined, row.occupied, row.active])),
+    ...table(
+      ['Division', 'Defined', 'Occupied', 'Active', 'Model-driven', 'Automated checks', 'Halted before a model ran'],
+      seats.byDivision.map(row => [row.name, row.defined, row.occupied, row.active, row.work.model, row.work.check, row.work.halted]),
+    ),
     '',
     '## Unknown',
     '',

@@ -80,8 +80,8 @@ const DIM = 0.3
 const NEIGHBOUR = 0.62
 
 /**
- * How bright a seat no recorded session occupied burns, against an occupied
- * one: the definition stays visible, and the eye goes to the evidence.
+ * How bright a seat no recorded deliverable occupied burns, against an
+ * occupied one: the definition stays visible, and the eye goes to the evidence.
  */
 const NEVER_RUN_PRESENCE = 0.34
 
@@ -100,9 +100,9 @@ const NO_ROTATION = new Quaternion()
 /**
  * The agent graph: instanced cores, the halo layer behind them, the orbital
  * ring an agent wears while it is working, and the standing rim a certified or
- * failed agent wears. A seat no recorded session occupied burns at
+ * failed agent wears. A seat no recorded deliverable occupied burns at
  * {@link NEVER_RUN_PRESENCE} of an occupied one's core and halo, and its hover
- * label says so.
+ * label says so in neutral grey.
  *
  * Each of the four is one draw call over every agent, and every frame writes
  * typed arrays rather than React state: at 147 agents the scene animates a

@@ -261,10 +261,15 @@ export type LiveRosterAgent = Omit<RosterAgentDefinition, 'status'> & {
 
 /**
  * The `/roster` response: the generated roster with every seat's status and
- * evidence, `counts.occupied`, `counts.active`, the roster's `evidence` and its
- * `unattributed` bucket recomputed over the runs the feed discovers.
+ * evidence, the roster's `evidence` and its `unattributed` bucket recomputed
+ * over the runs the feed discovers. `counts` keeps the file's figures, which
+ * its `generatedAt` and `activeWindow` date, and adds `running`: the seats a
+ * discovered session is running on now, the only count measured at request time.
  */
-export type LiveRoster = Omit<Roster, 'agents'> & { agents: LiveRosterAgent[] }
+export type LiveRoster = Omit<Roster, 'agents' | 'counts'> & {
+  agents: LiveRosterAgent[]
+  counts: Roster['counts'] & { running: number }
+}
 
 /** Tool names that register the subagent delegation capability; a call/result for one of these folds to `delegation`, not `tool`. */
 const DELEGATION_TOOL_NAMES = new Set(['subagent', 'subagent_control', 'subagent_report'])
@@ -930,8 +935,9 @@ function attributeRunFiles(
  * in `unattributed`, never lit on a seat.
  * @param roster - the generated static roster.
  * @param discoveryRoot - where to look for real or fixture run data.
- * @returns the roster with every seat's status and evidence, the counts, the
- *   evidence scope and the unattributed bucket recomputed over the discovered runs.
+ * @returns the roster with every seat's status and evidence, the evidence scope
+ *   and the unattributed bucket recomputed over the discovered runs, and the
+ *   file's counts with the seats running now added as `counts.running`.
  */
 export function computeLiveRoster(roster: Roster, discoveryRoot: string): LiveRoster {
   const statusByAgent = new Map<string, 'active' | 'certified' | 'failed'>()
@@ -960,10 +966,10 @@ export function computeLiveRoster(roster: Roster, discoveryRoot: string): LiveRo
     status: statusByAgent.get(agent.id) ?? 'defined',
     evidence: evidenceFor(summary, agent.id),
   }))
-  const active = agents.filter(agent => agent.status === 'active').length
+  const running = agents.filter(agent => agent.status === 'active').length
   return {
     ...roster,
-    counts: { defined: roster.counts.defined, occupied: summary.bySeat.size, active },
+    counts: { ...roster.counts, running },
     agents,
     evidence: summary.evidence,
     unattributed: summary.unattributed,

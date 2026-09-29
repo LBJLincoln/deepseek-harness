@@ -23,6 +23,11 @@
  * nothing; {@link occupancyOf} is the one implementation of that rule, used by
  * the roster generator, the functions runner and the deck's published data.
  *
+ * **Work.** {@link workOf} classifies each deliverable as model work, an
+ * automated check, or a ticket halted before any model ran, and
+ * {@link seatWork} gives a seat the strongest kind among its deliverables, so
+ * every published seat count splits by what the seats actually did.
+ *
  * @module enterprise-ledger
  */
 
@@ -371,6 +376,90 @@ export function occupancyOf(seat: OccupancySeat, ledger: SeatLedgerEvidence | un
   const lastMs = lastDeliverable === undefined ? undefined : Date.parse(lastDeliverable)
   const active = occupied && lastMs !== undefined && lastMs >= Date.parse(window.since) && lastMs <= Date.parse(window.until)
   return { occupied, active, ...lastDeliverable === undefined ? {} : { lastDeliverable } }
+}
+
+/**
+ * What one deliverable was. `model`: a model did the work — an attributed
+ * recorded session, a ticket line whose department or review ran a session,
+ * that shipped, or that records model tokens, or a function line of a division
+ * outside {@link CHECK_DIVISIONS} (the code-safety review and the intake run
+ * model programs). `check`: a script or a read did it — a function line of
+ * {@link CHECK_DIVISIONS}. `halted`: any other ticket line, a shift that
+ * stopped before any model ran, such as one that could not prepare its worktrees.
+ */
+export type WorkKind = 'model' | 'check' | 'halted'
+
+/**
+ * The divisions whose function lines are automated checks: for each,
+ * `scripts/enterprise-functions.ts` runs a `verify-*` package script, reads a
+ * Branch CI verdict from GitHub, or folds recorded sessions, and calls no model.
+ */
+const CHECK_DIVISIONS: ReadonlySet<string> = new Set(['verification', 'judging', 'observatory', 'curation-data'])
+
+/** Every kind, strongest first: a seat's work is the strongest kind among its deliverables. */
+const WORK_KINDS: readonly WorkKind[] = ['model', 'check', 'halted']
+
+/**
+ * @param line - one ledger line.
+ * @returns what the line's deliverable was.
+ */
+export function workOf(line: LedgerLine): WorkKind {
+  if (line.type === 'ticket') {
+    const ranSession = line.department?.sessionId !== undefined || line.review?.sessionId !== undefined
+    return ranSession || line.shipped !== null || (line.tokens ?? 0) > 0 ? 'model' : 'halted'
+  }
+  return CHECK_DIVISIONS.has(line.division) ? 'check' : 'model'
+}
+
+/** The kind of one occupied seat's work. */
+export interface SeatWork {
+  /** The strongest kind among all its deliverables. */
+  occupied: WorkKind
+  /** The strongest kind among its deliverables inside the active window; absent when none is inside. */
+  active?: WorkKind
+}
+
+/**
+ * Classify one seat's work by its deliverables: its attributed sessions (model
+ * work, dated by `lastSeen`) and the ledger lines naming its id.
+ * @param seat - the seat's id and session evidence.
+ * @param lines - ledger lines; lines naming another seat are ignored.
+ * @param window - the active window.
+ * @returns the seat's work, or `undefined` for a seat no deliverable occupies.
+ */
+export function seatWork(seat: OccupancySeat, lines: readonly LedgerLine[], window: ActiveWindow): SeatWork | undefined {
+  const since = Date.parse(window.since)
+  const until = Date.parse(window.until)
+  const inside = (at: string): boolean => Date.parse(at) >= since && Date.parse(at) <= until
+  const all = new Set<WorkKind>()
+  const active = new Set<WorkKind>()
+  if (seat.sessions > 0) {
+    all.add('model')
+    if (seat.lastSeen !== undefined && inside(seat.lastSeen)) active.add('model')
+  }
+  for (const line of lines) {
+    if (line.seat !== seat.id) continue
+    const kind = workOf(line)
+    all.add(kind)
+    if (inside(line.at)) active.add(kind)
+  }
+  const occupied = WORK_KINDS.find(kind => all.has(kind))
+  if (occupied === undefined) return undefined
+  const activeKind = WORK_KINDS.find(kind => active.has(kind))
+  return activeKind === undefined ? { occupied } : { occupied, active: activeKind }
+}
+
+/** Seats per kind of work. */
+export type WorkCounts = Record<WorkKind, number>
+
+/**
+ * @param kinds - one kind per seat counted; `undefined` for a seat that is not.
+ * @returns the seats per kind, every kind present.
+ */
+export function countWork(kinds: readonly (WorkKind | undefined)[]): WorkCounts {
+  const counts: WorkCounts = { model: 0, check: 0, halted: 0 }
+  for (const kind of kinds) if (kind !== undefined) counts[kind] += 1
+  return counts
 }
 
 /** Seats defined, occupied and active in one division. */

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useViewPathname } from './pathname.ts'
 import { useEffect, type ReactNode } from 'react'
+import type { Roster } from '@/deck/contract'
 import { formatAge } from '@/deck/ops'
 import { useDeck } from '@/deck/store'
 import { useOps } from '@/deck/ops-store'
@@ -25,12 +26,35 @@ import { VIEWS } from './views.ts'
 function RosterStamp({ at }: { at: string }): ReactNode {
   const now = useNow()
   return (
-    <div className="count" data-tone="stamp" title={`Every seat count on screen is read from the roster stamped ${at.slice(0, 19).replace('T', ' ')} UTC`}>
+    <div className="count" data-tone="stamp" title={`Every seat count on screen is read from the roster (data/enterprise/roster.json) stamped ${at.slice(0, 19).replace('T', ' ')} UTC; the 24 h counts cover the 24 hours before that stamp`}>
       <b><time dateTime={at}>{at.slice(11, 16)} UTC</time></b>
       <span>roster · {formatAge(Math.max(0, now - Date.parse(at)))} old</span>
     </div>
   )
 }
+
+/**
+ * The header's seat counts, in order: seats defined, seats occupied by a
+ * recorded deliverable, then the active seats of the roster's 24-hour window
+ * split by what they did, and the seats running now when the live feed says.
+ * A count the roster does not carry is left out; a roster from before the split
+ * shows its active seats unsplit.
+ */
+const SEAT_COUNTS: readonly {
+  key: string
+  label: string
+  tone?: string
+  title: string
+  value: (counts: Roster['counts']) => number | undefined
+}[] = [
+  { key: 'defined', label: 'seats defined', title: 'Seat definitions in the roster; a definition is not a running agent', value: counts => counts.defined },
+  { key: 'occupied', label: 'occupied', tone: 'occupied', title: 'Seats a recorded deliverable occupies: a session, a ticket, a gate run, a CI verdict', value: counts => counts.occupied },
+  { key: 'active', label: 'active · 24 h', tone: 'active', title: 'Seats with a deliverable in the 24 hours before the roster\'s stamp', value: counts => (counts.work === undefined ? counts.active : undefined) },
+  { key: 'model', label: 'model-driven · 24 h', tone: 'active', title: 'Active seats a model did the work of: a session, a ticket, a code-safety review, an intake', value: counts => counts.work?.active.model },
+  { key: 'check', label: 'automated checks · 24 h', title: 'Active seats whose work was a script or a read: a verify-* gate, a CI verdict, a fold', value: counts => counts.work?.active.check },
+  { key: 'halted', label: 'halted · 24 h', title: 'Active seats whose only work in the window was a ticket its shift stopped before any model ran', value: counts => (counts.work?.active.halted === 0 ? undefined : counts.work?.active.halted) },
+  { key: 'running', label: 'running now', tone: 'active', title: 'Seats a session is running on at this moment', value: counts => counts.running },
+]
 
 /**
  * The persistent frame around every view: header with its Present menu,
@@ -92,18 +116,15 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         <div className="deck__spacer" />
 
         <div className="deck__counts">
-          <div className="count">
-            <b><RollingNumber value={roster?.counts.defined} /></b>
-            <span>defined</span>
-          </div>
-          <div className="count" data-tone="occupied">
-            <b><RollingNumber value={roster?.counts.occupied} /></b>
-            <span>occupied</span>
-          </div>
-          <div className="count" data-tone="active">
-            <b><RollingNumber value={roster?.counts.active} /></b>
-            <span>active</span>
-          </div>
+          {SEAT_COUNTS.map(({ key, label, tone, title, value }) => {
+            const count = roster === undefined ? undefined : value(roster.counts)
+            return count === undefined ? null : (
+              <div className="count" data-tone={tone} data-zero={count === 0} key={key} title={title}>
+                <b><RollingNumber value={count} /></b>
+                <span>{label}</span>
+              </div>
+            )
+          })}
           {roster === undefined ? null : <RosterStamp at={roster.generatedAt} />}
         </div>
 

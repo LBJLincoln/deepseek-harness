@@ -67,7 +67,7 @@ const GATE: FunctionLine = verdict({
 
 const LEDGER: LedgerLine[] = [
   ticket({}),
-  ticket({ ticket: 'T-0002', at: '2026-09-28T14:00:00.000Z', seat: 'harness-core-tools-steward', shipped: null, review: { verdict: 'reject' } }),
+  ticket({ ticket: 'T-0002', at: '2026-09-28T14:00:00.000Z', seat: 'harness-core-tools-steward', shipped: null, review: { verdict: 'reject', sessionId: 'review-t-0002' } }),
   ticket({ ticket: 'T-0003', at: '2026-09-28T15:00:00.000Z', seat: 'harness-core-agent-steward', shipped: null, review: undefined, reason: 'budget exhausted' }),
   ticket({ ticket: 'T-0004', at: '2026-09-26T15:00:00.000Z', seat: 'harness-core-agent-steward', shipped: { commit: 'f00dfeedbeef' } }),
   verdict({}),
@@ -106,8 +106,8 @@ describe('buildEnterpriseReport', () => {
 
   it('tallies every division in roster order from the roster\'s own occupancy', () => {
     expect(report.divisions.map(division => division.id)).toEqual(roster.divisions.map(division => division.id))
-    expect(report.divisions.find(division => division.id === 'harness-core')).toEqual({ id: 'harness-core', name: 'Harness Core', defined: 24, occupied: 3, active: 3 })
-    expect(report.divisions.find(division => division.id === 'judging')).toEqual({ id: 'judging', name: 'Judging', defined: 11, occupied: 2, active: 2 })
+    expect(report.divisions.find(division => division.id === 'harness-core')).toEqual({ id: 'harness-core', name: 'Harness Core', defined: 24, occupied: 3, active: 3, work: { model: 2, check: 0, halted: 1 } })
+    expect(report.divisions.find(division => division.id === 'judging')).toEqual({ id: 'judging', name: 'Judging', defined: 11, occupied: 2, active: 2, work: { model: 0, check: 2, halted: 0 } })
     expect(report.divisions.find(division => division.id === 'verification')).toMatchObject({ occupied: 1, active: 1 })
     expect(report.divisions.reduce((sum, division) => sum + division.defined, 0)).toBe(147)
   })
@@ -119,6 +119,30 @@ describe('buildEnterpriseReport', () => {
     expect(report.tickets.halted).toEqual([{ ticket: 'T-0003', seat: 'harness-core-agent-steward', division: 'harness-core', status: 'halted', at: '2026-09-28T15:00:00.000Z', shift: 'shift-1', reason: 'budget exhausted' }])
     // T-0004 shipped two days ago: not today's ticket.
     expect(Object.values(report.tickets).flat().map(entry => entry.ticket)).not.toContain('T-0004')
+  })
+
+  it('leads with what the window delivered: tickets shipped, not shipped after model work, halted before any, and automated checks by outcome', () => {
+    expect(report.outcomes).toEqual({
+      shipped: 1,
+      notShipped: 1,
+      haltedBeforeModel: 1,
+      programs: [],
+      checks: { runs: 3, pass: 2, fail: 1, error: 0 },
+    })
+    expect(report.counts.work.active).toEqual({ model: 2, check: 3, halted: 1 })
+  })
+
+  it('counts a model program\'s function lines as programs, apart from the automated checks', () => {
+    const intake = verdict({
+      seat: 'program-departments-jobs-coordinator',
+      division: 'program-departments',
+      function: 'intake',
+      at: '2026-09-28T16:00:00.000Z',
+      evidence: { path: 'data/enterprise/intake/run/program-departments-jobs-coordinator.json' },
+    })
+    const withIntake = buildEnterpriseReport(roster, { lines: [...LEDGER, intake, { ...intake, outcome: 'fail', at: '2026-09-28T16:30:00.000Z' }], skipped: [] }, [])
+    expect(withIntake.outcomes.programs).toEqual([{ function: 'intake', runs: 2, pass: 1 }])
+    expect(withIntake.outcomes.checks.runs).toBe(3)
   })
 
   it('lists the day\'s function runs newest first', () => {

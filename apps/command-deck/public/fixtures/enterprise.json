@@ -1,13 +1,48 @@
 {
-  "asOf": "2026-09-29T06:45:09.356Z",
+  "asOf": "2026-09-29T07:07:25.821Z",
   "window": {
-    "since": "2026-09-28T06:45:09.356Z",
-    "until": "2026-09-29T06:45:09.356Z"
+    "since": "2026-09-28T07:07:25.821Z",
+    "until": "2026-09-29T07:07:25.821Z"
   },
   "counts": {
     "defined": 147,
     "occupied": 53,
-    "active": 44
+    "active": 44,
+    "work": {
+      "occupied": {
+        "model": 27,
+        "check": 22,
+        "halted": 4
+      },
+      "active": {
+        "model": 18,
+        "check": 22,
+        "halted": 4
+      }
+    }
+  },
+  "outcomes": {
+    "shipped": 3,
+    "notShipped": 3,
+    "haltedBeforeModel": 4,
+    "programs": [
+      {
+        "function": "intake",
+        "runs": 2,
+        "pass": 2
+      },
+      {
+        "function": "review",
+        "runs": 7,
+        "pass": 7
+      }
+    ],
+    "checks": {
+      "runs": 114,
+      "pass": 105,
+      "fail": 9,
+      "error": 0
+    }
   },
   "divisions": [
     {
@@ -15,70 +50,120 @@
       "name": "Harness Core",
       "defined": 24,
       "occupied": 6,
-      "active": 6
+      "active": 6,
+      "work": {
+        "model": 4,
+        "check": 0,
+        "halted": 2
+      }
     },
     {
       "id": "proving-ground",
       "name": "Proving Ground",
       "defined": 12,
       "occupied": 12,
-      "active": 3
+      "active": 3,
+      "work": {
+        "model": 3,
+        "check": 0,
+        "halted": 0
+      }
     },
     {
       "id": "verification",
       "name": "Verification",
       "defined": 14,
       "occupied": 14,
-      "active": 14
+      "active": 14,
+      "work": {
+        "model": 0,
+        "check": 14,
+        "halted": 0
+      }
     },
     {
       "id": "judging",
       "name": "Judging",
       "defined": 11,
       "occupied": 6,
-      "active": 6
+      "active": 6,
+      "work": {
+        "model": 0,
+        "check": 6,
+        "halted": 0
+      }
     },
     {
       "id": "curation-data",
       "name": "Curation & Data",
       "defined": 8,
       "occupied": 2,
-      "active": 2
+      "active": 2,
+      "work": {
+        "model": 0,
+        "check": 1,
+        "halted": 1
+      }
     },
     {
       "id": "program-departments",
       "name": "Program Departments",
       "defined": 10,
       "occupied": 3,
-      "active": 3
+      "active": 3,
+      "work": {
+        "model": 2,
+        "check": 0,
+        "halted": 1
+      }
     },
     {
       "id": "code-safety",
       "name": "Code Safety",
       "defined": 43,
       "occupied": 7,
-      "active": 7
+      "active": 7,
+      "work": {
+        "model": 7,
+        "check": 0,
+        "halted": 0
+      }
     },
     {
       "id": "knowledge",
       "name": "Knowledge",
       "defined": 11,
       "occupied": 1,
-      "active": 1
+      "active": 1,
+      "work": {
+        "model": 1,
+        "check": 0,
+        "halted": 0
+      }
     },
     {
       "id": "governance",
       "name": "Governance",
       "defined": 8,
       "occupied": 1,
-      "active": 1
+      "active": 1,
+      "work": {
+        "model": 1,
+        "check": 0,
+        "halted": 0
+      }
     },
     {
       "id": "observatory",
       "name": "Observatory",
       "defined": 6,
       "occupied": 1,
-      "active": 1
+      "active": 1,
+      "work": {
+        "model": 0,
+        "check": 1,
+        "halted": 0
+      }
     }
   ],
   "tickets": {
@@ -2383,7 +2468,7 @@
   ],
   "shipped": [
     {
-      "commit": "3d5210654a5382c5559928d9b4d6b6dfee29c5f6",
+      "commit": "cba8e46823c6fa946e5ee4f86d3945590a3fb1bc",
       "at": "2026-09-29T02:04:38.491Z",
       "tickets": [
         "T-0007"

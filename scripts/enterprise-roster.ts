@@ -37,8 +37,12 @@
  * ledger line — and active when its newest deliverable falls in the 24 hours
  * ending at {@link Roster.generatedAt}, which {@link Roster.activeWindow}
  * states. `status` is `"active"` for exactly those seats and `"defined"` for
- * every other. Live session status is computed by `scripts/harness-feed.ts`,
- * which applies the same attribution rules to every run it discovers.
+ * every other. {@link RosterAgentDefinition.work} and
+ * {@link Roster.counts}' `work` split those seats by what their deliverables
+ * were — model work, automated checks, or tickets halted before any model ran —
+ * so no published count calls a lint gate an agent. Live session status is
+ * computed by `scripts/harness-feed.ts`, which applies the same attribution
+ * rules to every run it discovers.
  *
  * @module enterprise-roster
  */
@@ -49,13 +53,17 @@ import { fileURLToPath } from 'node:url'
 
 import {
   activeWindow,
+  countWork,
   LEDGER_PATH,
   ledgerBySeat,
   occupancyOf,
   readLedger,
+  seatWork,
   type ActiveWindow,
   type LedgerLine,
   type SeatLedgerEvidence,
+  type SeatWork,
+  type WorkCounts,
 } from './enterprise-ledger.ts'
 import {
   attributeRun,
@@ -117,10 +125,24 @@ export interface RosterAgentDefinition {
   evidence: SeatEvidence
   /** The ledger lines naming this seat's id, counted from the lines {@link Roster.ledger} covers. */
   ledger: SeatLedgerEvidence
+  /**
+   * What the seat's deliverables were, by `scripts/enterprise-ledger.ts`'s
+   * `seatWork`: `active` is present exactly when `status` is `"active"`; the
+   * whole field is absent for a seat no deliverable occupies.
+   */
+  work?: SeatWork
 }
 
 /** A seat as a division builder composes it, before {@link buildRoster} attaches its evidence. */
-type SeatDefinition = Omit<RosterAgentDefinition, 'evidence' | 'ledger' | 'status'> & { status: 'defined' }
+type SeatDefinition = Omit<RosterAgentDefinition, 'evidence' | 'ledger' | 'status' | 'work'> & { status: 'defined' }
+
+/** The occupied and the active seats split by what their deliverables were. */
+export interface RosterWorkCounts {
+  /** Every occupied seat by the strongest kind among all its deliverables. */
+  occupied: WorkCounts
+  /** Every active seat by the strongest kind among its deliverables inside {@link Roster.activeWindow}. */
+  active: WorkCounts
+}
 
 /**
  * One relationship between two roster agents. `from` performs the relationship
@@ -156,9 +178,11 @@ export interface Roster {
   /**
    * Aggregate counts: `defined` seats, `occupied` seats (a recorded deliverable
    * names them: an attributed session or a ledger line), and `active` seats
-   * (their newest deliverable falls inside {@link Roster.activeWindow}).
+   * (their newest deliverable falls inside {@link Roster.activeWindow}); `work`
+   * splits the occupied and the active seats into model work, automated checks
+   * and tickets halted before any model ran, each split summing to its count.
    */
-  counts: { defined: number; occupied: number; active: number }
+  counts: { defined: number; occupied: number; active: number; work: RosterWorkCounts }
   /** The 24 hours ending at {@link Roster.generatedAt}, inside which a deliverable makes its seat active. */
   activeWindow: ActiveWindow
   /** Every division this roster composes agents from, in a fixed presentation order. */
@@ -982,20 +1006,22 @@ export function buildRoster(root: string, options: BuildRosterOptions): Roster {
   const summary = summarizeEvidence(options.recorded.map(run => ({ path: run.path, sessions: attributeRun(run, seats) })))
   const window = activeWindow(options.generatedAt)
   const bySeat = ledgerBySeat(options.ledger)
+  const linesBySeat = new Map<string, LedgerLine[]>()
+  for (const line of options.ledger) linesBySeat.set(line.seat, [...linesBySeat.get(line.seat) ?? [], line])
   const agents: RosterAgentDefinition[] = seats.map((seat) => {
     const evidence = evidenceFor(summary, seat.id)
     const ledger = bySeat.get(seat.id) ?? { lines: 0 }
-    const occupancy = occupancyOf(
-      {
-        id: seat.id,
-        division: seat.division,
-        sessions: evidence.sessions,
-        ...evidence.lastSeen === undefined ? {} : { lastSeen: evidence.lastSeen },
-      },
-      ledger,
-      window,
-    )
-    return { ...seat, status: occupancy.active ? 'active' : 'defined', evidence, ledger }
+    const occupancySeat = {
+      id: seat.id,
+      division: seat.division,
+      sessions: evidence.sessions,
+      ...evidence.lastSeen === undefined ? {} : { lastSeen: evidence.lastSeen },
+    }
+    const occupancy = occupancyOf(occupancySeat, ledger, window)
+    const work = seatWork(occupancySeat, linesBySeat.get(seat.id) ?? [], window)
+    const agent: RosterAgentDefinition = { ...seat, status: occupancy.active ? 'active' : 'defined', evidence, ledger }
+    if (work !== undefined) agent.work = occupancy.active || work.active === undefined ? work : { occupied: work.occupied }
+    return agent
   })
   const unseated = options.ledger.filter(line => !seen.has(line.seat)).length
   return {
@@ -1004,6 +1030,10 @@ export function buildRoster(root: string, options: BuildRosterOptions): Roster {
       defined: ROSTER_AGENT_COUNT,
       occupied: agents.filter(agent => agent.evidence.sessions > 0 || agent.ledger.lines > 0).length,
       active: agents.filter(agent => agent.status === 'active').length,
+      work: {
+        occupied: countWork(agents.map(agent => agent.work?.occupied)),
+        active: countWork(agents.map(agent => agent.work?.active)),
+      },
     },
     activeWindow: window,
     divisions: DIVISIONS,
@@ -1028,11 +1058,14 @@ export function serializeRoster(roster: Roster): string {
 
 /**
  * Seats per division as a roster states them: defined, occupied (an attributed
- * session or a ledger line names the seat) and active (the seat's status).
+ * session or a ledger line names the seat), active (the seat's status), and the
+ * active seats split by what their deliverables inside the window were.
  * @param roster - the roster.
  * @returns one tally per division, in the roster's presentation order.
  */
-export function divisionSeats(roster: Roster): { id: string; name: string; defined: number; occupied: number; active: number }[] {
+export function divisionSeats(
+  roster: Roster,
+): { id: string; name: string; defined: number; occupied: number; active: number; work: WorkCounts }[] {
   return roster.divisions.map((division) => {
     const members = roster.agents.filter(agent => agent.division === division.id)
     return {
@@ -1041,8 +1074,18 @@ export function divisionSeats(roster: Roster): { id: string; name: string; defin
       defined: members.length,
       occupied: members.filter(agent => agent.evidence.sessions > 0 || agent.ledger.lines > 0).length,
       active: members.filter(agent => agent.status === 'active').length,
+      work: countWork(members.map(agent => agent.work?.active)),
     }
   })
+}
+
+/**
+ * One split of seats by work, as the generator's and the publisher's summaries print it.
+ * @param work - seats per kind.
+ * @returns such as `18 model-driven, 22 automated checks, 4 halted before any model ran`.
+ */
+export function workSummary(work: WorkCounts): string {
+  return `${work.model} model-driven, ${work.check} automated checks, ${work.halted} halted before any model ran`
 }
 
 const isMain = process.argv[1] !== undefined && import.meta.url === `file://${resolve(process.argv[1])}`
@@ -1053,7 +1096,8 @@ if (isMain) {
   const { roster, changed } = generateRoster(root, readRecordedSessions(root, committedRecords(root)), ledger.lines)
   console.log([
     `enterprise-roster: ${changed ? 'wrote' : 'kept'} ${roster.agents.length} seats in ${ROSTER_PATH} (generatedAt ${roster.generatedAt});`,
-    `${roster.counts.occupied} occupied, ${roster.counts.active} active since ${roster.activeWindow.since};`,
+    `${roster.counts.occupied} occupied (${workSummary(roster.counts.work.occupied)}),`,
+    `${roster.counts.active} active since ${roster.activeWindow.since} (${workSummary(roster.counts.work.active)});`,
     `${roster.evidence.sessions - roster.unattributed.sessions} of ${roster.evidence.sessions} sessions on seats`,
     `in ${roster.evidence.records.length} records, ${roster.unattributed.sessions} unattributed;`,
     `${roster.ledger.lines} ledger lines, ${roster.ledger.unseated} naming no seat`,

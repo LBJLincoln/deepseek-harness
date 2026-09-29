@@ -11,6 +11,11 @@ import type { OpsSnapshot, RunEvent } from '../apps/command-deck/deck/contract.t
 
 const root = resolve(import.meta.dirname, '..')
 
+/** The committed roster's counts, which the live roster keeps beside the seats running now. */
+function fileCounts(): Omit<LiveRoster['counts'], 'running'> {
+  return (JSON.parse(readFileSync(join(root, 'data/enterprise/roster.json'), 'utf8')) as Pick<LiveRoster, 'counts'>).counts
+}
+
 // The real DeepSeek route and system-prompt phrasing a session stamps into its
 // first `request/header`, copied from `examples/headless-agent/tests/snapshots/
 // advanced-toolchain/session.jsonl` — a committed record of real event shapes,
@@ -444,7 +449,7 @@ describe('the fold and mapping functions directly', () => {
 })
 
 describe('GET /roster', () => {
-  it('lights only the seat a running session occupies, and counts the session no rule places as unattributed', async () => {
+  it('lights only the seat a running session occupies, counts it running beside the file\'s dated counts, and counts the session no rule places as unattributed', async () => {
     const fixture = makeFixture()
     cleanups.push(() => { rmSync(fixture.dir, { recursive: true, force: true }) })
     const { port } = await startServer(fixture.dir)
@@ -452,7 +457,7 @@ describe('GET /roster', () => {
     const { status, body: rawBody } = await getJson(port, '/roster')
     const body = rawBody as LiveRoster
     expect(status).toBe(200)
-    expect(body.counts).toEqual({ defined: 147, occupied: 1, active: 1 })
+    expect(body.counts).toEqual({ ...fileCounts(), running: 1 })
     const active = body.agents.filter(agent => agent.status === 'active')
     expect(active.map(agent => agent.id)).toEqual([BENCH_SEAT])
     // The seat keeps the route it is defined for; its evidence names the route its session ran on.
@@ -478,21 +483,21 @@ describe('GET /roster', () => {
     const { port } = await startServer(fixture.dir)
 
     const first = (await getJson(port, '/roster')).body as LiveRoster
-    expect(first.counts.active).toBe(1)
+    expect(first.counts.running).toBe(1)
     appendFileSync(fixture.sessionAFile, line('verification/certificate', 99, 99, { verifier: 'oxlint' }))
     const second = (await getJson(port, '/roster')).body as LiveRoster
-    expect(second.counts.active).toBe(0)
+    expect(second.counts.running).toBe(0)
     expect(second.agents.filter(agent => agent.status === 'certified').map(agent => agent.id)).toEqual([BENCH_SEAT])
   })
 
-  it('reports every seat defined, none occupied, with no discoverable runs', async () => {
+  it('reports no seat running, no session evidence, and the file\'s counts, with no discoverable runs', async () => {
     const empty = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-empty-'))
     cleanups.push(() => { rmSync(empty, { recursive: true, force: true }) })
     const { port } = await startServer(empty)
 
     const { body: rawBody } = await getJson(port, '/roster')
     const body = rawBody as LiveRoster
-    expect(body.counts).toEqual({ defined: 147, occupied: 0, active: 0 })
+    expect(body.counts).toEqual({ ...fileCounts(), running: 0 })
     expect(body.agents.every(agent => agent.status === 'defined' && agent.evidence.sessions === 0)).toBe(true)
     expect(body.evidence).toEqual({ records: [], sessions: 0, routes: {} })
     expect(body.unattributed.sessions).toBe(0)
@@ -759,7 +764,7 @@ describe('GET /programs', () => {
     expect(programs[0]?.integration?.seatId).toBeUndefined()
 
     const roster = (await getJson(port, '/roster')).body as LiveRoster
-    expect(roster.counts.occupied).toBe(0)
+    expect(roster.agents.filter(agent => agent.evidence.sessions > 0)).toEqual([])
     expect(roster.unattributed.reasons['program-not-code-safety']).toBe(4)
   })
 })
