@@ -352,17 +352,18 @@ describe('WorkspaceRegistry lifecycle and bootstrap', () => {
 })
 
 describe('WorkspaceRegistry create and lookup', () => {
-  it('creates newest-first and idempotently reuses a canonical path without retitling', async () => {
+  it('creates newest-first and idempotently reuses a canonical path with the derived title', async () => {
     const firstDir = await makeDir('first')
     const secondDir = await makeDir('second')
     const alias = join(base, 'first-link')
     await symlink(firstDir, alias)
     const { registry, pool } = await harness()
-    const first = await registry.create(firstDir, 'Original')
+    const first = await registry.create(firstDir)
     const second = await registry.create(secondDir)
-    const reused = await registry.create(alias, 'Ignored')
+    const reused = await registry.create(alias)
     expect(reused).toBe(first)
-    expect(first.title).toBe('Original')
+    expect(first.title).toBe('first')
+    expect(second.title).toBe('second')
     expect(registry.list()).toEqual([second, first])
     expect(storedState(pool).workspaceIds).toEqual([second.id, first.id])
     expect(await registry.resolveByPath(alias)).toBe(first)
@@ -372,23 +373,22 @@ describe('WorkspaceRegistry create and lookup', () => {
   it('serializes concurrent same-path creates into one entity', async () => {
     const dir = await makeDir('concurrent')
     const { registry, pool } = await harness()
-    const [left, right] = await Promise.all([
-      registry.create(dir, 'Winner'),
-      registry.create(dir, 'Loser'),
-    ])
+    const [left, right] = await Promise.all([registry.create(dir), registry.create(dir)])
     expect(left).toBe(right)
     expect(registry.list()).toEqual([left])
     expect(pool.media.get('workspace')!.tables.get('workspaces')!.size).toBe(1)
   })
 
-  it('allows a duplicate display name on a different canonical path', async () => {
-    const firstDir = await makeDir('named-first')
-    const secondDir = await makeDir('named-second')
+  it('derives the same title for different canonical paths sharing a basename', async () => {
+    const firstDir = join(await makeDir('shared-a'), 'app')
+    const secondDir = join(await makeDir('shared-b'), 'app')
+    await mkdir(firstDir)
+    await mkdir(secondDir)
     const { registry } = await harness()
-    const first = await registry.create(firstDir, 'Shared')
-    const second = await registry.create(secondDir, 'Shared')
-    expect(first.title).toBe('Shared')
-    expect(second.title).toBe('Shared')
+    const first = await registry.create(firstDir)
+    const second = await registry.create(secondDir)
+    expect(first.title).toBe('app')
+    expect(second.title).toBe('app')
     expect(registry.list()).toEqual([second, first])
   })
 

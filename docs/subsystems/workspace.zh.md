@@ -160,14 +160,13 @@ Durable workspace registry. Startup waits for `sessionPersistence`, builds one c
  * Create or reuse a workspace for an existing directory. The path is
  * canonicalized through `fs.realpath`; a nonexistent path rejects with the
  * original error and a non-directory rejects. Repeated calls for the same
- * canonical path return the existing entity without changing its title.
- * A newly created workspace is prepended to the durable registry order.
+ * canonical path return the existing entity. A newly created workspace is
+ * titled `basename(canonical)` and prepended to the durable registry order.
  * Different canonical paths may share a display title.
  * @param path - Existing directory to own, in any path spelling.
- * @param title - Display title used only when a new record is created.
  * @returns the existing or newly durable workspace.
  */
-async create(path: string, title?: string): Promise<Workspace>
+async create(path: string): Promise<Workspace>
 
 /**
  * Look up a workspace by id.
