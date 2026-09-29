@@ -28,7 +28,7 @@ function RosterStamp({ at }: { at: string }): ReactNode {
   return (
     <div className="count" data-tone="stamp" title={`Every seat count on screen is read from the roster (data/enterprise/roster.json) stamped ${at.slice(0, 19).replace('T', ' ')} UTC; the 24 h counts cover the 24 hours before that stamp`}>
       <b><time dateTime={at}>{at.slice(11, 16)} UTC</time></b>
-      <span>roster · {formatAge(Math.max(0, now - Date.parse(at)))} old</span>
+      <span>{formatAge(Math.max(0, now - Date.parse(at)))} old</span>
     </div>
   )
 }
@@ -36,25 +36,53 @@ function RosterStamp({ at }: { at: string }): ReactNode {
 /**
  * The header's seat counts, in order: seats defined, seats occupied by a
  * recorded deliverable, then the active seats of the roster's 24-hour window
- * split by what they did, and the seats running now when the live feed says.
- * A count the roster does not carry is left out; a roster from before the split
- * shows its active seats unsplit.
+ * split by what they did (model-driven, automated checks and, when any, halted
+ * before any model ran) in one block, and the seats running now when the live
+ * feed says. A roster from before the split shows its active seats unsplit.
+ * @param props - The roster's counts.
+ * @returns The counts, ahead of the roster's stamp.
  */
-const SEAT_COUNTS: readonly {
-  key: string
-  label: string
-  tone?: string
-  title: string
-  value: (counts: Roster['counts']) => number | undefined
-}[] = [
-  { key: 'defined', label: 'seats defined', title: 'Seat definitions in the roster; a definition is not a running agent', value: counts => counts.defined },
-  { key: 'occupied', label: 'occupied', tone: 'occupied', title: 'Seats a recorded deliverable occupies: a session, a ticket, a gate run, a CI verdict', value: counts => counts.occupied },
-  { key: 'active', label: 'active · 24h', tone: 'active', title: 'Seats with a deliverable in the 24 hours before the roster\'s stamp', value: counts => (counts.work === undefined ? counts.active : undefined) },
-  { key: 'model', label: 'model-driven · 24h', tone: 'active', title: 'Active seats a model did the work of: a session, a ticket, a code-safety review, an intake', value: counts => counts.work?.active.model },
-  { key: 'check', label: 'checks · 24h', title: 'Active seats whose work was a script or a read: a verify-* gate, a CI verdict, a fold', value: counts => counts.work?.active.check },
-  { key: 'halted', label: 'halted · 24h', title: 'Active seats whose only work in the window was a ticket its shift stopped before any model ran', value: counts => (counts.work?.active.halted === 0 ? undefined : counts.work?.active.halted) },
-  { key: 'running', label: 'running now', tone: 'active', title: 'Seats a session is running on at this moment', value: counts => counts.running },
-]
+function SeatCounts({ counts }: { counts: Roster['counts'] }): ReactNode {
+  const work = counts.work?.active
+  return (
+    <>
+      <div className="count" title="Seat definitions in the roster; a definition is not a running agent">
+        <b><RollingNumber value={counts.defined} /></b>
+        <span>defined</span>
+      </div>
+      <div className="count" data-tone="occupied" data-zero={counts.occupied === 0} title="Seats a recorded deliverable occupies: a session, a ticket, a gate run, a CI verdict">
+        <b><RollingNumber value={counts.occupied} /></b>
+        <span>occupied</span>
+      </div>
+      {work === undefined ? (
+        <div className="count" data-tone="active" data-zero={counts.active === 0} title="Seats with a deliverable in the 24 hours before the roster's stamp">
+          <b><RollingNumber value={counts.active} /></b>
+          <span>active · 24h</span>
+        </div>
+      ) : (
+        <div
+          className="count"
+          data-tone="split"
+          title={`Active seats in the 24 hours before the roster's stamp: ${work.model} model-driven (a session, a ticket, a code-safety review, an intake), ${work.check} automated checks (a verify-* gate, a CI verdict, a fold), ${work.halted} halted before any model ran`}
+        >
+          <b>
+            <i data-zero={work.model === 0}><RollingNumber value={work.model} /></i>
+            {' · '}
+            <RollingNumber value={work.check} />
+            {work.halted === 0 ? null : <>{' · '}<RollingNumber value={work.halted} /></>}
+          </b>
+          <span>{work.halted === 0 ? 'model · checks · 24h' : 'model · checks · halted · 24h'}</span>
+        </div>
+      )}
+      {counts.running === undefined ? null : (
+        <div className="count" data-tone="active" data-zero={counts.running === 0} title="Seats a session is running on at this moment">
+          <b><RollingNumber value={counts.running} /></b>
+          <span>running now</span>
+        </div>
+      )}
+    </>
+  )
+}
 
 /**
  * The persistent frame around every view: header with its Present menu,
@@ -116,15 +144,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         <div className="deck__spacer" />
 
         <div className="deck__counts">
-          {SEAT_COUNTS.map(({ key, label, tone, title, value }) => {
-            const count = roster === undefined ? undefined : value(roster.counts)
-            return count === undefined ? null : (
-              <div className="count" data-tone={tone} data-zero={count === 0} key={key} title={title}>
-                <b><RollingNumber value={count} /></b>
-                <span>{label}</span>
-              </div>
-            )
-          })}
+          {roster === undefined ? null : <SeatCounts counts={roster.counts} />}
           {roster === undefined ? null : <RosterStamp at={roster.generatedAt} />}
         </div>
 
