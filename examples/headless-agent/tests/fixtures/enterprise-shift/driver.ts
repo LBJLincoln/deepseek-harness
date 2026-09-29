@@ -18,10 +18,13 @@
  * clone borrows), `DSH_ENTERPRISE_IMPLEMENTER` (`route`, the default, or
  * `subagent`), `DSH_ENTERPRISE_PUSH=1`, `DSH_ENTERPRISE_QUEUE_POLICY=open`,
  * `DSH_ENTERPRISE_SHIFT` (the shift id), `DSH_ENTERPRISE_KEEP=1` (keep the
- * clone when the shift ends) and `ENTERPRISE_HEAVY_LOCK` (an absolute lock file
+ * clone when the shift ends), `ENTERPRISE_HEAVY_LOCK` (an absolute lock file
  * every heavy acceptance run takes through `flock`, shared with every other
  * heavy run on the machine; never run the shift itself under that lock, which
- * its own checks could then never take).
+ * its own checks could then never take), and the push lock's
+ * `ENTERPRISE_PUSH_LOCK`, `ENTERPRISE_PUSH_LOCK_WAIT` and
+ * `ENTERPRISE_PUSH_ROUNDS` (`scripts/enterprise-push-lock.ts`), which the
+ * start push and the final push hold from their fetch to their push.
  */
 
 import { execFileSync, spawnSync } from 'node:child_process'
@@ -49,6 +52,8 @@ import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
 import type { CheckId, StandardCheck } from '@deepseek-ai/dsh-verification/types'
 import { HARNESS_QUEUE_POLICY, OPEN_QUEUE_POLICY } from '../../../../../scripts/enterprise-tickets.ts'
 import type { QueuePolicy } from '../../../../../scripts/enterprise-tickets.ts'
+import { acquirePushLock, pushPolicyOf } from '../../../../../scripts/enterprise-push-lock.ts'
+import type { PushPolicy } from '../../../../../scripts/enterprise-push-lock.ts'
 import { ROSTER_PATH } from '../../../../../scripts/enterprise-roster.ts'
 import type { Roster } from '../../../../../scripts/enterprise-roster.ts'
 import {
@@ -118,9 +123,6 @@ const DEPARTMENT_PUSH_URL = 'no-push://a-department-does-not-push'
  */
 const PUSH_URL_PREFIXES = ['/', 'file://', 'https://', 'http://', 'ssh://', 'git://', 'git@']
 
-/** Rounds the push loop takes when the tip keeps moving. */
-const PUSH_ROUNDS = 3
-
 /** The shift as its environment configured it. */
 interface ShiftConfig {
   readonly remote: string
@@ -134,6 +136,7 @@ interface ShiftConfig {
   readonly shift: string
   readonly keep: boolean
   readonly heavyLock: string | undefined
+  readonly pushPolicy: PushPolicy
 }
 
 /** One ticket's state as the shift moves it along. */
@@ -204,6 +207,7 @@ function readConfig(startedAt: Date): ShiftConfig {
     shift: process.env['DSH_ENTERPRISE_SHIFT'] ?? shiftIdFor(startedAt, randomBytes(2).toString('hex')),
     keep: process.env['DSH_ENTERPRISE_KEEP'] === '1',
     heavyLock: heavyLockOf(process.env['ENTERPRISE_HEAVY_LOCK']),
+    pushPolicy: pushPolicyOf(process.env),
   }
 }
 
@@ -291,19 +295,25 @@ function startShift(
   writeFileSync(message, `${shiftStartMessage(start.shift, start.tickets, [...new Set(abandoned.map(line => line.shift))], trailers)}\n`)
   git(repo, 'commit', '-q', '--no-verify', '-F', message)
   if (!config.push) return { base: git(repo, 'rev-parse', 'HEAD') }
-  let refused = ''
-  for (let round = 1; round <= PUSH_ROUNDS; round += 1) {
-    const push = tryGit(repo, 'push', '--quiet', '--no-verify', config.remote, `HEAD:refs/heads/${config.branch}`)
-    if (push.ok) return { base: git(repo, 'rev-parse', 'HEAD') }
-    refused = `start push round ${round} refused: ${push.output.slice(-500)}`
-    git(repo, 'fetch', '--quiet', 'origin', config.branch)
-    const rebased = tryGit(repo, 'rebase', 'FETCH_HEAD')
-    if (!rebased.ok) {
-      tryGit(repo, 'rebase', '--abort')
-      return { refused: `the start commit does not rebase onto the moved tip: ${rebased.output.slice(-500)}` }
+  const lock = acquirePushLock(config.pushPolicy)
+  if ('busy' in lock) return { refused: lock.busy }
+  try {
+    let refused = ''
+    for (let round = 1; round <= config.pushPolicy.rounds; round += 1) {
+      const push = tryGit(repo, 'push', '--quiet', '--no-verify', config.remote, `HEAD:refs/heads/${config.branch}`)
+      if (push.ok) return { base: git(repo, 'rev-parse', 'HEAD') }
+      refused = `start push round ${round} refused: ${push.output.slice(-500)}`
+      git(repo, 'fetch', '--quiet', 'origin', config.branch)
+      const rebased = tryGit(repo, 'rebase', 'FETCH_HEAD')
+      if (!rebased.ok) {
+        tryGit(repo, 'rebase', '--abort')
+        return { refused: `the start commit does not rebase onto the moved tip: ${rebased.output.slice(-500)}` }
+      }
     }
+    return { refused }
+  } finally {
+    lock.release()
   }
-  return { refused }
 }
 
 /** The display name of one seat, from the clone's roster. */
@@ -929,40 +939,18 @@ let shiftCommit = ''
 try {
   shiftCommit = await finalize(head, shippedBase)
   if (config.push) {
-    for (let round = 1; round <= PUSH_ROUNDS && pushed === null; round += 1) {
-      git(repo, 'fetch', '--quiet', 'origin', config.branch)
-      const tip = git(repo, 'rev-parse', 'FETCH_HEAD')
-      if (tip !== shippedBase) {
-        // The tip moved: rebase the assembled commits alone onto it, recertify
-        // them there, and rewrite the ledger around their new hashes.
-        if (head === shippedBase) {
-          git(repo, 'reset', '-q', '--hard', tip)
-          head = tip
-        } else {
-          git(repo, 'reset', '-q', '--hard', head)
-          const rebased = tryGit(repo, 'rebase', tip)
-          if (!rebased.ok) {
-            tryGit(repo, 'rebase', '--abort')
-            head = unship(repo, tip, runs, 'not-shipped', `the tip moved to ${tip} and the rebase conflicted: ${rebased.output.slice(-500)}`)
-          } else {
-            head = git(repo, 'rev-parse', 'HEAD')
-            rereadCommits(repo, tip, runs)
-            const failed = recertify(repo, runs, tip, policy, config.heavyLock)
-            if (failed !== undefined) head = unship(repo, tip, runs, 'checks-failed', `the tip moved to ${tip}; acceptance failed over the rebased tree: ${failed}`)
-          }
-        }
-        shippedBase = tip
-        shiftCommit = await finalize(head, shippedBase)
+    // The push lock is held from the first fetch through every rebase and
+    // recertification to the push, so no writer that takes it moves the tip in
+    // between; the rounds cover a writer that does not.
+    const lock = acquirePushLock(config.pushPolicy)
+    if ('busy' in lock) {
+      shipReason = lock.busy
+    } else {
+      try {
+        await pushRounds()
+      } finally {
+        lock.release()
       }
-      // The push skips the clone's pre-push hook as the engine's commits skip
-      // theirs: what it carries was certified by the acceptance over the
-      // assembled tree or is machine-written data. The hook, installed for the
-      // departments by the offline install, runs the repository's typecheck in
-      // the clone's root, which is not installed when nothing was assembled and
-      // otherwise spends minutes the remote tip can move in.
-      const push = tryGit(repo, 'push', '--quiet', '--no-verify', config.remote, `HEAD:refs/heads/${config.branch}`)
-      if (push.ok) pushed = { commit: shiftCommit, rounds: round }
-      else shipReason = `push round ${round} refused: ${push.output.slice(-500)}`
     }
   }
 } catch (error: unknown) {
@@ -971,6 +959,50 @@ try {
   process.stderr.write(`enterprise-shift: ${reason}; the clone is kept at ${repo}\n`)
   process.exit(1)
 }
+
+/**
+ * Push the shift commit in up to the policy's rounds: each fetches the tip and,
+ * when it moved, rebases the assembled commits onto it, recertifies them there
+ * and rewrites the ledger around their new hashes before it pushes.
+ */
+async function pushRounds(): Promise<void> {
+  for (let round = 1; round <= config.pushPolicy.rounds && pushed === null; round += 1) {
+    git(repo, 'fetch', '--quiet', 'origin', config.branch)
+    const tip = git(repo, 'rev-parse', 'FETCH_HEAD')
+    if (tip !== shippedBase) {
+      // The tip moved: rebase the assembled commits alone onto it, recertify
+      // them there, and rewrite the ledger around their new hashes.
+      if (head === shippedBase) {
+        git(repo, 'reset', '-q', '--hard', tip)
+        head = tip
+      } else {
+        git(repo, 'reset', '-q', '--hard', head)
+        const rebased = tryGit(repo, 'rebase', tip)
+        if (!rebased.ok) {
+          tryGit(repo, 'rebase', '--abort')
+          head = unship(repo, tip, runs, 'not-shipped', `the tip moved to ${tip} and the rebase conflicted: ${rebased.output.slice(-500)}`)
+        } else {
+          head = git(repo, 'rev-parse', 'HEAD')
+          rereadCommits(repo, tip, runs)
+          const failed = recertify(repo, runs, tip, policy, config.heavyLock)
+          if (failed !== undefined) head = unship(repo, tip, runs, 'checks-failed', `the tip moved to ${tip}; acceptance failed over the rebased tree: ${failed}`)
+        }
+      }
+      shippedBase = tip
+      shiftCommit = await finalize(head, shippedBase)
+    }
+    // The push skips the clone's pre-push hook as the engine's commits skip
+    // theirs: what it carries was certified by the acceptance over the
+    // assembled tree or is machine-written data. The hook, installed for the
+    // departments by the offline install, runs the repository's typecheck in
+    // the clone's root, which is not installed when nothing was assembled and
+    // otherwise spends minutes the remote tip can move in.
+    const push = tryGit(repo, 'push', '--quiet', '--no-verify', config.remote, `HEAD:refs/heads/${config.branch}`)
+    if (push.ok) pushed = { commit: shiftCommit, rounds: round }
+    else shipReason = `push round ${round} refused: ${push.output.slice(-500)}`
+  }
+}
+
 process.stdout.write(`${JSON.stringify({
   type: 'result',
   shift: config.shift,

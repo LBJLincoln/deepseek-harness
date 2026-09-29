@@ -17,11 +17,16 @@
 #                script appends to a temporary file and the commits it captured;
 #   6. push      the functions' ledger lines and evidence, the roster, the deck
 #                data and the record are committed and pushed.
+# Every pull-and-push of the cycle holds the push lock ENTERPRISE_PUSH_LOCK
+# (default /tmp/dsh-push.lock), waiting up to ENTERPRISE_PUSH_LOCK_WAIT seconds
+# (default 1800); the cycle exports both to the shift, whose engine holds the
+# same lock from its fetch through its recertification to its push.
 # Every step after the intake runs whatever an earlier step's outcome was,
 # except that an intake stopped by the subscription's usage limit (exit 3)
 # skips the shift, which would stop at the same limit; a record that cannot be
 # written is a failed step, and the push still runs. The cycle exits 0 when
-# every step did, 4 when another cycle holds the lock, 5 when the checkout has
+# every step did, 2 for a lock wait that is not a whole number of seconds, 4
+# when another cycle holds the lock, 5 when the checkout has
 # uncommitted changes to tracked files, and otherwise the first failing step's
 # code. Commits carry ENTERPRISE_COMMIT_TRAILERS (attribution lines) when set.
 # The cycle's own commits and pushes carry machine-written data only and pass
@@ -41,6 +46,9 @@ main() {
   heavy_lock=${ENTERPRISE_HEAVY_LOCK:-/tmp/dsh-heavy.lock}
   min_open=${ENTERPRISE_MIN_OPEN:-8}
   tickets=${ENTERPRISE_TICKETS:-2}
+  push_lock=${ENTERPRISE_PUSH_LOCK:-/tmp/dsh-push.lock}
+  push_lock_wait=${ENTERPRISE_PUSH_LOCK_WAIT:-1800}
+  case "$push_lock_wait" in ''|*[!0-9]*) echo "enterprise-cycle: ENTERPRISE_PUSH_LOCK_WAIT must be a whole number of seconds"; exit 2;; esac
   cycle="cycle-$(date -u +%Y%m%dT%H%M%SZ)"
   first_failure=0
 
@@ -64,8 +72,12 @@ main() {
 
   # Commits whatever the given paths changed, with the cycle's message, then
   # rebases onto the remote tip and pushes, retrying a failure — a network
-  # error, or a tip that moved between the rebase and the push — after 2, 4, 8
-  # and 16 seconds. Returns 0 when there was nothing to commit.
+  # error, or a tip that a writer ignoring the push lock moved between the
+  # rebase and the push — after 2, 4, 8 and 16 seconds. Each attempt holds the
+  # push lock (scripts/enterprise-push-lock.ts) around its pull and push, so no
+  # writer that takes it moves the tip in between; a lock not taken within
+  # ENTERPRISE_PUSH_LOCK_WAIT seconds fails the ship. Returns 0 when there was
+  # nothing to commit.
   ship() {
     local subject=$1; shift
     git add -- "$@" || return 1
@@ -73,10 +85,17 @@ main() {
     local message="${subject}"
     if [ -n "${ENTERPRISE_COMMIT_TRAILERS:-}" ]; then message="${message}"$'\n\n'"${ENTERPRISE_COMMIT_TRAILERS}"; fi
     git -c user.name=Claude -c user.email=noreply@anthropic.com commit -q --no-verify -m "$message" || return 1
-    local delay
+    local delay code
     for delay in 0 2 4 8 16; do
       sleep "$delay"
-      if git pull -q --rebase origin "$branch" && git push -q --no-verify origin "HEAD:${branch}"; then return 0; fi
+      ( flock -w "$push_lock_wait" 6 || exit 75
+        git pull -q --rebase origin "$branch" && git push -q --no-verify origin "HEAD:${branch}" ) 6>>"$push_lock"
+      code=$?
+      if [ "$code" -eq 0 ]; then return 0; fi
+      if [ "$code" -eq 75 ]; then
+        echo "enterprise-cycle: the push lock ${push_lock} was not taken within ${push_lock_wait} s"
+        return 1
+      fi
       git rebase --abort >/dev/null 2>&1
     done
     return 1
@@ -99,7 +118,8 @@ main() {
   if [ "$intake" -eq 3 ]; then
     echo "enterprise-cycle: the intake stopped at the usage limit; the shift is skipped"
   else
-    ENTERPRISE_HEAVY_LOCK="$heavy_lock" pnpm run -s enterprise -- shift --next "$tickets" --push; step shift $?
+    ENTERPRISE_HEAVY_LOCK="$heavy_lock" ENTERPRISE_PUSH_LOCK="$push_lock" ENTERPRISE_PUSH_LOCK_WAIT="$push_lock_wait" \
+      pnpm run -s enterprise -- shift --next "$tickets" --push; step shift $?
   fi
 
   git pull -q --ff-only origin "$branch"; step pull-after-shift $?

@@ -162,6 +162,7 @@ async function runShift(remote: string, env: Record<string, string>, expectedExi
       DSH_ENTERPRISE_KEEP: '1',
       GIT_TEMPLATE_DIR: await refusingHooks(),
       ENTERPRISE_HEAVY_LOCK: heavyLock,
+      ENTERPRISE_PUSH_LOCK: join(scratchRoot, 'push.lock'),
       ...env,
     },
   })

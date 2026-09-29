@@ -17,6 +17,7 @@ import {
   type CycleRecordInput,
 } from './enterprise-cycle-record.ts'
 import { LEDGER_PATH, type FunctionLine, type TicketLine } from './enterprise-ledger.ts'
+import { acquirePushLock } from './enterprise-push-lock.ts'
 
 const repoRoot = resolve(import.meta.dirname, '..')
 const COMMIT_A = 'a'.repeat(40)
@@ -291,6 +292,7 @@ case "$script" in
   enterprise:cycle-record) exec "$TSX" scripts/enterprise-cycle-record.ts "$@" ;;
   enterprise)
     printf '%s\\n' "\${ENTERPRISE_HEAVY_LOCK:-unset}" > "$TMPDIR/shift-heavy-lock"
+    printf '%s %s\\n' "\${ENTERPRISE_PUSH_LOCK:-unset}" "\${ENTERPRISE_PUSH_LOCK_WAIT:-unset}" > "$TMPDIR/shift-push-lock"
     printf '%s\\n' "$TICKET_LINE" >> data/enterprise/ledger.jsonl
     git -c user.name=t -c user.email=t@example.com commit -q --no-verify -am shift && git push -q --no-verify origin "HEAD:$ENTERPRISE_BRANCH" ;;
   enterprise:functions) printf '%s\\n' "$FUNCTION_LINE" >> data/enterprise/ledger.jsonl ;;
@@ -322,11 +324,19 @@ describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
     const bin = tempDir('cycle-bin-')
     writeFileSync(join(bin, 'pnpm'), FAKE_PNPM)
     chmodSync(join(bin, 'pnpm'), 0o755)
-    const { ENTERPRISE_COMMIT_TRAILERS: _trailers, ENTERPRISE_HEAVY_LOCK: _heavyLock, ...parent } = process.env
+    const {
+      ENTERPRISE_COMMIT_TRAILERS: _trailers,
+      ENTERPRISE_HEAVY_LOCK: _heavyLock,
+      ENTERPRISE_PUSH_LOCK_WAIT: _pushWait,
+      ...parent
+    } = process.env
+    const tmp = tempDir('cycle-tmp-')
     const env = {
       ...parent,
       PATH: `${bin}:${process.env.PATH ?? ''}`,
-      TMPDIR: tempDir('cycle-tmp-'),
+      TMPDIR: tmp,
+      // A lock of the test's own, never the machine's live push lock.
+      ENTERPRISE_PUSH_LOCK: join(tmp, 'push.lock'),
       TSX: join(repoRoot, 'node_modules/.bin/tsx'),
       ENTERPRISE_BRANCH: 'cycle-test',
       TICKET_LINE: JSON.stringify(TICKET),
@@ -347,6 +357,7 @@ describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
     expect(git(origin, 'log', '-1', '--format=%s', 'cycle-test')).toBe(`chore(enterprise): ${record.cycle} functions, roster and deck`)
     expect(existsSync(join(env.TMPDIR, `enterprise-${record.cycle}.steps`))).toBe(false)
     expect(readFileSync(join(env.TMPDIR, 'shift-heavy-lock'), 'utf8')).toBe('/tmp/dsh-heavy.lock\n')
+    expect(readFileSync(join(env.TMPDIR, 'shift-push-lock'), 'utf8')).toBe(`${env.ENTERPRISE_PUSH_LOCK} 1800\n`)
 
     await new Promise(resolveWait => setTimeout(resolveWait, 1100))
     expect(cycle(0)).toBe(0)
@@ -354,5 +365,16 @@ describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
     const next = JSON.parse(git(origin, 'show', `cycle-test:${second}`)) as CycleRecord
     expect(next.firstFailure).toBeNull()
     expect(next.previous).toEqual({ cycle: record.cycle, recordOnRemote: true })
+
+    // While another writer holds the push lock, the cycle's final ship waits
+    // for it, gives up after ENTERPRISE_PUSH_LOCK_WAIT, and pushes nothing.
+    await new Promise(resolveWait => setTimeout(resolveWait, 1100))
+    const held = acquirePushLock({ lock: env.ENTERPRISE_PUSH_LOCK, waitSeconds: 1, rounds: 1 })
+    if (!('release' in held)) throw new Error(held.busy)
+    const blocked = spawnSync('bash', ['scripts/enterprise-cycle.sh'], { cwd: work, env: { ...env, ROSTER_EXIT: '0', ENTERPRISE_PUSH_LOCK_WAIT: '1' }, encoding: 'utf8' })
+    held.release()
+    expect(blocked.stdout).toContain(`the push lock ${env.ENTERPRISE_PUSH_LOCK} was not taken within 1 s`)
+    expect(blocked.status).toBe(1)
+    expect(git(origin, 'log', '-1', '--format=%s', 'cycle-test')).toBe('shift')
   })
 })
