@@ -317,6 +317,35 @@ interface CycleRun {
   stdout: string
 }
 
+/**
+ * The environment a cycle under test runs in: the fake pnpm first on `PATH`, a
+ * `TMPDIR` and a push lock of the test's own (never the machine's live push
+ * lock), none of the operator's cycle settings, and the ticket line the fake
+ * shift and the function line the fake functions append.
+ */
+function cycleEnvironment(functionLine: FunctionLine): NodeJS.ProcessEnv & { TMPDIR: string; ENTERPRISE_PUSH_LOCK: string } {
+  const bin = tempDir('cycle-bin-')
+  writeFileSync(join(bin, 'pnpm'), FAKE_PNPM)
+  chmodSync(join(bin, 'pnpm'), 0o755)
+  const {
+    ENTERPRISE_COMMIT_TRAILERS: _trailers,
+    ENTERPRISE_HEAVY_LOCK: _heavyLock,
+    ENTERPRISE_PUSH_LOCK_WAIT: _pushWait,
+    ...parent
+  } = process.env
+  const tmp = tempDir('cycle-tmp-')
+  return {
+    ...parent,
+    PATH: `${bin}:${process.env.PATH ?? ''}`,
+    TMPDIR: tmp,
+    ENTERPRISE_PUSH_LOCK: join(tmp, 'push.lock'),
+    TSX: join(repoRoot, 'node_modules/.bin/tsx'),
+    ENTERPRISE_BRANCH: 'cycle-test',
+    TICKET_LINE: JSON.stringify(TICKET),
+    FUNCTION_LINE: JSON.stringify(functionLine),
+  }
+}
+
 describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
   it('commits a record of every step in its final commit past a refusing pre-push hook, and the next cycle finds it on the remote', { timeout: 60_000 }, async () => {
     const { origin, work } = checkout({
@@ -337,27 +366,7 @@ describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
     chmodSync(join(hooks, 'pre-push'), 0o755)
     git(work, 'config', 'core.hooksPath', hooks)
     expect(spawnSync('git', ['push', '-q', 'origin', 'HEAD:hook-probe'], { cwd: work, encoding: 'utf8' }).stderr).toContain('the pre-push hook refuses')
-    const bin = tempDir('cycle-bin-')
-    writeFileSync(join(bin, 'pnpm'), FAKE_PNPM)
-    chmodSync(join(bin, 'pnpm'), 0o755)
-    const {
-      ENTERPRISE_COMMIT_TRAILERS: _trailers,
-      ENTERPRISE_HEAVY_LOCK: _heavyLock,
-      ENTERPRISE_PUSH_LOCK_WAIT: _pushWait,
-      ...parent
-    } = process.env
-    const tmp = tempDir('cycle-tmp-')
-    const env = {
-      ...parent,
-      PATH: `${bin}:${process.env.PATH ?? ''}`,
-      TMPDIR: tmp,
-      // A lock of the test's own, never the machine's live push lock.
-      ENTERPRISE_PUSH_LOCK: join(tmp, 'push.lock'),
-      TSX: join(repoRoot, 'node_modules/.bin/tsx'),
-      ENTERPRISE_BRANCH: 'cycle-test',
-      TICKET_LINE: JSON.stringify(TICKET),
-      FUNCTION_LINE: JSON.stringify(GATE),
-    }
+    const env = cycleEnvironment(GATE)
     const cycle = (rosterExit: number): number | null =>
       spawnSync('bash', ['scripts/enterprise-cycle.sh'], { cwd: work, env: { ...env, ROSTER_EXIT: String(rosterExit) }, encoding: 'utf8' }).status
     const recordsOnOrigin = (): string[] => git(origin, 'ls-tree', '--name-only', 'cycle-test', `${CYCLES_DIR}/`).split('\n').filter(Boolean)
@@ -413,27 +422,7 @@ describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
     for (const [key, value] of settings) git(work, 'config', key, value)
     const dir = linked ? join(work, '..', 'cycle-worktree') : work
     if (linked) git(work, 'worktree', 'add', '-q', '-B', 'cycle-worktree', dir, 'HEAD')
-    const bin = tempDir('cycle-bin-')
-    writeFileSync(join(bin, 'pnpm'), FAKE_PNPM)
-    chmodSync(join(bin, 'pnpm'), 0o755)
-    const {
-      ENTERPRISE_COMMIT_TRAILERS: _trailers,
-      ENTERPRISE_HEAVY_LOCK: _heavyLock,
-      ENTERPRISE_PUSH_LOCK_WAIT: _pushWait,
-      ...parent
-    } = process.env
-    const tmp = tempDir('cycle-tmp-')
-    const env = {
-      ...parent,
-      PATH: `${bin}:${process.env.PATH ?? ''}`,
-      TMPDIR: tmp,
-      ENTERPRISE_PUSH_LOCK: join(tmp, 'push.lock'),
-      TSX: join(repoRoot, 'node_modules/.bin/tsx'),
-      ENTERPRISE_BRANCH: 'cycle-test',
-      TICKET_LINE: JSON.stringify(TICKET),
-      FUNCTION_LINE: JSON.stringify({ ...GATE, at: '2026-09-29T08:50:00.000Z' }),
-      ROSTER_EXIT: '0',
-    }
+    const env = { ...cycleEnvironment({ ...GATE, at: '2026-09-29T08:50:00.000Z' }), ROSTER_EXIT: '0' }
     const run = (extra: Record<string, string> = {}): CycleRun => {
       const result = spawnSync('bash', ['scripts/enterprise-cycle.sh'], { cwd: dir, env: { ...env, ...extra }, encoding: 'utf8' })
       return { status: result.status, stdout: result.stdout }
