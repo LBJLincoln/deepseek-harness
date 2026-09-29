@@ -14,7 +14,16 @@
  * than the snapshot's own `generatedAt` states.
  */
 
-import { OPS_SCHEMA, type OpsAgentKind, type OpsShiftStage, type OpsShiftTicket, type OpsSnapshot, type OpsSourceId, type RunEvent } from './contract.ts'
+import {
+  OPS_SCHEMA,
+  type OpsAgentKind,
+  type OpsAttention,
+  type OpsShiftStage,
+  type OpsShiftTicket,
+  type OpsSnapshot,
+  type OpsSourceId,
+  type RunEvent,
+} from './contract.ts'
 import { FIXTURE_BASE, feedUrl } from './feed.ts'
 import { hostlessJson } from './host-paths.ts'
 
@@ -346,4 +355,40 @@ export function trackReached(ticket: OpsShiftTicket): number {
   if (ticket.stage === 'shipped') return SHIFT_TRACK.length
   const stage = ticket.stage === 'halted' || ticket.stage === 'rejected' ? ticket.reached ?? 'working' : ticket.stage
   return SHIFT_TRACK.indexOf(stage) + 1
+}
+
+/** One entry of the attention panel: an item on its own, or a run of items of one kind and severity shown as one card. */
+export type AttentionEntry =
+  | { item: OpsAttention }
+  | { kind: OpsAttention['kind']; severity: OpsAttention['severity']; items: OpsAttention[] }
+
+/**
+ * Group the ranked attention queue for the panel: the items of one kind and
+ * one severity become one entry when there are at least `min` of them, placed
+ * where the first of them ranks; every other item stays on its own.
+ * @param items - The queue, ranked.
+ * @param min - The fewest items of one kind and severity that form a group.
+ * @returns The entries, in rank order.
+ */
+export function groupAttention(items: readonly OpsAttention[], min: number): AttentionEntry[] {
+  const key = (item: OpsAttention): string => `${item.kind}:${item.severity}`
+  const sizes = new Map<string, number>()
+  for (const item of items) sizes.set(key(item), (sizes.get(key(item)) ?? 0) + 1)
+  const groups = new Map<string, Extract<AttentionEntry, { items: OpsAttention[] }>>()
+  const entries: AttentionEntry[] = []
+  for (const item of items) {
+    if ((sizes.get(key(item)) ?? 0) < min) {
+      entries.push({ item })
+      continue
+    }
+    const known = groups.get(key(item))
+    if (known !== undefined) {
+      known.items.push(item)
+      continue
+    }
+    const group = { kind: item.kind, severity: item.severity, items: [item] }
+    groups.set(key(item), group)
+    entries.push(group)
+  }
+  return entries
 }

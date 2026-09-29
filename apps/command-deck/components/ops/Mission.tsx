@@ -161,6 +161,15 @@ function stepColumns(cycles: readonly OpsCycle[]): string[] {
   return columns
 }
 
+/** The matrix's cell states and what each means, for its key. */
+const CELL_KEYS: readonly (readonly [OpsCycleStep['state'] | 'absent', string])[] = [
+  ['ok', 'exit 0'],
+  ['failed', 'exit ≠ 0'],
+  ['running', 'running'],
+  ['pending', 'to come'],
+  ['absent', 'not run'],
+]
+
 /** The window's cycles, newest first, one row each with every step's exit status, under the scheduler's next slot. */
 function CycleTimeline({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
   const now = useNow()
@@ -177,6 +186,9 @@ function CycleTimeline({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
         <h2>Cycles · 24 h</h2>
         <p>{cycles === null || cycles === undefined ? 'unknown' : `${cycles.length} cycles · ${clean} clean · ${failed} failed`}</p>
         <Age at={factsAsOf(snapshot, ['cycle-logs', 'scheduler'])} />
+        <div className={`${styles.keys} ${styles.keysCompact}`} aria-label="Cell states">
+          {CELL_KEYS.map(([state, words]) => <span key={state}><i className={styles.cellKey} data-state={state} />{words}</span>)}
+        </div>
       </div>
       {cycles === null || cycles === undefined ? (
         <div className={styles.empty}>Neither the cycle logs nor the branch history could be read.</div>

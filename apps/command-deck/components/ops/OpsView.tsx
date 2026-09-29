@@ -2,8 +2,8 @@
 
 import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { OpsAgent, OpsAttention, OpsHeartbeat, OpsSnapshot, OpsSource, OpsSourceId, Roster, Severity } from '@/deck/contract'
-import { factsAsOf, formatAge, snapshotAge, STATION_NAME, STATIONS, stationCounts, type OpsReading } from '@/deck/ops'
+import type { OpsAgent, OpsAttention, OpsAttentionKind, OpsHeartbeat, OpsSnapshot, OpsSource, OpsSourceId, Roster, Severity } from '@/deck/contract'
+import { factsAsOf, formatAge, groupAttention, snapshotAge, STATION_NAME, STATIONS, stationCounts, type OpsReading } from '@/deck/ops'
 import { stopOps, useOps } from '@/deck/ops-store'
 import { divisionColor } from '@/deck/palette'
 import { REPOSITORY } from '@/deck/repository'
@@ -425,7 +425,9 @@ function Panel({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
             No red CI, halted or rejected ticket, failed step, stale scheduler, stuck agent, pressure or open request in this snapshot.
           </div>
         ) : null}
-        {snapshot.attention.map(item => <AttentionCard key={item.id} item={item} />)}
+        {groupAttention(snapshot.attention, ATTENTION_GROUP_MIN).map(entry => ('item' in entry
+          ? <AttentionCard key={entry.item.id} item={entry.item} />
+          : <AttentionGroup key={`${entry.kind}:${entry.severity}`} severity={entry.severity} kind={entry.kind} items={entry.items} />))}
       </section>
       <section className={styles.section} aria-label="Agents working now">
         <h2>Working now <small>{snapshot.agents.length} agents</small><FactsAge snapshot={snapshot} /></h2>
@@ -477,6 +479,62 @@ function Heartbeats({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
         ))}
       </div>
     </section>
+  )
+}
+
+/** The fewest items of one kind and severity the attention panel shows as one card. */
+const ATTENTION_GROUP_MIN = 3
+
+/** What a group of attention items of one kind is, counted. */
+const GROUP_NOUN: Record<OpsAttentionKind, string> = {
+  'ci-red': 'red Branch CI runs',
+  'ticket-halted': 'tickets halted',
+  'ticket-rejected': 'tickets rejected',
+  'cycle-step-failed': 'failed cycle steps',
+  'cycle-interrupted': 'interrupted cycles',
+  'scheduler-stale': 'stale scheduler reports',
+  'scheduler-down': 'scheduler reports',
+  'agent-stuck': 'stuck agents',
+  'shift-halted': 'halted shifts',
+  'shift-failed': 'failed shifts',
+  'shift-abandoned': 'abandoned shifts',
+  'heartbeat-down': 'loops down or late',
+  'disk-pressure': 'filesystems under pressure',
+  'memory-pressure': 'memory reports',
+  'owner-request': 'owner requests',
+  'source-unknown': 'unread sources',
+}
+
+/** What an attention group is drawn from. */
+interface AttentionGroupProps {
+  severity: Severity
+  kind: OpsAttentionKind
+  items: readonly OpsAttention[]
+}
+
+/**
+ * A run of attention items of one kind and severity as one card: the count,
+ * the items' titles, the shared next action when they share one, and every
+ * item in full behind a disclosure.
+ * @param props - The group's severity, kind and items.
+ * @returns The card.
+ */
+function AttentionGroup({ severity, kind, items }: AttentionGroupProps): ReactNode {
+  const next = items.every(item => item.next === items[0]?.next) ? items[0]?.next : undefined
+  const newest = items.map(item => item.at).filter((at): at is string => at !== undefined).sort().at(-1)
+  return (
+    <details className={`${styles.card} ${styles.item} ${styles.group}`} data-severity={severity}>
+      <summary>
+        <span className={styles.sev}>
+          <i className={styles.statusDot} data-tone={severity} />{SEVERITY_LABEL[severity]} · {items.length} items{newest === undefined ? '' : ` · newest ${newest.slice(11, 16)} UTC`}
+        </span>
+        <h3 className={styles.itemTitle}>{items.length} {GROUP_NOUN[kind]}</h3>
+        <p className={styles.itemDetail}>{items.map(item => item.title).join(' · ')}</p>
+        <p className={styles.next}><b>Next:</b> {next ?? 'each item names its own; open the list.'}</p>
+        <span className={styles.groupOpen}>Show all {items.length}</span>
+      </summary>
+      {items.map(item => <AttentionCard key={item.id} item={item} />)}
+    </details>
   )
 }
 

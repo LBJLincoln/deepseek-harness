@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import type { OpsAgent, OpsSnapshot, RunEvent } from '../deck/contract.ts'
+import type { OpsAgent, OpsAttention, OpsSnapshot, RunEvent } from '../deck/contract.ts'
 import { layoutOps, satellitePoint } from '../deck/layout-ops.ts'
 import {
-  chooseReading, countdown, cycleStation, factsAsOf, formatAge, isOpsSnapshot, ledgerStation, liveLimitMs,
+  chooseReading, countdown, cycleStation, factsAsOf, formatAge, groupAttention, isOpsSnapshot, ledgerStation, liveLimitMs,
   slotProgress, stationCounts, stationOf, trackReached,
 } from '../deck/ops.ts'
 import { liveDelayMs, placeFrame } from '../deck/ops-store.ts'
@@ -182,5 +182,26 @@ describe('the cycle clock and the shift track', () => {
     expect(trackReached({ ticket: 'T-0001', stage: 'halted', reached: 'integration' })).toBe(5)
     expect(trackReached({ ticket: 'T-0001', stage: 'rejected', reached: 'review' })).toBe(4)
     expect(trackReached({ ticket: 'T-0001', stage: 'halted' })).toBe(2)
+  })
+})
+
+describe('the attention panel', () => {
+  const item = (id: string, kind: OpsAttention['kind'], severity: OpsAttention['severity']): OpsAttention => ({ id, kind, severity, title: id, detail: '', evidence: [], next: 'n' })
+
+  it('shows a run of one kind and severity as one entry where its first item ranks, and leaves smaller runs alone', () => {
+    const ranked = [
+      item('ci', 'ci-red', 'high'),
+      item('t1', 'ticket-halted', 'medium'),
+      item('req', 'owner-request', 'medium'),
+      item('t2', 'ticket-halted', 'medium'),
+      item('t3', 'ticket-halted', 'medium'),
+      item('s1', 'cycle-step-failed', 'low'),
+      item('s2', 'cycle-step-failed', 'low'),
+    ]
+    const entries = groupAttention(ranked, 3)
+    expect(entries.map(entry => ('item' in entry ? entry.item.id : `${entry.kind}:${entry.items.map(grouped => grouped.id).join(',')}`))).toEqual([
+      'ci', 'ticket-halted:t1,t2,t3', 'req', 's1', 's2',
+    ])
+    expect(groupAttention(ranked, 2).map(entry => ('item' in entry ? entry.item.id : entry.kind))).toEqual(['ci', 'ticket-halted', 'req', 'cycle-step-failed'])
   })
 })
