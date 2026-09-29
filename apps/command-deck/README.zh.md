@@ -89,6 +89,16 @@ pnpm --dir apps/command-deck fixtures
 
 ![手机宽度下的运营视图](docs/ops-phone.png)
 
+## 客户简报
+
+`/briefing` 是一份文档而不是一个舞台：它把企业的试点分成八节呈现给高管审阅——试点现状，已交付的工单按工作的启动者计数；运营模式，附组织结构图与一张工单的路径；试点记录（每个周期与周期之外的每个班次，连同其启动者及其尝试、交付、失败或丢失的工单；已交付的工单，确切提交上的 Branch CI 运行与携带它们的那次推送的包含运行分开列出；每一次 Branch CI 运行；按 division 的在岗席位）；实测质量（Proving Ground 的冻结配对实验以森林图及其区间呈现，安全审查对已记录缺陷与植入缺陷在三行以内的召回率，附分母）；数据处理、治理与审计，以一个班次的数据流向以及读取客户代码之前合作所需的条件开头；经济性；局限与风险；以及路线图与建议的合作方式——最后列出计算所用的输入集及其 SHA-256。它在构建时读取一个文件 `public/fixtures/briefing.json`，由 `pnpm run enterprise:briefing`（[`scripts/enterprise-briefing.ts`](../../scripts/enterprise-briefing.ts)）写出，`pnpm run enterprise:publish` 在每个周期之后刷新它。每个数值都带有编号来源：悬停或聚焦其标签会显示读取它的路径或 URL 及其计算方法，每一节末尾列出本节的注释。构建器无法计算的数值显示为 `unknown`，其注释给出原因。同一条命令还会渲染页面并写出其声明清单；若某个句子陈述了数字却没有来源，或页面含有试点记录不支持的短语，它会拒绝写出。
+
+简报打开期间，指挥台的页眉、页脚与舞台快捷键都会让开：页面像文档一样滚动，在观看者做出选择之前跟随系统的浅色或深色设置（浏览器会记住该选择），并且可以打印——通过浏览器的打印对话框或页面上的 "Print or save as PDF"——得到分页的 A4 或 Letter 文档：每一节从新的一页开始，页脚带页码，来源注释印在各节之下。它在手机宽度下排版时没有横向滚动。[`components/briefing/`](components/briefing/) 存放该页面；[客户简报 Agent Note](../../.agents/notes/implemented/architecture/2026-09-28-client-briefing.md) 记录了为什么每个数值都是计算出来而不是手写的。
+
+![桌面宽度下的客户简报：封面、记录日期与目录](docs/briefing.png)
+
+![手机宽度下的客户简报：封面，以及主题与打印按钮](docs/briefing-phone.png)
+
 ## feed 契约
 
 deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期望以下路径。feed 服务端本身不在此包内。
@@ -123,6 +133,8 @@ deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期�
 - `public/fixtures/roster.json`——生成的 [`data/enterprise/roster.json`](../../data/enterprise/README.md) 的逐字节副本，由 `pnpm run enterprise:publish` 写出：十个 division 中的 147 个席位与 124 条关系，各自带有已提交记录赋予它的证据与指名它的台账行，在花名册时间窗内活跃的席位带有 `status: "active"`。
 - `public/fixtures/enterprise.json`——Ledger 标签页，由同一条命令从花名册、[`data/enterprise/ledger.jsonl`](../../data/enterprise/README.md#the-ledger) 与工单队列写出：所描述的时刻、时间窗、按 division 的在岗与活跃席位、当天按状态分列的工单、当天的职能运行，以及最近十个已交付提交及其 CI 裁决。指挥台在实时模式下也从 fixture 读取它，因为它是发布出来的记录而不是 feed 路径。
 - `public/fixtures/enterprise-day.json`——24 hours 标签页，由同一条命令写出：在截至花名册盖章时刻的 24 小时上的[企业报告](../../data/enterprise/README.md#the-report)的 JSON，读取自周期记录、台账、git 历史与 Branch CI。与 `enterprise.json` 一样，两种模式下都从 fixture 读取它，其他任何视图也可以读取同一个文件。
+- `public/fixtures/briefing.json`——客户简报的数据，由 `pnpm run enterprise:briefing` 从已提交的记录与 GitHub 报告的 Branch CI 运行写出：`/briefing` 页面展示的每个数值及其来源；无法计算的数值记为 `unknown` 并附原因。
+- `public/fixtures/briefing-claims.md`——简报的声明清单，由同一条命令依据在 `briefing.json` 上渲染的页面写出：每个句子及其引用的来源注释，然后是每条注释及其计算方法与读取的内容。
 - `public/fixtures/programs.json`——feed 的 `GET /programs`：七次已记录的项目运行，即五次代码安全审查与两个 Proving Ground 项目。
 - `public/fixtures/runs.json`——五条已提交记录：2026-09-19 记录的两次代码安全审查（第二次 NodeGoat 运行、Java 的 dvja 运行）、一次 tier-5 fleet、一个配对实验，以及 csv-tools program。
 - `public/fixtures/events/<run>.jsonl`——每条记录的会话日志经 feed 折叠成指挥台跟随的事件流：NodeGoat 审查有 1,079 条事件，从各部门的开场指令、它们的工具调用，到四张证书与两次合并。

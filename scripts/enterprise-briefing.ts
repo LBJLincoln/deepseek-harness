@@ -14,6 +14,10 @@
  * figure unchanged. Over unchanged inputs and unchanged API answers the output
  * is byte-identical, and the file is rewritten only when its bytes change.
  *
+ * It then renders the `/briefing` page from the new data, checks it, and writes its claims register beside the fixture
+ * (see `enterprise-briefing-claims.ts`); a page that holds a forbidden phrase or a sentence stating a number with no
+ * source note leaves the register unwritten and the command exiting 1.
+ *
  * `--summary` also writes the one-page executive summary pair under
  * `docs/client/` from the same data (see `enterprise-briefing-summary.ts`);
  * `--check-summary` exits non-zero when the committed pair differs from that
@@ -809,11 +813,13 @@ function readLogs(logs: readonly CapturedLog[]): LogReading {
 }
 
 /**
- * Who started a cycle, from the captured scheduler log and the scheduler script's history.
+ * Who started a cycle: the starter its cycle record states, or else what the captured scheduler log and the scheduler
+ * script's history show.
  * @param start - the cycle's start, epoch milliseconds.
  * @param others - the other cycles' starts.
  * @param logs - the captured logs' reading.
  * @param scripts - when the scripts reached the branch.
+ * @param recorded - the cycle record's `startedBy`, when the record states one.
  * @returns the starter and the evidence.
  */
 function cycleStarter(
@@ -821,7 +827,11 @@ function cycleStarter(
   others: readonly number[],
   logs: LogReading,
   scripts: ScriptHistory,
+  recorded: CycleRecord['startedBy'],
 ): { startedBy: Starter; basis: string } {
+  if (recorded !== undefined) {
+    return { startedBy: recorded, basis: `Its cycle record states ${recorded}: the cycle script records scheduler when ${SCHEDULER_SCRIPT} is its parent process, and operator otherwise.` }
+  }
   const ran = logs.ran.find(stamp => stamp <= start && start - stamp <= SCHEDULER_STAMP_SLACK_MS)
   if (ran !== undefined) {
     return { startedBy: 'scheduler', basis: `The captured scheduler log reports running the cycle whose log it stamped ${new Date(ran).toISOString()}.` }
@@ -938,7 +948,13 @@ export function pilotRows(
       id,
       kind: 'cycle',
       startedAt,
-      ...cycleStarter(start, cycles.filter(other => other.id !== id).map(other => ms(other.startedAt)), logs, inputs.scripts),
+      ...cycleStarter(
+        start,
+        cycles.filter(other => other.id !== id).map(other => ms(other.startedAt)),
+        logs,
+        inputs.scripts,
+        record?.startedBy,
+      ),
       shifts: own.map(shift => shift.shift),
       ...account,
       ...unrecorded ? { attempted: null, lost: null } : {},
@@ -1671,9 +1687,12 @@ export function buildBriefing(inputs: BriefingInputs, ci: CiReading, branch: str
   figures['pilot.cycles'] = known(cycleUnits.length, pilotSource(`Runs of ${CYCLE_SCRIPT} the branch names, by a cycle commit's subject (git log), a ledger function line, a cycle record or a captured cycle log.`))
   figures['pilot.schedulerCycles'] = known(
     cycleUnits.filter(row => row.startedBy === 'scheduler').length,
-    pilotSource('Cycles the captured scheduler log reports running, or the first to start at or after a slot it announced.'),
+    pilotSource('Cycles whose record states scheduler, or else that the captured scheduler log reports running, or the first to start at or after a slot it announced.'),
   )
-  figures['pilot.operatorUnits'] = known(pilot.filter(row => row.startedBy === 'operator').length, pilotSource(`Cycles that started before ${SCHEDULER_SCRIPT} reached the branch, and shift records outside every cycle.`))
+  figures['pilot.operatorUnits'] = known(
+    pilot.filter(row => row.startedBy === 'operator').length,
+    pilotSource(`Cycles whose record states operator or that started before ${SCHEDULER_SCRIPT} reached the branch, and shift records outside every cycle.`),
+  )
   figures['pilot.schedulerShipped'] = known(shippedBy('scheduler'), pilotSource('Tickets shipped by the ledger lines of the shifts of the cycles the scheduler started.'))
   figures['pilot.operatorShipped'] = known(shippedBy('operator'), pilotSource('Tickets shipped by the ledger lines of the shifts the operator started, directly or through a cycle.'))
   const visibilitySource: Source = {
@@ -2151,6 +2170,16 @@ if (isMain) {
   const { briefing, changed } = await publishBriefing(root, githubReader(), gitReader(root))
   const ciNote = briefing.ci.value === null ? `CI unknown (${briefing.ci.unknown})` : `${briefing.ci.value.runs.length} Branch CI runs read`
   console.log(`enterprise-briefing: ${changed ? `wrote ${BRIEFING_FIXTURE}` : 'kept'}; as of ${briefing.asOf}; ${ciNote}`)
+  const { CLAIMS_PATH, checkClaims } = await import('./enterprise-briefing-claims.ts')
+  let claims: { problems: string[]; register: string }
+  try {
+    claims = checkClaims(root, briefing.asOf)
+  } catch (error: unknown) {
+    claims = { problems: [`the page could not be rendered: ${error instanceof Error ? error.message : String(error)}`], register: '' }
+  }
+  for (const problem of claims.problems) console.error(`enterprise-briefing: ${problem}`)
+  if (claims.problems.length > 0) process.exitCode = 1
+  else console.log(`enterprise-briefing: ${writeIfChanged(join(root, CLAIMS_PATH), claims.register) ? `wrote ${CLAIMS_PATH}` : 'claims register kept'}`)
   if (args.length > 0) {
     const { checkSummary, summaryFiles } = await import('./enterprise-briefing-summary.ts')
     if (args.includes('--summary')) {
