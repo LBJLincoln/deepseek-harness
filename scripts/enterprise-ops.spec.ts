@@ -737,6 +737,14 @@ describe('collectOps', () => {
       ['T-0003', 'halted', 'integration', undefined, 'acceptance failed over the assembled tree'],
       ['T-0009', 'halted', 'working', undefined, 'budget-exhausted'],
     ])
+    // A push rebased after the record was written: the ledger names the commit that reached the branch.
+    const rebased = {
+      type: 'ticket', at: '2026-09-28T22:38:00.000Z', shift: '221600-0005', ticket: 'T-0001', seat: 'harness-core-agent-steward', division: 'harness-core',
+      checks: [], shipped: { commit: TIP }, reason: 'approved and assembled', recordedBy: 'supervisor', recordedAt: '2026-09-28T22:39:30.000Z',
+    }
+    writeFileSync(join(inputs.root, 'data/enterprise/ledger.jsonl'), `${readFileSync(join(inputs.root, 'data/enterprise/ledger.jsonl'), 'utf8')}${JSON.stringify(rebased)}\n`)
+    const recorded = await collectOps({ ...inputs, alive: () => false, state: emptyOpsState() })
+    expect(recorded.shift?.tickets[0]).toMatchObject({ ticket: 'T-0001', stage: 'shipped', commit: TIP, recordedBy: 'supervisor' })
     const none = await collectOps({ ...machine(), scratch: join(base, 'no-scratch'), root: join(base, 'nowhere') })
     expect(none.shift).toBeNull()
   })
@@ -784,6 +792,31 @@ describe('collectOps', () => {
     expect(after.shift?.tickets[0]?.reached).toBeUndefined()
     expect(after.shift?.tickets[1]).toMatchObject({ ticket: 'T-0005', stage: 'halted' })
     expect(after.big.shippedTickets?.[0]).toMatchObject({ ticket: 'T-0004', shift: '221520-e979', commit: SHIPPED, recordedBy: 'supervisor' })
+  })
+
+  it('settles a failed shift step once the shift\'s lines are recorded after the fact', async () => {
+    const inputs = machine()
+    write(join(inputs.cyclesDir, 'cycle-20260928T223000Z.log'), [
+      'enterprise-cycle: cycle-20260928T223000Z pull exit=0 at 2026-09-28T22:30:01Z',
+      'enterprise: shift 223005-abcd → /tmp/dsh-enterprise/223005-abcd',
+      'enterprise-cycle: cycle-20260928T223000Z shift exit=1 at 2026-09-28T22:35:00Z',
+      'enterprise-cycle: cycle-20260928T223000Z pull-after-shift exit=1 at 2026-09-28T22:35:01Z',
+      'enterprise-cycle: cycle-20260928T223000Z done, first failure exit=1',
+    ].join('\n'))
+    const failed = await collectOps(inputs)
+    expect(failed.attention.filter(item => item.id.startsWith('cycle-step:cycle-20260928T223000Z')).map(item => item.severity)).toEqual(['high', 'high'])
+    const line = {
+      type: 'ticket', at: '2026-09-28T22:34:00.000Z', shift: '223005-abcd', ticket: 'T-0004', seat: 'harness-core-agent-steward', division: 'harness-core',
+      checks: [], shipped: { commit: TIP }, reason: 'approved and assembled', recordedBy: 'supervisor', recordedAt: '2026-09-28T22:38:00.000Z',
+    }
+    writeFileSync(join(inputs.root, 'data/enterprise/ledger.jsonl'), `${readFileSync(join(inputs.root, 'data/enterprise/ledger.jsonl'), 'utf8')}${JSON.stringify(line)}\n`)
+    const settled = await collectOps({ ...inputs, state: emptyOpsState() })
+    const items = settled.attention.filter(item => item.id.startsWith('cycle-step:cycle-20260928T223000Z'))
+    expect(items.map(item => [item.severity, item.title])).toEqual([
+      ['low', 'cycle-20260928T223000Z: pull-after-shift exited 1; the supervisor recorded shift 223005-abcd afterwards'],
+      ['low', 'cycle-20260928T223000Z: shift exited 1; the supervisor recorded shift 223005-abcd afterwards'],
+    ])
+    expect(items[0]?.detail).toBe('The shift\'s ledger lines reached the branch at 22:38 UTC, written after the fact by the supervisor.')
   })
 
   it('lists each shipped ticket with its commit and the verdict enterprise:verdicts gives it', async () => {

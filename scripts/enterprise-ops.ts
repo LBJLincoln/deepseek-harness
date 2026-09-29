@@ -525,7 +525,7 @@ export async function collectOps(inputs: OpsInputs): Promise<OpsSnapshot> {
   else c.dated('tickets', `${tickets.size} tickets in the queue`, checkoutAt)
 
   const history = inputs.git(['log', `--since=${iso(c.since)}`, '--format=%H%x09%cI%x09%s', 'HEAD'])
-  const cycles = collectCycles(c, processes, history, checkoutAt)
+  const cycles = collectCycles(c, processes, history, checkoutAt, ledger)
   const scratchRuns = collectScratch(c, roster, tickets, ledger, cycles)
   collectShiftRecords(c, scratchRuns, ledger)
   const shift = collectShift(c, scratchRuns, tickets, ledger)
@@ -722,6 +722,7 @@ function collectCycles(
   processes: ProcessInfo[] | undefined,
   history: string | undefined,
   checkoutAt: number | undefined,
+  ledger: { lines: NumberedLine[] } | undefined,
 ): CycleReading {
   const { cyclesDir } = c.inputs
   const names = listDir(cyclesDir)
@@ -803,8 +804,24 @@ function collectCycles(
     }
     // A failed step matters while it is the newest word on its step: in the newest finished cycle, or in the newest cycle while it runs.
     const current = log === newest || log === newestDone
+    // A shift step that failed after its work was assembled is settled once someone records the shift's lines after the fact.
+    const recordedLines = log.shift === undefined ? [] : [...shiftLines(ledger, log.shift).values()]
+    const settled = recordedLines.find(line => line.recordedBy !== undefined)
     for (const step of current ? log.steps : []) {
       if (step.exit === 0) continue
+      if (settled?.recordedBy !== undefined && SHIFT_STEPS.has(step.step)) {
+        c.flag({
+          id: `cycle-step:${cycle}:${step.step}`,
+          kind: 'cycle-step-failed',
+          severity: 'low',
+          title: `${cycle}: ${step.step} exited ${step.exit}; the ${settled.recordedBy} recorded shift ${log.shift ?? ''} afterwards`,
+          detail: `The shift's ledger lines reached the branch ${settled.recordedAt === undefined ? 'afterwards' : `at ${settled.recordedAt.slice(11, 16)} UTC`}, written after the fact by the ${settled.recordedBy}.`,
+          at: step.at,
+          evidence: [...evidence, ...commits === undefined ? [] : [commitLink(commits.commit)]],
+          next: 'Nothing is left to push by hand for this shift; the next cycle starts from the branch as it stands.',
+        })
+        continue
+      }
       c.flag({
         id: `cycle-step:${cycle}:${step.step}`,
         kind: 'cycle-step-failed',
@@ -937,6 +954,9 @@ function recordRuns(c: Collection, record: CycleRecord, commit: string | undefin
 
 /** How to start the scheduler, as the attention queue states it. */
 const SCHEDULER_START = 'Start it detached from the cycle checkout: setsid nohup bash scripts/enterprise-scheduler.sh >> /home/user/enterprise-cycles/scheduler.log 2>&1 < /dev/null &'
+
+/** The cycle steps that deliver a shift's work: a failure there is settled once the shift's lines are recorded. */
+const SHIFT_STEPS: ReadonlySet<string> = new Set(['shift', 'pull-after-shift'])
 
 /** The next action for a failed cycle step. */
 const NEXT_FOR_STEP: Record<string, string> = {
@@ -1946,6 +1966,28 @@ function ledgerTicket(line: TicketLine, prior: OpsShiftTicket | undefined, ticke
 }
 
 /**
+ * A shift's tickets as its scratch run or record states them, each replaced by
+ * the ledger's line for it in that shift when there is one, and every ticket
+ * the ledger holds for the shift that the statement lacks, appended.
+ * @param stated - The tickets as the scratch run or the record states them.
+ * @param recorded - The ledger's lines for the shift, by ticket id.
+ * @param tickets - The queue, for titles.
+ * @returns The tickets.
+ */
+function withLedger(
+  stated: readonly OpsShiftTicket[],
+  recorded: Map<string, TicketLine>,
+  tickets: Map<string, TicketFile> | undefined,
+): OpsShiftTicket[] {
+  const merged = stated.map((ticket) => {
+    const line = recorded.get(ticket.ticket)
+    return line === undefined ? ticket : ledgerTicket(line, ticket, tickets)
+  })
+  for (const [id, line] of recorded) if (!stated.some(ticket => ticket.ticket === id)) merged.push(ledgerTicket(line, undefined, tickets))
+  return merged
+}
+
+/**
  * The ledger's newest ticket line per ticket for one shift.
  * @param ledger - The ledger, when it was read.
  * @param shift - The shift's id.
@@ -2081,19 +2123,13 @@ function scratchShift(
     }
   })
   const startedAt = msOf(result?.startedAt) ?? program?.startedAt ?? mtimeOf(run.dir) ?? c.now
-  const stated = final ?? live
-  const merged = stated.map((ticket) => {
-    const line = recorded.get(ticket.ticket)
-    return line === undefined ? ticket : ledgerTicket(line, ticket, tickets)
-  })
-  for (const [id, line] of recorded) if (!stated.some(ticket => ticket.ticket === id)) merged.push(ledgerTicket(line, undefined, tickets))
   return {
     shift: run.id,
     state: run.live ? 'running' : 'ended',
     startedAt: iso(startedAt),
     ...endedAt === undefined ? {} : { endedAt: iso(endedAt) },
     source: 'scratch',
-    tickets: merged,
+    tickets: withLedger(final ?? live, recorded, tickets),
     evidence: { label: `shift ${run.id} run.log` },
   }
 }
@@ -2101,6 +2137,9 @@ function scratchShift(
 /**
  * The shift the view follows: the one holding the shift lock; else the newest
  * of the committed shift records and the scratch runs no record covers yet.
+ * Either way the ledger's lines for the shift decide its tickets' stages and
+ * commits, since a record names the commits as the shift assembled them,
+ * before any rebase of its push.
  * @param c - The collection.
  * @param scratchRuns - The scratch runs {@link collectScratch} read.
  * @param tickets - The queue, for titles and seats.
@@ -2133,13 +2172,14 @@ function collectShift(
   const startedAt = msOf(result.startedAt) ?? msOf(isRecord(manifest) ? manifest.startedAt : undefined)
   const endedAt = msOf(isRecord(manifest) ? manifest.endedAt : undefined) ?? msOf(result.endedAt)
   if (startedAt === undefined) return null
+  const shift = typeof result.shift === 'string' ? result.shift : newestRecord.slice(11)
   return {
-    shift: typeof result.shift === 'string' ? result.shift : newestRecord.slice(11),
+    shift,
     state: 'ended',
     startedAt: iso(startedAt),
     ...endedAt === undefined ? {} : { endedAt: iso(endedAt) },
     source: 'record',
-    tickets: resultTickets(result, tickets, endedAt) ?? [],
+    tickets: withLedger(resultTickets(result, tickets, endedAt) ?? [], shiftLines(ledger, shift), tickets),
     evidence: blobLink(c.inputs.branch, `data/enterprise/shifts/${newestRecord}/result.json`),
   }
 }
