@@ -7,7 +7,7 @@
 插件配置必须提供 `{ provider, model }`。该组合配置项构成 Settings 中 `agent-default-model` 分节的基础层；挂载的设置提供方在其上叠加用户选择，更改会在下一次调用 `currentSelection()` 时可见。`reasoningEffort` 属于该 Settings 分节，但特意不属于插件配置：完整保存的选择必须能在下一个选定模型没有推理（reasoning）强度时清除旧值，而组合配置值会再次被继承。
 
 - `ctx.agentDefaultModel.currentSelection()` 返回一份独立的 `{ provider, model, reasoningEffort? }` 选择，供新创建的 Agent 使用。
-- `ctx.agentDefaultModel.saveSelection(selection)` 保存完整的用户选择。未挂载设置提供方时，此调用不执行任何操作，组合配置项仍为当前值。
+- `ctx.agentDefaultModel.saveSelection(selection)` 保存完整的用户选择。未挂载设置提供方时不存储任何内容，组合配置项仍为当前值；同一服务实例上首次发生这种调用时记录一条指明 `agent-default-model` 设置命名空间的警告，该实例之后的调用不再重复。
 
 该服务不校验目录成员关系。提供方路由可以服务未在目录中公布的模型；实际发起模型请求的消费方负责可用性诊断。
 
@@ -22,4 +22,4 @@
 ## 已知限制与暂缓事项
 
 - 该服务只拥有一项进程级默认值；每个会话的选择仍由入口负责。
-- 未挂载设置提供方时，`saveSelection()` 无法保留选择供后续 Agent 使用。
+- 未挂载设置提供方时，`saveSelection()` 无法保留选择供后续 Agent 或后续进程使用；每个服务实例记录一次警告后正常返回。

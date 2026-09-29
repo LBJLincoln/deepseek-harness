@@ -338,8 +338,9 @@ Owns the default model selection independently of any Host or transport. The com
 currentSelection(): ModelSelection
 
 /**
- * Save the complete default model selection. A deployment without a settings
- * provider keeps its composition entry.
+ * Save the complete default model selection. Without a settings provider the
+ * selection is not stored and the composition entry stays current; the first
+ * such call on this instance logs one warning.
  * @param next - resolved selection accepted by an entry point.
  * @returns fulfillment after the optional settings write settles.
  */

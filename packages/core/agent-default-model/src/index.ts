@@ -68,6 +68,7 @@ export class AgentDefaultModelConfig extends Service {
   })
 
   private source: () => AgentDefaultModelSettings
+  private warnedWithoutSettings = false
 
   constructor(ctx: Context, config: Config) {
     super(ctx, 'agentDefaultModel')
@@ -90,13 +91,24 @@ export class AgentDefaultModelConfig extends Service {
   }
 
   /**
-   * Save the complete default model selection. A deployment without a settings
-   * provider keeps its composition entry.
+   * Save the complete default model selection. Without a settings provider the
+   * selection is not stored and the composition entry stays current; the first
+   * such call on this instance logs one warning.
    * @param next - resolved selection accepted by an entry point.
    * @returns fulfillment after the optional settings write settles.
    */
   async saveSelection(next: ModelSelection): Promise<void> {
-    await this.ctx.get('settings')?.replace(AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE, {
+    const settings = this.ctx.get('settings')
+    if (settings === undefined) {
+      if (!this.warnedWithoutSettings) {
+        this.warnedWithoutSettings = true
+        this.ctx.logger.warn(
+          `saveSelection(): the selection for settings namespace "${AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE}" applies to this process only because no settings provider is loaded`,
+        )
+      }
+      return
+    }
+    await settings.replace(AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE, {
       provider: next.provider,
       model: next.model,
       ...next.reasoningEffort === undefined ? {} : { reasoningEffort: String(next.reasoningEffort) },
