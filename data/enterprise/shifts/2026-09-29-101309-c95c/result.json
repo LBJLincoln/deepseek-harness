@@ -1,0 +1,191 @@
+{
+  "type": "result",
+  "shift": "101309-c95c",
+  "startedAt": "2026-09-29T10:13:10.627Z",
+  "base": "0d24d0d8f67f7c7f3d90a36eca0f4915dccf127c",
+  "remote": "https://github.com/LBJLincoln/deepseek-harness",
+  "branch": "claude/coding-agent-harness-u9l4gt",
+  "implementer": "route",
+  "model": "Claude Code sonnet",
+  "programId": "program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f",
+  "report": {
+    "programId": "program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f",
+    "sessionId": "program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f",
+    "outcome": "released",
+    "mergedRevision": "2fc4df76750f992b2150179c7d608f30ed8e2cd7",
+    "goals": [
+      {
+        "key": "t-0020",
+        "status": "merged",
+        "sessionId": "program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f-t-0020",
+        "revision": "30bf141c212871094d17e6815cf9840b57b23b75",
+        "tree": "ec80e7ef5e4309337fbea00c673362b10cacf8ec"
+      },
+      {
+        "key": "t-0021",
+        "status": "merged",
+        "sessionId": "program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f-t-0021",
+        "revision": "5089d6a19b905e52429a9fb5a66120686e5edd1d",
+        "tree": "f9ec50129d63ebe60bd91aed2c377e4260220f3d"
+      }
+    ]
+  },
+  "halt": null,
+  "decisions": [
+    {
+      "transition": "spec-freeze",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 101309-c95c"
+      },
+      "artefactSha256": "31ed92bece0f59a9e2065c2f130d215cfa9d145323b5799ba114efbfa120ea5b"
+    },
+    {
+      "transition": "release",
+      "principal": {
+        "kind": "machine",
+        "id": "daliesk-enterprise-shift",
+        "decidedBy": "the enterprise-shift engine, shift 101309-c95c"
+      },
+      "artefactSha256": "31ed92bece0f59a9e2065c2f130d215cfa9d145323b5799ba114efbfa120ea5b"
+    }
+  ],
+  "tickets": [
+    {
+      "type": "ticket",
+      "at": "2026-09-29T11:06:39.783Z",
+      "shift": "101309-c95c",
+      "ticket": "T-0020",
+      "seat": "harness-core-subagent-steward",
+      "division": "harness-core",
+      "programId": "program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f-t-0020"
+      },
+      "checks": [
+        {
+          "id": "skip-condition",
+          "ok": true
+        },
+        {
+          "id": "spec-passes-as-root",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-lint",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0020-c3b2dc5a"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "a44d985d77cd877e9f80dc11f7e2bb74a62bed78"
+      },
+      "reason": "approved and assembled",
+      "tokens": 202038,
+      "seconds": 937,
+      "rationale": "- **Skip condition:** The diff changes the `it.skipIf` condition to `process.platform === 'win32' || process.getuid?.() === 0`, which is exactly what the ticket specifies. The optional call keeps it safe on platforms without `getuid`.\n- **Comment:** A second comment line says uid 0 bypasses discretionary permission checks, so the search-bit fixture cannot deny access to root. It sits beside the existing Windows comment, as required.\n- **Scope:** Only `packages/subagent/subagent/tests/out-of-process.spec.ts` changed, and only those two lines. The fixture, the assertion and the neighbouring tests are untouched, and there is no source, README or Agent Note change.\n- **Checks:**\n  - `skip-condition` passed.\n  - `spec-passes-as-root` shows 13 passed and 1 skipped, so the skip took effect in the root sandbox and the failure is gone.\n  - `coverage` ran 26 files with 541 tests passed and 1 skipped, and the coverage summary reports 100% statements, branches, functions and lines for `packages/subagent/subagent/src`, as the ticket predicted.\n  - `typecheck`, lint, whitespace, scope, committed and documentation checks all passed.\n- **Commit message:** The message names the ticket and describes the change, and it carries the required attribution trailers."
+    },
+    {
+      "type": "ticket",
+      "at": "2026-09-29T11:06:39.783Z",
+      "shift": "101309-c95c",
+      "ticket": "T-0021",
+      "seat": "harness-core-subagent-acp-steward",
+      "division": "harness-core",
+      "programId": "program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-a86d4a7f54c2f4cc9bf04ece566016c949ea4edbc9f67c6d8bdc97a22aab3c6f-t-0021"
+      },
+      "checks": [
+        {
+          "id": "skip-condition",
+          "ok": true
+        },
+        {
+          "id": "spec-passes-as-root",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        },
+        {
+          "id": "engine-lint",
+          "ok": true
+        },
+        {
+          "id": "engine-documentation",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0021-f02dd27f"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "e7800b9ae7d3a6917de32920240faa36c01707ff"
+      },
+      "reason": "approved and assembled",
+      "tokens": 113380,
+      "seconds": 984,
+      "rationale": "- **Skip condition:** The diff changes the `it.skipIf` argument at line 306 to `process.platform === 'win32' || process.getuid?.() === 0`, which is exactly what the ticket asks for. The optional call keeps it safe on win32, where `getuid` is undefined.\n- **Comment:** The existing Windows comment is kept, and a second line says that uid 0 bypasses discretionary permission checks so the search-bit fixture cannot deny access to root. That is the requested wording.\n- **Scope:** The diff touches one line plus one comment line, in the spec file inside `packages/subagent/subagent-acp/`. The fixture, the assertion, the neighbouring tests, the source, the README and the Agent Note are all unchanged.\n- **Checks:** All checks passed, including the ticket's four acceptance checks and the engine checks.\n  - `spec-passes-as-root` shows 47 passed and 1 skipped, which is what a root run should produce now that the test skips itself.\n  - `coverage` shows 100% statements, branches, functions and lines for the package, so the missing-directory tests do cover the `isDirectory` catch branch while the test is skipped.\n  - `skip-condition` (the `getuid` grep) and `typecheck` also pass.\n- **Commit message:** It describes the change accurately and carries the required attribution trailers."
+    }
+  ],
+  "redacted": 12
+}
