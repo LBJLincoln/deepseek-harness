@@ -8,17 +8,23 @@
     "path": "packages/core/system-prompt/README.md",
     "anchor": "Sections sharing an `order` value tie-break by registration order"
   },
-  "task": "Problem: prompt sections and runtime contexts that share an `order` value are emitted in registration order. packages/core/system-prompt/src/index.ts:403 (`sections()`), :518 (assembled sections) and :538 (contexts) sort with `(a, b) => a.order - b.order` only, so plugin load order, a Loader artifact that differs between compositions and across HMR replacement, decides model-visible prompt text. The README states the gap at packages/core/system-prompt/README.md:91 and contrasts it with the tool order, which was canonicalized for exactly this reason (`compareToolNames`, index.ts:181-183).\n\nRequired: break `order` ties by `name` with the same code-point comparison `compareToolNames` uses, at all three sort sites, so an assembled prompt is a pure function of the registered set. Replace the README bullet (English and Chinese together) with the rule, mention the tie-break in the `section()` and `context()` JSDoc where `order` is documented, and re-record the pair with `pnpm run verify-translation-pairing --write packages/core/system-prompt/README.md`. Add packages/core/system-prompt/tests/section-order-ties.spec.ts that registers two sections and two contexts with an equal `order` in reverse-name order and asserts that `sections()` and an assembled prompt place them by name.\n\nSnapshots: run `pnpm run test:snapshot`. If any expected output changes, a shipped composition relies on a tie; stop, revert, and report the colliding section names instead of re-recording. When the suite is unchanged no snapshot update is needed because no shipped transcript is affected.\n\nConstraints: the comparator is not an agent-loop change, so docs/architecture.md stays untouched; no Agent Note is needed for this local determinism fix.",
+  "task": "Problem: prompt sections and runtime contexts that share an `order` value are emitted in registration order. packages/core/system-prompt/src/index.ts:403 (`sections()`), :518 (assembled sections) and :538 (contexts) sort with `(a, b) => a.order - b.order` only, so plugin load order, a Loader artifact that differs between compositions and across HMR replacement, decides model-visible prompt text. The README states the gap at packages/core/system-prompt/README.md:91 and contrasts it with the tool order, which was canonicalized for exactly this reason (`compareToolNames`, index.ts:181-183).\n\nRequired: break `order` ties by `name` with the same code-point comparison `compareToolNames` uses, at all three sort sites, so an assembled prompt is a pure function of the registered set. Replace the README bullet (English and Chinese together) with the rule, mention the tie-break in the `section()` and `context()` JSDoc where `order` is documented, and re-record the pair with `pnpm run verify-translation-pairing --write packages/core/system-prompt/README.md`. Add packages/core/system-prompt/tests/section-order-ties.spec.ts that registers two sections and two contexts with an equal `order` in reverse-name order and asserts that `sections()` and an assembled prompt place them by name.\n\nSnapshots: the `snapshots` acceptance replays the keyless suite (`pnpm run test:snapshot`), which diffs every assembled request, system prompt included, against the committed expected outputs. An expected output that changes means a shipped composition relied on a tie: refresh exactly the changed expected outputs with `pnpm run test:snapshot:refresh` (keyless; it replays the committed scripts), check in the diff that only the order of equal-`order` sections moved, and name the colliding sections in the commit message. CI replays the same suite from a build (`DSH_EXAMPLE_MODE=lib`), which adds the web snapshots under apps/web/tests/snapshots/; they are in scope for the same refresh. When the suite is unchanged, no expected output changes.\n\nConstraints: the comparator is not an agent-loop change, so docs/architecture.md stays untouched; no Agent Note is needed for this local determinism fix.",
   "scope": [
-    "packages/core/system-prompt/"
+    "packages/core/system-prompt/",
+    "examples/acp-agent/tests/snapshots/",
+    "examples/headless-agent/tests/snapshots/",
+    "examples/jsonrpc-agent/tests/snapshots/",
+    "scripts/snapshots/",
+    "apps/web/tests/snapshots/"
   ],
   "acceptance": [
     { "id": "readme-rule", "run": "! grep -q 'tie-break by registration order' packages/core/system-prompt/README.md" },
     { "id": "spec", "run": "test -f packages/core/system-prompt/tests/section-order-ties.spec.ts && pnpm exec vitest run packages/core/system-prompt/tests/section-order-ties.spec.ts" },
     { "id": "coverage", "run": "pnpm exec vitest run packages/core/system-prompt/ --coverage --coverage.include='packages/core/system-prompt/src/**/*.ts'" },
+    { "id": "snapshots", "run": "pnpm run test:snapshot" },
     { "id": "typecheck", "run": "pnpm run typecheck" },
     { "id": "doc-sync", "run": "pnpm run doc-sync" }
   ],
   "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
-  "priority": 2
+  "priority": 1
 }
