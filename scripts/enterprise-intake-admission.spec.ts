@@ -140,6 +140,18 @@ describe('ticketStatuses', () => {
     expect([...statuses]).toEqual([['T-0001', 'shipped'], ['T-0002', 'rejected'], ['T-0003', 'open']])
   })
 
+  it('keeps a shipped ticket shipped when a line written after the fact for an earlier shift follows its shipping line', () => {
+    // The T-0012 and T-0019 situation: shift 171951-516d's lines, recorded at the end of the file with an earlier `at`.
+    const after = { recordedBy: 'supervisor', recordedAt: '2026-09-29T10:04:08.000Z', at: '2026-09-28T18:19:48.000Z', shipped: null }
+    const lines = [
+      { type: 'ticket', ticket: 'T-0012', at: '2026-09-28T19:04:29.582Z', shipped: { commit: 'a'.repeat(40) }, review: { verdict: 'approve' } },
+      { type: 'ticket', ticket: 'T-0019', at: '2026-09-28T19:04:29.582Z', shipped: { commit: 'b'.repeat(40) }, review: { verdict: 'approve' } },
+      { type: 'ticket', ticket: 'T-0012', ...after, review: { verdict: 'approve' } },
+      { type: 'ticket', ticket: 'T-0019', ...after, review: { verdict: 'reject' } },
+    ].map(line => JSON.stringify(line))
+    expect([...ticketStatuses(`${lines.join('\n')}\n`)]).toEqual([['T-0012', 'shipped'], ['T-0019', 'shipped']])
+  })
+
   it('reads an absent ledger as every ticket open', () => {
     expect(ticketStatuses('').size).toBe(0)
   })

@@ -168,6 +168,46 @@ function pilotTable(briefing: Briefing, locale: Locale): string[] {
 }
 
 /**
+ * Who started the units that shipped, counted by starter, and each shipping unit whose push someone completed after the
+ * unit's own push step could not make it, named with the recorder its ledger lines carry.
+ * @param pilot - the pilot's units.
+ * @param locale - the side being rendered.
+ * @returns the sentences.
+ */
+function originSentences(pilot: readonly PilotRow[], locale: Locale): string {
+  const zh = locale === 'zh'
+  const shipping = pilot.filter(row => row.shipped.length > 0)
+  const total = shipping.reduce((sum, row) => sum + row.shipped.length, 0)
+  if (total === 0) return zh ? '尚无工单交付。' : 'No ticket has shipped yet.'
+  const by = (starter: Starter): number => shipping
+    .filter(row => row.startedBy === starter)
+    .reduce((sum, row) => sum + row.shipped.length, 0)
+  const origins: Record<Starter, Both> = {
+    operator: { en: 'from shifts the operator started', zh: '来自操作员启动的班次' },
+    scheduler: { en: 'from cycles the scheduler started', zh: '来自调度器启动的周期' },
+    unknown: { en: 'from units whose starter the records do not state', zh: '来自记录未写明启动者的单元' },
+  }
+  const parts = (['operator', 'scheduler', 'unknown'] as const).filter(starter => by(starter) > 0)
+    .map((starter, index) => (zh ? `${by(starter)} 张${origins[starter].zh}` : `${by(starter)}${index === 0 ? ' came' : ''} ${origins[starter].en}`))
+  const completed = shipping.filter(row => row.completedBy.length > 0).map((row) => {
+    const shifts = listed(row.shifts, locale)
+    const recorders = row.completedBy.join(', ')
+    if (zh) {
+      const starter = row.kind === 'cycle'
+        ? row.startedBy === 'unknown' ? `由启动者未记录的 ${row.id} 启动` : `由${STARTER[row.startedBy].zh}的 ${row.id} 启动`
+        : row.startedBy === 'unknown' ? '启动者未记录' : `由${STARTER[row.startedBy].zh}启动`
+      return `班次 ${shifts}（${starter}）交付了 ${listed(row.shipped, locale)}；它的推送由 ${recorders} 补全，这些工单的台账行标记为 \`recordedBy: ${recorders}\`。`
+    }
+    const starter = row.kind === 'cycle'
+      ? row.startedBy === 'unknown' ? `started by ${row.id}, whose starter the records do not state` : `started by the ${row.startedBy}'s ${row.id}`
+      : row.startedBy === 'unknown' ? 'whose starter the records do not state' : `started by the ${row.startedBy}`
+    return `Shift ${shifts}, ${starter}, shipped ${listed(row.shipped, locale)}; its push was completed by the ${recorders}, and their ledger lines are marked \`recordedBy: ${recorders}\`.`
+  })
+  const counted = zh ? `迄今已交付的 ${total} 张工单中，${parts.join('，')}。` : `Of the ${total} ${total === 1 ? 'ticket' : 'tickets'} shipped so far, ${listed(parts, locale)}.`
+  return [counted, ...completed].join(zh ? '' : ' ')
+}
+
+/**
  * The shipped-work sentence: the tickets, their shift, checks and review, and the Branch CI verdicts on them, with the
  * run on each exact commit kept apart from the containing run of the push that carried it.
  * @param briefing - the built briefing.
@@ -292,9 +332,9 @@ export function renderSummary(briefing: Briefing, locale: Locale): string {
   if (zh) {
     lines.push('# Daliesk：执行摘要', '', '[English](daliesk-executive-summary.md) | 中文', '')
     lines.push(`数值截至 ${moment(briefing.asOf, locale)}，由 \`pnpm run enterprise:briefing -- --summary\` 从 [\`briefing.json\`](../../apps/command-deck/public/fixtures/briefing.json) 生成；[简报页面](${BRIEFING_URL})为每个数值注明来源文件与计算方法。`, '')
-    lines.push(`Daliesk 是一个处于试点阶段的 AI（人工智能）智能体组织，通过工单队列修改代码库：每张工单在独立的 worktree 中实现，通过其验收检查，由一位只看到差异和检查输出的审阅者批准，然后作为一个提交推送到开发分支；每一步都记录在仓库中。迄今已交付的 ${n('pilot.operatorShipped')} 张工单全部来自操作员启动的班次；调度器已启动 ${n('pilot.schedulerCycles')} 个周期，交付了 ${n('pilot.schedulerShipped')} 张。本摘要只陈述记录能够支持的内容。`, '')
+    lines.push(`Daliesk 是一个处于试点阶段的 AI（人工智能）智能体组织，通过工单队列修改代码库：每张工单在独立的 worktree 中实现，通过其验收检查，由一位只看到差异和检查输出的审阅者批准，然后作为一个提交推送到开发分支；每一步都记录在仓库中。${originSentences(pilot, locale)}调度器已启动 ${n('pilot.schedulerCycles')} 个周期。本摘要只陈述记录能够支持的内容。`, '')
     lines.push('## 关键数值', '', '| 指标 | 数值 | 来源 |', '| --- | --- | --- |')
-    lines.push(`| 已交付工单：操作员启动的单元 / 调度器启动的周期 | ${n('pilot.operatorShipped')} / ${n('pilot.schedulerShipped')} | [ledger.jsonl](../../data/enterprise/ledger.jsonl) |`)
+    lines.push(`| 已交付工单：操作员启动的单元 / 调度器启动的周期 / 启动者未记录的单元 | ${n('pilot.operatorShipped')} / ${n('pilot.schedulerShipped')} / ${n('pilot.unknownShipped')} | [ledger.jsonl](../../data/enterprise/ledger.jsonl) |`)
     lines.push(`| 已运行周期 / 其中由调度器启动 | ${n('pilot.cycles')} / ${n('pilot.schedulerCycles')} | [scheduler.log 的实时捕获](../../data/transcripts/live/enterprise-cycles) |`)
     lines.push(`| 已交付提交中有 Branch CI 运行测试确切提交的数量 | ${n('ci.exactShipped')} / ${n('tickets.shipped')} | [Branch CI](https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml) |`)
     lines.push(`| Branch CI 已完成运行 / 成功运行 | ${n('ci.completed')} / ${n('ci.success')} | [Branch CI](https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml) |`)
@@ -334,9 +374,9 @@ export function renderSummary(briefing: Briefing, locale: Locale): string {
   } else {
     lines.push('# Daliesk: executive summary', '', 'English | [中文](daliesk-executive-summary.zh.md)', '')
     lines.push(`Figures as of ${moment(briefing.asOf, locale)}, generated from [\`briefing.json\`](../../apps/command-deck/public/fixtures/briefing.json) by \`pnpm run enterprise:briefing -- --summary\`; the [briefing page](${BRIEFING_URL}) names the source file and the computation of each.`, '')
-    lines.push(`Daliesk is a pilot: an organisation of AI agents that changes a codebase through a ticket queue. Each ticket is implemented in its own worktree, passes its acceptance checks, is approved by a reviewer that sees only the diff and the check output, and is pushed as one commit to the development branch, with every step recorded in the repository. The ${n('pilot.operatorShipped')} tickets shipped so far came from shifts the operator started; the scheduler has started ${n('pilot.schedulerCycles')} ${schedulerCycles?.value === 1 ? 'cycle' : 'cycles'}, which shipped ${n('pilot.schedulerShipped')}. This summary states only what the records support.`, '')
+    lines.push(`Daliesk is a pilot: an organisation of AI agents that changes a codebase through a ticket queue. Each ticket is implemented in its own worktree, passes its acceptance checks, is approved by a reviewer that sees only the diff and the check output, and is pushed as one commit to the development branch, with every step recorded in the repository. ${originSentences(pilot, locale)} The scheduler has started ${n('pilot.schedulerCycles')} ${schedulerCycles?.value === 1 ? 'cycle' : 'cycles'}. This summary states only what the records support.`, '')
     lines.push('## Key figures', '', '| Measure | Value | Source |', '| --- | --- | --- |')
-    lines.push(`| Tickets shipped: by units the operator started / by cycles the scheduler started | ${n('pilot.operatorShipped')} / ${n('pilot.schedulerShipped')} | [ledger.jsonl](../../data/enterprise/ledger.jsonl) |`)
+    lines.push(`| Tickets shipped: by units the operator started / by cycles the scheduler started / by units whose starter is not recorded | ${n('pilot.operatorShipped')} / ${n('pilot.schedulerShipped')} / ${n('pilot.unknownShipped')} | [ledger.jsonl](../../data/enterprise/ledger.jsonl) |`)
     lines.push(`| Cycles run / started by the scheduler | ${n('pilot.cycles')} / ${n('pilot.schedulerCycles')} | [captured scheduler log](../../data/transcripts/live/enterprise-cycles) |`)
     lines.push(`| Shipped commits with a Branch CI run on the exact commit | ${n('ci.exactShipped')} of ${n('tickets.shipped')} | [Branch CI](https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml) |`)
     lines.push(`| Branch CI runs completed / successful | ${n('ci.completed')} / ${n('ci.success')} | [Branch CI](https://github.com/LBJLincoln/deepseek-harness/actions/workflows/branch-ci.yml) |`)

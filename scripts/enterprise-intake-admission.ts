@@ -37,6 +37,7 @@ import { resolve } from 'node:path'
 
 import { SECRET_PATTERN_NAMES, redactText } from '../data/transcripts/tools/secret-patterns.mjs'
 import { ticketAcceptanceRefusal } from './enterprise-acceptance.ts'
+import { ticketStandings, type StatusLine } from './enterprise-ledger.ts'
 import type { Roster, RosterAgentDefinition } from './enterprise-roster.ts'
 import { HARNESS_QUEUE_POLICY, isRequestFile, loadTickets, REQUEST_PRIORITY, TICKETS_DIR, validateTickets } from './enterprise-tickets.ts'
 import type { LoadedTicket } from './enterprise-tickets.ts'
@@ -92,16 +93,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * The status of every ticket the ledger names, from each ticket's latest
- * ticket line, by the engine's rule: `shipped` when the line names a shipped
- * commit, `rejected` when its review verdict is `reject`, `open` otherwise.
- * Function lines and lines that are not JSON objects name no ticket and are
- * passed over; the engine owns the ticket line's fields.
+ * The status of every ticket the ledger names, by the ledger's one status
+ * rule (`ticketStandings` in `scripts/enterprise-ledger.ts`, which the engine
+ * reads too): `shipped` once any of its lines names a shipped commit,
+ * otherwise `rejected` when its latest line's review verdict is `reject` and
+ * `open` when it is anything else, a line written after the fact taking the
+ * latest place only when its `at` is not earlier. Function lines and lines
+ * that are not JSON objects name no ticket and are passed over; the engine
+ * owns the ticket line's fields.
  * @param text - the ledger file's contents, empty when the file does not exist.
  * @returns ticket id to status; a ticket the ledger does not name is open.
  */
 export function ticketStatuses(text: string): Map<string, TicketStatus> {
-  const statuses = new Map<string, TicketStatus>()
+  const lines: StatusLine[] = []
   for (const line of text.split('\n')) {
     if (line.trim() === '') continue
     let parsed: unknown
@@ -112,15 +116,17 @@ export function ticketStatuses(text: string): Map<string, TicketStatus> {
       continue
     }
     if (!isRecord(parsed) || (parsed['type'] !== undefined && parsed['type'] !== 'ticket')) continue
-    const ticket = parsed['ticket']
+    const { ticket, at, recordedAt, shipped, review } = parsed
     if (typeof ticket !== 'string') continue
-    const shipped = parsed['shipped']
-    const review = parsed['review']
-    if (isRecord(shipped) && typeof shipped['commit'] === 'string') statuses.set(ticket, 'shipped')
-    else if (isRecord(review) && review['verdict'] === 'reject') statuses.set(ticket, 'rejected')
-    else statuses.set(ticket, 'open')
+    lines.push({
+      ticket,
+      at: typeof at === 'string' ? at : '',
+      recordedAt: typeof recordedAt === 'string' ? recordedAt : undefined,
+      shipped: isRecord(shipped) && typeof shipped['commit'] === 'string' ? { commit: shipped['commit'] } : null,
+      review: isRecord(review) && typeof review['verdict'] === 'string' ? { verdict: review['verdict'] } : undefined,
+    })
   }
-  return statuses
+  return new Map([...ticketStandings(lines)].map(([ticket, { status }]) => [ticket, status === 'halted' ? 'open' : status]))
 }
 
 /** The queue as one intake reads it: every ticket file and the status the ledger gives each ticket. */

@@ -470,6 +470,11 @@ export interface PilotRow {
   attempted: number | null
   /** Tickets its shifts' ledger lines ship. */
   shipped: string[]
+  /**
+   * Who wrote its shipping lines after the fact (`recordedBy`), such as the supervisor that completed a push the shift's
+   * own push step could not make; empty when the shift wrote every shipping line itself.
+   */
+  completedBy: string[]
   failed: FailedTicket[]
   /** Tickets its shift records name that no ledger line of that shift records; `null` when `attempted` is. */
   lost: number | null
@@ -859,8 +864,9 @@ function cycleStarter(
   others: readonly number[],
   logs: LogReading,
   scripts: ScriptHistory,
-  recorded: CycleRecord['startedBy'],
+  record: CycleRecord | undefined,
 ): { startedBy: Starter; basis: string } {
+  const recorded = record?.startedBy
   if (recorded !== undefined) {
     return { startedBy: recorded, basis: `Its cycle record states ${recorded}: the cycle script records scheduler when ${SCHEDULER_SCRIPT} is its parent process, and operator otherwise.` }
   }
@@ -868,14 +874,20 @@ function cycleStarter(
   if (ran !== undefined) {
     return { startedBy: 'scheduler', basis: `The captured scheduler log reports running the cycle whose log it stamped ${new Date(ran).toISOString()}.` }
   }
-  const slot = logs.announced.filter(at => at <= start).sort((left, right) => right - left)[0]
+  // An announced slot suggests the scheduler but does not show it ran the cycle; a record that names no starter stays unknown.
+  const slot = record === undefined ? logs.announced.filter(at => at <= start).sort((left, right) => right - left)[0] : undefined
   if (slot !== undefined && !others.some(other => other >= slot && other < start)) {
     return { startedBy: 'scheduler', basis: `The captured scheduler log announced the slot ${new Date(slot).toISOString()}, and this is the first cycle to start at or after it.` }
   }
   if (scripts.scheduler !== null && start < ms(scripts.scheduler)) {
     return { startedBy: 'operator', basis: `It started before ${SCHEDULER_SCRIPT} reached the branch (${scripts.scheduler}), so the scheduler cannot have started it.` }
   }
-  return { startedBy: 'unknown', basis: 'No captured scheduler log covers its start.' }
+  return {
+    startedBy: 'unknown',
+    basis: record === undefined
+      ? 'No captured scheduler log covers its start.'
+      : 'Its cycle record names no starter, as records written before the field do not, and no captured scheduler log reports running it.',
+  }
 }
 
 /**
@@ -888,7 +900,7 @@ function cycleStarter(
 function shiftAccount(
   lines: readonly TicketLine[],
   shifts: readonly ShiftRow[],
-): Pick<PilotRow, 'attempted' | 'shipped' | 'failed' | 'lost' | 'tokens'> {
+): Pick<PilotRow, 'attempted' | 'shipped' | 'completedBy' | 'failed' | 'lost' | 'tokens'> {
   const ids = new Set(shifts.map(shift => shift.shift))
   const own = lines.filter(line => ids.has(line.shift))
   const tokens = own.filter(line => typeof line.tokens === 'number')
@@ -896,6 +908,7 @@ function shiftAccount(
   return {
     attempted: shifts.reduce((sum, shift) => sum + shift.tickets.length, 0),
     shipped: own.filter(line => line.shipped !== null).map(line => line.ticket),
+    completedBy: [...new Set(own.flatMap(line => (line.shipped === null || line.recordedBy === undefined ? [] : [line.recordedBy])))],
     failed: own.flatMap((line) => {
       const status = ticketStatus(line)
       if (status === 'shipped') return []
@@ -911,12 +924,14 @@ function shiftAccount(
  * The pilot's units of work, oldest first: every run of the cycle script the branch names (by a commit subject, a ledger
  * function line, a cycle record or a captured cycle log), and every shift record that falls outside all of them.
  *
- * A cycle's shifts are those its record lists; without a record, the shift records that start between the cycle's start
- * and the next cycle's start, and before the end of its `shift` step when its captured log states one. A shift start
+ * A cycle's shifts are those its record lists; without a record, or with one that lists no shift although the cycle ran a
+ * `shift` step, the shift records that start between the cycle's start and the next cycle's start, and before the end of
+ * its `shift` step when its record or captured log states one. A shift start
  * line with no shift record stands for its shift, with the tickets the line names. A cycle that ran
  * a `shift` step with no shift record on the branch, whose steps nothing on the branch states, or that has no shift
  * record and nothing recording its end (it may still be running its shift), has an unknown number of tickets attempted
- * and lost. A shift outside every cycle was started by hand.
+ * and lost. A shift outside every cycle's window was started by hand; one inside a window its cycle does not claim has an
+ * unknown starter, as does a cycle whose record names no starter and whose start no captured scheduler log reports.
  * @param inputs - the briefing inputs.
  * @param shifts - the shift rows.
  * @returns the rows.
@@ -958,6 +973,7 @@ export function pilotRows(
     .sort((left, right) => ms(left.startedAt) - ms(right.startedAt))
   const lines = ticketLines(inputs.ledger)
   const claimed = new Set<string>()
+  const windows: { id: string; start: number; until: number }[] = []
   const rows: PilotRow[] = cycles.map(({ id, startedAt }, index) => {
     const start = ms(startedAt)
     const record = records.get(id)
@@ -968,10 +984,13 @@ export function pilotRows(
       next === undefined ? Number.POSITIVE_INFINITY : ms(next.startedAt),
       shiftStep === undefined ? Number.POSITIVE_INFINITY : ms(shiftStep.at),
     )
-    const own = record !== undefined
-      ? shifts.filter(shift => record.shifts.includes(shift.shift))
+    // A record lists no shift when its cycle could not read the shift's lines back, as after a failed pull or push.
+    const listed = record !== undefined && (record.shifts.length > 0 || shiftStep === undefined) ? record.shifts : undefined
+    const own = listed !== undefined
+      ? shifts.filter(shift => listed.includes(shift.shift))
       : shifts.filter(shift => shift.startedAt !== null && ms(shift.startedAt) >= start && ms(shift.startedAt) < until)
     for (const shift of own) claimed.add(shift.shift)
+    windows.push({ id, start, until })
     const account = shiftAccount(lines, own)
     const finished = record !== undefined || closing.has(id) || logs.done.has(id)
     const unrecorded = own.length === 0 && (steps.length === 0 || shiftStep !== undefined || !finished)
@@ -985,7 +1004,7 @@ export function pilotRows(
         cycles.filter(other => other.id !== id).map(other => ms(other.startedAt)),
         logs,
         inputs.scripts,
-        record?.startedBy,
+        record,
       ),
       shifts: own.map(shift => shift.shift),
       ...account,
@@ -1003,15 +1022,20 @@ export function pilotRows(
   })
   for (const shift of shifts) {
     if (claimed.has(shift.shift) || shift.startedAt === null) continue
-    const before = inputs.scripts.cycle !== null && ms(shift.startedAt) < ms(inputs.scripts.cycle)
+    const startedMs = ms(shift.startedAt)
+    const before = inputs.scripts.cycle !== null && startedMs < ms(inputs.scripts.cycle)
+    // A shift that started while a cycle ran, which that cycle does not claim, is not known to be the operator's.
+    const during = windows.find(window => startedMs >= window.start && startedMs < window.until)
     rows.push({
       id: shift.shift,
       kind: 'shift',
       startedAt: shift.startedAt,
-      startedBy: 'operator',
-      basis: before
-        ? `It started before ${CYCLE_SCRIPT} reached the branch (${inputs.scripts.cycle ?? ''}); a shift outside a cycle is started by hand with pnpm run enterprise -- shift.`
-        : 'It started outside every cycle on the branch; a shift outside a cycle is started by hand with pnpm run enterprise -- shift.',
+      startedBy: during === undefined ? 'operator' : 'unknown',
+      basis: during !== undefined
+        ? `It started while ${during.id} was running, whose record names another shift; nothing on the branch states who started it.`
+        : before
+          ? `It started before ${CYCLE_SCRIPT} reached the branch (${inputs.scripts.cycle ?? ''}); a shift outside a cycle is started by hand with pnpm run enterprise -- shift.`
+          : 'It started outside every cycle on the branch; a shift outside a cycle is started by hand with pnpm run enterprise -- shift.',
       shifts: [shift.shift],
       ...shiftAccount(lines, [shift]),
       steps: [],
@@ -1824,6 +1848,7 @@ export function buildBriefing(inputs: BriefingInputs, ci: CiReading, branch: str
   )
   figures['pilot.schedulerShipped'] = known(shippedBy('scheduler'), pilotSource('Tickets shipped by the ledger lines of the shifts of the cycles the scheduler started.'))
   figures['pilot.operatorShipped'] = known(shippedBy('operator'), pilotSource('Tickets shipped by the ledger lines of the shifts the operator started, directly or through a cycle.'))
+  figures['pilot.unknownShipped'] = known(shippedBy('unknown'), pilotSource('Tickets shipped by the ledger lines of the shifts of the units whose starter nothing on the branch states.'))
   const visibilitySource: Source = {
     paths: [],
     urls: [`https://github.com/${CI_REPOSITORY}`],

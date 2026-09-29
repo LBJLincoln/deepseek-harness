@@ -347,7 +347,7 @@ describe('enterprise figures', () => {
       const rows = pilotRows({ commits, ledger, cycleRecords: [record], logs: [scheduler], scripts: SCRIPTS }, shiftRows(records))
       const recorded = rows.find(row => row.id === record.cycle)
       expect(recorded).toMatchObject({ startedBy: 'unknown', shifts: [], attempted: 0, lost: 0, tokens: null, finished: true, paths: ['data/enterprise/ledger.jsonl', `data/enterprise/cycles/${record.cycle}.json`, scheduler.dir] })
-      expect(recorded?.basis).toBe('No captured scheduler log covers its start.')
+      expect(recorded?.basis).toBe('Its cycle record names no starter, as records written before the field do not, and no captured scheduler log reports running it.')
       const stated = pilotRows({ commits, ledger, cycleRecords: [{ ...record, startedBy: 'operator' as const }], logs: [scheduler], scripts: SCRIPTS }, shiftRows(records))
       const statedRow = stated.find(row => row.id === record.cycle)
       expect(statedRow?.startedBy).toBe('operator')
@@ -355,6 +355,53 @@ describe('enterprise figures', () => {
       const running = pilotRows({ commits, ledger, cycleRecords: [], logs: [{ ...logs[1], text: 'enterprise-cycle: cycle-20260928T221301Z intake exit=0 at 22:14:00Z\n' } as (typeof logs)[number]], scripts: SCRIPTS }, [])
       expect(running.find(row => row.id === 'cycle-20260928T221301Z')).toMatchObject({ attempted: null, lost: null, finished: false })
       expect(rows.find(row => row.id === 'cycle-20260928T221301Z')?.basis).toContain('reports running the cycle whose log it stamped 2026-09-28T22:13:00.000Z')
+    })
+
+    it('gives a cycle whose record lists no shift the shift that started during its shift step, and never guesses a starter', () => {
+      const cycleRecord = (cycle: string, startedAt: string, shiftEnd: string, shifts: string[], startedBy?: 'scheduler') => ({
+        cycle,
+        startedAt,
+        endedAt: shiftEnd,
+        ...startedBy === undefined ? {} : { startedBy },
+        commits: { start: 'a'.repeat(40), pulled: 'a'.repeat(40), end: 'b'.repeat(40) },
+        steps: [{ name: 'shift', exit: 1, at: shiftEnd }],
+        shifts,
+        tickets: { shipped: 0, rejected: 0, halted: 0 },
+        functions: { pass: 0, fail: 0, error: 0 },
+        unreadable: 0,
+        firstFailure: null,
+        previous: null,
+      })
+      const shift = (id: string, startedAt: string, ticket: string): ShiftRecordInput => shiftRecord({
+        dir: `data/enterprise/shifts/2026-09-29-${id}`,
+        result: { type: 'result', shift: id, startedAt, tickets: [ticketLine({ shift: id, ticket })] },
+      })
+      const cycles = [
+        cycleRecord('cycle-20260929T001517Z', '2026-09-29T00:15:17.000Z', '2026-09-29T02:04:40.000Z', []),
+        cycleRecord('cycle-20260929T081300Z', '2026-09-29T08:13:00.000Z', '2026-09-29T09:37:19.000Z', ['081308-24b5'], 'scheduler'),
+        cycleRecord('cycle-20260929T101300Z', '2026-09-29T10:13:00.000Z', '2026-09-29T11:06:40.000Z', [], 'scheduler'),
+      ]
+      const shiftRecords = [
+        shift('001527-881f', '2026-09-29T00:15:28.672Z', 'T-0007'),
+        shift('081308-24b5', '2026-09-29T08:13:10.033Z', 'T-0016'),
+        shift('081400-beef', '2026-09-29T08:14:00.000Z', 'T-0017'),
+        shift('101309-c95c', '2026-09-29T10:13:10.627Z', 'T-0020'),
+      ]
+      const lines = [
+        ticketLine({ shift: '001527-881f', ticket: 'T-0007', at: '2026-09-29T02:04:38.491Z' }),
+        ticketLine({ shift: '081308-24b5', ticket: 'T-0016', at: '2026-09-29T09:37:06.598Z', shipped: null }),
+        ticketLine({ shift: '081400-beef', ticket: 'T-0017', at: '2026-09-29T09:00:00.000Z', shipped: null }),
+        ticketLine({ shift: '101309-c95c', ticket: 'T-0020', at: '2026-09-29T11:06:39.783Z', recordedBy: 'supervisor', recordedAt: '2026-09-29T11:21:00.000Z' }),
+      ]
+      const inputs = { commits: [], ledger: { lines, skipped: [] }, cycleRecords: cycles, logs: [], scripts: SCRIPTS }
+      const rows = pilotRows(inputs, shiftRows(shiftRecords))
+      expect(rows.map(row => [row.id, row.startedBy, row.shifts, row.shipped, row.completedBy])).toEqual([
+        ['cycle-20260929T001517Z', 'unknown', ['001527-881f'], ['T-0007'], []],
+        ['cycle-20260929T081300Z', 'scheduler', ['081308-24b5'], [], []],
+        ['081400-beef', 'unknown', ['081400-beef'], [], []],
+        ['cycle-20260929T101300Z', 'scheduler', ['101309-c95c'], ['T-0020'], ['supervisor']],
+      ])
+      expect(rows[2]?.basis).toBe('It started while cycle-20260929T081300Z was running, whose record names another shift; nothing on the branch states who started it.')
     })
 
     it('stands a shift start line with no record for its shift, counting its abandoned lines and the tickets no line records', () => {
@@ -695,8 +742,18 @@ describe('the briefing', () => {
     const zh = renderSummary(briefing, 'zh')
     const shape = (text: string) => text.split('\n').map(line => (line.startsWith('#') ? line.split(' ')[0] : line.startsWith('|') ? '|' : line.startsWith('- ') ? '-' : '')).join('')
     expect(shape(en)).toBe(shape(zh))
-    expect(en).toContain('| Tickets shipped: by units the operator started / by cycles the scheduler started | 1 / 0 |')
-    expect(zh).toContain('| 已交付工单：操作员启动的单元 / 调度器启动的周期 | 1 / 0 |')
+    expect(en).toContain('| Tickets shipped: by units the operator started / by cycles the scheduler started / by units whose starter is not recorded | 1 / 0 / 0 |')
+    expect(zh).toContain('| 已交付工单：操作员启动的单元 / 调度器启动的周期 / 启动者未记录的单元 | 1 / 0 / 0 |')
+    expect(en).toContain('Of the 1 ticket shipped so far, 1 came from shifts the operator started. The scheduler has started')
+    const pilot = briefing.pilot.value ?? []
+    const completed = {
+      ...briefing,
+      pilot: { ...briefing.pilot, value: [...pilot, { ...pilot[0], id: 'cycle-20260929T101300Z', kind: 'cycle', startedBy: 'scheduler', shifts: ['101309-c95c'], shipped: ['T-0020', 'T-0021'], completedBy: ['supervisor'] }] },
+    } as typeof briefing
+    expect(renderSummary(completed, 'en')).toContain('Of the 3 tickets shipped so far, 1 came from shifts the operator started and 2 from cycles the scheduler started. '
+      + 'Shift 101309-c95c, started by the scheduler\'s cycle-20260929T101300Z, shipped T-0020 and T-0021; its push was completed by the supervisor, '
+      + 'and their ledger lines are marked `recordedBy: supervisor`.')
+    expect(renderSummary(completed, 'zh')).toContain('班次 101309-c95c（由调度器的 cycle-20260929T101300Z 启动）交付了 T-0020 与 T-0021；它的推送由 supervisor 补全')
     expect(en).toContain('| shift `182951-78a6` | 28 September 2026, 18:29 UTC | operator | 1 | 1 (T-0012) | 0 | 0 | exact commit: 0 of 1 run; containing run: failed | 1,000,000 |')
     expect(en).toContain('No Branch CI run tested any of these exact commits. The containing run of the push that carried them failed: the push introduced a failure of `translation pairing`')
     for (const text of [en, zh]) {

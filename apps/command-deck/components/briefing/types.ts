@@ -137,6 +137,8 @@ export interface PilotRow {
   /** `null` when a shift of the unit left no record on the branch, or nothing states its steps. */
   attempted: number | null
   shipped: string[]
+  /** Who wrote its shipping lines after the fact, such as the supervisor that completed its push; absent from an older briefing. */
+  completedBy?: string[]
   failed: { ticket: string; status: 'halted' | 'rejected'; failedChecks: string[]; reason: string | null }[]
   lost: number | null
   tokens: number | null

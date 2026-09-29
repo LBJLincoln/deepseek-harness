@@ -683,7 +683,14 @@ export function Briefing({ data }: { data: BriefingData }): ReactNode {
   }
 
   const routeShare = topRoute === undefined || routeTotal === 0 ? 'unknown' : percent(topRoute.sessions, routeTotal)
-  const shippedBy = listed(shippingUnits.map(row => `${row.kind} ${row.id}, started by the ${row.startedBy}`))
+  const units = shippingUnits.map((row) => {
+    const started = row.startedBy === 'unknown' ? 'whose starter the records do not state' : `started by the ${row.startedBy}`
+    const completedBy = row.completedBy ?? []
+    const completed = completedBy.length === 0 ? '' : `, whose push the ${listed(completedBy)} completed (its ledger lines are marked recordedBy ${completedBy.join(', ')})`
+    return `${row.kind} ${row.id}, ${started}${completed}`
+  })
+  // Each unit's phrase holds commas of its own, so the units are separated by semicolons.
+  const shippedBy = units.length <= 1 ? units.join('') : `${units.slice(0, -1).join('; ')}; and ${units.at(-1) ?? ''}`
   const schedulerShippedCount = numberOf(f('pilot.schedulerShipped'))
   const tier = (id: string): { found: number; knownIssues: number; findings: number } | undefined => tiers.find(row => row.id === id)
   const [scanner, single, enterprise] = [tier('semgrep'), tier('single-model'), tier('enterprise')]
