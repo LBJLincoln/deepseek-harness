@@ -106,14 +106,14 @@
 
 ## 发布指挥台
 
-`pnpm run enterprise:publish`（[`scripts/enterprise-publish.ts`](../../scripts/enterprise-publish.ts)）从花名册、台账与工单队列重新生成指挥台的静态企业数据：`apps/command-deck/public/fixtures/roster.json`，即 `roster.json` 的逐字节副本；以及 `apps/command-deck/public/fixtures/enterprise.json`，即指挥台的台账标签页——`asOf`（花名册盖章时刻与最后一条台账行中较新者）、时间窗、按事业部的在岗与活跃席位、当天按状态分列的工单（queued 来自队列，其余来自每张工单在时间窗内的最新一行）、当天由新到旧的职能运行，以及最近十个已交付提交及其上记录的 CI 裁决（按提交前缀匹配）。它还写出 `apps/command-deck/public/fixtures/enterprise-day.json`，即指挥台的 24 hours 标签页：花名册时间窗（截至其 `generatedAt` 的 24 小时）上的[报告](#the-report)，它像报告本身一样读取周期记录、HEAD 的 git 历史与 Branch CI（包脚本设置了 `NODE_USE_ENV_PROXY=1`）；周期在写出自己的记录之前发布，因此这份报告把正在发布的周期列为没有记录的周期。每个文件都是其输入的纯函数（第三个文件的输入还包括 GitHub 的回答），只在字节变化时重写；[`deck-pages.yml`](../../.github/workflows/deck-pages.yml) 在指挥台分支上每一次触及 `apps/command-deck/**` 的推送时重新发布 <https://lbjlincoln.github.io/deepseek-harness/>，fixture 的变化正属于此。
+`pnpm run enterprise:publish`（[`scripts/enterprise-publish.ts`](../../scripts/enterprise-publish.ts)）从花名册、台账与工单队列重新生成指挥台的静态企业数据：`apps/command-deck/public/fixtures/roster.json`，即 `roster.json` 的逐字节副本；以及 `apps/command-deck/public/fixtures/enterprise.json`，即指挥台的台账标签页——`asOf`（花名册盖章时刻与最后一条台账行中较新者）、时间窗、按事业部的在岗与活跃席位、当天按状态分列的工单（queued 来自队列，其余来自每张工单在时间窗内的最新一行）、当天由新到旧的职能运行，以及最近十个已交付提交及其上记录的 CI 裁决（按提交前缀匹配）。它还写出 `apps/command-deck/public/fixtures/enterprise-day.json`，即指挥台的 24 hours 标签页：花名册时间窗（截至其 `generatedAt` 的 24 小时）上的[报告](#the-report)，它像报告本身一样读取周期记录、HEAD 的 git 历史与 Branch CI（包脚本设置了 `NODE_USE_ENV_PROXY=1`）；周期在写出自己的记录之前发布，因此这份报告把正在发布的周期列为没有记录的周期。每个文件都是其输入的纯函数（第三个文件的输入还包括 GitHub 的回答）。它的最后一步运行 `pnpm run enterprise:briefing`（[`scripts/enterprise-briefing.ts`](../../scripts/enterprise-briefing.ts)），写出 `apps/command-deck/public/fixtures/briefing.json`，即指挥台 `/briefing` 客户简报的数据：页面展示的每个数值，连同读取它的仓库路径或 URL 及其计算方法，数据来自花名册、台账、队列、班次与受理记录、周期记录与企业的周期提交、[实时对话记录捕获](../transcripts/README.md#live-capture)保存的周期日志与调度器日志、Proving Ground 与代码安全记录，以及通过 GitHub REST API 读取的本分支 Branch CI 运行与仓库可见性；API 无法读取时，这些数值记为未知，而不是让这一步失败。每个 fixture 都只在字节变化时重写；[`deck-pages.yml`](../../.github/workflows/deck-pages.yml) 在指挥台分支上每一次触及 `apps/command-deck/**` 的推送时重新发布 <https://lbjlincoln.github.io/deepseek-harness/>，fixture 的变化正属于此。
 
 ## 重新生成
 
 ```sh
 pnpm run enterprise:functions   # the functions of the ticketless divisions, appended to the ledger
 pnpm run roster                 # the roster over every record and every ledger line
-pnpm run enterprise:publish     # the deck's fixtures from the roster and the ledger
+pnpm run enterprise:publish     # the deck's fixtures from the roster and the ledger, then the briefing's
 ```
 
 每条命令都是幂等的，在任何后续提交上都可安全运行：职能运行器只追加、从不改写，每个 CI 裁决只记录一次，API 无法读取时让裁判空缺而不是失败；生成器在未变的输入上逐字节复现 `roster.json`，只在记录、来源或台账行变化时重新盖章，来源移动会让它在写入任何东西之前带着该来源的名字失败；发布器只在字节变化时重写 fixture。引擎在每个班次之后按此顺序运行这三条命令。
