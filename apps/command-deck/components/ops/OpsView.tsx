@@ -389,7 +389,7 @@ function StageOverlay({ reading }: { reading: OpsReading | undefined }): ReactNo
         <div className={styles.legend}>
           <span><i style={{ background: '#4fd8ff', opacity: 0.35 }} />defined seat</span>
           <span><i style={{ background: '#4fd8ff' }} />occupied or active</span>
-          <span><i style={{ background: '#9b7bff' }} />operator agent</span>
+          {snapshot?.agents.some(agent => agent.kind === 'operator-agent') === true ? <span><i style={{ background: '#9b7bff' }} />operator agent</span> : null}
           <span><i style={{ background: '#ffcf7a' }} />certificate or merge</span>
           <span>{reading?.mode === 'live' ? `comets replay each tool call ${Math.round(((snapshot?.intervalSeconds ?? 15) + 5))} s behind the machine` : 'comets replay the recorded calls'}</span>
         </div>

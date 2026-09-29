@@ -113,18 +113,20 @@ export function Swimlanes({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
   const labelWidth = narrow ? 92 : 118
   const plot = Math.max(10, width - labelWidth - 8)
   const x = (ms: number): number => labelWidth + (((ms - since) / Math.max(1, until - since)) * plot)
+  const counts = OPS_AGENT_KINDS.map(kind => snapshot.runs.filter(run => run.kind === kind).length)
+  // A published snapshot lists no operator agent, so the empty operator lane takes no room and prints no label.
+  const hidden = (lane: number): boolean => OPS_AGENT_KINDS[lane] === 'operator-agent' && (counts[lane] ?? 0) === 0
   const laneTops: number[] = []
   let top = 0
-  for (const count of tracks) {
+  for (const [lane, count] of tracks.entries()) {
     laneTops.push(top)
-    top += (count * TRACK) + ((count - 1) * 2) + LANE_GAP
+    if (!hidden(lane)) top += (count * TRACK) + ((count - 1) * 2) + LANE_GAP
   }
   const height = top + AXIS
   const tickHours = narrow ? 6 : 3
   const firstTick = Math.ceil(since / (tickHours * 3_600_000)) * tickHours * 3_600_000
   const ticks: number[] = []
   for (let tick = firstTick; tick <= until; tick += tickHours * 3_600_000) ticks.push(tick)
-  const counts = OPS_AGENT_KINDS.map(kind => snapshot.runs.filter(run => run.kind === kind).length)
   const byOutcome = (outcome: OpsRunOutcome): number => snapshot.runs.filter(run => run.outcome === outcome).length
 
   return (
@@ -146,6 +148,7 @@ export function Swimlanes({ snapshot }: { snapshot: OpsSnapshot }): ReactNode {
         {width === 0 ? <div style={{ height }} /> : (
           <svg className={styles.lanes} width={width} height={height} role="img" aria-label={`Agent runs in the last 24 hours: ${snapshot.runs.length}`}>
             {OPS_AGENT_KINDS.map((kind, lane) => {
+              if (hidden(lane)) return null
               const laneTop = laneTops[lane] ?? 0
               const laneHeight = ((tracks[lane] ?? 1) * TRACK) + (((tracks[lane] ?? 1) - 1) * 2)
               return (
