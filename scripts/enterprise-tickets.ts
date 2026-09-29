@@ -15,6 +15,7 @@ import { basename, isAbsolute, resolve } from 'node:path'
 
 import { HARNESS_ACCEPTANCE_FORMS, OPEN_ACCEPTANCE_FORMS } from './enterprise-acceptance.ts'
 import type { AcceptanceForms } from './enterprise-acceptance.ts'
+import { LEDGER_PATH, readLedger } from './enterprise-ledger.ts'
 import type { Roster } from './enterprise-roster.ts'
 
 /** Queue directory, relative to the repository root. */
@@ -208,7 +209,22 @@ function keyErrors(record: Record<string, unknown>, expected: readonly string[],
   return errors
 }
 
-function validateSource(source: unknown, root: string): string[] {
+/**
+ * @param root - repository root holding the ledger.
+ * @returns the tickets a ledger line records as shipped.
+ */
+function shippedTickets(root: string): Set<string> {
+  return new Set(readLedger(resolve(root, LEDGER_PATH)).lines.flatMap(line => (line.type === 'ticket' && line.shipped !== null ? [line.ticket] : [])))
+}
+
+/**
+ * @param source - the ticket's `source`.
+ * @param root - repository root.
+ * @param shipped - whether the ledger records the ticket as shipped: its own change may have rewritten the text its anchor
+ * quotes, so a shipped ticket's anchor need no longer occur in the tree.
+ * @returns the violations.
+ */
+function validateSource(source: unknown, root: string, shipped: boolean): string[] {
   if (!isRecord(source)) return ['source must be an object']
   const errors = keyErrors(source, SOURCE_KEYS, 'source')
   if (errors.length > 0) return errors
@@ -217,7 +233,7 @@ function validateSource(source: unknown, root: string): string[] {
   const absolute = resolve(root, path)
   if (!existsSync(absolute) || !statSync(absolute).isFile()) return [`source.path "${path}" does not exist in the tree`]
   if (!isNonEmptyString(anchor)) return ['source.anchor must be a non-empty string']
-  if (!readFileSync(absolute, 'utf8').includes(anchor)) return [`source.anchor ${JSON.stringify(anchor)} does not occur in "${path}"`]
+  if (!shipped && !readFileSync(absolute, 'utf8').includes(anchor)) return [`source.anchor ${JSON.stringify(anchor)} does not occur in "${path}"`]
   return []
 }
 
@@ -274,7 +290,7 @@ function validateBudget(budget: unknown): string[] {
   return errors
 }
 
-function validateTicket(loaded: LoadedTicket, roster: Roster, root: string, policy: QueuePolicy): string[] {
+function validateTicket(loaded: LoadedTicket, roster: Roster, root: string, policy: QueuePolicy, shipped: ReadonlySet<string>): string[] {
   const { file, value } = loaded
   if (value instanceof Error) return [`not valid JSON: ${value.message}`]
   if (!isRecord(value)) return ['a ticket must be a JSON object']
@@ -289,7 +305,7 @@ function validateTicket(loaded: LoadedTicket, roster: Roster, root: string, poli
   if (agent === undefined) errors.push(`seat ${JSON.stringify(seat)} is not in the roster`)
   else if (agent.division !== division) errors.push(`seat "${agent.id}" belongs to division "${agent.division}", not ${JSON.stringify(division)}`)
   if (typeof kind !== 'string' || !KINDS.has(kind)) errors.push(`kind ${JSON.stringify(kind)} is not one of ${[...KINDS].join('|')}`)
-  errors.push(...validateSource(source, root))
+  errors.push(...validateSource(source, root, typeof id === 'string' && shipped.has(id)))
   if (!isNonEmptyString(task)) errors.push('task must be a non-empty string')
   else if (!EVIDENCE_PATTERN.test(task)) errors.push('task must cite its evidence as path:line at least once')
   errors.push(...validateScope(scope, root))
@@ -314,7 +330,8 @@ function validatePriority(priority: unknown, source: unknown): string[] {
  * Validate the loaded queue against the roster and the tree.
  * @param loaded - the queue files.
  * @param roster - the committed roster, for divisions and seats.
- * @param root - repository root, for source and scope existence checks.
+ * @param root - repository root, for source and scope existence checks; a ticket its ledger records as shipped is not
+ * held to its source anchor, which its own change may have rewritten.
  * @param policy - the acceptance commands this queue mandates; this repository's by default.
  * @returns every violation as `<file>: <message>`; empty when the queue is valid.
  */
@@ -326,8 +343,9 @@ export function validateTickets(
 ): string[] {
   const errors: string[] = []
   const ids: string[] = []
+  const shipped = shippedTickets(root)
   for (const ticket of loaded) {
-    for (const message of validateTicket(ticket, roster, root, policy)) errors.push(`${ticket.file}: ${message}`)
+    for (const message of validateTicket(ticket, roster, root, policy, shipped)) errors.push(`${ticket.file}: ${message}`)
     if (isRecord(ticket.value) && typeof ticket.value['id'] === 'string') ids.push(ticket.value['id'])
   }
   const sorted = [...ids].sort()
