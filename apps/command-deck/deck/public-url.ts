@@ -8,7 +8,7 @@
  */
 
 /** The path prefix the deck is served under, empty when the build set none. */
-export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 
 /**
  * The URL one public file is served at.

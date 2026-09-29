@@ -10,6 +10,7 @@
  */
 
 import type { Comparison, EnterpriseDay, EnterpriseReport, ProgramRecord, Roster, Run, SafetyReview } from './contract.ts'
+import { publicUrl } from './public-url.ts'
 
 /** Whether the deck is reading a live feed or the committed fixtures. */
 type FeedMode = 'live' | 'replay'
@@ -25,15 +26,8 @@ export interface FeedSource {
   reason?: string
 }
 
-/**
- * The path prefix the deck is served under: empty unless the build set
- * `NEXT_PUBLIC_BASE_PATH`, as the GitHub Pages export does because a
- * repository site lives at `/<repository>`. Public files are reached through it.
- */
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
-
-/** Base URL of the committed fixtures, static files that mirror the feed's paths. */
-export const FIXTURE_BASE = `${BASE_PATH}/fixtures`
+/** Base URL of the committed fixtures, static files that mirror the feed's paths, under the deck's base path. */
+export const FIXTURE_BASE = publicUrl('fixtures')
 
 /** Query parameter naming the feed for one browser tab: `?feed=https://feed.example`. */
 const FEED_PARAM = 'feed'
@@ -147,7 +141,7 @@ async function readJson<T>(source: FeedSource, path: string): Promise<T> {
  * @param source - Source from {@link resolveFeed}.
  * @returns The enterprise roster.
  */
-export function getRoster(source: FeedSource): Promise<Roster> {
+function getRoster(source: FeedSource): Promise<Roster> {
   return readJson<Roster>(source, '/roster')
 }
 

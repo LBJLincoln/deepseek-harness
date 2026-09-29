@@ -65,7 +65,7 @@ function subjectOf(slug: string): string {
  * @param at - ISO-8601 text.
  * @returns `19 Sep 2026` in UTC, or `undefined` when it does not parse.
  */
-export function day(at: string): string | undefined {
+function day(at: string): string | undefined {
   const date = new Date(at)
   if (Number.isNaN(date.getTime())) return undefined
   return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()] ?? ''} ${date.getUTCFullYear()}`
