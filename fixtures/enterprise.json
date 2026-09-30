@@ -1,0 +1,4492 @@
+{
+  "asOf": "2026-09-30T00:16:29.456Z",
+  "window": {
+    "since": "2026-09-29T00:16:29.456Z",
+    "until": "2026-09-30T00:16:29.456Z"
+  },
+  "counts": {
+    "defined": 147,
+    "occupied": 64,
+    "active": 43,
+    "work": {
+      "occupied": {
+        "model": 36,
+        "check": 22,
+        "halted": 6
+      },
+      "active": {
+        "model": 15,
+        "check": 22,
+        "halted": 6
+      }
+    }
+  },
+  "outcomes": {
+    "shipped": 9,
+    "notShipped": 5,
+    "haltedBeforeModel": 6,
+    "programs": [],
+    "checks": {
+      "runs": 224,
+      "pass": 207,
+      "fail": 17,
+      "error": 0
+    }
+  },
+  "divisions": [
+    {
+      "id": "harness-core",
+      "name": "Harness Core",
+      "defined": 24,
+      "occupied": 13,
+      "active": 11,
+      "work": {
+        "model": 8,
+        "check": 0,
+        "halted": 3
+      }
+    },
+    {
+      "id": "proving-ground",
+      "name": "Proving Ground",
+      "defined": 12,
+      "occupied": 12,
+      "active": 3,
+      "work": {
+        "model": 3,
+        "check": 0,
+        "halted": 0
+      }
+    },
+    {
+      "id": "verification",
+      "name": "Verification",
+      "defined": 14,
+      "occupied": 14,
+      "active": 14,
+      "work": {
+        "model": 0,
+        "check": 14,
+        "halted": 0
+      }
+    },
+    {
+      "id": "judging",
+      "name": "Judging",
+      "defined": 11,
+      "occupied": 6,
+      "active": 6,
+      "work": {
+        "model": 0,
+        "check": 6,
+        "halted": 0
+      }
+    },
+    {
+      "id": "curation-data",
+      "name": "Curation & Data",
+      "defined": 8,
+      "occupied": 3,
+      "active": 3,
+      "work": {
+        "model": 1,
+        "check": 1,
+        "halted": 1
+      }
+    },
+    {
+      "id": "program-departments",
+      "name": "Program Departments",
+      "defined": 10,
+      "occupied": 4,
+      "active": 2,
+      "work": {
+        "model": 1,
+        "check": 0,
+        "halted": 1
+      }
+    },
+    {
+      "id": "code-safety",
+      "name": "Code Safety",
+      "defined": 43,
+      "occupied": 7,
+      "active": 0,
+      "work": {
+        "model": 0,
+        "check": 0,
+        "halted": 0
+      }
+    },
+    {
+      "id": "knowledge",
+      "name": "Knowledge",
+      "defined": 11,
+      "occupied": 2,
+      "active": 1,
+      "work": {
+        "model": 0,
+        "check": 0,
+        "halted": 1
+      }
+    },
+    {
+      "id": "governance",
+      "name": "Governance",
+      "defined": 8,
+      "occupied": 2,
+      "active": 2,
+      "work": {
+        "model": 2,
+        "check": 0,
+        "halted": 0
+      }
+    },
+    {
+      "id": "observatory",
+      "name": "Observatory",
+      "defined": 6,
+      "occupied": 1,
+      "active": 1,
+      "work": {
+        "model": 0,
+        "check": 1,
+        "halted": 0
+      }
+    }
+  ],
+  "tickets": {
+    "queued": [
+      {
+        "ticket": "T-0002",
+        "seat": "harness-core-agent-steward",
+        "division": "harness-core",
+        "status": "queued",
+        "title": "Drop the consumer-less agentCarrier root export from dsh-agent"
+      },
+      {
+        "ticket": "T-0004",
+        "seat": "harness-core-agent-loop-steward",
+        "division": "harness-core",
+        "status": "queued",
+        "title": "Stop exporting DEFAULT_MAX_PARALLEL_TOOL_CALLS from the agent-loop package root"
+      },
+      {
+        "ticket": "T-0009",
+        "seat": "harness-core-llm-claude-code-steward",
+        "division": "harness-core",
+        "status": "queued",
+        "title": "Trim the test-only white-box exports from the llm-claude-code package root"
+      },
+      {
+        "ticket": "T-0010",
+        "seat": "harness-core-llm-deepseek-steward",
+        "division": "harness-core",
+        "status": "queued",
+        "title": "Stop exporting the DeepSeek adapter's default constants at the package root"
+      },
+      {
+        "ticket": "T-0013",
+        "seat": "harness-core-llm-retry-steward",
+        "division": "harness-core",
+        "status": "queued",
+        "title": "Remove the RetryInternals test hook from the llm-retry apply() signature"
+      },
+      {
+        "ticket": "T-0018",
+        "seat": "harness-core-subagent-fork-in-process-steward",
+        "division": "harness-core",
+        "status": "queued",
+        "title": "Pin that a fork child's seed is a one-time snapshot of the parent"
+      },
+      {
+        "ticket": "T-0030",
+        "seat": "knowledge-dsh-archive-agent-notes-skill-keeper",
+        "division": "knowledge",
+        "status": "queued",
+        "title": "Name the archive verifier's focused test in the archive-agent-notes skill"
+      },
+      {
+        "ticket": "T-0031",
+        "seat": "governance-doc-budgets-standard-author",
+        "division": "governance",
+        "status": "queued",
+        "title": "Ratchet the docs/architecture.md word ceiling down to the policy headroom"
+      },
+      {
+        "ticket": "T-0032",
+        "seat": "curation-data-testing-curator",
+        "division": "curation-data",
+        "status": "queued",
+        "title": "Point the web GUI e2e-lane note at the bundles the web scaffold boots today"
+      },
+      {
+        "ticket": "T-0033",
+        "seat": "curation-data-simplification-curator",
+        "division": "curation-data",
+        "status": "queued",
+        "title": "Bring the shared-base-overlays note's Decision up to the bundle layout that superseded it"
+      },
+      {
+        "ticket": "T-0034",
+        "seat": "program-departments-client-coordinator",
+        "division": "program-departments",
+        "status": "queued",
+        "title": "List the four shipped client packages the client/ group README omits"
+      },
+      {
+        "ticket": "T-0035",
+        "seat": "governance-vendoring-policy-standard-author",
+        "division": "governance",
+        "status": "queued",
+        "title": "State in vendor/README.md that vendored versions follow the release sequence, not upstream"
+      },
+      {
+        "ticket": "T-0036",
+        "seat": "knowledge-record-browser-gif-skill-keeper",
+        "division": "knowledge",
+        "status": "queued",
+        "title": "Stop the GIF skill from building the web bundle twice"
+      },
+      {
+        "ticket": "T-0037",
+        "seat": "curation-data-architecture-curator",
+        "division": "curation-data",
+        "status": "queued",
+        "title": "Correct the command-deck note's path to the fixture snapshot script"
+      },
+      {
+        "ticket": "T-0038",
+        "seat": "program-departments-jobs-coordinator",
+        "division": "program-departments",
+        "status": "queued",
+        "title": "Remove duplicated JSDoc opener above JobRegistry.onJobsChanged"
+      },
+      {
+        "ticket": "T-0039",
+        "seat": "program-departments-workflow-coordinator",
+        "division": "program-departments",
+        "status": "queued",
+        "title": "Fix ralph system-prompt guidance text to match README's quoted text"
+      },
+      {
+        "ticket": "T-0041",
+        "seat": "harness-core-subagent-claude-code-steward",
+        "division": "harness-core",
+        "status": "queued",
+        "title": "Spawn the Claude Code batch shim through an absolute cmd.exe, not a bare name searched in the workspace"
+      }
+    ],
+    "shipped": [
+      {
+        "ticket": "T-0017",
+        "seat": "harness-core-subagent-claude-code-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T23:07:01.571Z",
+        "shift": "221307-dd9a",
+        "commit": "84651be1bfc78c37bb7741ecd1af4ac93baa158d",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0017-dfbe8005"
+        },
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0029",
+        "seat": "program-departments-workspace-coordinator",
+        "division": "program-departments",
+        "status": "shipped",
+        "at": "2026-09-29T23:07:01.571Z",
+        "shift": "221307-dd9a",
+        "commit": "46d9a57469c165a565512ca5962abe4eaf8ef5b6",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0029-3e7cbf28"
+        },
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0011",
+        "seat": "harness-core-llm-pi-ai-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T16:31:49.326Z",
+        "shift": "161311-58c9",
+        "commit": "81699732468a674ba0bf6338807ebc404ec11c4f",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0011-46d9ba45"
+        },
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0027",
+        "seat": "governance-third-party-notices-standard-author",
+        "division": "governance",
+        "status": "shipped",
+        "at": "2026-09-29T16:31:49.326Z",
+        "shift": "161311-58c9",
+        "commit": "b26f4b959cf440f4f94819f813e20bd8aedfee0f",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0027-edabf50d"
+        },
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0040",
+        "seat": "harness-core-subagent-codex-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T13:37:07.184Z",
+        "shift": "121310-3eae",
+        "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0040-89ca51a7"
+        },
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0003",
+        "seat": "harness-core-agent-default-model-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T13:37:07.184Z",
+        "shift": "121310-3eae",
+        "commit": "e086cb101806019afe126869b15e67c765c62333",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0003-9462100b"
+        },
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0020",
+        "seat": "harness-core-subagent-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T11:06:39.783Z",
+        "shift": "101309-c95c",
+        "commit": "b157e090863512134630d246d52d7c7167fde50a",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0020-c3b2dc5a"
+        }
+      },
+      {
+        "ticket": "T-0021",
+        "seat": "harness-core-subagent-acp-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T11:06:39.783Z",
+        "shift": "101309-c95c",
+        "commit": "a54154ce7897494822a74d7da81e92774a2f981b",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0021-f02dd27f"
+        }
+      },
+      {
+        "ticket": "T-0007",
+        "seat": "harness-core-llm-steward",
+        "division": "harness-core",
+        "status": "shipped",
+        "at": "2026-09-29T02:04:38.491Z",
+        "shift": "001527-881f",
+        "commit": "cba8e46823c6fa946e5ee4f86d3945590a3fb1bc",
+        "reason": "approved and assembled",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0007-51a05d12"
+        }
+      }
+    ],
+    "rejected": [],
+    "halted": [
+      {
+        "ticket": "T-0015",
+        "seat": "harness-core-subagent-steward",
+        "division": "harness-core",
+        "status": "halted",
+        "at": "2026-09-29T20:46:35.859Z",
+        "shift": "201313-0965",
+        "reason": "the assembled tree 42ad225c2710e990f4471fcb86e75eb6a4ba87a3 is not the program's certified merged tree acf5ca5b22afdc8767ade1fff8c920d8e2b87b14",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0015-70c0432b"
+        },
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0028",
+        "seat": "curation-data-bug-fix-curator",
+        "division": "curation-data",
+        "status": "halted",
+        "at": "2026-09-29T20:46:35.859Z",
+        "shift": "201313-0965",
+        "reason": "the assembled tree 42ad225c2710e990f4471fcb86e75eb6a4ba87a3 is not the program's certified merged tree acf5ca5b22afdc8767ade1fff8c920d8e2b87b14",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0028-a50f9c0d"
+        },
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0006",
+        "seat": "harness-core-tools-steward",
+        "division": "harness-core",
+        "status": "halted",
+        "at": "2026-09-29T16:13:12.986Z",
+        "shift": "141308-b243",
+        "reason": "abandoned: container reset: shift 141308-b243 started at 2026-09-29T14:13:09.658Z on vm over 6393dac8eabb655314fcdc82d76da9a2b0a6cbce and recorded no end"
+      },
+      {
+        "ticket": "T-0026",
+        "seat": "knowledge-dsh-pre-push-checks-skill-keeper",
+        "division": "knowledge",
+        "status": "halted",
+        "at": "2026-09-29T16:13:12.986Z",
+        "shift": "141308-b243",
+        "reason": "abandoned: container reset: shift 141308-b243 started at 2026-09-29T14:13:09.658Z on vm over 6393dac8eabb655314fcdc82d76da9a2b0a6cbce and recorded no end"
+      },
+      {
+        "ticket": "T-0014",
+        "seat": "harness-core-subagent-steward",
+        "division": "harness-core",
+        "status": "halted",
+        "at": "2026-09-29T09:37:06.598Z",
+        "shift": "081308-24b5",
+        "reason": "budget-exhausted"
+      },
+      {
+        "ticket": "T-0016",
+        "seat": "harness-core-tool-subagent-steward",
+        "division": "harness-core",
+        "status": "halted",
+        "at": "2026-09-29T09:37:06.598Z",
+        "shift": "081308-24b5",
+        "reason": "acceptance failed over the assembled tree: T-0016 doc-sync:  the pair: \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk-… vs \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk-…\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.zh.md: missing language switcher — no link to README.md\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.md: missing language switcher — no link back to README.zh.md\n  program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.md ↔ program-7ab5581f7e3bc6e331acb3253f4a483928a248a62d809cc519caea2b9659e9c4/t-0016/python/sdk/README.zh.md: link target #1 diverges between the pair: \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk/… vs \"https://github.com/deepseek-ai/deepseek-harness/blob/master/python/sdk/…\nrun-gates: unsuccessful gates:\n  - FAILED translation pairing (50.40s, exit 1)\n    pnpm run verify-translation-pairing",
+        "review": {
+          "verdict": "approve",
+          "sessionId": "review-t-0016-f22a14a7"
+        }
+      },
+      {
+        "ticket": "T-0008",
+        "seat": "harness-core-llm-claude-code-steward",
+        "division": "harness-core",
+        "status": "halted",
+        "at": "2026-09-29T06:14:36.155Z",
+        "shift": "061342-191b",
+        "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n[WARN] Failed to create bin at /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/061342-191b/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+      },
+      {
+        "ticket": "T-0025",
+        "seat": "program-departments-feedback-coordinator",
+        "division": "program-departments",
+        "status": "halted",
+        "at": "2026-09-29T06:14:36.155Z",
+        "shift": "061342-191b",
+        "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n[WARN] Failed to create bin at /tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/061342-191b/repo/program-de51bcaaf27e3417623029129a2d235561b194bfeff56c63344a884d40cda19b/t-0008/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/061342-191b/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+      },
+      {
+        "ticket": "T-0024",
+        "seat": "curation-data-feature-curator",
+        "division": "curation-data",
+        "status": "halted",
+        "at": "2026-09-29T04:14:26.512Z",
+        "shift": "041341-222d",
+        "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n[WARN] Failed to create bin at /tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/041341-222d/repo/program-ea25809e5bc1db96bb4ae4c8187c2d2f8674a8a5729fee7d664402242a147bfe/t-0007/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/041341-222d/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+      },
+      {
+        "ticket": "T-0005",
+        "seat": "harness-core-system-prompt-steward",
+        "division": "harness-core",
+        "status": "halted",
+        "at": "2026-09-29T02:14:43.714Z",
+        "shift": "021357-6546",
+        "reason": "the shift could not prepare its worktrees: pnpm install --offline --frozen-lockfile failed in /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005: 0\n+ @types/spdx-expression-parse 4.0.0\n+ @vitest/coverage-v8 4.1.8\n+ @yarnpkg/cli-dist 4.17.1\n+ eslint-plugin-sonarjs 4.1.0\n+ execa 10.0.0\n+ fast-check 4.8.0\n+ istanbul-lib-report 3.0.1\n+ js-yaml 4.2.0\n+ jscpd 5.0.12\n+ jsdom 29.1.1\n+ knip 6.16.1\n+ lefthook 2.1.9\n+ lightningcss 1.32.0\n+ mdast-util-from-markdown 2.0.3\n+ mdast-util-gfm 3.1.0\n+ mermaid 11.16.0\n+ micromark-extension-gfm 3.0.0\n+ oxlint 1.76.0\n+ oxlint-tsgolint 7.0.2001\n+ publint 0.3.21\n+ smol-toml 1.7.1\n+ spdx-expression-parse 5.0.0\n+ tsdown 0.22.2\n+ tsx 4.22.4\n+ typescript 6.0.3\n+ vite-tsconfig-paths 6.1.1\n+ vitest 4.1.8\n\npackages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs\npackages/subprocess/subprocess-local postinstall: Done\n[WARN] Failed to create bin at /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/examples/node_modules/.bin/dsh-acp-demo. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/examples/node_modules/@deepseek-ai/dsh-acp-demo/lib/bin.js'\n. postinstall$ node scripts/install-lefthook.mjs\n[WARN] Failed to create bin at /tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/python/sdk-runtime/node_modules/.bin/dsh-jsonrpc-agent. ENOENT: no such file or directory, open '/tmp/dsh-enterprise/021357-6546/repo/program-ad28af2da3c14864e08a91ec4543342037bb7dae4c78e68efdc489ef82463d3b/t-0005/python/sdk-runtime/node_modules/@deepseek-ai/dsh-sdk-jsonrpc-demo/lib/bin.js'\n. postinstall: [install-lefthook] cannot upgrade core.repositoryFormatVersion from 0 while dormant repository extension extensions.worktreeconfig is configured (file:/tmp/dsh-enterprise/021357-6546/repo/.git/config: \"true\"); audit and migrate it, then set repository format 1 explicitly before retrying\n. postinstall: Failed\n[ELIFECYCLE] Command failed with exit code 1.\n"
+      },
+      {
+        "ticket": "T-0023",
+        "seat": "governance-translation-pairing-standard-author",
+        "division": "governance",
+        "status": "halted",
+        "at": "2026-09-29T02:04:38.491Z",
+        "shift": "001527-881f",
+        "reason": "budget-exhausted"
+      }
+    ]
+  },
+  "functions": [
+    {
+      "type": "function",
+      "at": "2026-09-30T00:16:26.122Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 18.8
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:16:26.110Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 18.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:16:01.265Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-mermaid.log"
+      },
+      "seconds": 17.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:15:43.768Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 12
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:15:31.799Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-md-links.log"
+      },
+      "seconds": 15.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:15:16.061Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 12.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:15:03.452Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 1.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:15:02.197Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 59.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:14:03.117Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 2.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:14:00.913Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:13:59.987Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 4.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:13:55.440Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:13:54.589Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:13:53.440Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:13:52.528Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 3.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-30T00:13:49.345Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260930T001300Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:36:39.000Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "function": "ci-consumers",
+      "target": {
+        "commit": "6aadab5c7b332837a5fab5d782839d22ec8f8f51",
+        "requested": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36643731459/job/109665118394"
+      },
+      "seconds": 893
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:36:39.000Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "function": "ci-lint-contracts-ready",
+      "target": {
+        "commit": "6aadab5c7b332837a5fab5d782839d22ec8f8f51",
+        "requested": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36643731459/job/109665118394"
+      },
+      "seconds": 893
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:36:39.000Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "function": "ci-snapshot",
+      "target": {
+        "commit": "6aadab5c7b332837a5fab5d782839d22ec8f8f51",
+        "requested": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36643731459/job/109665118394"
+      },
+      "seconds": 893
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:36:39.000Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "function": "ci-artifacts",
+      "target": {
+        "commit": "6aadab5c7b332837a5fab5d782839d22ec8f8f51",
+        "requested": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36643731459/job/109665118394"
+      },
+      "seconds": 893
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:33:03.000Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "function": "ci-coverage",
+      "target": {
+        "commit": "6aadab5c7b332837a5fab5d782839d22ec8f8f51",
+        "requested": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36643731459/job/109665118081"
+      },
+      "seconds": 677
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:24:23.000Z",
+      "shift": "cycle-20260930T001300Z",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "function": "ci-static",
+      "target": {
+        "commit": "6aadab5c7b332837a5fab5d782839d22ec8f8f51",
+        "requested": "887e513c883b22e33f9ee44f6c23f119161833d7"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36643731459/job/109665118389"
+      },
+      "seconds": 157
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:09:05.421Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 3.8
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:09:05.411Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 3.8
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:55.052Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-mermaid.log"
+      },
+      "seconds": 16.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:38.464Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 11.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:27.133Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-md-links.log"
+      },
+      "seconds": 16.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:10.499Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 7.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:03.341Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:08:02.342Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 43.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:18.767Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 1.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:17.249Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:16.378Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 2.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:13.677Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:12.714Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:11.730Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:10.800Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:07:09.873Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T221300Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:06:54.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "function": "ci-consumers",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446416"
+      },
+      "seconds": 871
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:06:54.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "function": "ci-lint-contracts-ready",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446416"
+      },
+      "seconds": 871
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:06:54.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "function": "ci-snapshot",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446416"
+      },
+      "seconds": 871
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:06:54.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "function": "ci-artifacts",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446416"
+      },
+      "seconds": 871
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T23:00:04.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "function": "ci-coverage",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446253"
+      },
+      "seconds": 461
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T22:56:12.000Z",
+      "shift": "cycle-20260929T221300Z",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "function": "ci-static",
+      "target": {
+        "commit": "9914fceb2c3002fb7cf8b89e148ae191c7af9661",
+        "requested": "942a38313ab169a2a3a7c533dca20af174b2075f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36642081728/job/109656446009"
+      },
+      "seconds": 210
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:49:25.331Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 22.4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:49:25.320Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 22.4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:48:56.068Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-mermaid.log"
+      },
+      "seconds": 20.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:48:35.790Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 13.4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:48:22.422Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-md-links.log"
+      },
+      "seconds": 19.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:48:03.315Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 8.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:47:54.780Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 1.4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:47:53.397Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 47.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:47:05.879Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 2.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:47:03.379Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:47:02.303Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 4.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:46:57.604Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:46:56.630Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:46:55.452Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:46:54.224Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 3.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:46:50.966Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T201301Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:40:05.000Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "function": "ci-consumers",
+      "target": {
+        "commit": "5013945f47c1120c6e99b28d128740210c04ae33",
+        "requested": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36624898686/job/109604047513"
+      },
+      "seconds": 841
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:40:05.000Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "function": "ci-lint-contracts-ready",
+      "target": {
+        "commit": "5013945f47c1120c6e99b28d128740210c04ae33",
+        "requested": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36624898686/job/109604047513"
+      },
+      "seconds": 841
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:40:05.000Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "function": "ci-snapshot",
+      "target": {
+        "commit": "5013945f47c1120c6e99b28d128740210c04ae33",
+        "requested": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36624898686/job/109604047513"
+      },
+      "seconds": 841
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:40:05.000Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "function": "ci-artifacts",
+      "target": {
+        "commit": "5013945f47c1120c6e99b28d128740210c04ae33",
+        "requested": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36624898686/job/109604047513"
+      },
+      "seconds": 841
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:35:34.000Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "function": "ci-coverage",
+      "target": {
+        "commit": "5013945f47c1120c6e99b28d128740210c04ae33",
+        "requested": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36624898686/job/109604047143"
+      },
+      "seconds": 569
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T20:29:33.000Z",
+      "shift": "cycle-20260929T201301Z",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "function": "ci-static",
+      "target": {
+        "commit": "5013945f47c1120c6e99b28d128740210c04ae33",
+        "requested": "ae201afad97c0a7ccf19d2b3b84233e91c6c1cd0"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36624898686/job/109604047433"
+      },
+      "seconds": 208
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:34:44.300Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 23.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:34:44.288Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 23.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:34:13.680Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-mermaid.log"
+      },
+      "seconds": 20.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:33:53.116Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 14.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:33:38.644Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-md-links.log"
+      },
+      "seconds": 21.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:33:17.180Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 9.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:33:08.024Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:33:06.795Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 52.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:32:14.165Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 2.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:32:11.663Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:32:10.457Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 3.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:32:06.779Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:32:05.629Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:32:04.325Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:32:03.098Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 2.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:32:00.190Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T161300Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:28:05.000Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "function": "ci-consumers",
+      "target": {
+        "commit": "d47799da7bad630f10e66e3db801b520669d380d",
+        "requested": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36596105185/job/109501300395"
+      },
+      "seconds": 889
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:28:05.000Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "function": "ci-lint-contracts-ready",
+      "target": {
+        "commit": "d47799da7bad630f10e66e3db801b520669d380d",
+        "requested": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36596105185/job/109501300395"
+      },
+      "seconds": 889
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:28:05.000Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "function": "ci-snapshot",
+      "target": {
+        "commit": "d47799da7bad630f10e66e3db801b520669d380d",
+        "requested": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36596105185/job/109501300395"
+      },
+      "seconds": 889
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:28:05.000Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "function": "ci-artifacts",
+      "target": {
+        "commit": "d47799da7bad630f10e66e3db801b520669d380d",
+        "requested": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36596105185/job/109501300395"
+      },
+      "seconds": 889
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:23:21.000Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "function": "ci-coverage",
+      "target": {
+        "commit": "d47799da7bad630f10e66e3db801b520669d380d",
+        "requested": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36596105185/job/109501300458"
+      },
+      "seconds": 606
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T16:16:46.000Z",
+      "shift": "cycle-20260929T161300Z",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "function": "ci-static",
+      "target": {
+        "commit": "d47799da7bad630f10e66e3db801b520669d380d",
+        "requested": "190c94d28c9bc6ae1927204350d24bc5e9038faf"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36596105185/job/109501299966"
+      },
+      "seconds": 210
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:39:50.944Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 4.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:39:50.932Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 4.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:39:38.492Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-mermaid.log"
+      },
+      "seconds": 20.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:39:17.759Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 17
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:39:00.773Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-md-links.log"
+      },
+      "seconds": 22
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:38:38.764Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 10.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:38:28.541Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 1.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:38:27.024Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 54.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:37:32.151Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 2.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:37:29.935Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 1.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:37:28.678Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 4.4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:37:24.323Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 1.4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:37:22.958Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:37:21.693Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 1.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:37:20.399Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 1.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:37:19.134Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T121300Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 1.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:00:08.000Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "function": "ci-consumers",
+      "target": {
+        "commit": "e75a8e73cdeeaadc264825d03d1f711233a4dbe5",
+        "requested": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186/job/109411899661"
+      },
+      "seconds": 923
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:00:08.000Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "function": "ci-lint-contracts-ready",
+      "target": {
+        "commit": "e75a8e73cdeeaadc264825d03d1f711233a4dbe5",
+        "requested": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186/job/109411899661"
+      },
+      "seconds": 923
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:00:08.000Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "function": "ci-snapshot",
+      "target": {
+        "commit": "e75a8e73cdeeaadc264825d03d1f711233a4dbe5",
+        "requested": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186/job/109411899661"
+      },
+      "seconds": 923
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T13:00:08.000Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "function": "ci-artifacts",
+      "target": {
+        "commit": "e75a8e73cdeeaadc264825d03d1f711233a4dbe5",
+        "requested": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186/job/109411899661"
+      },
+      "seconds": 923
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T12:56:29.000Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "function": "ci-coverage",
+      "target": {
+        "commit": "e75a8e73cdeeaadc264825d03d1f711233a4dbe5",
+        "requested": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186/job/109411899792"
+      },
+      "seconds": 703
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T12:48:06.000Z",
+      "shift": "cycle-20260929T121300Z",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "function": "ci-static",
+      "target": {
+        "commit": "e75a8e73cdeeaadc264825d03d1f711233a4dbe5",
+        "requested": "74a8101c1d4b506871f1611b10f897bd3b922b2d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36568945186/job/109411899317"
+      },
+      "seconds": 201
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:09:10.797Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 5.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:09:10.784Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 5.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:08:56.232Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-mermaid.log"
+      },
+      "seconds": 21.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:08:35.041Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 15.8
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:08:19.287Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-md-links.log"
+      },
+      "seconds": 22
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:07:57.309Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 8.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:07:48.743Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:07:47.679Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 52.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:06:54.748Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 1.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:06:52.877Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:06:51.746Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 3.4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:06:48.309Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:06:47.319Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:06:46.175Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:06:45.076Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T11:06:43.872Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T101300Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T10:29:24.000Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "function": "ci-consumers",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16",
+        "via": "0d24d0d8f67f7c7f3d90a36eca0f4915dccf127c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554273440/job/109359717169"
+      },
+      "seconds": 896
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T10:29:24.000Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "function": "ci-lint-contracts-ready",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16",
+        "via": "0d24d0d8f67f7c7f3d90a36eca0f4915dccf127c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554273440/job/109359717169"
+      },
+      "seconds": 896
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T10:29:24.000Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "function": "ci-snapshot",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16",
+        "via": "0d24d0d8f67f7c7f3d90a36eca0f4915dccf127c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554273440/job/109359717169"
+      },
+      "seconds": 896
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T10:29:24.000Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "function": "ci-artifacts",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16",
+        "via": "0d24d0d8f67f7c7f3d90a36eca0f4915dccf127c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554273440/job/109359717169"
+      },
+      "seconds": 896
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T10:26:03.000Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "function": "ci-coverage",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16",
+        "via": "0d24d0d8f67f7c7f3d90a36eca0f4915dccf127c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554273440/job/109359716825"
+      },
+      "seconds": 695
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T10:17:57.000Z",
+      "shift": "cycle-20260929T101300Z",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "function": "ci-static",
+      "target": {
+        "commit": "73b323d475ae191da8880a0d884d467c60c06b16",
+        "via": "0d24d0d8f67f7c7f3d90a36eca0f4915dccf127c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36554273440/job/109359717052"
+      },
+      "seconds": 209
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:41:16.231Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 5.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:41:16.219Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 5.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:41:04.046Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-mermaid.log"
+      },
+      "seconds": 39
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:40:25.023Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 85.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:38:59.674Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-md-links.log"
+      },
+      "seconds": 21.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:38:37.963Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 8.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:38:29.891Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:38:28.720Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 53.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:37:35.556Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 2.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:37:33.219Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:37:32.173Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 3.4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:37:28.753Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:37:27.749Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:37:26.414Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:37:25.234Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 1.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:37:24.022Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T081300Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:23:54.000Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "function": "ci-consumers",
+      "target": {
+        "commit": "c6dbef4b5f5124fc6a892f51a273df0a66bdf40f",
+        "requested": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016/job/109336643164"
+      },
+      "seconds": 882
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:23:54.000Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "function": "ci-lint-contracts-ready",
+      "target": {
+        "commit": "c6dbef4b5f5124fc6a892f51a273df0a66bdf40f",
+        "requested": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016/job/109336643164"
+      },
+      "seconds": 882
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:23:54.000Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "function": "ci-snapshot",
+      "target": {
+        "commit": "c6dbef4b5f5124fc6a892f51a273df0a66bdf40f",
+        "requested": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016/job/109336643164"
+      },
+      "seconds": 882
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:23:54.000Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "function": "ci-artifacts",
+      "target": {
+        "commit": "c6dbef4b5f5124fc6a892f51a273df0a66bdf40f",
+        "requested": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016/job/109336643164"
+      },
+      "seconds": 882
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:20:52.000Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "function": "ci-coverage",
+      "target": {
+        "commit": "c6dbef4b5f5124fc6a892f51a273df0a66bdf40f",
+        "requested": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016/job/109336643491"
+      },
+      "seconds": 700
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T09:12:39.000Z",
+      "shift": "cycle-20260929T081300Z",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "function": "ci-static",
+      "target": {
+        "commit": "c6dbef4b5f5124fc6a892f51a273df0a66bdf40f",
+        "requested": "53c5dc6a54220dad70bebead39df0d5ce9cf941d"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36547032016/job/109336643018"
+      },
+      "seconds": 207
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:16:49.998Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:16:49.987Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:16:41.855Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-mermaid.log"
+      },
+      "seconds": 16.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:16:24.950Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 16.3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:16:08.640Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-md-links.log"
+      },
+      "seconds": 16.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:15:52.023Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 7.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:15:44.777Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:15:43.777Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 47.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:14:56.295Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 1.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:14:54.613Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:14:53.605Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 3
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:14:50.571Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:14:49.608Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:14:48.564Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:14:47.553Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T06:14:46.404Z",
+      "shift": "cycle-20260929T061300Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "e1678940d2dba303f48ac0bf1be23b804d87ff7f"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T061300Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:16:35.968Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 3.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:16:35.957Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 3.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:16:29.489Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-mermaid.log"
+      },
+      "seconds": 18.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:16:11.327Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 12.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:15:58.684Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-md-links.log"
+      },
+      "seconds": 16.8
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:15:41.866Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 7.4
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:15:34.442Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:15:33.499Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 46.8
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:14:46.712Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 1.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:14:45.039Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:14:44.003Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 3.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:14:40.846Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:14:39.783Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:14:38.672Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:14:37.705Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T04:14:36.639Z",
+      "shift": "cycle-20260929T041300Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "2231af791fd72b534259b1b64a13d52f59887d6c"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T041300Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:16:46.939Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 3.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:16:46.928Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 3.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:16:40.918Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-mermaid.log"
+      },
+      "seconds": 16.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:16:23.987Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 12.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:16:11.498Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-md-links.log"
+      },
+      "seconds": 16
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:15:55.536Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 7.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:15:48.033Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:15:47.098Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 44.5
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:15:02.606Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 1.6
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:15:01.041Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 0.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:15:00.165Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 2.8
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:14:57.393Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:14:56.413Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:14:55.419Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:14:54.410Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:14:53.305Z",
+      "shift": "cycle-20260929T021318Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "73a7727b5ecaf0a9c1a803b949e5463f02a5bf80"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T021318Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:12:11.709Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "curation-data-scorekeeper",
+      "division": "curation-data",
+      "function": "scoreboard",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/scoreboard.json"
+      },
+      "seconds": 4.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:12:11.699Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "observatory-session-stats-observer",
+      "division": "observatory",
+      "function": "session-stats",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/telemetry.json"
+      },
+      "seconds": 4.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:12:02.914Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-mermaid",
+      "division": "verification",
+      "function": "verify-mermaid",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-mermaid.log"
+      },
+      "seconds": 18.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:11:44.176Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-md-wrap",
+      "division": "verification",
+      "function": "verify-md-wrap",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-md-wrap.log"
+      },
+      "seconds": 14.2
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:11:29.995Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-md-links",
+      "division": "verification",
+      "function": "verify-md-links",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-md-links.log"
+      },
+      "seconds": 18.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:11:11.924Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-export-jsdoc",
+      "division": "verification",
+      "function": "verify-export-jsdoc",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-export-jsdoc.log"
+      },
+      "seconds": 8.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:11:03.069Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-dsh-package-licenses",
+      "division": "verification",
+      "function": "verify-dsh-package-licenses",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-dsh-package-licenses.log"
+      },
+      "seconds": 1.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:11:01.935Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-doc-site-fragments",
+      "division": "verification",
+      "function": "verify-doc-site-fragments",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-doc-site-fragments.log"
+      },
+      "seconds": 48.9
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:10:13.029Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-doc-refs",
+      "division": "verification",
+      "function": "verify-doc-refs",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-doc-refs.log"
+      },
+      "seconds": 2.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:10:10.972Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-doc-budgets",
+      "division": "verification",
+      "function": "verify-doc-budgets",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-doc-budgets.log"
+      },
+      "seconds": 1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:10:10.017Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-cordis-config",
+      "division": "verification",
+      "function": "verify-cordis-config",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-cordis-config.log"
+      },
+      "seconds": 3.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:10:06.928Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-config-source-ownership",
+      "division": "verification",
+      "function": "verify-config-source-ownership",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-config-source-ownership.log"
+      },
+      "seconds": 29.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:09:37.859Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-client-domain-graph",
+      "division": "verification",
+      "function": "verify-client-domain-graph",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "fail",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-client-domain-graph.log"
+      },
+      "seconds": 165.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:06:52.788Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-archived-agent-notes",
+      "division": "verification",
+      "function": "verify-archived-agent-notes",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-archived-agent-notes.log"
+      },
+      "seconds": 26
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:06:26.784Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-agent-note-format",
+      "division": "verification",
+      "function": "verify-agent-note-format",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-agent-note-format.log"
+      },
+      "seconds": 26.7
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:06:00.041Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "verification-verify-agent-note-classification",
+      "division": "verification",
+      "function": "verify-agent-note-classification",
+      "target": {
+        "commit": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/enterprise/functions/cycle-20260929T001517Z/verification-verify-agent-note-classification.log"
+      },
+      "seconds": 76.1
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:00:56.000Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "judging-ci-consumers",
+      "division": "judging",
+      "function": "ci-consumers",
+      "target": {
+        "commit": "a34c6defa0308cc0b9d8cbded7fa510c5444458e",
+        "requested": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36509070621/job/109218186624"
+      },
+      "seconds": 869
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:00:56.000Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "judging-ci-lint-contracts-ready",
+      "division": "judging",
+      "function": "ci-lint-contracts-ready",
+      "target": {
+        "commit": "a34c6defa0308cc0b9d8cbded7fa510c5444458e",
+        "requested": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36509070621/job/109218186624"
+      },
+      "seconds": 869
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:00:56.000Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "judging-ci-snapshot",
+      "division": "judging",
+      "function": "ci-snapshot",
+      "target": {
+        "commit": "a34c6defa0308cc0b9d8cbded7fa510c5444458e",
+        "requested": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36509070621/job/109218186624"
+      },
+      "seconds": 869
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T02:00:56.000Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "judging-ci-artifacts",
+      "division": "judging",
+      "function": "ci-artifacts",
+      "target": {
+        "commit": "a34c6defa0308cc0b9d8cbded7fa510c5444458e",
+        "requested": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36509070621/job/109218186624"
+      },
+      "seconds": 869
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T01:55:30.000Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "judging-ci-coverage",
+      "division": "judging",
+      "function": "ci-coverage",
+      "target": {
+        "commit": "a34c6defa0308cc0b9d8cbded7fa510c5444458e",
+        "requested": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36509070621/job/109218186408"
+      },
+      "seconds": 543
+    },
+    {
+      "type": "function",
+      "at": "2026-09-29T01:49:57.000Z",
+      "shift": "cycle-20260929T001517Z",
+      "seat": "judging-ci-static",
+      "division": "judging",
+      "function": "ci-static",
+      "target": {
+        "commit": "a34c6defa0308cc0b9d8cbded7fa510c5444458e",
+        "requested": "6dc293c60fc10740c72a9edeeea7858d83cb66b1"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36509070621/job/109218186572"
+      },
+      "seconds": 210
+    }
+  ],
+  "shipped": [
+    {
+      "commit": "84651be1bfc78c37bb7741ecd1af4ac93baa158d",
+      "at": "2026-09-29T23:07:01.571Z",
+      "tickets": [
+        "T-0017"
+      ],
+      "seats": [
+        "harness-core-subagent-claude-code-steward"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "46d9a57469c165a565512ca5962abe4eaf8ef5b6",
+      "at": "2026-09-29T23:07:01.571Z",
+      "tickets": [
+        "T-0029"
+      ],
+      "seats": [
+        "program-departments-workspace-coordinator"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "81699732468a674ba0bf6338807ebc404ec11c4f",
+      "at": "2026-09-29T16:31:49.326Z",
+      "tickets": [
+        "T-0011"
+      ],
+      "seats": [
+        "harness-core-llm-pi-ai-steward"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "b26f4b959cf440f4f94819f813e20bd8aedfee0f",
+      "at": "2026-09-29T16:31:49.326Z",
+      "tickets": [
+        "T-0027"
+      ],
+      "seats": [
+        "governance-third-party-notices-standard-author"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "ba3973e84b50a60f955d9826ea84ef5160d4fac5",
+      "at": "2026-09-29T13:37:07.184Z",
+      "tickets": [
+        "T-0040"
+      ],
+      "seats": [
+        "harness-core-subagent-codex-steward"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "e086cb101806019afe126869b15e67c765c62333",
+      "at": "2026-09-29T13:37:07.184Z",
+      "tickets": [
+        "T-0003"
+      ],
+      "seats": [
+        "harness-core-agent-default-model-steward"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "b157e090863512134630d246d52d7c7167fde50a",
+      "at": "2026-09-29T11:06:39.783Z",
+      "tickets": [
+        "T-0020"
+      ],
+      "seats": [
+        "harness-core-subagent-steward"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "a54154ce7897494822a74d7da81e92774a2f981b",
+      "at": "2026-09-29T11:06:39.783Z",
+      "tickets": [
+        "T-0021"
+      ],
+      "seats": [
+        "harness-core-subagent-acp-steward"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "cba8e46823c6fa946e5ee4f86d3945590a3fb1bc",
+      "at": "2026-09-29T02:04:38.491Z",
+      "tickets": [
+        "T-0007"
+      ],
+      "seats": [
+        "harness-core-llm-steward"
+      ],
+      "verdicts": []
+    },
+    {
+      "commit": "1d6a5d3430aef9893b1a28adfea1f1841238c866",
+      "at": "2026-09-28T19:04:29.582Z",
+      "tickets": [
+        "T-0012"
+      ],
+      "seats": [
+        "harness-core-llm-pi-ai-steward"
+      ],
+      "verdicts": []
+    }
+  ],
+  "reviews": {
+    "approved": 15,
+    "rejected": 1,
+    "reviewerRecorded": 8,
+    "overturned": 1,
+    "reviews": [
+      {
+        "ticket": "T-0017",
+        "seat": "harness-core-subagent-claude-code-steward",
+        "division": "harness-core",
+        "shift": "221307-dd9a",
+        "at": "2026-09-29T23:07:01.571Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0017-dfbe8005",
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0029",
+        "seat": "program-departments-workspace-coordinator",
+        "division": "program-departments",
+        "shift": "221307-dd9a",
+        "at": "2026-09-29T23:07:01.571Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0029-3e7cbf28",
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0015",
+        "seat": "harness-core-subagent-steward",
+        "division": "harness-core",
+        "shift": "201313-0965",
+        "at": "2026-09-29T20:46:35.859Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0015-70c0432b",
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0028",
+        "seat": "curation-data-bug-fix-curator",
+        "division": "curation-data",
+        "shift": "201313-0965",
+        "at": "2026-09-29T20:46:35.859Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0028-a50f9c0d",
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0011",
+        "seat": "harness-core-llm-pi-ai-steward",
+        "division": "harness-core",
+        "shift": "161311-58c9",
+        "at": "2026-09-29T16:31:49.326Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0011-46d9ba45",
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0027",
+        "seat": "governance-third-party-notices-standard-author",
+        "division": "governance",
+        "shift": "161311-58c9",
+        "at": "2026-09-29T16:31:49.326Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0027-edabf50d",
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0040",
+        "seat": "harness-core-subagent-codex-steward",
+        "division": "harness-core",
+        "shift": "121310-3eae",
+        "at": "2026-09-29T13:37:07.184Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0040-89ca51a7",
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0003",
+        "seat": "harness-core-agent-default-model-steward",
+        "division": "harness-core",
+        "shift": "121310-3eae",
+        "at": "2026-09-29T13:37:07.184Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0003-9462100b",
+        "reviewer": {
+          "route": "claude-code",
+          "model": "sonnet"
+        }
+      },
+      {
+        "ticket": "T-0020",
+        "seat": "harness-core-subagent-steward",
+        "division": "harness-core",
+        "shift": "101309-c95c",
+        "at": "2026-09-29T11:06:39.783Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0020-c3b2dc5a"
+      },
+      {
+        "ticket": "T-0021",
+        "seat": "harness-core-subagent-acp-steward",
+        "division": "harness-core",
+        "shift": "101309-c95c",
+        "at": "2026-09-29T11:06:39.783Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0021-f02dd27f"
+      },
+      {
+        "ticket": "T-0016",
+        "seat": "harness-core-tool-subagent-steward",
+        "division": "harness-core",
+        "shift": "081308-24b5",
+        "at": "2026-09-29T09:37:06.598Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0016-f22a14a7"
+      },
+      {
+        "ticket": "T-0007",
+        "seat": "harness-core-llm-steward",
+        "division": "harness-core",
+        "shift": "001527-881f",
+        "at": "2026-09-29T02:04:38.491Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0007-51a05d12"
+      },
+      {
+        "ticket": "T-0012",
+        "seat": "harness-core-llm-pi-ai-steward",
+        "division": "harness-core",
+        "shift": "182951-78a6",
+        "at": "2026-09-28T19:04:29.582Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0012-fb58af6f"
+      },
+      {
+        "ticket": "T-0019",
+        "seat": "harness-core-subagent-in-process-driver-steward",
+        "division": "harness-core",
+        "shift": "182951-78a6",
+        "at": "2026-09-28T19:04:29.582Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0019-da50c0af"
+      },
+      {
+        "ticket": "T-0012",
+        "seat": "harness-core-llm-pi-ai-steward",
+        "division": "harness-core",
+        "shift": "171951-516d",
+        "at": "2026-09-28T18:19:48.000Z",
+        "verdict": "approve",
+        "sessionId": "review-t-0012-79328c42"
+      },
+      {
+        "ticket": "T-0019",
+        "seat": "harness-core-subagent-in-process-driver-steward",
+        "division": "harness-core",
+        "shift": "171951-516d",
+        "at": "2026-09-28T18:19:48.000Z",
+        "verdict": "reject",
+        "sessionId": "review-t-0019-e3dd7355",
+        "overturnedBy": "cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38"
+      }
+    ]
+  },
+  "ledger": {
+    "lines": 313,
+    "tickets": 30,
+    "functions": 283,
+    "skipped": 0
+  }
+}
