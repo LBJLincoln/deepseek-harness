@@ -51,7 +51,7 @@ Proving Ground 与 Code Safety 在其交付物验证无误期间不持有工单�
 | `kind` | `fix`、`test`、`docs`、`feature`、`chore` 之一。 |
 | `source` | `path` 存在于仓库树中，且其内容逐字包含 `anchor`，除非台账记录该工单已交付。 |
 | `task` | 问题及其以 `path:line` 形式给出的证据、要求达到的行为、约束它的仓库规则，以及不得触碰的内容。 |
-| `scope` | 非空；每个前缀都存在；评审人拒绝任何越出范围的 diff。 |
+| `scope` | 非空；每个前缀都存在，除非台账记录该工单已交付；评审人拒绝任何越出范围的 diff。 |
 | `acceptance` | 非空；检查 id 在工单内唯一；始终包含该包的逐文件覆盖率运行和 `pnpm run typecheck`，工单涉及文档时再加 `pnpm run doc-sync`。每条命令都须采用 [`scripts/enterprise-acceptance.ts`](../../../scripts/enterprise-acceptance.ts) 的某种形式——`pnpm run` 运行 `typecheck`、`doc-sync`、`lint`、`test:snapshot` 或某个 `verify-*` 脚本，`pnpm exec vitest run`、`pnpm exec tsc`、`grep`、`test`、`git diff`，以 `&&`、`||` 与 `|` 连接且只用字面量词——否则引擎拒绝处理该工单。 |
 | `budget` | 正整数：一次尝试的 token 上限与墙钟时间上限。 |
 | `priority` | `1`（最先）到 `3`（最后）；当 `source.path` 是 `data/enterprise/requests/` 下的某个请求时取 `0`。 |
@@ -70,4 +70,4 @@ Proving Ground 与 Code Safety 在其交付物验证无误期间不持有工单�
 
 ## 来源存在，工单才成立
 
-`source.path` 必须存在于仓库树中且包含 `source.anchor`，这样工单就不可能比它所出自的限制、标记或 Agent Note 活得更久：来源一旦被解决或删除，工单就通过台账关闭或直接删除，绝不留下悬空的指向。台账记录为已交付的工单不受 anchor 约束，因为它自己的改动可能改写了 anchor 所引用的文字。[`scripts/enterprise-tickets.spec.ts`](../../../scripts/enterprise-tickets.spec.ts) 对每张已提交的工单强制检查 schema、席位及其事业部、来源路径与锚点、非空的范围与验收，以及必备的覆盖率与 typecheck 检查；`pnpm run test` 会连同仓库其他脚本 spec 一起运行它，`pnpm exec vitest run scripts/enterprise-tickets.spec.ts` 则单独运行它。
+`source.path` 必须存在于仓库树中且包含 `source.anchor`，这样工单就不可能比它所出自的限制、标记或 Agent Note 活得更久：来源一旦被解决或删除，工单就通过台账关闭或直接删除，绝不留下悬空的指向。台账记录为已交付的工单不受来源与范围的存在性检查约束，因为它自己的改动可能移动了来源文件、改写了 anchor 所引用的文字，或删除了某个范围前缀。[`scripts/enterprise-tickets.spec.ts`](../../../scripts/enterprise-tickets.spec.ts) 对每张已提交的工单强制检查 schema、席位及其事业部、来源路径与锚点、非空的范围与验收，以及必备的覆盖率与 typecheck 检查；`pnpm run test` 会连同仓库其他脚本 spec 一起运行它，`pnpm exec vitest run scripts/enterprise-tickets.spec.ts` 则单独运行它。

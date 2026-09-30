@@ -127,14 +127,30 @@ describe('enterprise ticket queue', () => {
 })
 
 describe('a shipped ticket', () => {
+  /** Write the tree's ledger as one line recording `ticket` as shipped. */
+  function recordShipped(tree: string, ticket: string): void {
+    mkdirSync(join(tree, 'data/enterprise'), { recursive: true })
+    writeFileSync(join(tree, 'data/enterprise/ledger.jsonl'), `${JSON.stringify({ type: 'ticket', at: '2026-09-29T13:37:00.000Z', shift: '121310-3eae', ticket, seat: 'x', division: 'x', checks: [], shipped: { commit: 'a'.repeat(40) } })}\n`)
+  }
+
   it('is not held to a source anchor its own change rewrote; an open ticket is', () => {
     const tree = requestTree()
     const ticket = { ...validTicket(), source: { path: `${REQUESTS_DIR}/README.md`, anchor: '# Old heading' }, priority: 2 }
     const loaded: LoadedTicket[] = [{ file: `${TICKETS_DIR}/T-0001.json`, value: ticket }]
     expect(validateTickets(loaded, roster, tree).join('\n')).toMatch(/source\.anchor "# Old heading" does not occur/)
-    mkdirSync(join(tree, 'data/enterprise'), { recursive: true })
-    writeFileSync(join(tree, 'data/enterprise/ledger.jsonl'), `${JSON.stringify({ type: 'ticket', at: '2026-09-29T13:37:00.000Z', shift: '121310-3eae', ticket: 'T-0001', seat: 'x', division: 'x', checks: [], shipped: { commit: 'a'.repeat(40) } })}\n`)
+    recordShipped(tree, 'T-0001')
     expect(validateTickets(loaded, roster, tree).join('\n')).not.toMatch(/source\.anchor/)
+  })
+
+  it('is not held to a source file or scope prefix its own change removed; an open ticket is', () => {
+    const tree = requestTree()
+    const ticket = { ...validTicket(), source: { path: '.agents/notes/proposed/moved.md', anchor: '## Acceptance criteria' }, scope: ['packages/core/agent/', '.agents/notes/proposed/'] }
+    const loaded: LoadedTicket[] = [{ file: `${TICKETS_DIR}/T-0001.json`, value: ticket }]
+    const open = validateTickets(loaded, roster, tree).join('\n')
+    expect(open).toMatch(/source\.path "\.agents\/notes\/proposed\/moved\.md" does not exist in the tree/)
+    expect(open).toMatch(/scope prefix "\.agents\/notes\/proposed\/" does not exist in the tree/)
+    recordShipped(tree, 'T-0001')
+    expect(validateTickets(loaded, roster, tree)).toEqual([])
   })
 })
 

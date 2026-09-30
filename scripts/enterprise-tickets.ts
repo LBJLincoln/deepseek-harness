@@ -220,8 +220,8 @@ function shippedTickets(root: string): Set<string> {
 /**
  * @param source - the ticket's `source`.
  * @param root - repository root.
- * @param shipped - whether the ledger records the ticket as shipped: its own change may have rewritten the text its anchor
- * quotes, so a shipped ticket's anchor need no longer occur in the tree.
+ * @param shipped - whether the ledger records the ticket as shipped: its own change may have moved the source file or
+ * rewritten the text its anchor quotes, so a shipped ticket's source need no longer exist in the tree.
  * @returns the violations.
  */
 function validateSource(source: unknown, root: string, shipped: boolean): string[] {
@@ -230,14 +230,22 @@ function validateSource(source: unknown, root: string, shipped: boolean): string
   if (errors.length > 0) return errors
   const { path, anchor } = source
   if (!isNonEmptyString(path) || !isRelativePath(path)) return ['source.path must be a repository-relative path']
+  if (!isNonEmptyString(anchor)) return ['source.anchor must be a non-empty string']
+  if (shipped) return []
   const absolute = resolve(root, path)
   if (!existsSync(absolute) || !statSync(absolute).isFile()) return [`source.path "${path}" does not exist in the tree`]
-  if (!isNonEmptyString(anchor)) return ['source.anchor must be a non-empty string']
-  if (!shipped && !readFileSync(absolute, 'utf8').includes(anchor)) return [`source.anchor ${JSON.stringify(anchor)} does not occur in "${path}"`]
+  if (!readFileSync(absolute, 'utf8').includes(anchor)) return [`source.anchor ${JSON.stringify(anchor)} does not occur in "${path}"`]
   return []
 }
 
-function validateScope(scope: unknown, root: string): string[] {
+/**
+ * @param scope - the ticket's `scope`.
+ * @param root - repository root.
+ * @param shipped - whether the ledger records the ticket as shipped: its own change may have removed a prefix, so a
+ * shipped ticket's prefixes need no longer exist in the tree.
+ * @returns the violations.
+ */
+function validateScope(scope: unknown, root: string, shipped: boolean): string[] {
   if (!Array.isArray(scope) || scope.length === 0) return ['scope must be a non-empty array']
   const errors: string[] = []
   const seen = new Set<string>()
@@ -248,7 +256,7 @@ function validateScope(scope: unknown, root: string): string[] {
     }
     if (seen.has(entry)) errors.push(`scope repeats "${entry}"`)
     seen.add(entry)
-    if (!existsSync(resolve(root, entry))) errors.push(`scope prefix "${entry}" does not exist in the tree`)
+    if (!shipped && !existsSync(resolve(root, entry))) errors.push(`scope prefix "${entry}" does not exist in the tree`)
   }
   return errors
 }
@@ -305,10 +313,11 @@ function validateTicket(loaded: LoadedTicket, roster: Roster, root: string, poli
   if (agent === undefined) errors.push(`seat ${JSON.stringify(seat)} is not in the roster`)
   else if (agent.division !== division) errors.push(`seat "${agent.id}" belongs to division "${agent.division}", not ${JSON.stringify(division)}`)
   if (typeof kind !== 'string' || !KINDS.has(kind)) errors.push(`kind ${JSON.stringify(kind)} is not one of ${[...KINDS].join('|')}`)
-  errors.push(...validateSource(source, root, typeof id === 'string' && shipped.has(id)))
+  const isShipped = typeof id === 'string' && shipped.has(id)
+  errors.push(...validateSource(source, root, isShipped))
   if (!isNonEmptyString(task)) errors.push('task must be a non-empty string')
   else if (!EVIDENCE_PATTERN.test(task)) errors.push('task must cite its evidence as path:line at least once')
-  errors.push(...validateScope(scope, root))
+  errors.push(...validateScope(scope, root, isShipped))
   errors.push(...validateAcceptance(acceptance, policy))
   errors.push(...validateBudget(budget))
   errors.push(...validatePriority(priority, source))
@@ -330,8 +339,8 @@ function validatePriority(priority: unknown, source: unknown): string[] {
  * Validate the loaded queue against the roster and the tree.
  * @param loaded - the queue files.
  * @param roster - the committed roster, for divisions and seats.
- * @param root - repository root, for source and scope existence checks; a ticket its ledger records as shipped is not
- * held to its source anchor, which its own change may have rewritten.
+ * @param root - repository root, for source and scope existence checks; a ticket its ledger records as shipped is held to
+ * neither, since its own change may have moved its source, rewritten its anchor's text, or removed a scope prefix.
  * @param policy - the acceptance commands this queue mandates; this repository's by default.
  * @returns every violation as `<file>: <message>`; empty when the queue is valid.
  */
