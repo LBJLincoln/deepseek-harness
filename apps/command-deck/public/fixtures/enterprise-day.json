@@ -1,63 +1,25 @@
 {
   "window": {
-    "since": "2026-09-28T23:09:09.591Z",
-    "until": "2026-09-29T23:09:09.591Z"
+    "since": "2026-09-29T00:16:29.456Z",
+    "until": "2026-09-30T00:16:29.456Z"
   },
   "head": {
-    "commit": "942a38313ab169a2a3a7c533dca20af174b2075f",
-    "committedAt": "2026-09-29T23:07:01.000Z"
+    "commit": "887e513c883b22e33f9ee44f6c23f119161833d7",
+    "committedAt": "2026-09-30T00:13:23.000Z"
   },
   "cycles": {
     "count": 11,
     "recorded": 9,
     "gitOnly": 2,
-    "clean": 4,
-    "failed": 5,
+    "clean": 5,
+    "failed": 4,
     "failedByStep": {
       "intake-push": 3,
       "pull": 3,
       "pull-after-shift": 4,
-      "shift": 2
+      "shift": 1
     },
     "list": [
-      {
-        "cycle": "cycle-20260929T001517Z",
-        "startedAt": "2026-09-29T00:15:17.000Z",
-        "source": "record",
-        "outcome": "failed",
-        "startedBy": {
-          "by": "unknown",
-          "basis": "its record predates the startedBy field"
-        },
-        "commits": [
-          {
-            "commit": "111ec4397723ecee74d0d8d400d400c156b51e08",
-            "carries": "intake"
-          }
-        ],
-        "record": {
-          "endedAt": "2026-09-29T02:12:42.225Z",
-          "firstFailure": {
-            "step": "shift",
-            "exit": 2
-          },
-          "failedSteps": [
-            "shift"
-          ],
-          "shifts": [],
-          "tickets": {
-            "shipped": 0,
-            "rejected": 0,
-            "halted": 0
-          },
-          "functions": {
-            "pass": 21,
-            "fail": 1,
-            "error": 0
-          },
-          "recordOnRemote": false
-        }
-      },
       {
         "cycle": "cycle-20260929T021318Z",
         "startedAt": "2026-09-29T02:13:18.000Z",
@@ -376,12 +338,51 @@
             "fail": 1,
             "error": 0
           },
-          "recordOnRemote": "unknown"
+          "recordOnRemote": true
         }
       },
       {
         "cycle": "cycle-20260929T221300Z",
         "startedAt": "2026-09-29T22:13:00.000Z",
+        "source": "record",
+        "outcome": "clean",
+        "startedBy": {
+          "by": "scheduler",
+          "basis": "the cycle record"
+        },
+        "commits": [
+          {
+            "commit": "fa3edf962249924c00c33b1d097a8b3c026b3eb0",
+            "carries": "intake"
+          },
+          {
+            "commit": "6aadab5c7b332837a5fab5d782839d22ec8f8f51",
+            "carries": "functions, roster and deck"
+          }
+        ],
+        "record": {
+          "endedAt": "2026-09-29T23:10:03.591Z",
+          "firstFailure": null,
+          "failedSteps": [],
+          "shifts": [
+            "221307-dd9a"
+          ],
+          "tickets": {
+            "shipped": 2,
+            "rejected": 0,
+            "halted": 0
+          },
+          "functions": {
+            "pass": 20,
+            "fail": 2,
+            "error": 0
+          },
+          "recordOnRemote": "unknown"
+        }
+      },
+      {
+        "cycle": "cycle-20260930T001300Z",
+        "startedAt": "2026-09-30T00:13:00.000Z",
         "source": "git",
         "outcome": "unknown",
         "startedBy": {
@@ -390,7 +391,7 @@
         },
         "commits": [
           {
-            "commit": "fa3edf962249924c00c33b1d097a8b3c026b3eb0",
+            "commit": "066ed18219fbb4bac3de0c3eafadcd55cce25962",
             "carries": "intake"
           }
         ]
@@ -398,18 +399,6 @@
     ]
   },
   "shifts": [
-    {
-      "shift": "001527-881f",
-      "startedAt": "2026-09-29T00:15:28.672Z",
-      "source": "record",
-      "outcome": "program failed",
-      "tickets": {
-        "shipped": 1,
-        "rejected": 0,
-        "halted": 1
-      },
-      "evidence": "data/enterprise/shifts/2026-09-29-001527-881f"
-    },
     {
       "shift": "021357-6546",
       "startedAt": "2026-09-29T02:13:58.317Z",
@@ -665,10 +654,18 @@
         "program-departments"
       ],
       "ci": {
-        "basis": "none",
+        "basis": "later",
+        "run": {
+          "id": 36643449042,
+          "headSha": "942a38313ab169a2a3a7c533dca20af174b2075f",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36643449042",
+          "createdAt": "2026-09-29T23:07:06Z"
+        },
         "superseded": []
       },
-      "verdict": "no run"
+      "verdict": "failure"
     },
     {
       "commit": "81699732468a674ba0bf6338807ebc404ec11c4f",
@@ -701,10 +698,18 @@
         "harness-core"
       ],
       "ci": {
-        "basis": "none",
+        "basis": "later",
+        "run": {
+          "id": 36643449042,
+          "headSha": "942a38313ab169a2a3a7c533dca20af174b2075f",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36643449042",
+          "createdAt": "2026-09-29T23:07:06Z"
+        },
         "superseded": []
       },
-      "verdict": "no run"
+      "verdict": "failure"
     },
     {
       "commit": "a54154ce7897494822a74d7da81e92774a2f981b",
@@ -840,10 +845,10 @@
     }
   ],
   "seats": {
-    "at": "2026-09-29T23:09:09.591Z",
+    "at": "2026-09-30T00:16:29.456Z",
     "defined": 147,
     "occupied": 64,
-    "active": 40,
+    "active": 43,
     "work": {
       "occupied": {
         "model": 36,
@@ -851,7 +856,7 @@
         "halted": 6
       },
       "active": {
-        "model": 12,
+        "model": 15,
         "check": 22,
         "halted": 6
       }
@@ -874,9 +879,9 @@
         "name": "Proving Ground",
         "defined": 12,
         "occupied": 12,
-        "active": 0,
+        "active": 3,
         "work": {
-          "model": 0,
+          "model": 3,
           "check": 0,
           "halted": 0
         }
@@ -980,7 +985,7 @@
     ]
   },
   "functions": {
-    "lines": 215,
+    "lines": 224,
     "byDivision": [
       {
         "division": "curation-data",
@@ -990,8 +995,8 @@
       },
       {
         "division": "judging",
-        "pass": 37,
-        "fail": 5,
+        "pass": 42,
+        "fail": 6,
         "error": 0
       },
       {
@@ -1002,7 +1007,7 @@
       },
       {
         "division": "verification",
-        "pass": 140,
+        "pass": 143,
         "fail": 11,
         "error": 0
       }
@@ -1038,26 +1043,39 @@
       }
     },
     {
+      "covers": "recorded sessions under data/proving-ground whose newest event falls in the window: the tokens their usage events state, and their model time",
+      "source": "data/proving-ground",
+      "items": 16,
+      "tokens": 1001943,
+      "seconds": 830.3,
+      "breakdown": {
+        "input": 158,
+        "output": 104906,
+        "cacheRead": 684906,
+        "cacheWrite": 211973,
+        "reasoning": 0
+      }
+    },
+    {
       "covers": "function lines: the seconds each seat's gate, verdict read or fold took; no model is called",
       "source": "data/enterprise/ledger.jsonl",
-      "items": 215,
+      "items": 224,
       "tokens": null,
-      "seconds": 35915.9
+      "seconds": 36792.6
     },
     {
       "covers": "recorded cycles: each one's wall time from its start to its record",
       "source": "data/enterprise/cycles/*.json",
       "items": 9,
       "tokens": null,
-      "seconds": 25441
+      "seconds": 21820
     }
   ],
-  "headline": "Pilot, 2026-09-28T23:09:09.591Z to 2026-09-29T23:09:09.591Z: 11 cycles started (4 clean, 5 failed, 2 without a record); 11 shifts (10 recorded, 1 shown by ledger lines only); 22 ticket lines (9 shipped, 0 rejected, 13 halted); reviews 12 approved, 0 rejected, 10 not reached; 9 tickets shipped in 9 commits, Branch CI 2 no run, 4 success, 3 failure (7 from a later run containing the commit); 215 function runs (199 pass, 16 fail, 0 error).",
+  "headline": "Pilot, 2026-09-29T00:16:29.456Z to 2026-09-30T00:16:29.456Z: 11 cycles started (5 clean, 4 failed, 2 without a record); 10 shifts (9 recorded, 1 shown by ledger lines only); 22 ticket lines (9 shipped, 0 rejected, 13 halted); reviews 12 approved, 0 rejected, 10 not reached; 9 tickets shipped in 9 commits, Branch CI 5 failure, 4 success (9 from a later run containing the commit); 224 function runs (207 pass, 17 fail, 0 error).",
   "unknowns": [
-    "2 cycles are seen only in git history (cycle-20260929T141300Z, cycle-20260929T221300Z): their steps, outcome and ledger lines are unknown",
-    "who started cycle-20260929T001517Z is unknown: its record predates the startedBy field",
+    "2 cycles are seen only in git history (cycle-20260929T141300Z, cycle-20260930T001300Z): their steps, outcome and ledger lines are unknown",
     "who started cycle-20260929T141300Z is unknown: the cycle has no record",
-    "whether cycle-20260929T201301Z's record reached the remote branch is unknown until a later cycle's record states it",
-    "who started cycle-20260929T221300Z is unknown: the cycle has no record"
+    "whether cycle-20260929T221300Z's record reached the remote branch is unknown until a later cycle's record states it",
+    "who started cycle-20260930T001300Z is unknown: the cycle has no record"
   ]
 }
