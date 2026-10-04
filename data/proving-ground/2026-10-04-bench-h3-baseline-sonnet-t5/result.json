@@ -1,0 +1,2395 @@
+{
+  "type": "result",
+  "plan": "h3-baseline-sonnet-t5",
+  "environments": [
+    "code:build-schedule",
+    "code:conf-canon",
+    "code:diff3-merge",
+    "code:lex-states",
+    "code:ranked-choice",
+    "code:rate-limit-sim",
+    "code:sheet-eval",
+    "code:uri-resolve"
+  ],
+  "implementer": {
+    "kind": "route"
+  },
+  "startedAt": "2026-10-04T22:55:00.063Z",
+  "endedAt": "2026-10-04T23:04:05.015Z",
+  "report": {
+    "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+    "cells": [
+      {
+        "cell": {
+          "environment": "code:build-schedule",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:build-schedule",
+          "sessionId": "environment-e7a5337a-9dbe-433f-94ca-201517bb67b7",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:build-schedule",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "f80cee8f6bc21b283d0ce8fa97700a5f44673f923f0c7d36dede0bc716cb19ee",
+            "checksSha256": "e120337281b539a262f1ec9f7d7e291141e72a3a50e3a9ad867bfca0d7158639",
+            "fixtureSha256": "12c043a20a40da07cf7d476801f1a030fc28cbc7697eaf86f115a65209c700f9",
+            "contentSha256": "1cc0ac1e5d890c27532166c8ab8d49e9ba372c5ae868285b50ea566e7067595a",
+            "repetition": 0,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…ck onto one worker runs everything in sequence\nok 4 - pack onto one worker runs everything in sequence\n  ---\n  duration_ms: 49.313269\n  type: 'test'\n  ...\n# Subtest: pack onto two workers reaches the unlimited makespan of the diamond\nok 5 - pack onto two workers reaches the unlimited makespan of the diamond\n  ---\n  duration_ms: 45.908996\n  type: 'test'\n  ...\n# Subtest: a worker with nothing to run still prints its line\nok 6 - a worker with nothing to run still prints its line\n  ---\n  duration_ms: 61.296555\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 7 - blank lines and comments are ignored\n  ---\n  duration_ms: 54.350065\n  type: 'test'\n  ...\n# Subtest: an empty graph has no wave and a total of zero\nok 8 - an empty graph has no wave and a total of zero\n  ---\n  duration_ms: 52.468292\n  type: 'test'\n  ...\n# Subtest: a cycle is reported on standard error and exits 3\nok 9 - a cycle is reported on standard error and exits 3\n  ---\n  duration_ms: 51.064486\n  type: 'test'\n  ...\n# Subtest: a dependency on a task that was never declared is rejected\nok 10 - a dependency on a task that was never declared is rejected\n  ---\n  duration_ms: 49.9333\n  type: 'test'\n  ...\n# Subtest: a task declared twice is rejected with its line\nok 11 - a task declared twice is rejected with its line\n  ---\n  duration_ms: 54.394366\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected with its line\nok 12 - an unknown directive is rejected with its line\n  ---\n  duration_ms: 48.82409\n  type: 'test'\n  ...\n# Subtest: a negative cost is rejected\nok 13 - a negative cost is rejected\n  ---\n  duration_ms: 53.729692\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 14 - an unknown mode is rejected\n  ---\n  duration_ms: 48.343507\n  type: 'test'\n  ...\n# Subtest: pack without a worker count is rejected\nok 15 - pack without a worker count is rejected\n  ---\n  duration_ms: 49.605461\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 875.433429"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 140 of 140 passed (weight 274 of 274)",
+                  "cases": {
+                    "passed": 140,
+                    "total": 140,
+                    "weightPassed": 274,
+                    "weightTotal": 274,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "62efcf94212ed40a8b56a840144ff0622652adf4ab16f6b5456ee320bb980c26"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-357b64f5-b473-4761-b59f-af2119510c6b",
+              "revision": 1
+            },
+            "goalId": "goal-947f1dd0-2945-42ac-8a06-377e80cb88fb",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…ck onto one worker runs everything in sequence\nok 4 - pack onto one worker runs everything in sequence\n  ---\n  duration_ms: 49.313269\n  type: 'test'\n  ...\n# Subtest: pack onto two workers reaches the unlimited makespan of the diamond\nok 5 - pack onto two workers reaches the unlimited makespan of the diamond\n  ---\n  duration_ms: 45.908996\n  type: 'test'\n  ...\n# Subtest: a worker with nothing to run still prints its line\nok 6 - a worker with nothing to run still prints its line\n  ---\n  duration_ms: 61.296555\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 7 - blank lines and comments are ignored\n  ---\n  duration_ms: 54.350065\n  type: 'test'\n  ...\n# Subtest: an empty graph has no wave and a total of zero\nok 8 - an empty graph has no wave and a total of zero\n  ---\n  duration_ms: 52.468292\n  type: 'test'\n  ...\n# Subtest: a cycle is reported on standard error and exits 3\nok 9 - a cycle is reported on standard error and exits 3\n  ---\n  duration_ms: 51.064486\n  type: 'test'\n  ...\n# Subtest: a dependency on a task that was never declared is rejected\nok 10 - a dependency on a task that was never declared is rejected\n  ---\n  duration_ms: 49.9333\n  type: 'test'\n  ...\n# Subtest: a task declared twice is rejected with its line\nok 11 - a task declared twice is rejected with its line\n  ---\n  duration_ms: 54.394366\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected with its line\nok 12 - an unknown directive is rejected with its line\n  ---\n  duration_ms: 48.82409\n  type: 'test'\n  ...\n# Subtest: a negative cost is rejected\nok 13 - a negative cost is rejected\n  ---\n  duration_ms: 53.729692\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 14 - an unknown mode is rejected\n  ---\n  duration_ms: 48.343507\n  type: 'test'\n  ...\n# Subtest: pack without a worker count is rejected\nok 15 - pack without a worker count is rejected\n  ---\n  duration_ms: 49.605461\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 875.433429"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 140 of 140 passed (weight 274 of 274)",
+                "cases": {
+                  "passed": 140,
+                  "total": 140,
+                  "weightPassed": 274,
+                  "weightTotal": 274,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154545733
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 3627,
+            "cacheReadTokens": 25318,
+            "cacheWriteTokens": 12448
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:build-schedule",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:build-schedule",
+          "sessionId": "environment-40d2ec70-c90f-4cc5-ba8a-82723a932026",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:build-schedule",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "f80cee8f6bc21b283d0ce8fa97700a5f44673f923f0c7d36dede0bc716cb19ee",
+            "checksSha256": "e120337281b539a262f1ec9f7d7e291141e72a3a50e3a9ad867bfca0d7158639",
+            "fixtureSha256": "12c043a20a40da07cf7d476801f1a030fc28cbc7697eaf86f115a65209c700f9",
+            "contentSha256": "1cc0ac1e5d890c27532166c8ab8d49e9ba372c5ae868285b50ea566e7067595a",
+            "repetition": 1,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…onto one worker runs everything in sequence\nok 4 - pack onto one worker runs everything in sequence\n  ---\n  duration_ms: 57.747475\n  type: 'test'\n  ...\n# Subtest: pack onto two workers reaches the unlimited makespan of the diamond\nok 5 - pack onto two workers reaches the unlimited makespan of the diamond\n  ---\n  duration_ms: 70.121072\n  type: 'test'\n  ...\n# Subtest: a worker with nothing to run still prints its line\nok 6 - a worker with nothing to run still prints its line\n  ---\n  duration_ms: 54.005846\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 7 - blank lines and comments are ignored\n  ---\n  duration_ms: 48.272947\n  type: 'test'\n  ...\n# Subtest: an empty graph has no wave and a total of zero\nok 8 - an empty graph has no wave and a total of zero\n  ---\n  duration_ms: 47.646035\n  type: 'test'\n  ...\n# Subtest: a cycle is reported on standard error and exits 3\nok 9 - a cycle is reported on standard error and exits 3\n  ---\n  duration_ms: 49.265041\n  type: 'test'\n  ...\n# Subtest: a dependency on a task that was never declared is rejected\nok 10 - a dependency on a task that was never declared is rejected\n  ---\n  duration_ms: 57.656503\n  type: 'test'\n  ...\n# Subtest: a task declared twice is rejected with its line\nok 11 - a task declared twice is rejected with its line\n  ---\n  duration_ms: 52.287446\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected with its line\nok 12 - an unknown directive is rejected with its line\n  ---\n  duration_ms: 58.389438\n  type: 'test'\n  ...\n# Subtest: a negative cost is rejected\nok 13 - a negative cost is rejected\n  ---\n  duration_ms: 62.572292\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 14 - an unknown mode is rejected\n  ---\n  duration_ms: 51.324515\n  type: 'test'\n  ...\n# Subtest: pack without a worker count is rejected\nok 15 - pack without a worker count is rejected\n  ---\n  duration_ms: 53.836021\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 938.390012"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 140 of 140 passed (weight 274 of 274)",
+                  "cases": {
+                    "passed": 140,
+                    "total": 140,
+                    "weightPassed": 274,
+                    "weightTotal": 274,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "5a455f2e91e1bf67f2efa74750c4ccb31ff2e1bc669e312a3fa3be9eb0e59eb4"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-32d74736-6360-4d06-805d-58bbf3a71b74",
+              "revision": 1
+            },
+            "goalId": "goal-7c0a9c1e-eabe-4351-9af3-1ca5ea3c4926",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…onto one worker runs everything in sequence\nok 4 - pack onto one worker runs everything in sequence\n  ---\n  duration_ms: 57.747475\n  type: 'test'\n  ...\n# Subtest: pack onto two workers reaches the unlimited makespan of the diamond\nok 5 - pack onto two workers reaches the unlimited makespan of the diamond\n  ---\n  duration_ms: 70.121072\n  type: 'test'\n  ...\n# Subtest: a worker with nothing to run still prints its line\nok 6 - a worker with nothing to run still prints its line\n  ---\n  duration_ms: 54.005846\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 7 - blank lines and comments are ignored\n  ---\n  duration_ms: 48.272947\n  type: 'test'\n  ...\n# Subtest: an empty graph has no wave and a total of zero\nok 8 - an empty graph has no wave and a total of zero\n  ---\n  duration_ms: 47.646035\n  type: 'test'\n  ...\n# Subtest: a cycle is reported on standard error and exits 3\nok 9 - a cycle is reported on standard error and exits 3\n  ---\n  duration_ms: 49.265041\n  type: 'test'\n  ...\n# Subtest: a dependency on a task that was never declared is rejected\nok 10 - a dependency on a task that was never declared is rejected\n  ---\n  duration_ms: 57.656503\n  type: 'test'\n  ...\n# Subtest: a task declared twice is rejected with its line\nok 11 - a task declared twice is rejected with its line\n  ---\n  duration_ms: 52.287446\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected with its line\nok 12 - an unknown directive is rejected with its line\n  ---\n  duration_ms: 58.389438\n  type: 'test'\n  ...\n# Subtest: a negative cost is rejected\nok 13 - a negative cost is rejected\n  ---\n  duration_ms: 62.572292\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 14 - an unknown mode is rejected\n  ---\n  duration_ms: 51.324515\n  type: 'test'\n  ...\n# Subtest: pack without a worker count is rejected\nok 15 - pack without a worker count is rejected\n  ---\n  duration_ms: 53.836021\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 938.390012"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 140 of 140 passed (weight 274 of 274)",
+                "cases": {
+                  "passed": 140,
+                  "total": 140,
+                  "weightPassed": 274,
+                  "weightTotal": 274,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154540815
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 3552,
+            "cacheReadTokens": 25315,
+            "cacheWriteTokens": 12400
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:conf-canon",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:conf-canon",
+          "sessionId": "environment-960e2153-d698-43cf-926b-b93bc917770b",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:conf-canon",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "94d60745cfec7b65ff42c65507f84136afd9e90527e449640fdd36b9ce21d5bd",
+            "checksSha256": "0a10fcc6881961543806e276986008dcd3e4bb96fda8ee0d8750a83e3a7ddd6b",
+            "fixtureSha256": "5a3a5af1e99c2593757c8fca207ffab32ad9eae9676ffe7760ebdff26b7d31dc",
+            "contentSha256": "4bcae55287c46c60aa01bff5b82f77421da110494ad0c7ef69b5e89884f88a4d",
+            "repetition": 0,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…ns\n  ---\n  duration_ms: 50.779111\n  type: 'test'\n  ...\n# Subtest: an integer may carry underscore separators\nok 6 - an integer may carry underscore separators\n  ---\n  duration_ms: 48.024406\n  type: 'test'\n  ...\n# Subtest: an array holds its items in order\nok 7 - an array holds its items in order\n  ---\n  duration_ms: 48.753754\n  type: 'test'\n  ...\n# Subtest: a table header nests the keys under it\nok 8 - a table header nests the keys under it\n  ---\n  duration_ms: 59.473876\n  type: 'test'\n  ...\n# Subtest: a dotted header nests two levels\nok 9 - a dotted header nests two levels\n  ---\n  duration_ms: 52.135769\n  type: 'test'\n  ...\n# Subtest: a doubled header appends to an array of tables\nok 10 - a doubled header appends to an array of tables\n  ---\n  duration_ms: 66.753542\n  type: 'test'\n  ...\n# Subtest: comments and blank lines are ignored\nok 11 - comments and blank lines are ignored\n  ---\n  duration_ms: 68.699239\n  type: 'test'\n  ...\n# Subtest: an empty document is an empty object\nok 12 - an empty document is an empty object\n  ---\n  duration_ms: 52.816424\n  type: 'test'\n  ...\n# Subtest: keys list every path with its type\nok 13 - keys list every path with its type\n  ---\n  duration_ms: 51.197886\n  type: 'test'\n  ...\n# Subtest: keys tell an integer from a float\nok 14 - keys tell an integer from a float\n  ---\n  duration_ms: 51.967729\n  type: 'test'\n  ...\n# Subtest: a key defined twice is rejected\nok 15 - a key defined twice is rejected\n  ---\n  duration_ms: 50.910164\n  type: 'test'\n  ...\n# Subtest: a table header used twice is rejected\nok 16 - a table header used twice is rejected\n  ---\n  duration_ms: 60.192557\n  type: 'test'\n  ...\n# Subtest: a value that parses as nothing is rejected\nok 17 - a value that parses as nothing is rejected\n  ---\n  duration_ms: 53.11839\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 18 - an unknown mode is rejected\n  ---\n  duration_ms: 51.665547\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1083.576357"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 150 of 150 passed (weight 284 of 284)",
+                  "cases": {
+                    "passed": 150,
+                    "total": 150,
+                    "weightPassed": 284,
+                    "weightTotal": 284,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "119e91909176d4393df64bada3a377d94d5a2c77393d4d423a7644a75bf8588d"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-1f36c7b8-5cd0-48a9-9ca0-9fc7bab68fa2",
+              "revision": 1
+            },
+            "goalId": "goal-3cc3fb2c-d1b1-4ddd-b78e-e93860e413e1",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…ns\n  ---\n  duration_ms: 50.779111\n  type: 'test'\n  ...\n# Subtest: an integer may carry underscore separators\nok 6 - an integer may carry underscore separators\n  ---\n  duration_ms: 48.024406\n  type: 'test'\n  ...\n# Subtest: an array holds its items in order\nok 7 - an array holds its items in order\n  ---\n  duration_ms: 48.753754\n  type: 'test'\n  ...\n# Subtest: a table header nests the keys under it\nok 8 - a table header nests the keys under it\n  ---\n  duration_ms: 59.473876\n  type: 'test'\n  ...\n# Subtest: a dotted header nests two levels\nok 9 - a dotted header nests two levels\n  ---\n  duration_ms: 52.135769\n  type: 'test'\n  ...\n# Subtest: a doubled header appends to an array of tables\nok 10 - a doubled header appends to an array of tables\n  ---\n  duration_ms: 66.753542\n  type: 'test'\n  ...\n# Subtest: comments and blank lines are ignored\nok 11 - comments and blank lines are ignored\n  ---\n  duration_ms: 68.699239\n  type: 'test'\n  ...\n# Subtest: an empty document is an empty object\nok 12 - an empty document is an empty object\n  ---\n  duration_ms: 52.816424\n  type: 'test'\n  ...\n# Subtest: keys list every path with its type\nok 13 - keys list every path with its type\n  ---\n  duration_ms: 51.197886\n  type: 'test'\n  ...\n# Subtest: keys tell an integer from a float\nok 14 - keys tell an integer from a float\n  ---\n  duration_ms: 51.967729\n  type: 'test'\n  ...\n# Subtest: a key defined twice is rejected\nok 15 - a key defined twice is rejected\n  ---\n  duration_ms: 50.910164\n  type: 'test'\n  ...\n# Subtest: a table header used twice is rejected\nok 16 - a table header used twice is rejected\n  ---\n  duration_ms: 60.192557\n  type: 'test'\n  ...\n# Subtest: a value that parses as nothing is rejected\nok 17 - a value that parses as nothing is rejected\n  ---\n  duration_ms: 53.11839\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 18 - an unknown mode is rejected\n  ---\n  duration_ms: 51.665547\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1083.576357"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 150 of 150 passed (weight 284 of 284)",
+                "cases": {
+                  "passed": 150,
+                  "total": 150,
+                  "weightPassed": 284,
+                  "weightTotal": 284,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154668172
+          },
+          "usage": {
+            "inputTokens": 12,
+            "outputTokens": 15734,
+            "cacheReadTokens": 70609,
+            "cacheWriteTokens": 22767
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:conf-canon",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:conf-canon",
+          "sessionId": "environment-cd07b93e-9202-4668-a115-efce4b58ac18",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:conf-canon",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "94d60745cfec7b65ff42c65507f84136afd9e90527e449640fdd36b9ce21d5bd",
+            "checksSha256": "0a10fcc6881961543806e276986008dcd3e4bb96fda8ee0d8750a83e3a7ddd6b",
+            "fixtureSha256": "5a3a5af1e99c2593757c8fca207ffab32ad9eae9676ffe7760ebdff26b7d31dc",
+            "contentSha256": "4bcae55287c46c60aa01bff5b82f77421da110494ad0c7ef69b5e89884f88a4d",
+            "repetition": 1,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…leans\n  ---\n  duration_ms: 53.021989\n  type: 'test'\n  ...\n# Subtest: an integer may carry underscore separators\nok 6 - an integer may carry underscore separators\n  ---\n  duration_ms: 51.76575\n  type: 'test'\n  ...\n# Subtest: an array holds its items in order\nok 7 - an array holds its items in order\n  ---\n  duration_ms: 61.564293\n  type: 'test'\n  ...\n# Subtest: a table header nests the keys under it\nok 8 - a table header nests the keys under it\n  ---\n  duration_ms: 58.893169\n  type: 'test'\n  ...\n# Subtest: a dotted header nests two levels\nok 9 - a dotted header nests two levels\n  ---\n  duration_ms: 67.891149\n  type: 'test'\n  ...\n# Subtest: a doubled header appends to an array of tables\nok 10 - a doubled header appends to an array of tables\n  ---\n  duration_ms: 54.31217\n  type: 'test'\n  ...\n# Subtest: comments and blank lines are ignored\nok 11 - comments and blank lines are ignored\n  ---\n  duration_ms: 50.042292\n  type: 'test'\n  ...\n# Subtest: an empty document is an empty object\nok 12 - an empty document is an empty object\n  ---\n  duration_ms: 48.3029\n  type: 'test'\n  ...\n# Subtest: keys list every path with its type\nok 13 - keys list every path with its type\n  ---\n  duration_ms: 50.700398\n  type: 'test'\n  ...\n# Subtest: keys tell an integer from a float\nok 14 - keys tell an integer from a float\n  ---\n  duration_ms: 51.994246\n  type: 'test'\n  ...\n# Subtest: a key defined twice is rejected\nok 15 - a key defined twice is rejected\n  ---\n  duration_ms: 48.799866\n  type: 'test'\n  ...\n# Subtest: a table header used twice is rejected\nok 16 - a table header used twice is rejected\n  ---\n  duration_ms: 52.859017\n  type: 'test'\n  ...\n# Subtest: a value that parses as nothing is rejected\nok 17 - a value that parses as nothing is rejected\n  ---\n  duration_ms: 51.335013\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 18 - an unknown mode is rejected\n  ---\n  duration_ms: 51.262608\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1061.618811"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 150 of 150 passed (weight 284 of 284)",
+                  "cases": {
+                    "passed": 150,
+                    "total": 150,
+                    "weightPassed": 284,
+                    "weightTotal": 284,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "320a443e1c943c15ac9ef4e81ea9347f932fdd4a51e723da79c828aa5ea9e9e9"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-ba6eda42-439f-4afe-9b57-36550873db19",
+              "revision": 1
+            },
+            "goalId": "goal-9d2f7dbc-1975-412d-b907-9fa4d0aed616",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…leans\n  ---\n  duration_ms: 53.021989\n  type: 'test'\n  ...\n# Subtest: an integer may carry underscore separators\nok 6 - an integer may carry underscore separators\n  ---\n  duration_ms: 51.76575\n  type: 'test'\n  ...\n# Subtest: an array holds its items in order\nok 7 - an array holds its items in order\n  ---\n  duration_ms: 61.564293\n  type: 'test'\n  ...\n# Subtest: a table header nests the keys under it\nok 8 - a table header nests the keys under it\n  ---\n  duration_ms: 58.893169\n  type: 'test'\n  ...\n# Subtest: a dotted header nests two levels\nok 9 - a dotted header nests two levels\n  ---\n  duration_ms: 67.891149\n  type: 'test'\n  ...\n# Subtest: a doubled header appends to an array of tables\nok 10 - a doubled header appends to an array of tables\n  ---\n  duration_ms: 54.31217\n  type: 'test'\n  ...\n# Subtest: comments and blank lines are ignored\nok 11 - comments and blank lines are ignored\n  ---\n  duration_ms: 50.042292\n  type: 'test'\n  ...\n# Subtest: an empty document is an empty object\nok 12 - an empty document is an empty object\n  ---\n  duration_ms: 48.3029\n  type: 'test'\n  ...\n# Subtest: keys list every path with its type\nok 13 - keys list every path with its type\n  ---\n  duration_ms: 50.700398\n  type: 'test'\n  ...\n# Subtest: keys tell an integer from a float\nok 14 - keys tell an integer from a float\n  ---\n  duration_ms: 51.994246\n  type: 'test'\n  ...\n# Subtest: a key defined twice is rejected\nok 15 - a key defined twice is rejected\n  ---\n  duration_ms: 48.799866\n  type: 'test'\n  ...\n# Subtest: a table header used twice is rejected\nok 16 - a table header used twice is rejected\n  ---\n  duration_ms: 52.859017\n  type: 'test'\n  ...\n# Subtest: a value that parses as nothing is rejected\nok 17 - a value that parses as nothing is rejected\n  ---\n  duration_ms: 51.335013\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 18 - an unknown mode is rejected\n  ---\n  duration_ms: 51.262608\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1061.618811"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 150 of 150 passed (weight 284 of 284)",
+                "cases": {
+                  "passed": 150,
+                  "total": 150,
+                  "weightPassed": 284,
+                  "weightTotal": 284,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154663666
+          },
+          "usage": {
+            "inputTokens": 14,
+            "outputTokens": 14335,
+            "cacheReadTokens": 83869,
+            "cacheWriteTokens": 21469
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:diff3-merge",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:diff3-merge",
+          "sessionId": "environment-021b87be-fdc1-4e03-bae9-cf2c94af0f9a",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:diff3-merge",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "eb94399c70b1fd3a93eea71c1a16228f3a755cb88c3c52985f55ffa3c39cd232",
+            "checksSha256": "cf0fd34ee7ce6136a48dc7d2fe8bb5d500d2d9120dac55ce4567ba1bd9932f95",
+            "fixtureSha256": "1017432155cdd5f774c418a23f1bf393c3a3d3664c72f50c1604158d5ce031af",
+            "contentSha256": "83673bc2c2bc5a9868e3d17c48ae5da51498e251bc8c762c20187e0ec9b6e731",
+            "repetition": 0,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…n\nok 3 - a change only the other side made is taken\n  ---\n  duration_ms: 53.793754\n  type: 'test'\n  ...\n# Subtest: changes in different places both survive\nok 4 - changes in different places both survive\n  ---\n  duration_ms: 69.617005\n  type: 'test'\n  ...\n# Subtest: the same change on both sides is not a conflict\nok 5 - the same change on both sides is not a conflict\n  ---\n  duration_ms: 52.578863\n  type: 'test'\n  ...\n# Subtest: a line only one side inserted is kept\nok 6 - a line only one side inserted is kept\n  ---\n  duration_ms: 50.978869\n  type: 'test'\n  ...\n# Subtest: a line only one side deleted stays deleted\nok 7 - a line only one side deleted stays deleted\n  ---\n  duration_ms: 52.68502\n  type: 'test'\n  ...\n# Subtest: two different changes to one line conflict and exit 1\nok 8 - two different changes to one line conflict and exit 1\n  ---\n  duration_ms: 57.153908\n  type: 'test'\n  ...\n# Subtest: merge2 leaves the base section out of a conflict\nok 9 - merge2 leaves the base section out of a conflict\n  ---\n  duration_ms: 54.93045\n  type: 'test'\n  ...\n# Subtest: regions classify a clean merge\nok 10 - regions classify a clean merge\n  ---\n  duration_ms: 59.290941\n  type: 'test'\n  ...\n# Subtest: regions name the side that changed\nok 11 - regions name the side that changed\n  ---\n  duration_ms: 63.358965\n  type: 'test'\n  ...\n# Subtest: regions report the size of a conflict\nok 12 - regions report the size of a conflict\n  ---\n  duration_ms: 52.000415\n  type: 'test'\n  ...\n# Subtest: three empty documents merge to nothing\nok 13 - three empty documents merge to nothing\n  ---\n  duration_ms: 60.979513\n  type: 'test'\n  ...\n# Subtest: input with the wrong number of parts is rejected\nok 14 - input with the wrong number of parts is rejected\n  ---\n  duration_ms: 49.178696\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 15 - an unknown mode is rejected\n  ---\n  duration_ms: 52.204538\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 957.230704"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 160 of 160 passed (weight 442 of 442)",
+                  "cases": {
+                    "passed": 160,
+                    "total": 160,
+                    "weightPassed": 442,
+                    "weightTotal": 442,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "78ffe3476b42a8075b6ae0d3e8ed7d13940844b302f44d86420994ff1a7fda3e"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-c0560c20-915f-47f8-ba1b-7bab24a73b99",
+              "revision": 1
+            },
+            "goalId": "goal-6a5841c9-a76c-4885-a3ec-2915ab95ec90",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…n\nok 3 - a change only the other side made is taken\n  ---\n  duration_ms: 53.793754\n  type: 'test'\n  ...\n# Subtest: changes in different places both survive\nok 4 - changes in different places both survive\n  ---\n  duration_ms: 69.617005\n  type: 'test'\n  ...\n# Subtest: the same change on both sides is not a conflict\nok 5 - the same change on both sides is not a conflict\n  ---\n  duration_ms: 52.578863\n  type: 'test'\n  ...\n# Subtest: a line only one side inserted is kept\nok 6 - a line only one side inserted is kept\n  ---\n  duration_ms: 50.978869\n  type: 'test'\n  ...\n# Subtest: a line only one side deleted stays deleted\nok 7 - a line only one side deleted stays deleted\n  ---\n  duration_ms: 52.68502\n  type: 'test'\n  ...\n# Subtest: two different changes to one line conflict and exit 1\nok 8 - two different changes to one line conflict and exit 1\n  ---\n  duration_ms: 57.153908\n  type: 'test'\n  ...\n# Subtest: merge2 leaves the base section out of a conflict\nok 9 - merge2 leaves the base section out of a conflict\n  ---\n  duration_ms: 54.93045\n  type: 'test'\n  ...\n# Subtest: regions classify a clean merge\nok 10 - regions classify a clean merge\n  ---\n  duration_ms: 59.290941\n  type: 'test'\n  ...\n# Subtest: regions name the side that changed\nok 11 - regions name the side that changed\n  ---\n  duration_ms: 63.358965\n  type: 'test'\n  ...\n# Subtest: regions report the size of a conflict\nok 12 - regions report the size of a conflict\n  ---\n  duration_ms: 52.000415\n  type: 'test'\n  ...\n# Subtest: three empty documents merge to nothing\nok 13 - three empty documents merge to nothing\n  ---\n  duration_ms: 60.979513\n  type: 'test'\n  ...\n# Subtest: input with the wrong number of parts is rejected\nok 14 - input with the wrong number of parts is rejected\n  ---\n  duration_ms: 49.178696\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 15 - an unknown mode is rejected\n  ---\n  duration_ms: 52.204538\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 957.230704"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 160 of 160 passed (weight 442 of 442)",
+                "cases": {
+                  "passed": 160,
+                  "total": 160,
+                  "weightPassed": 442,
+                  "weightTotal": 442,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154708418
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 3315,
+            "cacheReadTokens": 27934,
+            "cacheWriteTokens": 9210
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:diff3-merge",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:diff3-merge",
+          "sessionId": "environment-b7c68557-df72-44fa-884f-d1da8c0ffb24",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:diff3-merge",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "eb94399c70b1fd3a93eea71c1a16228f3a755cb88c3c52985f55ffa3c39cd232",
+            "checksSha256": "cf0fd34ee7ce6136a48dc7d2fe8bb5d500d2d9120dac55ce4567ba1bd9932f95",
+            "fixtureSha256": "1017432155cdd5f774c418a23f1bf393c3a3d3664c72f50c1604158d5ce031af",
+            "contentSha256": "83673bc2c2bc5a9868e3d17c48ae5da51498e251bc8c762c20187e0ec9b6e731",
+            "repetition": 1,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…\nok 3 - a change only the other side made is taken\n  ---\n  duration_ms: 61.141561\n  type: 'test'\n  ...\n# Subtest: changes in different places both survive\nok 4 - changes in different places both survive\n  ---\n  duration_ms: 48.258941\n  type: 'test'\n  ...\n# Subtest: the same change on both sides is not a conflict\nok 5 - the same change on both sides is not a conflict\n  ---\n  duration_ms: 55.075182\n  type: 'test'\n  ...\n# Subtest: a line only one side inserted is kept\nok 6 - a line only one side inserted is kept\n  ---\n  duration_ms: 53.283512\n  type: 'test'\n  ...\n# Subtest: a line only one side deleted stays deleted\nok 7 - a line only one side deleted stays deleted\n  ---\n  duration_ms: 53.539445\n  type: 'test'\n  ...\n# Subtest: two different changes to one line conflict and exit 1\nok 8 - two different changes to one line conflict and exit 1\n  ---\n  duration_ms: 61.441417\n  type: 'test'\n  ...\n# Subtest: merge2 leaves the base section out of a conflict\nok 9 - merge2 leaves the base section out of a conflict\n  ---\n  duration_ms: 51.995584\n  type: 'test'\n  ...\n# Subtest: regions classify a clean merge\nok 10 - regions classify a clean merge\n  ---\n  duration_ms: 57.133242\n  type: 'test'\n  ...\n# Subtest: regions name the side that changed\nok 11 - regions name the side that changed\n  ---\n  duration_ms: 48.397197\n  type: 'test'\n  ...\n# Subtest: regions report the size of a conflict\nok 12 - regions report the size of a conflict\n  ---\n  duration_ms: 63.33442\n  type: 'test'\n  ...\n# Subtest: three empty documents merge to nothing\nok 13 - three empty documents merge to nothing\n  ---\n  duration_ms: 56.552409\n  type: 'test'\n  ...\n# Subtest: input with the wrong number of parts is rejected\nok 14 - input with the wrong number of parts is rejected\n  ---\n  duration_ms: 51.848593\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 15 - an unknown mode is rejected\n  ---\n  duration_ms: 54.417408\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 922.768076"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 160 of 160 passed (weight 442 of 442)",
+                  "cases": {
+                    "passed": 160,
+                    "total": 160,
+                    "weightPassed": 442,
+                    "weightTotal": 442,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "2b4df51caefad5fba37ffcd2efe70e9af36eb275a5a2cfbfdc7e95e8966a8149"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-d09d1163-fdfd-4190-86a3-ac8ff86fa806",
+              "revision": 1
+            },
+            "goalId": "goal-bba37858-0cb8-43c9-9549-1f42af5895a2",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…\nok 3 - a change only the other side made is taken\n  ---\n  duration_ms: 61.141561\n  type: 'test'\n  ...\n# Subtest: changes in different places both survive\nok 4 - changes in different places both survive\n  ---\n  duration_ms: 48.258941\n  type: 'test'\n  ...\n# Subtest: the same change on both sides is not a conflict\nok 5 - the same change on both sides is not a conflict\n  ---\n  duration_ms: 55.075182\n  type: 'test'\n  ...\n# Subtest: a line only one side inserted is kept\nok 6 - a line only one side inserted is kept\n  ---\n  duration_ms: 53.283512\n  type: 'test'\n  ...\n# Subtest: a line only one side deleted stays deleted\nok 7 - a line only one side deleted stays deleted\n  ---\n  duration_ms: 53.539445\n  type: 'test'\n  ...\n# Subtest: two different changes to one line conflict and exit 1\nok 8 - two different changes to one line conflict and exit 1\n  ---\n  duration_ms: 61.441417\n  type: 'test'\n  ...\n# Subtest: merge2 leaves the base section out of a conflict\nok 9 - merge2 leaves the base section out of a conflict\n  ---\n  duration_ms: 51.995584\n  type: 'test'\n  ...\n# Subtest: regions classify a clean merge\nok 10 - regions classify a clean merge\n  ---\n  duration_ms: 57.133242\n  type: 'test'\n  ...\n# Subtest: regions name the side that changed\nok 11 - regions name the side that changed\n  ---\n  duration_ms: 48.397197\n  type: 'test'\n  ...\n# Subtest: regions report the size of a conflict\nok 12 - regions report the size of a conflict\n  ---\n  duration_ms: 63.33442\n  type: 'test'\n  ...\n# Subtest: three empty documents merge to nothing\nok 13 - three empty documents merge to nothing\n  ---\n  duration_ms: 56.552409\n  type: 'test'\n  ...\n# Subtest: input with the wrong number of parts is rejected\nok 14 - input with the wrong number of parts is rejected\n  ---\n  duration_ms: 51.848593\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 15 - an unknown mode is rejected\n  ---\n  duration_ms: 54.417408\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 922.768076"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 160 of 160 passed (weight 442 of 442)",
+                "cases": {
+                  "passed": 160,
+                  "total": 160,
+                  "weightPassed": 442,
+                  "weightTotal": 442,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154712709
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 3254,
+            "cacheReadTokens": 27878,
+            "cacheWriteTokens": 9155
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:lex-states",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:lex-states",
+          "sessionId": "environment-b5865e6b-ec78-481c-986a-9c665d85fc5f",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:lex-states",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "0e194a3ab6edb12ea76e4190b20f4f7c1cbed8f0b36c486965a1387ea4535ab2",
+            "checksSha256": "de86ea020af9e94864a775f883218defed93311ddff27012302977df28937684",
+            "fixtureSha256": "eae824b37d6ae5e1111c46703c2d4569b9c9e22850d4ff93612e6f08d2f0bfe2",
+            "contentSha256": "b3007acde9432c8a7a4456e8269c43f82725151944c5cdbd7982c264a6046d4e",
+            "repetition": 0,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…  duration_ms: 50.242562\n  type: 'test'\n  ...\n# Subtest: a hexadecimal number keeps its prefix\nok 5 - a hexadecimal number keeps its prefix\n  ---\n  duration_ms: 55.570807\n  type: 'test'\n  ...\n# Subtest: a two-character operator wins over its first character\nok 6 - a two-character operator wins over its first character\n  ---\n  duration_ms: 53.445548\n  type: 'test'\n  ...\n# Subtest: a string prints its decoded value quoted\nok 7 - a string prints its decoded value quoted\n  ---\n  duration_ms: 56.018902\n  type: 'test'\n  ...\n# Subtest: a raw string keeps its backslashes\nok 8 - a raw string keeps its backslashes\n  ---\n  duration_ms: 48.289111\n  type: 'test'\n  ...\n# Subtest: a line comment runs to the end of its line\nok 9 - a line comment runs to the end of its line\n  ---\n  duration_ms: 49.970191\n  type: 'test'\n  ...\n# Subtest: a block comment is skipped\nok 10 - a block comment is skipped\n  ---\n  duration_ms: 79.728359\n  type: 'test'\n  ...\n# Subtest: stats count every kind, including the ones with nothing\nok 11 - stats count every kind, including the ones with nothing\n  ---\n  duration_ms: 56.652319\n  type: 'test'\n  ...\n# Subtest: empty input has no token\nok 12 - empty input has no token\n  ---\n  duration_ms: 62.678582\n  type: 'test'\n  ...\n# Subtest: a string the input never closes is reported at its opening quote\nok 13 - a string the input never closes is reported at its opening quote\n  ---\n  duration_ms: 50.083549\n  type: 'test'\n  ...\n# Subtest: an unterminated block comment is reported at its opening\nok 14 - an unterminated block comment is reported at its opening\n  ---\n  duration_ms: 52.641953\n  type: 'test'\n  ...\n# Subtest: a character the language does not use is rejected\nok 15 - a character the language does not use is rejected\n  ---\n  duration_ms: 67.236469\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 62.605556\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1017.188249"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 160 of 160 passed (weight 306 of 306)",
+                  "cases": {
+                    "passed": 160,
+                    "total": 160,
+                    "weightPassed": 306,
+                    "weightTotal": 306,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "4aa997ec58f2e797be4fdc50f3db30797722c7b1e4075cf926d9e9b7d226aaad"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-a9540500-6ea9-407a-9b6d-536f0023087d",
+              "revision": 1
+            },
+            "goalId": "goal-c1037ca6-ce5e-4f38-ba31-0794d37a9d9b",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…  duration_ms: 50.242562\n  type: 'test'\n  ...\n# Subtest: a hexadecimal number keeps its prefix\nok 5 - a hexadecimal number keeps its prefix\n  ---\n  duration_ms: 55.570807\n  type: 'test'\n  ...\n# Subtest: a two-character operator wins over its first character\nok 6 - a two-character operator wins over its first character\n  ---\n  duration_ms: 53.445548\n  type: 'test'\n  ...\n# Subtest: a string prints its decoded value quoted\nok 7 - a string prints its decoded value quoted\n  ---\n  duration_ms: 56.018902\n  type: 'test'\n  ...\n# Subtest: a raw string keeps its backslashes\nok 8 - a raw string keeps its backslashes\n  ---\n  duration_ms: 48.289111\n  type: 'test'\n  ...\n# Subtest: a line comment runs to the end of its line\nok 9 - a line comment runs to the end of its line\n  ---\n  duration_ms: 49.970191\n  type: 'test'\n  ...\n# Subtest: a block comment is skipped\nok 10 - a block comment is skipped\n  ---\n  duration_ms: 79.728359\n  type: 'test'\n  ...\n# Subtest: stats count every kind, including the ones with nothing\nok 11 - stats count every kind, including the ones with nothing\n  ---\n  duration_ms: 56.652319\n  type: 'test'\n  ...\n# Subtest: empty input has no token\nok 12 - empty input has no token\n  ---\n  duration_ms: 62.678582\n  type: 'test'\n  ...\n# Subtest: a string the input never closes is reported at its opening quote\nok 13 - a string the input never closes is reported at its opening quote\n  ---\n  duration_ms: 50.083549\n  type: 'test'\n  ...\n# Subtest: an unterminated block comment is reported at its opening\nok 14 - an unterminated block comment is reported at its opening\n  ---\n  duration_ms: 52.641953\n  type: 'test'\n  ...\n# Subtest: a character the language does not use is rejected\nok 15 - a character the language does not use is rejected\n  ---\n  duration_ms: 67.236469\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 62.605556\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1017.188249"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 160 of 160 passed (weight 306 of 306)",
+                "cases": {
+                  "passed": 160,
+                  "total": 160,
+                  "weightPassed": 306,
+                  "weightTotal": 306,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154766249
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 5414,
+            "cacheReadTokens": 28726,
+            "cacheWriteTokens": 11145
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:lex-states",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:lex-states",
+          "sessionId": "environment-0fe5ddef-5f90-48d0-a816-d017d08e1728",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:lex-states",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "0e194a3ab6edb12ea76e4190b20f4f7c1cbed8f0b36c486965a1387ea4535ab2",
+            "checksSha256": "de86ea020af9e94864a775f883218defed93311ddff27012302977df28937684",
+            "fixtureSha256": "eae824b37d6ae5e1111c46703c2d4569b9c9e22850d4ff93612e6f08d2f0bfe2",
+            "contentSha256": "b3007acde9432c8a7a4456e8269c43f82725151944c5cdbd7982c264a6046d4e",
+            "repetition": 1,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…\n  duration_ms: 51.158278\n  type: 'test'\n  ...\n# Subtest: a hexadecimal number keeps its prefix\nok 5 - a hexadecimal number keeps its prefix\n  ---\n  duration_ms: 49.836757\n  type: 'test'\n  ...\n# Subtest: a two-character operator wins over its first character\nok 6 - a two-character operator wins over its first character\n  ---\n  duration_ms: 52.293549\n  type: 'test'\n  ...\n# Subtest: a string prints its decoded value quoted\nok 7 - a string prints its decoded value quoted\n  ---\n  duration_ms: 49.625234\n  type: 'test'\n  ...\n# Subtest: a raw string keeps its backslashes\nok 8 - a raw string keeps its backslashes\n  ---\n  duration_ms: 53.187382\n  type: 'test'\n  ...\n# Subtest: a line comment runs to the end of its line\nok 9 - a line comment runs to the end of its line\n  ---\n  duration_ms: 53.088354\n  type: 'test'\n  ...\n# Subtest: a block comment is skipped\nok 10 - a block comment is skipped\n  ---\n  duration_ms: 58.883509\n  type: 'test'\n  ...\n# Subtest: stats count every kind, including the ones with nothing\nok 11 - stats count every kind, including the ones with nothing\n  ---\n  duration_ms: 54.290805\n  type: 'test'\n  ...\n# Subtest: empty input has no token\nok 12 - empty input has no token\n  ---\n  duration_ms: 53.847331\n  type: 'test'\n  ...\n# Subtest: a string the input never closes is reported at its opening quote\nok 13 - a string the input never closes is reported at its opening quote\n  ---\n  duration_ms: 47.500289\n  type: 'test'\n  ...\n# Subtest: an unterminated block comment is reported at its opening\nok 14 - an unterminated block comment is reported at its opening\n  ---\n  duration_ms: 51.786061\n  type: 'test'\n  ...\n# Subtest: a character the language does not use is rejected\nok 15 - a character the language does not use is rejected\n  ---\n  duration_ms: 48.980191\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 52.336536\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 941.758382"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 160 of 160 passed (weight 306 of 306)",
+                  "cases": {
+                    "passed": 160,
+                    "total": 160,
+                    "weightPassed": 306,
+                    "weightTotal": 306,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "868755e21a6ed6ac80002b9cac380cce57f74530167ccb6ad9d5ff5fdb3fe302"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-97240bdb-cd3f-419c-a118-104cc459fe1b",
+              "revision": 1
+            },
+            "goalId": "goal-02e3dfef-83fd-4a4f-a545-fd620d23997a",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…\n  duration_ms: 51.158278\n  type: 'test'\n  ...\n# Subtest: a hexadecimal number keeps its prefix\nok 5 - a hexadecimal number keeps its prefix\n  ---\n  duration_ms: 49.836757\n  type: 'test'\n  ...\n# Subtest: a two-character operator wins over its first character\nok 6 - a two-character operator wins over its first character\n  ---\n  duration_ms: 52.293549\n  type: 'test'\n  ...\n# Subtest: a string prints its decoded value quoted\nok 7 - a string prints its decoded value quoted\n  ---\n  duration_ms: 49.625234\n  type: 'test'\n  ...\n# Subtest: a raw string keeps its backslashes\nok 8 - a raw string keeps its backslashes\n  ---\n  duration_ms: 53.187382\n  type: 'test'\n  ...\n# Subtest: a line comment runs to the end of its line\nok 9 - a line comment runs to the end of its line\n  ---\n  duration_ms: 53.088354\n  type: 'test'\n  ...\n# Subtest: a block comment is skipped\nok 10 - a block comment is skipped\n  ---\n  duration_ms: 58.883509\n  type: 'test'\n  ...\n# Subtest: stats count every kind, including the ones with nothing\nok 11 - stats count every kind, including the ones with nothing\n  ---\n  duration_ms: 54.290805\n  type: 'test'\n  ...\n# Subtest: empty input has no token\nok 12 - empty input has no token\n  ---\n  duration_ms: 53.847331\n  type: 'test'\n  ...\n# Subtest: a string the input never closes is reported at its opening quote\nok 13 - a string the input never closes is reported at its opening quote\n  ---\n  duration_ms: 47.500289\n  type: 'test'\n  ...\n# Subtest: an unterminated block comment is reported at its opening\nok 14 - an unterminated block comment is reported at its opening\n  ---\n  duration_ms: 51.786061\n  type: 'test'\n  ...\n# Subtest: a character the language does not use is rejected\nok 15 - a character the language does not use is rejected\n  ---\n  duration_ms: 48.980191\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 52.336536\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 941.758382"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 160 of 160 passed (weight 306 of 306)",
+                "cases": {
+                  "passed": 160,
+                  "total": 160,
+                  "weightPassed": 306,
+                  "weightTotal": 306,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154766636
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 4873,
+            "cacheReadTokens": 28729,
+            "cacheWriteTokens": 10796
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:ranked-choice",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:ranked-choice",
+          "sessionId": "environment-0f89afdf-f194-4e4f-97ed-6851d0c024d7",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:ranked-choice",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "dddabfa36db98e961638946698697b51bd75386acc569ee315e33558b317ac0d",
+            "checksSha256": "f7778b0f673238866acbe08037f81e081a4dd32e54586ffa35f1bcbd5ebda249",
+            "fixtureSha256": "4c43588b3be0c4bba7142d64983547b80d4203aac65bf8492bfc9695db257ec8",
+            "contentSha256": "70af5c14b7afcb0b128aedadc5c37bd40539bf218e358030b4e8bd1add49c8b6",
+            "repetition": 0,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…ed becomes exhausted\n  ---\n  duration_ms: 62.432478\n  type: 'test'\n  ...\n# Subtest: counts are listed by descending votes and then by name\nok 5 - counts are listed by descending votes and then by name\n  ---\n  duration_ms: 49.312217\n  type: 'test'\n  ...\n# Subtest: a candidate nobody ranked still appears with zero\nok 6 - a candidate nobody ranked still appears with zero\n  ---\n  duration_ms: 48.973483\n  type: 'test'\n  ...\n# Subtest: an election with no ballot has no winner\nok 7 - an election with no ballot has no winner\n  ---\n  duration_ms: 49.590257\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 8 - blank lines and comments are ignored\n  ---\n  duration_ms: 49.634976\n  type: 'test'\n  ...\n# Subtest: a ballot before the candidates is rejected\nok 9 - a ballot before the candidates is rejected\n  ---\n  duration_ms: 46.576014\n  type: 'test'\n  ...\n# Subtest: a second candidates line is rejected\nok 10 - a second candidates line is rejected\n  ---\n  duration_ms: 51.502259\n  type: 'test'\n  ...\n# Subtest: a ballot naming an undeclared candidate is rejected\nok 11 - a ballot naming an undeclared candidate is rejected\n  ---\n  duration_ms: 48.222248\n  type: 'test'\n  ...\n# Subtest: a ballot that repeats a candidate is rejected\nok 12 - a ballot that repeats a candidate is rejected\n  ---\n  duration_ms: 46.199826\n  type: 'test'\n  ...\n# Subtest: a non-positive ballot count is rejected\nok 13 - a non-positive ballot count is rejected\n  ---\n  duration_ms: 53.126402\n  type: 'test'\n  ...\n# Subtest: an input with no candidates line is rejected\nok 14 - an input with no candidates line is rejected\n  ---\n  duration_ms: 47.843561\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected\nok 15 - an unknown directive is rejected\n  ---\n  duration_ms: 48.754497\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 48.038761\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 903.977462"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 170 of 170 passed (weight 366 of 366)",
+                  "cases": {
+                    "passed": 170,
+                    "total": 170,
+                    "weightPassed": 366,
+                    "weightTotal": 366,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "4a79bd706ee566ad4401bc0fcb5d3db41b0e5d347fabab70bc609405c140d52b"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-13955739-52bd-43b4-975e-3e82b78f18c8",
+              "revision": 1
+            },
+            "goalId": "goal-5d00980f-e88e-4dd7-86ae-8524b4c6587e",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…ed becomes exhausted\n  ---\n  duration_ms: 62.432478\n  type: 'test'\n  ...\n# Subtest: counts are listed by descending votes and then by name\nok 5 - counts are listed by descending votes and then by name\n  ---\n  duration_ms: 49.312217\n  type: 'test'\n  ...\n# Subtest: a candidate nobody ranked still appears with zero\nok 6 - a candidate nobody ranked still appears with zero\n  ---\n  duration_ms: 48.973483\n  type: 'test'\n  ...\n# Subtest: an election with no ballot has no winner\nok 7 - an election with no ballot has no winner\n  ---\n  duration_ms: 49.590257\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 8 - blank lines and comments are ignored\n  ---\n  duration_ms: 49.634976\n  type: 'test'\n  ...\n# Subtest: a ballot before the candidates is rejected\nok 9 - a ballot before the candidates is rejected\n  ---\n  duration_ms: 46.576014\n  type: 'test'\n  ...\n# Subtest: a second candidates line is rejected\nok 10 - a second candidates line is rejected\n  ---\n  duration_ms: 51.502259\n  type: 'test'\n  ...\n# Subtest: a ballot naming an undeclared candidate is rejected\nok 11 - a ballot naming an undeclared candidate is rejected\n  ---\n  duration_ms: 48.222248\n  type: 'test'\n  ...\n# Subtest: a ballot that repeats a candidate is rejected\nok 12 - a ballot that repeats a candidate is rejected\n  ---\n  duration_ms: 46.199826\n  type: 'test'\n  ...\n# Subtest: a non-positive ballot count is rejected\nok 13 - a non-positive ballot count is rejected\n  ---\n  duration_ms: 53.126402\n  type: 'test'\n  ...\n# Subtest: an input with no candidates line is rejected\nok 14 - an input with no candidates line is rejected\n  ---\n  duration_ms: 47.843561\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected\nok 15 - an unknown directive is rejected\n  ---\n  duration_ms: 48.754497\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 48.038761\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 903.977462"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 170 of 170 passed (weight 366 of 366)",
+                "cases": {
+                  "passed": 170,
+                  "total": 170,
+                  "weightPassed": 366,
+                  "weightTotal": 366,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154803904
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 2647,
+            "cacheReadTokens": 28202,
+            "cacheWriteTokens": 8710
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:ranked-choice",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:ranked-choice",
+          "sessionId": "environment-b1ef437b-6963-4041-8e00-240ba754429e",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:ranked-choice",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "dddabfa36db98e961638946698697b51bd75386acc569ee315e33558b317ac0d",
+            "checksSha256": "f7778b0f673238866acbe08037f81e081a4dd32e54586ffa35f1bcbd5ebda249",
+            "fixtureSha256": "4c43588b3be0c4bba7142d64983547b80d4203aac65bf8492bfc9695db257ec8",
+            "contentSha256": "70af5c14b7afcb0b128aedadc5c37bd40539bf218e358030b4e8bd1add49c8b6",
+            "repetition": 1,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…ted becomes exhausted\n  ---\n  duration_ms: 51.151599\n  type: 'test'\n  ...\n# Subtest: counts are listed by descending votes and then by name\nok 5 - counts are listed by descending votes and then by name\n  ---\n  duration_ms: 55.521193\n  type: 'test'\n  ...\n# Subtest: a candidate nobody ranked still appears with zero\nok 6 - a candidate nobody ranked still appears with zero\n  ---\n  duration_ms: 50.544786\n  type: 'test'\n  ...\n# Subtest: an election with no ballot has no winner\nok 7 - an election with no ballot has no winner\n  ---\n  duration_ms: 49.578102\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 8 - blank lines and comments are ignored\n  ---\n  duration_ms: 51.035837\n  type: 'test'\n  ...\n# Subtest: a ballot before the candidates is rejected\nok 9 - a ballot before the candidates is rejected\n  ---\n  duration_ms: 50.21401\n  type: 'test'\n  ...\n# Subtest: a second candidates line is rejected\nok 10 - a second candidates line is rejected\n  ---\n  duration_ms: 54.214578\n  type: 'test'\n  ...\n# Subtest: a ballot naming an undeclared candidate is rejected\nok 11 - a ballot naming an undeclared candidate is rejected\n  ---\n  duration_ms: 51.781794\n  type: 'test'\n  ...\n# Subtest: a ballot that repeats a candidate is rejected\nok 12 - a ballot that repeats a candidate is rejected\n  ---\n  duration_ms: 51.395947\n  type: 'test'\n  ...\n# Subtest: a non-positive ballot count is rejected\nok 13 - a non-positive ballot count is rejected\n  ---\n  duration_ms: 51.425307\n  type: 'test'\n  ...\n# Subtest: an input with no candidates line is rejected\nok 14 - an input with no candidates line is rejected\n  ---\n  duration_ms: 49.441309\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected\nok 15 - an unknown directive is rejected\n  ---\n  duration_ms: 51.203967\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 48.741274\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 950.323358"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 170 of 170 passed (weight 366 of 366)",
+                  "cases": {
+                    "passed": 170,
+                    "total": 170,
+                    "weightPassed": 366,
+                    "weightTotal": 366,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "f47765daf6cfc31d198e55bae8a17e854bc4ccc960ab3dbc38ad28032a8034dc"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-958224be-21ab-4b0f-900e-74f0ad0efc54",
+              "revision": 1
+            },
+            "goalId": "goal-13653fa4-8612-4b8b-bf2a-461dc37b3662",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…ted becomes exhausted\n  ---\n  duration_ms: 51.151599\n  type: 'test'\n  ...\n# Subtest: counts are listed by descending votes and then by name\nok 5 - counts are listed by descending votes and then by name\n  ---\n  duration_ms: 55.521193\n  type: 'test'\n  ...\n# Subtest: a candidate nobody ranked still appears with zero\nok 6 - a candidate nobody ranked still appears with zero\n  ---\n  duration_ms: 50.544786\n  type: 'test'\n  ...\n# Subtest: an election with no ballot has no winner\nok 7 - an election with no ballot has no winner\n  ---\n  duration_ms: 49.578102\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 8 - blank lines and comments are ignored\n  ---\n  duration_ms: 51.035837\n  type: 'test'\n  ...\n# Subtest: a ballot before the candidates is rejected\nok 9 - a ballot before the candidates is rejected\n  ---\n  duration_ms: 50.21401\n  type: 'test'\n  ...\n# Subtest: a second candidates line is rejected\nok 10 - a second candidates line is rejected\n  ---\n  duration_ms: 54.214578\n  type: 'test'\n  ...\n# Subtest: a ballot naming an undeclared candidate is rejected\nok 11 - a ballot naming an undeclared candidate is rejected\n  ---\n  duration_ms: 51.781794\n  type: 'test'\n  ...\n# Subtest: a ballot that repeats a candidate is rejected\nok 12 - a ballot that repeats a candidate is rejected\n  ---\n  duration_ms: 51.395947\n  type: 'test'\n  ...\n# Subtest: a non-positive ballot count is rejected\nok 13 - a non-positive ballot count is rejected\n  ---\n  duration_ms: 51.425307\n  type: 'test'\n  ...\n# Subtest: an input with no candidates line is rejected\nok 14 - an input with no candidates line is rejected\n  ---\n  duration_ms: 49.441309\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected\nok 15 - an unknown directive is rejected\n  ---\n  duration_ms: 51.203967\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 48.741274\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 950.323358"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 170 of 170 passed (weight 366 of 366)",
+                "cases": {
+                  "passed": 170,
+                  "total": 170,
+                  "weightPassed": 366,
+                  "weightTotal": 366,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154807762
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 2983,
+            "cacheReadTokens": 27988,
+            "cacheWriteTokens": 8693
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:rate-limit-sim",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:rate-limit-sim",
+          "sessionId": "environment-534285d5-b5bf-4415-9863-b994bc3b0be8",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:rate-limit-sim",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "7183c4e21aae7ffbf2d3d0cb177e0b13d88482c60acf95eb5e22a081db9e54d3",
+            "checksSha256": "ce439de4e61cb82af2f1310d94e6602268342fe714cb672ab153a5ab857ddd95",
+            "fixtureSha256": "fe32869295253337ae0929f130115f9cd25c383fd61f973ba699f132194bcc40",
+            "contentSha256": "7bc6b7a0a9000fe0ea71e4b1c72fcfb4fa95b7abd4f38852c91d75ea0cd2126d",
+            "repetition": 0,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n… always allowed\nok 5 - a key no route matches is always allowed\n  ---\n  duration_ms: 47.579944\n  type: 'test'\n  ...\n# Subtest: the longest matching route prefix wins\nok 6 - the longest matching route prefix wins\n  ---\n  duration_ms: 46.928942\n  type: 'test'\n  ...\n# Subtest: a route with two policies denies by the first that refuses\nok 7 - a route with two policies denies by the first that refuses\n  ---\n  duration_ms: 49.323811\n  type: 'test'\n  ...\n# Subtest: a denied event consumes nothing\nok 8 - a denied event consumes nothing\n  ---\n  duration_ms: 49.205122\n  type: 'test'\n  ...\n# Subtest: summary totals the verdicts per key and overall\nok 9 - summary totals the verdicts per key and overall\n  ---\n  duration_ms: 48.559313\n  type: 'test'\n  ...\n# Subtest: an empty log reports zero totals\nok 10 - an empty log reports zero totals\n  ---\n  duration_ms: 66.314654\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 11 - blank lines and comments are ignored\n  ---\n  duration_ms: 52.734837\n  type: 'test'\n  ...\n# Subtest: an event before an earlier tick is rejected\nok 12 - an event before an earlier tick is rejected\n  ---\n  duration_ms: 46.134362\n  type: 'test'\n  ...\n# Subtest: a route naming an undeclared policy is rejected\nok 13 - a route naming an undeclared policy is rejected\n  ---\n  duration_ms: 56.654785\n  type: 'test'\n  ...\n# Subtest: a declaration after the first event is rejected\nok 14 - a declaration after the first event is rejected\n  ---\n  duration_ms: 53.837582\n  type: 'test'\n  ...\n# Subtest: a policy declared twice is rejected\nok 15 - a policy declared twice is rejected\n  ---\n  duration_ms: 50.569736\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected\nok 16 - an unknown directive is rejected\n  ---\n  duration_ms: 51.035814\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 17 - an unknown mode is rejected\n  ---\n  duration_ms: 43.451916\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 971.203184"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 150 of 150 passed (weight 340 of 340)",
+                  "cases": {
+                    "passed": 150,
+                    "total": 150,
+                    "weightPassed": 340,
+                    "weightTotal": 340,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "bc0f31b94b16f191f9b70cb8d01ea80a41b5c1ba95da8d1486c8e29d8b70f1f6"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-0bc58a67-29e9-4c06-87c3-d4ab502b3736",
+              "revision": 1
+            },
+            "goalId": "goal-b95bcfe8-eca0-46cf-8f54-927a95521612",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n… always allowed\nok 5 - a key no route matches is always allowed\n  ---\n  duration_ms: 47.579944\n  type: 'test'\n  ...\n# Subtest: the longest matching route prefix wins\nok 6 - the longest matching route prefix wins\n  ---\n  duration_ms: 46.928942\n  type: 'test'\n  ...\n# Subtest: a route with two policies denies by the first that refuses\nok 7 - a route with two policies denies by the first that refuses\n  ---\n  duration_ms: 49.323811\n  type: 'test'\n  ...\n# Subtest: a denied event consumes nothing\nok 8 - a denied event consumes nothing\n  ---\n  duration_ms: 49.205122\n  type: 'test'\n  ...\n# Subtest: summary totals the verdicts per key and overall\nok 9 - summary totals the verdicts per key and overall\n  ---\n  duration_ms: 48.559313\n  type: 'test'\n  ...\n# Subtest: an empty log reports zero totals\nok 10 - an empty log reports zero totals\n  ---\n  duration_ms: 66.314654\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 11 - blank lines and comments are ignored\n  ---\n  duration_ms: 52.734837\n  type: 'test'\n  ...\n# Subtest: an event before an earlier tick is rejected\nok 12 - an event before an earlier tick is rejected\n  ---\n  duration_ms: 46.134362\n  type: 'test'\n  ...\n# Subtest: a route naming an undeclared policy is rejected\nok 13 - a route naming an undeclared policy is rejected\n  ---\n  duration_ms: 56.654785\n  type: 'test'\n  ...\n# Subtest: a declaration after the first event is rejected\nok 14 - a declaration after the first event is rejected\n  ---\n  duration_ms: 53.837582\n  type: 'test'\n  ...\n# Subtest: a policy declared twice is rejected\nok 15 - a policy declared twice is rejected\n  ---\n  duration_ms: 50.569736\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected\nok 16 - an unknown directive is rejected\n  ---\n  duration_ms: 51.035814\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 17 - an unknown mode is rejected\n  ---\n  duration_ms: 43.451916\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 971.203184"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 150 of 150 passed (weight 340 of 340)",
+                "cases": {
+                  "passed": 150,
+                  "total": 150,
+                  "weightPassed": 340,
+                  "weightTotal": 340,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154844739
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 3494,
+            "cacheReadTokens": 28448,
+            "cacheWriteTokens": 9304
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:rate-limit-sim",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:rate-limit-sim",
+          "sessionId": "environment-894b98d4-4b88-49d6-8a6c-1a0ac8f49549",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:rate-limit-sim",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "7183c4e21aae7ffbf2d3d0cb177e0b13d88482c60acf95eb5e22a081db9e54d3",
+            "checksSha256": "ce439de4e61cb82af2f1310d94e6602268342fe714cb672ab153a5ab857ddd95",
+            "fixtureSha256": "fe32869295253337ae0929f130115f9cd25c383fd61f973ba699f132194bcc40",
+            "contentSha256": "7bc6b7a0a9000fe0ea71e4b1c72fcfb4fa95b7abd4f38852c91d75ea0cd2126d",
+            "repetition": 1,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…always allowed\nok 5 - a key no route matches is always allowed\n  ---\n  duration_ms: 49.419688\n  type: 'test'\n  ...\n# Subtest: the longest matching route prefix wins\nok 6 - the longest matching route prefix wins\n  ---\n  duration_ms: 56.624362\n  type: 'test'\n  ...\n# Subtest: a route with two policies denies by the first that refuses\nok 7 - a route with two policies denies by the first that refuses\n  ---\n  duration_ms: 61.833788\n  type: 'test'\n  ...\n# Subtest: a denied event consumes nothing\nok 8 - a denied event consumes nothing\n  ---\n  duration_ms: 49.472873\n  type: 'test'\n  ...\n# Subtest: summary totals the verdicts per key and overall\nok 9 - summary totals the verdicts per key and overall\n  ---\n  duration_ms: 50.137685\n  type: 'test'\n  ...\n# Subtest: an empty log reports zero totals\nok 10 - an empty log reports zero totals\n  ---\n  duration_ms: 55.977175\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 11 - blank lines and comments are ignored\n  ---\n  duration_ms: 49.308724\n  type: 'test'\n  ...\n# Subtest: an event before an earlier tick is rejected\nok 12 - an event before an earlier tick is rejected\n  ---\n  duration_ms: 48.831538\n  type: 'test'\n  ...\n# Subtest: a route naming an undeclared policy is rejected\nok 13 - a route naming an undeclared policy is rejected\n  ---\n  duration_ms: 45.597945\n  type: 'test'\n  ...\n# Subtest: a declaration after the first event is rejected\nok 14 - a declaration after the first event is rejected\n  ---\n  duration_ms: 48.194837\n  type: 'test'\n  ...\n# Subtest: a policy declared twice is rejected\nok 15 - a policy declared twice is rejected\n  ---\n  duration_ms: 48.661514\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected\nok 16 - an unknown directive is rejected\n  ---\n  duration_ms: 51.296066\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 17 - an unknown mode is rejected\n  ---\n  duration_ms: 56.416775\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1021.851656"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 150 of 150 passed (weight 340 of 340)",
+                  "cases": {
+                    "passed": 150,
+                    "total": 150,
+                    "weightPassed": 340,
+                    "weightTotal": 340,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "8206b6445a929b09d0455360015b2344ee454fbe43eec31aa20de03b18da1d72"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-7fc50b3a-621f-4c51-9f4f-5d429c1966d5",
+              "revision": 1
+            },
+            "goalId": "goal-e0669767-654a-4214-bff3-61cbcb7baecc",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…always allowed\nok 5 - a key no route matches is always allowed\n  ---\n  duration_ms: 49.419688\n  type: 'test'\n  ...\n# Subtest: the longest matching route prefix wins\nok 6 - the longest matching route prefix wins\n  ---\n  duration_ms: 56.624362\n  type: 'test'\n  ...\n# Subtest: a route with two policies denies by the first that refuses\nok 7 - a route with two policies denies by the first that refuses\n  ---\n  duration_ms: 61.833788\n  type: 'test'\n  ...\n# Subtest: a denied event consumes nothing\nok 8 - a denied event consumes nothing\n  ---\n  duration_ms: 49.472873\n  type: 'test'\n  ...\n# Subtest: summary totals the verdicts per key and overall\nok 9 - summary totals the verdicts per key and overall\n  ---\n  duration_ms: 50.137685\n  type: 'test'\n  ...\n# Subtest: an empty log reports zero totals\nok 10 - an empty log reports zero totals\n  ---\n  duration_ms: 55.977175\n  type: 'test'\n  ...\n# Subtest: blank lines and comments are ignored\nok 11 - blank lines and comments are ignored\n  ---\n  duration_ms: 49.308724\n  type: 'test'\n  ...\n# Subtest: an event before an earlier tick is rejected\nok 12 - an event before an earlier tick is rejected\n  ---\n  duration_ms: 48.831538\n  type: 'test'\n  ...\n# Subtest: a route naming an undeclared policy is rejected\nok 13 - a route naming an undeclared policy is rejected\n  ---\n  duration_ms: 45.597945\n  type: 'test'\n  ...\n# Subtest: a declaration after the first event is rejected\nok 14 - a declaration after the first event is rejected\n  ---\n  duration_ms: 48.194837\n  type: 'test'\n  ...\n# Subtest: a policy declared twice is rejected\nok 15 - a policy declared twice is rejected\n  ---\n  duration_ms: 48.661514\n  type: 'test'\n  ...\n# Subtest: an unknown directive is rejected\nok 16 - an unknown directive is rejected\n  ---\n  duration_ms: 51.296066\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 17 - an unknown mode is rejected\n  ---\n  duration_ms: 56.416775\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1021.851656"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 150 of 150 passed (weight 340 of 340)",
+                "cases": {
+                  "passed": 150,
+                  "total": 150,
+                  "weightPassed": 340,
+                  "weightTotal": 340,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154852468
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 3712,
+            "cacheReadTokens": 28697,
+            "cacheWriteTokens": 9665
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:sheet-eval",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:sheet-eval",
+          "sessionId": "environment-4b536113-6d4d-45f2-a551-c3a20d080edd",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:sheet-eval",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "3f4943956385c626affa4bc962edbc4e1fdc4d59247ce0f5085843db86710855",
+            "checksSha256": "c6f1da99193eca69d15bf2b701a43f309280b8f9fe86ad31f7caf96c5ec45bfe",
+            "fixtureSha256": "afc431e0b746953de37828f8e6759eccd34a2623dc2effd7ea8706c14e52e25f",
+            "contentSha256": "690a138dd4dfa86c10b27aee1a6c6d879c804914e93ac3f3136c128369317d8d",
+            "repetition": 0,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…49\n  type: 'test'\n  ...\n# Subtest: cells are printed by column and then by row\nok 6 - cells are printed by column and then by row\n  ---\n  duration_ms: 55.390068\n  type: 'test'\n  ...\n# Subtest: SUM adds a range\nok 7 - SUM adds a range\n  ---\n  duration_ms: 52.024927\n  type: 'test'\n  ...\n# Subtest: an undeclared cell reads as zero\nok 8 - an undeclared cell reads as zero\n  ---\n  duration_ms: 60.883392\n  type: 'test'\n  ...\n# Subtest: dividing by zero yields the division error\nok 9 - dividing by zero yields the division error\n  ---\n  duration_ms: 54.366783\n  type: 'test'\n  ...\n# Subtest: an error travels through the cells that read it\nok 10 - an error travels through the cells that read it\n  ---\n  duration_ms: 54.817666\n  type: 'test'\n  ...\n# Subtest: text in an arithmetic position yields the value error\nok 11 - text in an arithmetic position yields the value error\n  ---\n  duration_ms: 59.456718\n  type: 'test'\n  ...\n# Subtest: a cell that reaches itself yields the cycle error\nok 12 - a cell that reaches itself yields the cycle error\n  ---\n  duration_ms: 59.399014\n  type: 'test'\n  ...\n# Subtest: an unknown function yields the name error\nok 13 - an unknown function yields the name error\n  ---\n  duration_ms: 51.384208\n  type: 'test'\n  ...\n# Subtest: a comparison yields a boolean\nok 14 - a comparison yields a boolean\n  ---\n  duration_ms: 59.686823\n  type: 'test'\n  ...\n# Subtest: deps list the cells a formula reads\nok 15 - deps list the cells a formula reads\n  ---\n  duration_ms: 69.327436\n  type: 'test'\n  ...\n# Subtest: an invalid cell address is rejected\nok 16 - an invalid cell address is rejected\n  ---\n  duration_ms: 53.625616\n  type: 'test'\n  ...\n# Subtest: a cell declared twice is rejected\nok 17 - a cell declared twice is rejected\n  ---\n  duration_ms: 52.914594\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 18 - an unknown mode is rejected\n  ---\n  duration_ms: 56.482184\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1147.883401"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 150 of 150 passed (weight 276 of 276)",
+                  "cases": {
+                    "passed": 150,
+                    "total": 150,
+                    "weightPassed": 276,
+                    "weightTotal": 276,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "38fb1f8e537e8eea42b6530cb6ef8ca4481da9303eb219a0cd8528f2163f071d"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-5b621803-7ff9-42f7-97ea-d4052f3279ea",
+              "revision": 1
+            },
+            "goalId": "goal-50f51a6c-d3a7-4a92-a8ea-e368235cd418",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…49\n  type: 'test'\n  ...\n# Subtest: cells are printed by column and then by row\nok 6 - cells are printed by column and then by row\n  ---\n  duration_ms: 55.390068\n  type: 'test'\n  ...\n# Subtest: SUM adds a range\nok 7 - SUM adds a range\n  ---\n  duration_ms: 52.024927\n  type: 'test'\n  ...\n# Subtest: an undeclared cell reads as zero\nok 8 - an undeclared cell reads as zero\n  ---\n  duration_ms: 60.883392\n  type: 'test'\n  ...\n# Subtest: dividing by zero yields the division error\nok 9 - dividing by zero yields the division error\n  ---\n  duration_ms: 54.366783\n  type: 'test'\n  ...\n# Subtest: an error travels through the cells that read it\nok 10 - an error travels through the cells that read it\n  ---\n  duration_ms: 54.817666\n  type: 'test'\n  ...\n# Subtest: text in an arithmetic position yields the value error\nok 11 - text in an arithmetic position yields the value error\n  ---\n  duration_ms: 59.456718\n  type: 'test'\n  ...\n# Subtest: a cell that reaches itself yields the cycle error\nok 12 - a cell that reaches itself yields the cycle error\n  ---\n  duration_ms: 59.399014\n  type: 'test'\n  ...\n# Subtest: an unknown function yields the name error\nok 13 - an unknown function yields the name error\n  ---\n  duration_ms: 51.384208\n  type: 'test'\n  ...\n# Subtest: a comparison yields a boolean\nok 14 - a comparison yields a boolean\n  ---\n  duration_ms: 59.686823\n  type: 'test'\n  ...\n# Subtest: deps list the cells a formula reads\nok 15 - deps list the cells a formula reads\n  ---\n  duration_ms: 69.327436\n  type: 'test'\n  ...\n# Subtest: an invalid cell address is rejected\nok 16 - an invalid cell address is rejected\n  ---\n  duration_ms: 53.625616\n  type: 'test'\n  ...\n# Subtest: a cell declared twice is rejected\nok 17 - a cell declared twice is rejected\n  ---\n  duration_ms: 52.914594\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 18 - an unknown mode is rejected\n  ---\n  duration_ms: 56.482184\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1147.883401"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 150 of 150 passed (weight 276 of 276)",
+                "cases": {
+                  "passed": 150,
+                  "total": 150,
+                  "weightPassed": 276,
+                  "weightTotal": 276,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154940209
+          },
+          "usage": {
+            "inputTokens": 12,
+            "outputTokens": 11477,
+            "cacheReadTokens": 70946,
+            "cacheWriteTokens": 19410
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:sheet-eval",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:sheet-eval",
+          "sessionId": "environment-b28a19d4-4c47-4a8f-bedc-ff4741fb849b",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:sheet-eval",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "3f4943956385c626affa4bc962edbc4e1fdc4d59247ce0f5085843db86710855",
+            "checksSha256": "c6f1da99193eca69d15bf2b701a43f309280b8f9fe86ad31f7caf96c5ec45bfe",
+            "fixtureSha256": "afc431e0b746953de37828f8e6759eccd34a2623dc2effd7ea8706c14e52e25f",
+            "contentSha256": "690a138dd4dfa86c10b27aee1a6c6d879c804914e93ac3f3136c128369317d8d",
+            "repetition": 1,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…5885\n  type: 'test'\n  ...\n# Subtest: cells are printed by column and then by row\nok 6 - cells are printed by column and then by row\n  ---\n  duration_ms: 50.90865\n  type: 'test'\n  ...\n# Subtest: SUM adds a range\nok 7 - SUM adds a range\n  ---\n  duration_ms: 52.932239\n  type: 'test'\n  ...\n# Subtest: an undeclared cell reads as zero\nok 8 - an undeclared cell reads as zero\n  ---\n  duration_ms: 62.486707\n  type: 'test'\n  ...\n# Subtest: dividing by zero yields the division error\nok 9 - dividing by zero yields the division error\n  ---\n  duration_ms: 54.189706\n  type: 'test'\n  ...\n# Subtest: an error travels through the cells that read it\nok 10 - an error travels through the cells that read it\n  ---\n  duration_ms: 51.653315\n  type: 'test'\n  ...\n# Subtest: text in an arithmetic position yields the value error\nok 11 - text in an arithmetic position yields the value error\n  ---\n  duration_ms: 49.108649\n  type: 'test'\n  ...\n# Subtest: a cell that reaches itself yields the cycle error\nok 12 - a cell that reaches itself yields the cycle error\n  ---\n  duration_ms: 47.015842\n  type: 'test'\n  ...\n# Subtest: an unknown function yields the name error\nok 13 - an unknown function yields the name error\n  ---\n  duration_ms: 49.331754\n  type: 'test'\n  ...\n# Subtest: a comparison yields a boolean\nok 14 - a comparison yields a boolean\n  ---\n  duration_ms: 54.06031\n  type: 'test'\n  ...\n# Subtest: deps list the cells a formula reads\nok 15 - deps list the cells a formula reads\n  ---\n  duration_ms: 56.063009\n  type: 'test'\n  ...\n# Subtest: an invalid cell address is rejected\nok 16 - an invalid cell address is rejected\n  ---\n  duration_ms: 57.809544\n  type: 'test'\n  ...\n# Subtest: a cell declared twice is rejected\nok 17 - a cell declared twice is rejected\n  ---\n  duration_ms: 49.047999\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 18 - an unknown mode is rejected\n  ---\n  duration_ms: 47.399146\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1045.649683"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "fail",
+                  "evidence": "cases: 149 of 150 passed (weight 273 of 276)\ncase \"corner-028\" differed on stdout; exit 0\nstdout: A1:\nA2:\nA3: A1 A2",
+                  "cases": {
+                    "passed": 149,
+                    "total": 150,
+                    "weightPassed": 273,
+                    "weightTotal": 276,
+                    "failed": [
+                      {
+                        "id": "corner-028",
+                        "weight": 3,
+                        "channels": [
+                          "stdout"
+                        ],
+                        "exitClass": "zero"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "treeHash": "aab97b6e01529efbc6480347aed1370a711a0517115156519b383d4a8ed9e2e6"
+            },
+            {
+              "attempt": 2,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…56.243116\n  type: 'test'\n  ...\n# Subtest: cells are printed by column and then by row\nok 6 - cells are printed by column and then by row\n  ---\n  duration_ms: 51.959805\n  type: 'test'\n  ...\n# Subtest: SUM adds a range\nok 7 - SUM adds a range\n  ---\n  duration_ms: 51.97501\n  type: 'test'\n  ...\n# Subtest: an undeclared cell reads as zero\nok 8 - an undeclared cell reads as zero\n  ---\n  duration_ms: 55.264651\n  type: 'test'\n  ...\n# Subtest: dividing by zero yields the division error\nok 9 - dividing by zero yields the division error\n  ---\n  duration_ms: 51.38158\n  type: 'test'\n  ...\n# Subtest: an error travels through the cells that read it\nok 10 - an error travels through the cells that read it\n  ---\n  duration_ms: 58.636397\n  type: 'test'\n  ...\n# Subtest: text in an arithmetic position yields the value error\nok 11 - text in an arithmetic position yields the value error\n  ---\n  duration_ms: 54.965559\n  type: 'test'\n  ...\n# Subtest: a cell that reaches itself yields the cycle error\nok 12 - a cell that reaches itself yields the cycle error\n  ---\n  duration_ms: 51.41758\n  type: 'test'\n  ...\n# Subtest: an unknown function yields the name error\nok 13 - an unknown function yields the name error\n  ---\n  duration_ms: 54.212635\n  type: 'test'\n  ...\n# Subtest: a comparison yields a boolean\nok 14 - a comparison yields a boolean\n  ---\n  duration_ms: 50.8163\n  type: 'test'\n  ...\n# Subtest: deps list the cells a formula reads\nok 15 - deps list the cells a formula reads\n  ---\n  duration_ms: 65.4249\n  type: 'test'\n  ...\n# Subtest: an invalid cell address is rejected\nok 16 - an invalid cell address is rejected\n  ---\n  duration_ms: 51.569744\n  type: 'test'\n  ...\n# Subtest: a cell declared twice is rejected\nok 17 - a cell declared twice is rejected\n  ---\n  duration_ms: 49.151507\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 18 - an unknown mode is rejected\n  ---\n  duration_ms: 48.982138\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1122.014153"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 150 of 150 passed (weight 276 of 276)",
+                  "cases": {
+                    "passed": 150,
+                    "total": 150,
+                    "weightPassed": 276,
+                    "weightTotal": 276,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "93e802358ab2f9a4c12f42afda04a3d9d34beb4df0ca1f03c596ca49b6461d73"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-fa7b5e27-611e-44b1-bb35-8306fedaa93e",
+              "revision": 1
+            },
+            "goalId": "goal-23c28206-1886-4a13-83b8-d9454ddee3a3",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…56.243116\n  type: 'test'\n  ...\n# Subtest: cells are printed by column and then by row\nok 6 - cells are printed by column and then by row\n  ---\n  duration_ms: 51.959805\n  type: 'test'\n  ...\n# Subtest: SUM adds a range\nok 7 - SUM adds a range\n  ---\n  duration_ms: 51.97501\n  type: 'test'\n  ...\n# Subtest: an undeclared cell reads as zero\nok 8 - an undeclared cell reads as zero\n  ---\n  duration_ms: 55.264651\n  type: 'test'\n  ...\n# Subtest: dividing by zero yields the division error\nok 9 - dividing by zero yields the division error\n  ---\n  duration_ms: 51.38158\n  type: 'test'\n  ...\n# Subtest: an error travels through the cells that read it\nok 10 - an error travels through the cells that read it\n  ---\n  duration_ms: 58.636397\n  type: 'test'\n  ...\n# Subtest: text in an arithmetic position yields the value error\nok 11 - text in an arithmetic position yields the value error\n  ---\n  duration_ms: 54.965559\n  type: 'test'\n  ...\n# Subtest: a cell that reaches itself yields the cycle error\nok 12 - a cell that reaches itself yields the cycle error\n  ---\n  duration_ms: 51.41758\n  type: 'test'\n  ...\n# Subtest: an unknown function yields the name error\nok 13 - an unknown function yields the name error\n  ---\n  duration_ms: 54.212635\n  type: 'test'\n  ...\n# Subtest: a comparison yields a boolean\nok 14 - a comparison yields a boolean\n  ---\n  duration_ms: 50.8163\n  type: 'test'\n  ...\n# Subtest: deps list the cells a formula reads\nok 15 - deps list the cells a formula reads\n  ---\n  duration_ms: 65.4249\n  type: 'test'\n  ...\n# Subtest: an invalid cell address is rejected\nok 16 - an invalid cell address is rejected\n  ---\n  duration_ms: 51.569744\n  type: 'test'\n  ...\n# Subtest: a cell declared twice is rejected\nok 17 - a cell declared twice is rejected\n  ---\n  duration_ms: 49.151507\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 18 - an unknown mode is rejected\n  ---\n  duration_ms: 48.982138\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1122.014153"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 150 of 150 passed (weight 276 of 276)",
+                "cases": {
+                  "passed": 150,
+                  "total": 150,
+                  "weightPassed": 276,
+                  "weightTotal": 276,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791155009352
+          },
+          "usage": {
+            "inputTokens": 18,
+            "outputTokens": 18694,
+            "cacheReadTokens": 148658,
+            "cacheWriteTokens": 26527
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:uri-resolve",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:uri-resolve",
+          "sessionId": "environment-54a84b83-df7e-480c-ac37-87bb17a3bb29",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:uri-resolve",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "62c0f579c282c246a2dbd7f4ecb2380c70084d5b86efd88423a088c07f69b540",
+            "checksSha256": "b809da30548b01643a701e824a775eb80de7bb5207b80bc7c50dbb555e68e93f",
+            "fixtureSha256": "6bc8f88979a7a43e9a9d0a39f48c792c4818b1b45bd035a2c28204f110d32f79",
+            "contentSha256": "abf7d9c8bae157bfc339a95c36a3b60b13196caa272a946be1dbe4683dfb3b52",
+            "repetition": 0,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…7.675403\n  type: 'test'\n  ...\n# Subtest: a query-only reference keeps the base path\nok 5 - a query-only reference keeps the base path\n  ---\n  duration_ms: 52.176516\n  type: 'test'\n  ...\n# Subtest: a fragment-only reference keeps the base path and query\nok 6 - a fragment-only reference keeps the base path and query\n  ---\n  duration_ms: 46.72793\n  type: 'test'\n  ...\n# Subtest: resolves every line of the input in order\nok 7 - resolves every line of the input in order\n  ---\n  duration_ms: 46.475081\n  type: 'test'\n  ...\n# Subtest: normalize lowercases the scheme and the host\nok 8 - normalize lowercases the scheme and the host\n  ---\n  duration_ms: 49.262055\n  type: 'test'\n  ...\n# Subtest: normalize removes dot segments from the path\nok 9 - normalize removes dot segments from the path\n  ---\n  duration_ms: 50.26528\n  type: 'test'\n  ...\n# Subtest: normalize drops the default port of the scheme\nok 10 - normalize drops the default port of the scheme\n  ---\n  duration_ms: 47.33702\n  type: 'test'\n  ...\n# Subtest: normalize keeps a port that is not the default\nok 11 - normalize keeps a port that is not the default\n  ---\n  duration_ms: 46.880391\n  type: 'test'\n  ...\n# Subtest: normalize decodes a percent-encoded unreserved character\nok 12 - normalize decodes a percent-encoded unreserved character\n  ---\n  duration_ms: 44.609221\n  type: 'test'\n  ...\n# Subtest: normalize uppercases the hex digits it keeps\nok 13 - normalize uppercases the hex digits it keeps\n  ---\n  duration_ms: 47.677659\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 14 - an unknown mode is rejected\n  ---\n  duration_ms: 44.453609\n  type: 'test'\n  ...\n# Subtest: a base without a scheme is rejected\nok 15 - a base without a scheme is rejected\n  ---\n  duration_ms: 43.125083\n  type: 'test'\n  ...\n# Subtest: empty input prints nothing and succeeds\nok 16 - empty input prints nothing and succeeds\n  ---\n  duration_ms: 42.16264\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 855.01002"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 150 of 150 passed (weight 342 of 342)",
+                  "cases": {
+                    "passed": 150,
+                    "total": 150,
+                    "weightPassed": 342,
+                    "weightTotal": 342,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "4d8b1fce3921af593915008aa19ec57be103cd15ee99c080f3feee0fffd5fb39"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-6fb167ff-cea9-4b0f-b36f-d2a44860a4c3",
+              "revision": 1
+            },
+            "goalId": "goal-2db4d5c8-99e6-4c09-9f09-6df931dabecb",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…7.675403\n  type: 'test'\n  ...\n# Subtest: a query-only reference keeps the base path\nok 5 - a query-only reference keeps the base path\n  ---\n  duration_ms: 52.176516\n  type: 'test'\n  ...\n# Subtest: a fragment-only reference keeps the base path and query\nok 6 - a fragment-only reference keeps the base path and query\n  ---\n  duration_ms: 46.72793\n  type: 'test'\n  ...\n# Subtest: resolves every line of the input in order\nok 7 - resolves every line of the input in order\n  ---\n  duration_ms: 46.475081\n  type: 'test'\n  ...\n# Subtest: normalize lowercases the scheme and the host\nok 8 - normalize lowercases the scheme and the host\n  ---\n  duration_ms: 49.262055\n  type: 'test'\n  ...\n# Subtest: normalize removes dot segments from the path\nok 9 - normalize removes dot segments from the path\n  ---\n  duration_ms: 50.26528\n  type: 'test'\n  ...\n# Subtest: normalize drops the default port of the scheme\nok 10 - normalize drops the default port of the scheme\n  ---\n  duration_ms: 47.33702\n  type: 'test'\n  ...\n# Subtest: normalize keeps a port that is not the default\nok 11 - normalize keeps a port that is not the default\n  ---\n  duration_ms: 46.880391\n  type: 'test'\n  ...\n# Subtest: normalize decodes a percent-encoded unreserved character\nok 12 - normalize decodes a percent-encoded unreserved character\n  ---\n  duration_ms: 44.609221\n  type: 'test'\n  ...\n# Subtest: normalize uppercases the hex digits it keeps\nok 13 - normalize uppercases the hex digits it keeps\n  ---\n  duration_ms: 47.677659\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 14 - an unknown mode is rejected\n  ---\n  duration_ms: 44.453609\n  type: 'test'\n  ...\n# Subtest: a base without a scheme is rejected\nok 15 - a base without a scheme is rejected\n  ---\n  duration_ms: 43.125083\n  type: 'test'\n  ...\n# Subtest: empty input prints nothing and succeeds\nok 16 - empty input prints nothing and succeeds\n  ---\n  duration_ms: 42.16264\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 855.01002"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 150 of 150 passed (weight 342 of 342)",
+                "cases": {
+                  "passed": 150,
+                  "total": 150,
+                  "weightPassed": 342,
+                  "weightTotal": 342,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791154989921
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 4450,
+            "cacheReadTokens": 28415,
+            "cacheWriteTokens": 10121
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:uri-resolve",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:uri-resolve",
+          "sessionId": "environment-6fea5789-cc2d-4d7d-824f-ee101aff24ba",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:uri-resolve",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "62c0f579c282c246a2dbd7f4ecb2380c70084d5b86efd88423a088c07f69b540",
+            "checksSha256": "b809da30548b01643a701e824a775eb80de7bb5207b80bc7c50dbb555e68e93f",
+            "fixtureSha256": "6bc8f88979a7a43e9a9d0a39f48c792c4818b1b45bd035a2c28204f110d32f79",
+            "contentSha256": "abf7d9c8bae157bfc339a95c36a3b60b13196caa272a946be1dbe4683dfb3b52",
+            "repetition": 1,
+            "group": "fleet-fd7ad7e3-a8ed-4b0b-89c7-4ebecc0ababd",
+            "district": "bench-h3",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…2926\n  type: 'test'\n  ...\n# Subtest: a query-only reference keeps the base path\nok 5 - a query-only reference keeps the base path\n  ---\n  duration_ms: 47.503083\n  type: 'test'\n  ...\n# Subtest: a fragment-only reference keeps the base path and query\nok 6 - a fragment-only reference keeps the base path and query\n  ---\n  duration_ms: 48.92215\n  type: 'test'\n  ...\n# Subtest: resolves every line of the input in order\nok 7 - resolves every line of the input in order\n  ---\n  duration_ms: 48.077572\n  type: 'test'\n  ...\n# Subtest: normalize lowercases the scheme and the host\nok 8 - normalize lowercases the scheme and the host\n  ---\n  duration_ms: 52.352813\n  type: 'test'\n  ...\n# Subtest: normalize removes dot segments from the path\nok 9 - normalize removes dot segments from the path\n  ---\n  duration_ms: 49.784854\n  type: 'test'\n  ...\n# Subtest: normalize drops the default port of the scheme\nok 10 - normalize drops the default port of the scheme\n  ---\n  duration_ms: 47.362024\n  type: 'test'\n  ...\n# Subtest: normalize keeps a port that is not the default\nok 11 - normalize keeps a port that is not the default\n  ---\n  duration_ms: 47.841302\n  type: 'test'\n  ...\n# Subtest: normalize decodes a percent-encoded unreserved character\nok 12 - normalize decodes a percent-encoded unreserved character\n  ---\n  duration_ms: 48.225383\n  type: 'test'\n  ...\n# Subtest: normalize uppercases the hex digits it keeps\nok 13 - normalize uppercases the hex digits it keeps\n  ---\n  duration_ms: 49.418939\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 14 - an unknown mode is rejected\n  ---\n  duration_ms: 46.523173\n  type: 'test'\n  ...\n# Subtest: a base without a scheme is rejected\nok 15 - a base without a scheme is rejected\n  ---\n  duration_ms: 47.626878\n  type: 'test'\n  ...\n# Subtest: empty input prints nothing and succeeds\nok 16 - empty input prints nothing and succeeds\n  ---\n  duration_ms: 48.408667\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 892.099258"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 150 of 150 passed (weight 342 of 342)",
+                  "cases": {
+                    "passed": 150,
+                    "total": 150,
+                    "weightPassed": 342,
+                    "weightTotal": 342,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "88275d952c414bea7e3870f3e8b68b52bf4406e7221a1eee20a0498ecc332cd8"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-7f126c53-724b-4151-be6c-87767876cf27",
+              "revision": 1
+            },
+            "goalId": "goal-ed188c8d-9aa1-4393-8919-c7cdf51b43ad",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…2926\n  type: 'test'\n  ...\n# Subtest: a query-only reference keeps the base path\nok 5 - a query-only reference keeps the base path\n  ---\n  duration_ms: 47.503083\n  type: 'test'\n  ...\n# Subtest: a fragment-only reference keeps the base path and query\nok 6 - a fragment-only reference keeps the base path and query\n  ---\n  duration_ms: 48.92215\n  type: 'test'\n  ...\n# Subtest: resolves every line of the input in order\nok 7 - resolves every line of the input in order\n  ---\n  duration_ms: 48.077572\n  type: 'test'\n  ...\n# Subtest: normalize lowercases the scheme and the host\nok 8 - normalize lowercases the scheme and the host\n  ---\n  duration_ms: 52.352813\n  type: 'test'\n  ...\n# Subtest: normalize removes dot segments from the path\nok 9 - normalize removes dot segments from the path\n  ---\n  duration_ms: 49.784854\n  type: 'test'\n  ...\n# Subtest: normalize drops the default port of the scheme\nok 10 - normalize drops the default port of the scheme\n  ---\n  duration_ms: 47.362024\n  type: 'test'\n  ...\n# Subtest: normalize keeps a port that is not the default\nok 11 - normalize keeps a port that is not the default\n  ---\n  duration_ms: 47.841302\n  type: 'test'\n  ...\n# Subtest: normalize decodes a percent-encoded unreserved character\nok 12 - normalize decodes a percent-encoded unreserved character\n  ---\n  duration_ms: 48.225383\n  type: 'test'\n  ...\n# Subtest: normalize uppercases the hex digits it keeps\nok 13 - normalize uppercases the hex digits it keeps\n  ---\n  duration_ms: 49.418939\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 14 - an unknown mode is rejected\n  ---\n  duration_ms: 46.523173\n  type: 'test'\n  ...\n# Subtest: a base without a scheme is rejected\nok 15 - a base without a scheme is rejected\n  ---\n  duration_ms: 47.626878\n  type: 'test'\n  ...\n# Subtest: empty input prints nothing and succeeds\nok 16 - empty input prints nothing and succeeds\n  ---\n  duration_ms: 48.408667\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 892.099258"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 150 of 150 passed (weight 342 of 342)",
+                "cases": {
+                  "passed": 150,
+                  "total": 150,
+                  "weightPassed": 342,
+                  "weightTotal": 342,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1791155043345
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 4404,
+            "cacheReadTokens": 28478,
+            "cacheWriteTokens": 10107
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      }
+    ],
+    "leaderboard": [
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:build-schedule",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 16,
+        "outputTokens": 7179,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:conf-canon",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 26,
+        "outputTokens": 30069,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:diff3-merge",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 16,
+        "outputTokens": 6569,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:lex-states",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 16,
+        "outputTokens": 10287,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:ranked-choice",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 16,
+        "outputTokens": 5630,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:rate-limit-sim",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 16,
+        "outputTokens": 7206,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:sheet-eval",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1.5,
+        "inputTokens": 30,
+        "outputTokens": 30171,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:uri-resolve",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 16,
+        "outputTokens": 8854,
+        "isolation": "none",
+        "implementer": "route"
+      }
+    ],
+    "spend": {
+      "inputTokens": 152,
+      "outputTokens": 105965
+    },
+    "routeLimits": []
+  },
+  "rows": [
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:build-schedule",
+      "environmentKind": "bench",
+      "district": "bench-h3",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:conf-canon",
+      "environmentKind": "bench",
+      "district": "bench-h3",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:diff3-merge",
+      "environmentKind": "bench",
+      "district": "bench-h3",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:lex-states",
+      "environmentKind": "bench",
+      "district": "bench-h3",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:ranked-choice",
+      "environmentKind": "bench",
+      "district": "bench-h3",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:rate-limit-sim",
+      "environmentKind": "bench",
+      "district": "bench-h3",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:sheet-eval",
+      "environmentKind": "bench",
+      "district": "bench-h3",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:uri-resolve",
+      "environmentKind": "bench",
+      "district": "bench-h3",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    }
+  ],
+  "facts": {
+    "sessions": 16,
+    "exported": 16,
+    "skipped": []
+  },
+  "exported": {
+    "manifest": {
+      "version": "dsh-export-manifest/2",
+      "exportedAt": 1791155045015,
+      "purpose": "evaluation",
+      "profile": "village-v1",
+      "profileSha256": "b2c86201b5feac7e63e8260793faffbbf09a2d4a61c48483edd4ee4150258a7b",
+      "records": 16,
+      "withheld": {
+        "heldOut": 0,
+        "districts": 0,
+        "terms": 0
+      },
+      "ruleHits": {
+        "shipped:private-key": 0,
+        "shipped:jwt": 0,
+        "shipped:aws-access-key": 0,
+        "shipped:aws-secret-key": 0,
+        "shipped:github-token": 0,
+        "shipped:slack-token": 0,
+        "shipped:email": 3,
+        "shipped:bearer-token": 0,
+        "shipped:api-key": 0,
+        "shipped:ipv4": 0,
+        "shipped:e164-phone": 0
+      },
+      "ruleRecords": {
+        "shipped:private-key": 0,
+        "shipped:jwt": 0,
+        "shipped:aws-access-key": 0,
+        "shipped:aws-secret-key": 0,
+        "shipped:github-token": 0,
+        "shipped:slack-token": 0,
+        "shipped:email": 2,
+        "shipped:bearer-token": 0,
+        "shipped:api-key": 0,
+        "shipped:ipv4": 0,
+        "shipped:e164-phone": 0
+      },
+      "recordsSha256": "e9100024b835486be8d820b11bd817eaf38a6b4601b0258b5d370e6e999eb24d",
+      "trajectoryFormat": "dsh-trajectory/3"
+    },
+    "sessions": 16,
+    "exported": 16,
+    "rewarded": 16,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheldByDistrict": 0,
+    "withheldByTerms": 0,
+    "skipped": []
+  }
+}
